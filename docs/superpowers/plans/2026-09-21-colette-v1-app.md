@@ -6847,8 +6847,7 @@ void main() {
 
   test('setCordFallenAt désactive le soin du nombril', () async {
     when(() => repo.saveProfile(any(), any())).thenAnswer((_) async => right(null));
-    await container.read(babyProfileProvider.future);
-    final ok = await controller().setCordFallenAt(DateTime(2026, 9, 12));
+    final ok = await controller().setCordFallenAt(profile, DateTime(2026, 9, 12));
     expect(ok, isTrue);
     final saved = verify(() => repo.saveProfile('ABCDEFGH', captureAny())).captured.single as BabyProfile;
     expect(saved.cordFallenAt, DateTime(2026, 9, 12));
@@ -6857,8 +6856,7 @@ void main() {
 
   test('updateCareSettings enregistre et synchronise', () async {
     when(() => repo.saveProfile(any(), any())).thenAnswer((_) async => right(null));
-    await container.read(babyProfileProvider.future);
-    final ok = await controller().updateCareSettings(const CareSettings(feedsPerDay: 7));
+    final ok = await controller().updateCareSettings(profile, const CareSettings(feedsPerDay: 7));
     expect(ok, isTrue);
     final saved = verify(() => repo.saveProfile('ABCDEFGH', captureAny())).captured.single as BabyProfile;
     expect(saved.careSettings.feedsPerDay, 7);
@@ -6943,12 +6941,14 @@ class BabySettingsController extends _$BabySettingsController {
   Future<bool> saveProfile(BabyProfile profile) =>
       _run((code) => ref.read(babyRepositoryProvider).saveProfile(code, profile));
 
-  Future<bool> updateCareSettings(CareSettings settings) =>
-      _withProfile((profile) => profile.copyWith(careSettings: settings));
+  /// Le profil est passé par l'appelant : jamais relu depuis un provider
+  /// autoDispose, qui pourrait être détruit pendant l'attente.
+  Future<bool> updateCareSettings(BabyProfile profile, CareSettings settings) =>
+      saveProfile(profile.copyWith(careSettings: settings));
 
   /// Renseigner la date désactive le soin du nombril ; l'effacer le réactive.
-  Future<bool> setCordFallenAt(DateTime? date) => _withProfile(
-    (profile) => profile.copyWith(
+  Future<bool> setCordFallenAt(BabyProfile profile, DateTime? date) => saveProfile(
+    profile.copyWith(
       cordFallenAt: date,
       careSettings: profile.careSettings.copyWith(umbilicalCareEnabled: date == null),
     ),
@@ -6968,12 +6968,6 @@ class BabySettingsController extends _$BabySettingsController {
 
   Future<bool> deleteWeight(String weightId) =>
       _run((code) => ref.read(babyRepositoryProvider).deleteWeight(code, weightId));
-
-  Future<bool> _withProfile(BabyProfile Function(BabyProfile) update) async {
-    final profile = await ref.read(babyProfileProvider.future);
-    if (profile == null) return false;
-    return saveProfile(update(profile));
-  }
 
   Future<bool> _run(Future<Either<Failure, void>> Function(String code) action) async {
     final code = ref.read(currentHouseholdCodeProvider);
@@ -7063,7 +7057,9 @@ class BabySection extends ConsumerWidget {
       maximum: now,
     );
     if (picked == null) return;
-    await ref.read(babySettingsControllerProvider.notifier).setCordFallenAt(picked.dateOnly);
+    await ref
+        .read(babySettingsControllerProvider.notifier)
+        .setCordFallenAt(profile, picked.dateOnly);
   }
 
   @override
@@ -7102,8 +7098,9 @@ class BabySection extends ConsumerWidget {
               ),
               if (profile.cordFallenAt != null)
                 IconButton(
-                  onPressed: () =>
-                      ref.read(babySettingsControllerProvider.notifier).setCordFallenAt(null),
+                  onPressed: () => ref
+                      .read(babySettingsControllerProvider.notifier)
+                      .setCordFallenAt(profile, null),
                   icon: const Icon(Icons.close),
                 ),
             ],
@@ -7272,6 +7269,7 @@ class WeightsSection extends ConsumerWidget {
 ```dart
 import 'package:colette/core/theme/design_tokens.dart';
 import 'package:colette/core/theme/text_styles.dart';
+import 'package:colette/features/baby/domain/entities/baby_profile.dart';
 import 'package:colette/features/baby/domain/entities/care_settings.dart';
 import 'package:colette/features/baby/presentation/providers/baby_settings_controller.dart';
 import 'package:colette/l10n/generated/app_localizations.dart';
@@ -7281,16 +7279,41 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 /// Fréquences des soins attendus et nombre de biberons par jour.
-class CareSettingsSection extends ConsumerWidget {
-  const CareSettingsSection({super.key, required this.settings});
+/// Tient une copie locale optimiste : des taps rapides s'enchaînent sans attendre Firestore.
+class CareSettingsSection extends ConsumerStatefulWidget {
+  const CareSettingsSection({super.key, required this.profile});
 
-  final CareSettings settings;
+  final BabyProfile profile;
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  ConsumerState<CareSettingsSection> createState() => _CareSettingsSectionState();
+}
+
+class _CareSettingsSectionState extends ConsumerState<CareSettingsSection> {
+  late CareSettings _settings = widget.profile.careSettings;
+
+  @override
+  void didUpdateWidget(covariant CareSettingsSection oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    final incoming = widget.profile.careSettings;
+    final writing = ref.read(babySettingsControllerProvider).isLoading;
+    if (incoming != oldWidget.profile.careSettings && !writing) {
+      _settings = incoming;
+    }
+  }
+
+  void _update(CareSettings next) {
+    setState(() => _settings = next);
+    ref.read(babySettingsControllerProvider.notifier).updateCareSettings(widget.profile, next);
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    // Garde le contrôleur autoDispose vivant pendant l'await de updateCareSettings.
+    ref.watch(babySettingsControllerProvider);
     final s = S.of(context);
-    void update(CareSettings next) =>
-        ref.read(babySettingsControllerProvider.notifier).updateCareSettings(next);
+    final settings = _settings;
+    void update(CareSettings next) => _update(next);
     return ColetteCardSurface(
       padding: AppSpacing.sm.all,
       child: Column(
@@ -7482,7 +7505,7 @@ class SettingsPage extends ConsumerWidget {
             SectionHeader(title: s.settingsWeightsSection),
             const WeightsSection(),
             SectionHeader(title: s.settingsCareSection),
-            CareSettingsSection(settings: profile.careSettings),
+            CareSettingsSection(profile: profile),
           ] else
             const Padding(
               padding: EdgeInsets.zero,
@@ -7499,6 +7522,8 @@ class SettingsPage extends ConsumerWidget {
   }
 }
 ```
+
+**Note post-revue (appliquée dans le code) :** `test/features/baby/presentation/care_settings_section_test.dart` vérifie que deux taps rapides sur un stepper s'additionnent ; `settings_page_test.dart` fait un `scrollUntilVisible` avant de chercher le code foyer.
 
 - [ ] **Step 6: Générer, analyser, tester**
 
