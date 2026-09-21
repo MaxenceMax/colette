@@ -13,6 +13,6 @@ class DefaultFirebaseOptions {
     messagingSenderId: '000000000000',
     projectId: 'colette-placeholder',
     storageBucket: 'colette-placeholder.appspot.com',
-    iosBundleId: 'com.example.colette',
+    iosBundleId: 'fr.montet.colette',
   );
 }
