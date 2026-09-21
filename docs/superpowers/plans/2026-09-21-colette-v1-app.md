@@ -390,7 +390,7 @@ Clean Architecture feature-first : `lib/features/{name}/domain|data|presentation
 
 - Riverpod 3 en codegen : `@riverpod` sur fonctions et classes, `part 'x.g.dart'`. Jamais de provider écrit à la main.
 - Actions asynchrones : `class XController extends _$XController { @override FutureOr<void> build() {} }`, `state = const AsyncLoading()` puis `AsyncData` ou `AsyncError(failure, stackTrace)`.
-- `ref.watch` dans `build`, `ref.read` dans les callbacks. Jamais `ref.read` dans un `build`.
+- `ref.watch` dans `build`, `ref.read` dans les callbacks. Jamais `ref.read` dans un `build`. Un contrôleur `autoDispose` appelé via `ref.read(xProvider.notifier)` depuis un callback doit être `ref.watch`é (ou `ref.listen`é) dans le `build` du widget appelant, sinon il est détruit pendant l'`await`.
 - UI : `switch` sur `AsyncValue` (`AsyncData(:final value)`, `AsyncLoading()`, `AsyncError(:final error)`). Jamais `.when`.
 - Interdits : Bloc, Provider, GetIt, `setState` pour de la logique métier.
 - Après toute modification d'un fichier annoté : `dart run build_runner build -d`.
@@ -5303,10 +5303,12 @@ class TimelinePage extends ConsumerWidget {
         onPressed: () => showEventFormSheet(context),
         child: const Icon(Icons.add),
       ),
+      // `hasValue` plutôt que `AsyncData` : quand la limite grandit, le provider
+      // repasse en AsyncLoading avec la valeur précédente ; la liste doit rester montée.
       body: switch (events) {
-        AsyncData(:final value) when value.isEmpty =>
+        AsyncValue(hasValue: true, value: final value) when value.isEmpty =>
           EmptyState(icon: Icons.view_timeline_outlined, message: s.journalEmpty),
-        AsyncData(:final value) => _TimelineList(events: value),
+        AsyncValue(hasValue: true, value: final value) => _TimelineList(events: value),
         AsyncError() => EmptyState(icon: Icons.error_outline, message: s.errorUnknown),
         _ => const Center(child: CircularProgressIndicator()),
       },
@@ -5349,11 +5351,17 @@ class _TimelineList extends ConsumerWidget {
       ),
     );
     if (confirmed != true) return false;
-    return ref.read(eventFormControllerProvider.notifier).delete(event.id);
+    final deleted = await ref.read(eventFormControllerProvider.notifier).delete(event.id);
+    if (!deleted && context.mounted) {
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(s.errorUnknown)));
+    }
+    return deleted;
   }
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    // Garde le contrôleur autoDispose vivant pendant l'await d'une suppression.
+    ref.watch(eventFormControllerProvider);
     final s = S.of(context);
     final now = ref.watch(clockProvider).now();
     final groups = groupEventsByDay(events);
@@ -5374,6 +5382,7 @@ class _TimelineList extends ConsumerWidget {
                   itemBuilder: (context, index) {
                     final event = group.events[index];
                     return EventTile(
+                      key: ValueKey(event.id),
                       event: event,
                       onTap: () => showEventFormSheet(context, initial: event),
                       onConfirmDelete: () => _confirmDelete(context, ref, event),
@@ -5396,6 +5405,8 @@ class _TimelineList extends ConsumerWidget {
   }
 }
 ```
+
+**Note post-revue (appliquée dans le code) :** `timeline_page_test.dart` contient aussi un test « charger plus conserve la liste affichée pendant le rechargement » et un test « glisser puis confirmer supprime l'événement ».
 
 - [ ] **Step 7: Analyser et tester**
 
@@ -6199,6 +6210,8 @@ et, dans la liste `overrides` de chaque test, la ligne :
         feedingPlanSyncProvider.overrideWithValue(const NoopFeedingPlanSync()),
 ```
 
+Même override `feedingPlanSyncProvider` dans le test « glisser puis confirmer supprime l'événement » de `test/features/events/presentation/timeline_page_test.dart`, puisque `delete` déclenche désormais la synchronisation.
+
 Dans `test/app/app_router_test.dart`, le dashboard réel dépend maintenant du ticker minute : ajouter l'import `package:colette/core/clock/now_providers.dart` et, dans `overrides` de `pumpColetteApp`, la ligne :
 
 ```dart
@@ -6545,6 +6558,8 @@ class TodoSection extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    // Garde le contrôleur autoDispose vivant pendant l'await de _quickAdd / annuler.
+    ref.watch(eventFormControllerProvider);
     final s = S.of(context);
     final tasks = ref.watch(dailyCareTasksProvider);
     final pending = tasks.where((t) => !t.isDone).toList();
@@ -7756,6 +7771,8 @@ class NotificationsSection extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    // Garde le contrôleur autoDispose vivant pendant l'await de save.
+    ref.watch(notificationSettingsControllerProvider);
     final s = S.of(context);
     final device = ref.watch(currentDeviceProvider).value;
     if (device == null) return const SizedBox.shrink();

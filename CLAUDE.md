@@ -23,7 +23,7 @@ Clean Architecture feature-first : `lib/features/{name}/domain|data|presentation
 
 - Riverpod 3 en codegen : `@riverpod` sur fonctions et classes, `part 'x.g.dart'`. Jamais de provider écrit à la main.
 - Actions asynchrones : `class XController extends _$XController { @override FutureOr<void> build() {} }`, `state = const AsyncLoading()` puis `AsyncData` ou `AsyncError(failure, stackTrace)`.
-- `ref.watch` dans `build`, `ref.read` dans les callbacks. Jamais `ref.read` dans un `build`.
+- `ref.watch` dans `build`, `ref.read` dans les callbacks. Jamais `ref.read` dans un `build`. Un contrôleur `autoDispose` appelé via `ref.read(xProvider.notifier)` depuis un callback doit être `ref.watch`é (ou `ref.listen`é) dans le `build` du widget appelant, sinon il est détruit pendant l'`await`.
 - UI : `switch` sur `AsyncValue` (`AsyncData(:final value)`, `AsyncLoading()`, `AsyncError(:final error)`). Jamais `.when`.
 - Interdits : Bloc, Provider, GetIt, `setState` pour de la logique métier.
 - Après toute modification d'un fichier annoté : `dart run build_runner build -d`.
