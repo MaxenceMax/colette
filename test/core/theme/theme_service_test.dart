@@ -44,4 +44,10 @@ void main() {
     final thumb = service.light().switchTheme.thumbColor!;
     expect(thumb.resolve({WidgetState.selected}), isNot(thumb.resolve({})));
   });
+
+  test('les chips Material suivent la palette', () {
+    final chips = service.light().chipTheme;
+    expect(chips.selectedColor, AppColors.primaryContainer.light);
+    expect(chips.backgroundColor, AppColors.surface.light);
+  });
 }

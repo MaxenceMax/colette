@@ -85,6 +85,7 @@ class _EventFormSheetState extends ConsumerState<EventFormSheet> {
       context,
       initial: isStart ? _draft.startAt : _draft.endAt,
       mode: CupertinoDatePickerMode.dateAndTime,
+      minimum: isStart ? null : _draft.startAt,
     );
     if (picked == null) return;
     setState(() {

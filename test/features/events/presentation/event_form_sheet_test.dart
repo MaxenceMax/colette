@@ -1,5 +1,7 @@
 import 'package:colette/core/clock/app_clock.dart';
 import 'package:colette/core/ids/id_generator.dart';
+import 'package:colette/features/baby/domain/entities/baby_profile.dart';
+import 'package:colette/features/baby/domain/entities/care_settings.dart';
 import 'package:colette/features/baby/presentation/providers/baby_providers.dart';
 import 'package:colette/features/events/domain/entities/care_event.dart';
 import 'package:colette/features/events/domain/repositories/events_repository.dart';
@@ -28,9 +30,13 @@ void main() {
     when(() => repo.save(any(), any())).thenAnswer((_) async => right(null));
   });
 
-  Future<void> pumpSheet(WidgetTester tester) => pumpApp(
+  Future<void> pumpSheet(
+    WidgetTester tester, {
+    CareEvent? initial,
+    BabyProfile? profile,
+  }) => pumpApp(
     tester,
-    const Scaffold(body: EventFormSheet()),
+    Scaffold(body: EventFormSheet(initial: initial)),
     overrides: [
       eventsRepositoryProvider.overrideWithValue(repo),
       clockProvider.overrideWithValue(FixedClock(now)),
@@ -41,7 +47,7 @@ void main() {
           deviceId: 'dev-1',
         ),
       ),
-      babyProfileProvider.overrideWith((ref) => Stream.value(null)),
+      babyProfileProvider.overrideWith((ref) => Stream.value(profile)),
     ],
   );
 
@@ -81,5 +87,37 @@ void main() {
     await tester.pump();
     expect(find.text('120 ml'), findsWidgets);
     expect(saveButton(tester).onPressed, isNotNull);
+  });
+
+  testWidgets('en édition, le titre change et l\'identifiant est conservé', (
+    tester,
+  ) async {
+    final initial = makeEvent(
+      id: 'e-existing',
+      startAt: now.subtract(const Duration(hours: 2)),
+      pee: true,
+    );
+    await pumpSheet(tester, initial: initial);
+    expect(find.text('Modifier l\'événement'), findsOneWidget);
+    await tester.tap(find.widgetWithText(FilledButton, 'Enregistrer'));
+    await tester.pumpAndSettle();
+    final saved =
+        verify(() => repo.save('ABCDEFGH', captureAny())).captured.single
+            as CareEvent;
+    expect(saved.id, 'e-existing');
+    expect(saved.createdAt, initial.createdAt);
+  });
+
+  testWidgets('la puce nombril est masquée quand le soin est désactivé', (
+    tester,
+  ) async {
+    final profile = BabyProfile(
+      name: 'Colette',
+      birthDate: DateTime(2026, 9, 1),
+      careSettings: const CareSettings(umbilicalCareEnabled: false),
+    );
+    await pumpSheet(tester, profile: profile);
+    expect(find.text('Soin du nombril'), findsNothing);
+    expect(find.text('Soin des yeux'), findsOneWidget);
   });
 }

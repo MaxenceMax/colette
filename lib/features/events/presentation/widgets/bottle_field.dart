@@ -49,7 +49,7 @@ class BottleField extends StatelessWidget {
         ),
         if (ml != null) ...[
           IntStepperRow(
-            label: s.careBottle,
+            label: s.fieldQuantity,
             value: ml,
             min: ValidateCareEvent.minBottleMl,
             max: ValidateCareEvent.maxBottleMl,

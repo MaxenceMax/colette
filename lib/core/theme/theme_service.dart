@@ -127,6 +127,23 @@ class ThemeService {
         shape: RoundedRectangleBorder(borderRadius: AppRadius.lg.circular),
       ),
       dividerTheme: DividerThemeData(color: c(AppColors.border), thickness: 1),
+      chipTheme: ChipThemeData(
+        backgroundColor: c(AppColors.surface),
+        selectedColor: c(AppColors.primaryContainer),
+        side: BorderSide(color: c(AppColors.border)),
+        shape: RoundedRectangleBorder(borderRadius: AppRadius.round.circular),
+        labelStyle: ColetteTextStyle.bodyMedium.textStyle.copyWith(
+          color: c(AppColors.onSurface),
+        ),
+        secondaryLabelStyle: ColetteTextStyle.bodyMedium.textStyle.copyWith(
+          color: c(AppColors.onSurface),
+        ),
+        checkmarkColor: c(AppColors.primary),
+        padding: AppSpacing.symmetric(
+          horizontal: AppSpacing.sm,
+          vertical: AppSpacing.xs,
+        ),
+      ),
       snackBarTheme: const SnackBarThemeData(
         behavior: SnackBarBehavior.floating,
       ),
