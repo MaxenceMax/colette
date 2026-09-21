@@ -6,7 +6,7 @@
 
 **Architecture:** Clean Architecture feature-first (`domain` / `data` / `presentation`) avec Riverpod 3 en codegen, entités `freezed`, erreurs `Either<Failure, T>` (fpdart), Firestore comme unique source de données partagée. Design system par tokens (`AppColors`, `AppSpacing`, `ColetteTextStyle`) : aucune valeur de style en dur dans les pages.
 
-**Tech Stack:** Flutter 3.47 / Dart 3.13, flutter_riverpod 3.4, riverpod_generator 4, freezed 4, go_router 18, cloud_firestore 6, firebase_auth 6, firebase_messaging 16, shared_preferences, google_fonts (Fraunces + DM Sans), fpdart, mocktail, fake_cloud_firestore.
+**Tech Stack:** Flutter 3.47 / Dart 3.13, flutter_riverpod 3.4, riverpod_generator 4, riverpod_lint 3.1 (plugin analyzer natif, sans custom_lint), freezed 4, go_router 18, cloud_firestore 6, firebase_auth 6, firebase_messaging 16, shared_preferences, google_fonts (Fraunces + DM Sans), fpdart, mocktail, fake_cloud_firestore.
 
 **Spec de référence :** `docs/superpowers/specs/2026-09-21-colette-v1-design.md`. Deux précisions par rapport à la spec, décidées en écrivant ce plan :
 - Les DTOs sont des mappers manuels (`toMap` / `fromMap`) plutôt que `json_serializable`, parce que Firestore manipule des `Timestamp` et que la conversion manuelle est plus courte.
@@ -143,8 +143,6 @@ dev_dependencies:
   flutter_lints: ^6.0.0
   build_runner: ^2.16.1
   riverpod_generator: ^4.0.9
-  riverpod_lint: ^3.1.9
-  custom_lint: ^0.8.1
   freezed: ^4.0.2
   mocktail: ^1.0.5
   fake_cloud_firestore: ^4.3.0
@@ -159,9 +157,10 @@ flutter:
 ```yaml
 include: package:flutter_lints/flutter.yaml
 
+plugins:
+  riverpod_lint: ^3.1.9
+
 analyzer:
-  plugins:
-    - custom_lint
   exclude:
     - "**/*.g.dart"
     - "**/*.freezed.dart"
@@ -424,7 +423,7 @@ Clean Architecture feature-first : `lib/features/{name}/domain|data|presentation
 - TDD : test rouge, implémentation minimale, test vert, commit.
 - Domaine : tests purs sans Flutter. Data : `fake_cloud_firestore`. Présentation : `pumpApp` (`test/helpers/pump_app.dart`) avec `overrides` et `mocktail`.
 - Horloge : toujours `clockProvider` (`FixedClock` en test). Identifiants : `idGeneratorProvider`.
-- Avant de déclarer une tâche terminée : `dart format lib test`, puis `flutter analyze`, `dart run custom_lint`, `flutter test` sans erreur.
+- Avant de déclarer une tâche terminée : `dart format lib test`, puis `flutter analyze` (qui exécute aussi les règles riverpod_lint via le plugin déclaré dans `analysis_options.yaml`) et `flutter test` sans erreur.
 
 ## Syntaxe Dart
 
@@ -7892,7 +7891,6 @@ firebase deploy --only functions
 ```bash
 dart format lib test
 flutter analyze
-dart run custom_lint
 flutter test
 ```
 
@@ -7904,8 +7902,8 @@ flutter test
 
 - [ ] **Step 2: Vérification complète**
 
-Run: `dart format lib test && flutter analyze && dart run custom_lint && flutter test`
-Expected: `No issues found!`, aucun lint Riverpod, `All tests passed!`. Corriger tout lint signalé par `custom_lint` avant de continuer (les règles `riverpod_lint` les plus courantes : `ref.read` dans un `build`, provider non généré).
+Run: `dart format lib test && flutter analyze && flutter test`
+Expected: `No issues found!` (les règles `riverpod_lint` tournent dans `flutter analyze` via le plugin natif), `All tests passed!`. Corriger tout lint Riverpod signalé avant de continuer (les plus courants : `ref.read` dans un `build`, provider non généré).
 
 - [ ] **Step 3: Vérifier le build iOS (sans lancer)**
 
