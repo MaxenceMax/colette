@@ -31,6 +31,8 @@ class PrefsHouseholdLocalStore implements HouseholdLocalStore {
   @override
   Future<void> clearHouseholdCode() => _prefs.remove(householdCodeKey);
 
+  /// Invariant de démarrage : `main()` appelle [ensureDeviceId] avant tout
+  /// accès. L'exception signale une erreur de programmation, pas un échec métier.
   @override
   String get deviceId =>
       _prefs.getString(deviceIdKey) ??

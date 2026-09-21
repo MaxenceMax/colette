@@ -33,4 +33,18 @@ void main() {
     final repo = FirestoreDeviceRepository(FakeFirebaseFirestore());
     expect(await repo.watchDevice('ABCDEFGH', 'nope').first, isNull);
   });
+
+  test('saveDevice sans token conserve le token existant', () async {
+    final repo = FirestoreDeviceRepository(FakeFirebaseFirestore());
+    const device = DeviceInfo(id: 'dev-1', label: 'iPhone');
+    await repo.saveDevice('ABCDEFGH', device);
+    await repo.updateFcmToken('ABCDEFGH', 'dev-1', 'token-1');
+    await repo.saveDevice(
+      'ABCDEFGH',
+      device.copyWith(label: 'iPhone de Maxence'),
+    );
+    final updated = await repo.watchDevice('ABCDEFGH', 'dev-1').first;
+    expect(updated?.fcmToken, 'token-1');
+    expect(updated?.label, 'iPhone de Maxence');
+  });
 }

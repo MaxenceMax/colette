@@ -3,9 +3,10 @@ import 'package:colette/features/household/domain/entities/device_info.dart';
 
 /// Conversion `DeviceInfo` ↔ document Firestore `devices/{id}`.
 abstract final class DeviceInfoDto {
+  /// Omet `fcmToken` quand il est nul : seul `updateFcmToken` gère le token.
   static Map<String, dynamic> toMap(DeviceInfo device) => {
     'label': device.label,
-    'fcmToken': device.fcmToken,
+    'fcmToken': ?device.fcmToken,
     'notifyOnOthersEvents': device.notifyOnOthersEvents,
     'notifyBottleReminder': device.notifyBottleReminder,
     'notifyMorningDigest': device.notifyMorningDigest,
