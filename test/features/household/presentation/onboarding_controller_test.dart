@@ -126,4 +126,35 @@ void main() {
     expect(ok, isTrue);
     expect(store.householdCode, 'ABCDEFGH');
   });
+
+  test(
+    'createHousehold réutilise le même code après un échec partiel',
+    () async {
+      when(() => households.create(any())).thenAnswer(
+        (inv) async => right(
+          Household(
+            code: inv.positionalArguments.first as String,
+            createdAt: DateTime(2026),
+          ),
+        ),
+      );
+      when(() => babies.saveProfile(any(), any()))
+          .thenAnswer((_) async => left(const NetworkFailure()));
+      final notifier = container.read(onboardingControllerProvider.notifier);
+      await notifier.createHousehold(
+        babyName: 'Colette',
+        birthDate: DateTime(2026, 9, 1),
+        deviceLabel: 'iPhone',
+      );
+      await notifier.createHousehold(
+        babyName: 'Colette',
+        birthDate: DateTime(2026, 9, 1),
+        deviceLabel: 'iPhone',
+      );
+      final codes = verify(() => households.create(captureAny())).captured
+          .cast<String>();
+      expect(codes, hasLength(2));
+      expect(codes.first, codes.last);
+    },
+  );
 }

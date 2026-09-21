@@ -15,6 +15,8 @@ part 'onboarding_controller.g.dart';
 /// Création ou jonction d'un foyer. L'état porte l'échec éventuel.
 @riverpod
 class OnboardingController extends _$OnboardingController {
+  String? _pendingCode;
+
   @override
   FutureOr<void> build() {}
 
@@ -27,7 +29,9 @@ class OnboardingController extends _$OnboardingController {
     if (name.isEmpty) {
       return left(const ValidationFailure(ValidationReason.emptyName));
     }
-    final code = ref.read(householdCodeGeneratorProvider).generate();
+    final code = _pendingCode ??= ref
+        .read(householdCodeGeneratorProvider)
+        .generate();
     final created = await ref.read(householdRepositoryProvider).create(code);
     if (created.leftOrNull case final failure?) return left(failure);
     final saved = await ref
@@ -71,6 +75,7 @@ class OnboardingController extends _$OnboardingController {
         .saveDevice(code, device);
     if (registered.leftOrNull case final failure?) return left(failure);
     await ref.read(currentHouseholdCodeProvider.notifier).set(code);
+    _pendingCode = null;
     return right(null);
   }
 

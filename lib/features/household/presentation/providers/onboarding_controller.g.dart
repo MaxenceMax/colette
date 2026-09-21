@@ -37,7 +37,7 @@ final class OnboardingControllerProvider
 }
 
 String _$onboardingControllerHash() =>
-    r'aa441e39ff5a5cbcdd31a021ba80128ff17c8f4d';
+    r'74f0889c569fd698ed368e62f68661f9dcc7231d';
 
 /// Création ou jonction d'un foyer. L'état porte l'échec éventuel.
 

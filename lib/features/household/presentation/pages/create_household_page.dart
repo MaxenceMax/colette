@@ -43,9 +43,10 @@ class _CreateHouseholdPageState extends ConsumerState<CreateHouseholdPage> {
   }
 
   Future<void> _submit() async {
+    if (ref.read(onboardingControllerProvider).isLoading) return;
     final s = S.of(context);
     final label = _deviceController.text.trim().isEmpty
-        ? s.fieldDeviceLabelHint
+        ? s.deviceLabelDefault
         : _deviceController.text;
     await ref
         .read(onboardingControllerProvider.notifier)

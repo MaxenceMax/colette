@@ -14,6 +14,7 @@
   "fieldBirthDate": "Date de naissance",
   "fieldDeviceLabel": "Nom de cet iPhone",
   "fieldDeviceLabelHint": "iPhone de Maxence",
+  "deviceLabelDefault": "Cet iPhone",
   "fieldHouseholdCode": "Code du foyer",
   "actionCreate": "Créer",
   "actionJoin": "Rejoindre",

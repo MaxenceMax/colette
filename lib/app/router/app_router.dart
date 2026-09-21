@@ -28,7 +28,7 @@ abstract final class AppRoutes {
 @riverpod
 GoRouter appRouter(Ref ref) {
   final hasHousehold = ref.watch(currentHouseholdCodeProvider) != null;
-  return GoRouter(
+  final router = GoRouter(
     initialLocation: hasHousehold ? AppRoutes.today : AppRoutes.onboarding,
     redirect: (context, state) {
       final onOnboarding = state.matchedLocation.startsWith(
@@ -81,4 +81,6 @@ GoRouter appRouter(Ref ref) {
       ),
     ],
   );
+  ref.onDispose(router.dispose);
+  return router;
 }
