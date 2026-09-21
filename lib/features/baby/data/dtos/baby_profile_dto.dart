@@ -13,13 +13,22 @@ abstract final class CareSettingsDto {
     'feedsPerDay': settings.feedsPerDay,
   };
 
+  static int _readInt(
+    Map<String, dynamic> map,
+    String key,
+    int fallback, {
+    required int min,
+    required int max,
+  }) => ((map[key] as num?)?.toInt() ?? fallback).clamp(min, max);
+
+  /// Borne chaque valeur à une plage sûre : un document modifié à la main ne doit jamais casser les calculs.
   static CareSettings fromMap(Map<String, dynamic> map) => CareSettings(
-    adrigylPerDay: (map['adrigylPerDay'] as num?)?.toInt() ?? 1,
-    eyeCarePerDay: (map['eyeCarePerDay'] as num?)?.toInt() ?? 1,
-    noseCarePerDay: (map['noseCarePerDay'] as num?)?.toInt() ?? 1,
+    adrigylPerDay: _readInt(map, 'adrigylPerDay', 1, min: 0, max: 10),
+    eyeCarePerDay: _readInt(map, 'eyeCarePerDay', 1, min: 0, max: 10),
+    noseCarePerDay: _readInt(map, 'noseCarePerDay', 1, min: 0, max: 10),
     umbilicalCareEnabled: map['umbilicalCareEnabled'] as bool? ?? true,
-    bathEveryDays: (map['bathEveryDays'] as num?)?.toInt() ?? 2,
-    feedsPerDay: (map['feedsPerDay'] as num?)?.toInt() ?? 8,
+    bathEveryDays: _readInt(map, 'bathEveryDays', 2, min: 1, max: 30),
+    feedsPerDay: _readInt(map, 'feedsPerDay', 8, min: 1, max: 24),
   );
 }
 

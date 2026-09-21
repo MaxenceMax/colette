@@ -6,6 +6,8 @@ import 'package:colette/features/events/domain/entities/care_event.dart';
 
 /// Plan biberons selon l'OMS : 150 ml/kg/jour (montée progressive la 1re semaine),
 /// réparti sur `feedsPerDay` prises ; repères par âge sans pesée.
+///
+/// `feedsPerDay` est borné à 1 minimum pour ne jamais diviser par zéro.
 class ComputeFeedingPlan {
   const ComputeFeedingPlan();
 
@@ -20,26 +22,27 @@ class ComputeFeedingPlan {
     required CareEvent? lastBottle,
     required DateTime now,
   }) {
+    final safeFeedsPerDay = max(1, feedsPerDay);
     final day = dayOfLife(birthDate, now);
     final (dailyTargetMl, estimated) = switch (latestWeightGrams) {
       null => (dailyTargetFromAge(day), true),
       final grams => (_roundTo10(mlPerKg(day) * grams / 1000), false),
     };
-    final interval = Duration(minutes: (24 * 60 / feedsPerDay).round());
+    final interval = Duration(minutes: (24 * 60 / safeFeedsPerDay).round());
     final nextBottleAt = lastBottle == null
         ? now
         : lastBottle.startAt.add(interval);
     final givenMl = todayBottles.fold(0, (sum, e) => sum + (e.bottleMl ?? 0));
     final bottlesGiven = todayBottles.length;
-    final bottlesRemaining = max(0, feedsPerDay - bottlesGiven);
+    final bottlesRemaining = max(0, safeFeedsPerDay - bottlesGiven);
     final remainingMl = max(0, dailyTargetMl - givenMl);
     final raw = bottlesRemaining > 0
         ? remainingMl / bottlesRemaining
-        : dailyTargetMl / feedsPerDay;
+        : dailyTargetMl / safeFeedsPerDay;
     final suggestedMl = _roundTo10(raw).clamp(minSuggestedMl, maxSuggestedMl);
     return FeedingPlan(
       dailyTargetMl: dailyTargetMl,
-      feedsPerDay: feedsPerDay,
+      feedsPerDay: safeFeedsPerDay,
       nextBottleAt: nextBottleAt,
       suggestedMl: suggestedMl,
       bottlesGiven: bottlesGiven,

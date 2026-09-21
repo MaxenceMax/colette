@@ -141,4 +141,17 @@ void main() {
     expect(plan.bottlesRemaining, 0);
     expect(plan.suggestedMl, 70);
   });
+
+  test('feedsPerDay à 0 est traité comme 1 sans planter', () {
+    final plan = compute(
+      birthDate: birth,
+      latestWeightGrams: 3600,
+      feedsPerDay: 0,
+      todayBottles: const [],
+      lastBottle: null,
+      now: DateTime(2026, 9, 10, 12),
+    );
+    expect(plan.feedsPerDay, 1);
+    expect(plan.suggestedMl, 240);
+  });
 }
