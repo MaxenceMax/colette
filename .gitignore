@@ -46,3 +46,9 @@ app.*.map.json
 
 # Widget Preview related
 .widget_preview/
+
+# Généré par gen-l10n à chaque `flutter pub get`
+lib/l10n/generated/
+# Node (Cloud Functions)
+functions/node_modules/
+functions/lib/
