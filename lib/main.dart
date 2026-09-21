@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 void main() {
-  runApp(const SizedBox.shrink());
+  runApp(const ProviderScope(child: SizedBox.shrink()));
 }

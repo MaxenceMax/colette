@@ -61,7 +61,7 @@ Clean Architecture feature-first : `lib/features/{name}/domain|data|presentation
 - TDD : test rouge, implémentation minimale, test vert, commit.
 - Domaine : tests purs sans Flutter. Data : `fake_cloud_firestore`. Présentation : `pumpApp` (`test/helpers/pump_app.dart`) avec `overrides` et `mocktail`.
 - Horloge : toujours `clockProvider` (`FixedClock` en test). Identifiants : `idGeneratorProvider`.
-- Avant de déclarer une tâche terminée : `dart format lib test`, puis `flutter analyze` (qui exécute aussi les règles riverpod_lint via le plugin déclaré dans `analysis_options.yaml`) et `flutter test` sans erreur.
+- Avant de déclarer une tâche terminée : `dart format lib test`, puis `dart analyze` et `flutter test` sans erreur. Utiliser `dart analyze`, pas `flutter analyze` : seul `dart analyze` exécute le plugin `riverpod_lint` déclaré dans `analysis_options.yaml`.
 
 ## Syntaxe Dart
 

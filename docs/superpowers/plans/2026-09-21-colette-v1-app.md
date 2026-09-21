@@ -351,9 +351,10 @@ class DefaultFirebaseOptions {
 
 ```dart
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 void main() {
-  runApp(const SizedBox.shrink());
+  runApp(const ProviderScope(child: SizedBox.shrink()));
 }
 ```
 
@@ -423,7 +424,7 @@ Clean Architecture feature-first : `lib/features/{name}/domain|data|presentation
 - TDD : test rouge, implémentation minimale, test vert, commit.
 - Domaine : tests purs sans Flutter. Data : `fake_cloud_firestore`. Présentation : `pumpApp` (`test/helpers/pump_app.dart`) avec `overrides` et `mocktail`.
 - Horloge : toujours `clockProvider` (`FixedClock` en test). Identifiants : `idGeneratorProvider`.
-- Avant de déclarer une tâche terminée : `dart format lib test`, puis `flutter analyze` (qui exécute aussi les règles riverpod_lint via le plugin déclaré dans `analysis_options.yaml`) et `flutter test` sans erreur.
+- Avant de déclarer une tâche terminée : `dart format lib test`, puis `dart analyze` et `flutter test` sans erreur. Utiliser `dart analyze`, pas `flutter analyze` : seul `dart analyze` exécute le plugin `riverpod_lint` déclaré dans `analysis_options.yaml`.
 
 ## Syntaxe Dart
 
@@ -438,8 +439,8 @@ Clean Architecture feature-first : `lib/features/{name}/domain|data|presentation
 
 - [ ] **Step 10: Installer et vérifier**
 
-Run: `cd /Users/maxencemontet/Documents/colette && flutter pub get && dart format lib test && flutter analyze`
-Expected: `Got dependencies!` puis `No issues found!`. Le dossier `lib/l10n/generated/` apparaît (ignoré par git).
+Run: `cd /Users/maxencemontet/Documents/colette && flutter pub get && dart format lib test && dart analyze`
+Expected: `Got dependencies!` puis `No issues found!` (`dart analyze` charge le plugin riverpod_lint au premier lancement, ce qui peut prendre une minute). Le dossier `lib/l10n/generated/` apparaît (ignoré par git).
 
 - [ ] **Step 11: Commit**
 
@@ -1926,7 +1927,7 @@ Future<DateTime?> showColetteDateTimePicker(
 
 - [ ] **Step 9: Générer, analyser, tester**
 
-Run: `dart run build_runner build -d && dart format lib test && flutter analyze && flutter test test/shared`
+Run: `dart run build_runner build -d && dart format lib test && dart analyze && flutter test test/shared`
 Expected: `No issues found!` puis `All tests passed!`.
 
 - [ ] **Step 10: Commit**
@@ -2674,7 +2675,7 @@ class InMemoryHouseholdLocalStore implements HouseholdLocalStore {
 
 - [ ] **Step 8: Générer, analyser, tester**
 
-Run: `dart run build_runner build -d && dart format lib test && flutter analyze && flutter test test/features/household`
+Run: `dart run build_runner build -d && dart format lib test && dart analyze && flutter test test/features/household`
 Expected: `No issues found!` puis `All tests passed!`.
 
 - [ ] **Step 9: Commit**
@@ -2994,7 +2995,7 @@ WeightEntry? latestWeight(Ref ref) {
 
 - [ ] **Step 7: Générer, analyser, tester**
 
-Run: `dart run build_runner build -d && dart format lib test && flutter analyze && flutter test test/features/baby`
+Run: `dart run build_runner build -d && dart format lib test && dart analyze && flutter test test/features/baby`
 Expected: `No issues found!` puis `All tests passed!`.
 
 - [ ] **Step 8: Commit**
@@ -3813,7 +3814,7 @@ Future<void> main() async {
 
 - [ ] **Step 9: Générer, analyser, tester**
 
-Run: `dart run build_runner build -d && dart format lib test && flutter analyze && flutter test`
+Run: `dart run build_runner build -d && dart format lib test && dart analyze && flutter test`
 Expected: `No issues found!` puis `All tests passed!`.
 
 - [ ] **Step 10: Commit**
@@ -4269,7 +4270,7 @@ Stream<List<CareEvent>> timelineEvents(Ref ref) {
 
 - [ ] **Step 8: Générer, analyser, tester**
 
-Run: `dart run build_runner build -d && dart format lib test && flutter analyze && flutter test test/features/events`
+Run: `dart run build_runner build -d && dart format lib test && dart analyze && flutter test test/features/events`
 Expected: `No issues found!` puis `All tests passed!`.
 
 - [ ] **Step 9: Commit**
@@ -4835,7 +4836,7 @@ class _EventFormSheetState extends ConsumerState<EventFormSheet> {
 
 - [ ] **Step 9: Générer, analyser, tester**
 
-Run: `flutter pub get && dart run build_runner build -d && dart format lib test && flutter analyze && flutter test test/features/events`
+Run: `flutter pub get && dart run build_runner build -d && dart format lib test && dart analyze && flutter test test/features/events`
 Expected: `No issues found!` puis `All tests passed!`. (`flutter pub get` régénère `S` avec `unitMl`.)
 
 - [ ] **Step 10: Commit**
@@ -5336,7 +5337,7 @@ class _TimelineList extends ConsumerWidget {
 
 - [ ] **Step 7: Analyser et tester**
 
-Run: `dart format lib test && flutter analyze && flutter test test/features/events`
+Run: `dart format lib test && dart analyze && flutter test test/features/events`
 Expected: `No issues found!` puis `All tests passed!`.
 
 - [ ] **Step 8: Commit**
@@ -5842,7 +5843,7 @@ class ComputeBabyAge {
 
 - [ ] **Step 5: Générer et tester**
 
-Run: `dart run build_runner build -d && dart format lib test && flutter analyze && flutter test test/features/dashboard`
+Run: `dart run build_runner build -d && dart format lib test && dart analyze && flutter test test/features/dashboard`
 Expected: `No issues found!` puis `All tests passed!`.
 
 - [ ] **Step 6: Commit**
@@ -6647,7 +6648,7 @@ par :
 
 - [ ] **Step 13: Générer, analyser, tester**
 
-Run: `dart run build_runner build -d && dart format lib test && flutter analyze && flutter test`
+Run: `dart run build_runner build -d && dart format lib test && dart analyze && flutter test`
 Expected: `No issues found!` puis `All tests passed!`.
 
 - [ ] **Step 14: Commit**
@@ -7399,7 +7400,7 @@ class SettingsPage extends ConsumerWidget {
 
 - [ ] **Step 6: Générer, analyser, tester**
 
-Run: `dart run build_runner build -d && dart format lib test && flutter analyze && flutter test`
+Run: `dart run build_runner build -d && dart format lib test && dart analyze && flutter test`
 Expected: `No issues found!` puis `All tests passed!`.
 
 - [ ] **Step 7: Commit**
@@ -7835,7 +7836,7 @@ Expected: `Array { remote-notification }`.
 
 - [ ] **Step 13: Générer, analyser, tester**
 
-Run: `flutter pub get && dart run build_runner build -d && dart format lib test && flutter analyze && flutter test`
+Run: `flutter pub get && dart run build_runner build -d && dart format lib test && dart analyze && flutter test`
 Expected: `No issues found!` puis `All tests passed!`.
 
 - [ ] **Step 14: Commit**
@@ -7890,7 +7891,7 @@ firebase deploy --only functions
 
 ```bash
 dart format lib test
-flutter analyze
+dart analyze
 flutter test
 ```
 
@@ -7902,8 +7903,8 @@ flutter test
 
 - [ ] **Step 2: Vérification complète**
 
-Run: `dart format lib test && flutter analyze && flutter test`
-Expected: `No issues found!` (les règles `riverpod_lint` tournent dans `flutter analyze` via le plugin natif), `All tests passed!`. Corriger tout lint Riverpod signalé avant de continuer (les plus courants : `ref.read` dans un `build`, provider non généré).
+Run: `dart format lib test && dart analyze && flutter test`
+Expected: `No issues found!` (les règles `riverpod_lint` tournent dans `dart analyze` via le plugin natif ; `flutter analyze` ne les exécute pas), `All tests passed!`. Corriger tout lint Riverpod signalé avant de continuer (les plus courants : `ref.read` dans un `build`, provider non généré).
 
 - [ ] **Step 3: Vérifier le build iOS (sans lancer)**
 
