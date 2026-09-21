@@ -19,7 +19,7 @@ FirebaseAuth firebaseAuth(Ref ref) => FirebaseAuth.instance;
 FirebaseMessaging firebaseMessaging(Ref ref) => FirebaseMessaging.instance;
 
 /// Surchargé dans `main()` après `SharedPreferences.getInstance()`.
-@riverpod
+@Riverpod(keepAlive: true)
 SharedPreferences sharedPreferences(Ref ref) => throw UnimplementedError(
   'sharedPreferencesProvider doit être surchargé dans main()',
 );
