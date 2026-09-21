@@ -1,0 +1,36 @@
+import 'package:colette/features/events/domain/entities/care_event.dart';
+
+/// Construit un `CareEvent` de test avec des valeurs par défaut.
+CareEvent makeEvent({
+  String id = 'e1',
+  required DateTime startAt,
+  DateTime? endAt,
+  bool pee = false,
+  bool poop = false,
+  bool diaperChange = false,
+  bool adrigyl = false,
+  bool bath = false,
+  bool eyeCare = false,
+  bool noseCare = false,
+  bool umbilicalCare = false,
+  int? bottleMl,
+  String? note,
+  String createdByDeviceId = 'device-test',
+}) => CareEvent(
+  id: id,
+  startAt: startAt,
+  endAt: endAt ?? startAt,
+  pee: pee,
+  poop: poop,
+  diaperChange: diaperChange,
+  adrigyl: adrigyl,
+  bath: bath,
+  eyeCare: eyeCare,
+  noseCare: noseCare,
+  umbilicalCare: umbilicalCare,
+  bottleMl: bottleMl,
+  note: note,
+  createdByDeviceId: createdByDeviceId,
+  createdAt: startAt,
+  updatedAt: startAt,
+);

@@ -1,0 +1,62 @@
+import 'package:colette/core/clock/app_clock.dart';
+import 'package:colette/core/dates/date_extensions.dart';
+import 'package:colette/core/firebase/firebase_providers.dart';
+import 'package:colette/features/events/data/repositories/firestore_events_repository.dart';
+import 'package:colette/features/events/domain/entities/care_event.dart';
+import 'package:colette/features/events/domain/repositories/events_repository.dart';
+import 'package:colette/features/household/presentation/providers/household_providers.dart';
+import 'package:riverpod_annotation/riverpod_annotation.dart';
+
+part 'events_providers.g.dart';
+
+/// Taille d'une page du journal.
+const timelinePageSize = 30;
+
+@riverpod
+EventsRepository eventsRepository(Ref ref) =>
+    FirestoreEventsRepository(ref.watch(firestoreProvider));
+
+/// Événements du jour civil courant, du plus récent au plus ancien.
+@riverpod
+Stream<List<CareEvent>> todayEvents(Ref ref) {
+  final code = ref.watch(currentHouseholdCodeProvider);
+  if (code == null) return Stream.value(const []);
+  final today = ref.watch(clockProvider).now().dateOnly;
+  return ref
+      .watch(eventsRepositoryProvider)
+      .watchBetween(code, from: today, to: today.startOfNextDay);
+}
+
+/// Dernier bain enregistré, toutes dates confondues.
+@riverpod
+Stream<CareEvent?> latestBath(Ref ref) {
+  final code = ref.watch(currentHouseholdCodeProvider);
+  if (code == null) return Stream.value(null);
+  return ref.watch(eventsRepositoryProvider).watchLatestBath(code);
+}
+
+/// Dernier biberon enregistré, toutes dates confondues.
+@riverpod
+Stream<CareEvent?> latestBottle(Ref ref) {
+  final code = ref.watch(currentHouseholdCodeProvider);
+  if (code == null) return Stream.value(null);
+  return ref.watch(eventsRepositoryProvider).watchLatestBottle(code);
+}
+
+/// Nombre d'événements demandés au journal ; grandit par pages.
+@riverpod
+class TimelineLimit extends _$TimelineLimit {
+  @override
+  int build() => timelinePageSize;
+
+  void loadMore() => state += timelinePageSize;
+}
+
+/// Événements du journal, limités par [TimelineLimit].
+@riverpod
+Stream<List<CareEvent>> timelineEvents(Ref ref) {
+  final code = ref.watch(currentHouseholdCodeProvider);
+  if (code == null) return Stream.value(const []);
+  final limit = ref.watch(timelineLimitProvider);
+  return ref.watch(eventsRepositoryProvider).watchLatest(code, limit: limit);
+}
