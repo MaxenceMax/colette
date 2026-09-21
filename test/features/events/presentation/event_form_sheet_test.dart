@@ -3,6 +3,7 @@ import 'package:colette/core/ids/id_generator.dart';
 import 'package:colette/features/baby/domain/entities/baby_profile.dart';
 import 'package:colette/features/baby/domain/entities/care_settings.dart';
 import 'package:colette/features/baby/presentation/providers/baby_providers.dart';
+import 'package:colette/features/dashboard/presentation/providers/feeding_plan_sync.dart';
 import 'package:colette/features/events/domain/entities/care_event.dart';
 import 'package:colette/features/events/domain/repositories/events_repository.dart';
 import 'package:colette/features/events/presentation/providers/events_providers.dart';
@@ -48,6 +49,7 @@ void main() {
         ),
       ),
       babyProfileProvider.overrideWith((ref) => Stream.value(profile)),
+      feedingPlanSyncProvider.overrideWithValue(const NoopFeedingPlanSync()),
     ],
   );
 

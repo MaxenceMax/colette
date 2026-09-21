@@ -97,7 +97,7 @@ final class TodayEventsProvider
   }
 }
 
-String _$todayEventsHash() => r'19b85cc59901c1eb9903b7a28bf107821ff46388';
+String _$todayEventsHash() => r'7bd8bf5d9e73e49f0dae5c32b7d71e7877e98d6c';
 
 /// Dernier bain enregistré, toutes dates confondues.
 

@@ -1,4 +1,4 @@
-import 'package:colette/core/clock/app_clock.dart';
+import 'package:colette/core/clock/now_providers.dart';
 import 'package:colette/core/dates/date_extensions.dart';
 import 'package:colette/core/firebase/firebase_providers.dart';
 import 'package:colette/features/events/data/repositories/firestore_events_repository.dart';
@@ -21,7 +21,7 @@ EventsRepository eventsRepository(Ref ref) =>
 Stream<List<CareEvent>> todayEvents(Ref ref) {
   final code = ref.watch(currentHouseholdCodeProvider);
   if (code == null) return Stream.value(const []);
-  final today = ref.watch(clockProvider).now().dateOnly;
+  final today = ref.watch(todayProvider);
   return ref
       .watch(eventsRepositoryProvider)
       .watchBetween(code, from: today, to: today.startOfNextDay);

@@ -37,7 +37,7 @@ final class EventFormControllerProvider
 }
 
 String _$eventFormControllerHash() =>
-    r'e0d8d34c703d905e3a57cec744325633c8ba6e8f';
+    r'ffad9c468118b88a4d619e7e72d779041eaa9985';
 
 /// Enregistrement et suppression d'un événement. L'état porte l'échec éventuel.
 

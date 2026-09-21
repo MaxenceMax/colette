@@ -2,6 +2,7 @@ import 'dart:async';
 
 import 'package:colette/core/clock/app_clock.dart';
 import 'package:colette/core/result/failure.dart';
+import 'package:colette/features/dashboard/presentation/providers/feeding_plan_sync.dart';
 import 'package:colette/features/events/domain/entities/care_event.dart';
 import 'package:colette/features/events/domain/use_cases/validate_care_event.dart';
 import 'package:colette/features/events/presentation/providers/events_providers.dart';
@@ -40,7 +41,9 @@ class EventFormController extends _$EventFormController {
       (failure) => AsyncError(failure, StackTrace.current),
       (_) => const AsyncData(null),
     );
-    return result.getRight().toNullable();
+    final saved = result.getRight().toNullable();
+    if (saved != null) await ref.read(feedingPlanSyncProvider).sync();
+    return saved;
   }
 
   Future<bool> delete(String eventId) async {
@@ -54,6 +57,7 @@ class EventFormController extends _$EventFormController {
       (failure) => AsyncError(failure, StackTrace.current),
       (_) => const AsyncData(null),
     );
+    if (result.isRight()) await ref.read(feedingPlanSyncProvider).sync();
     return result.isRight();
   }
 }

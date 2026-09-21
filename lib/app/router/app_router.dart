@@ -57,7 +57,11 @@ GoRouter appRouter(Ref ref) {
             routes: [
               GoRoute(
                 path: AppRoutes.today,
-                builder: (_, _) => const DashboardPage(),
+                builder: (_, state) => DashboardPage(
+                  openBottleForm:
+                      state.uri.queryParameters[AppRoutes.openBottleParam] ==
+                      '1',
+                ),
               ),
             ],
           ),

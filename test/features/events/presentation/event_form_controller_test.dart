@@ -1,5 +1,6 @@
 import 'package:colette/core/clock/app_clock.dart';
 import 'package:colette/core/result/failure.dart';
+import 'package:colette/features/dashboard/presentation/providers/feeding_plan_sync.dart';
 import 'package:colette/features/events/domain/entities/care_event.dart';
 import 'package:colette/features/events/domain/repositories/events_repository.dart';
 import 'package:colette/features/events/presentation/providers/event_form_controller.dart';
@@ -31,6 +32,7 @@ void main() {
         householdLocalStoreProvider.overrideWithValue(
           InMemoryHouseholdLocalStore(householdCode: 'ABCDEFGH'),
         ),
+        feedingPlanSyncProvider.overrideWithValue(const NoopFeedingPlanSync()),
       ],
     );
     addTearDown(container.dispose);

@@ -1,4 +1,5 @@
 import 'package:colette/app/colette_app.dart';
+import 'package:colette/core/clock/now_providers.dart';
 import 'package:colette/core/connectivity/connectivity_provider.dart';
 import 'package:colette/core/firebase/firebase_providers.dart';
 import 'package:colette/features/household/presentation/pages/onboarding_page.dart';
@@ -20,6 +21,7 @@ void main() {
           ),
           isOnlineProvider.overrideWith((ref) => Stream.value(true)),
           firestoreProvider.overrideWithValue(FakeFirebaseFirestore()),
+          minuteTickerProvider.overrideWith((ref) => const Stream.empty()),
         ],
         child: const ColetteApp(),
       ),

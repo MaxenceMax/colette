@@ -1,17 +1,58 @@
+import 'package:colette/core/theme/design_tokens.dart';
+import 'package:colette/features/dashboard/presentation/providers/dashboard_providers.dart';
+import 'package:colette/features/dashboard/presentation/widgets/dashboard_header.dart';
+import 'package:colette/features/dashboard/presentation/widgets/day_counters_row.dart';
+import 'package:colette/features/dashboard/presentation/widgets/next_bottle_card.dart';
+import 'package:colette/features/dashboard/presentation/widgets/todo_section.dart';
+import 'package:colette/features/events/presentation/widgets/event_form_sheet.dart';
 import 'package:colette/l10n/generated/app_localizations.dart';
-import 'package:colette/shared/ui/widgets/empty_state.dart';
+import 'package:colette/shared/ui/widgets/section_header.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-/// Onglet Aujourd'hui (placeholder, remplacé en tâche 14).
-class DashboardPage extends StatelessWidget {
-  const DashboardPage({super.key});
+/// Onglet Aujourd'hui : âge, prochain biberon, reste à faire, compteurs.
+class DashboardPage extends ConsumerStatefulWidget {
+  const DashboardPage({super.key, this.openBottleForm = false});
+
+  /// Ouvre le formulaire biberon à l'affichage (arrivée par notification).
+  final bool openBottleForm;
+
+  @override
+  ConsumerState<DashboardPage> createState() => _DashboardPageState();
+}
+
+class _DashboardPageState extends ConsumerState<DashboardPage> {
+  @override
+  void initState() {
+    super.initState();
+    if (widget.openBottleForm) {
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (!mounted) return;
+        final plan = ref.read(feedingPlanProvider);
+        showEventFormSheet(context, suggestedBottleMl: plan?.suggestedMl);
+      });
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
     final s = S.of(context);
     return Scaffold(
-      appBar: AppBar(title: Text(s.tabToday)),
-      body: EmptyState(icon: Icons.wb_sunny_outlined, message: s.todoAllDone),
+      body: SafeArea(
+        child: ListView(
+          padding: AppSpacing.md.all,
+          children: [
+            const DashboardHeader(),
+            AppSpacing.md.verticalSpace,
+            const NextBottleCard(),
+            SectionHeader(title: s.todoTitle),
+            const TodoSection(),
+            AppSpacing.lg.verticalSpace,
+            const DayCountersRow(),
+            AppSpacing.xl.verticalSpace,
+          ],
+        ),
+      ),
     );
   }
 }
