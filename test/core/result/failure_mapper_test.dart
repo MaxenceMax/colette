@@ -34,5 +34,22 @@ void main() {
       final result = await guard<int>(() async => throw StateError('boom'));
       expect(result.getLeft().toNullable(), isA<UnknownFailure>());
     });
+
+    test(
+      'convertit deadline-exceeded et network-request-failed en NetworkFailure',
+      () async {
+        for (final code in ['deadline-exceeded', 'network-request-failed']) {
+          final result = await guard<int>(
+            () async =>
+                throw FirebaseException(plugin: 'cloud_firestore', code: code),
+          );
+          expect(
+            result.getLeft().toNullable(),
+            isA<NetworkFailure>(),
+            reason: code,
+          );
+        }
+      },
+    );
   });
 }
