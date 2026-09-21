@@ -147,7 +147,7 @@ Accès : `Theme.of(context).coletteTextStyles.heading1`. Les couleurs de texte s
 - `SectionHeader` : titre Fraunces + action optionnelle à droite.
 - `CareChip` : puce à cocher avec icône et couleur de catégorie, utilisée dans le formulaire.
 - `CareTaskRow` : ligne « à faire » du dashboard (icône, libellé, statut, tap = créer l'événement).
-- `EmptyState`, `OfflineBanner`, `ColetteBottomSheet`.
+- `EmptyState`, `OfflineBanner`. Les feuilles modales utilisent `showModalBottomSheet` avec le `BottomSheetThemeData` du thème (fond lin, coins arrondis, poignée).
 
 ### 4.5 Thème
 
@@ -295,7 +295,7 @@ Actions : tap sur une ligne → formulaire en édition ; glisser vers la gauche 
 
 ### 6.5 Formulaire d'événement
 
-Présenté en `ColetteBottomSheet` plein écran. Champs :
+Présenté en bottom sheet modale (`showModalBottomSheet`, hauteur au contenu, `isScrollControlled`, insets clavier gérés). Champs :
 
 - Heure de début et heure de fin : préremplies à `now` à l'ouverture, modifiables par `CupertinoDatePicker` (date + heure). Validation : fin ≥ début, début ≤ maintenant + 5 min.
 - Puces `CareChip` : pipi, caca, changement de couche, Adrigyl, bain, soin des yeux, soin du nez, soin du nombril (masquée si `umbilicalCareEnabled` est faux).

@@ -1356,6 +1356,16 @@ class ThemeService {
         shape: RoundedRectangleBorder(borderRadius: AppRadius.lg.circular),
       ),
       dividerTheme: DividerThemeData(color: c(AppColors.border), thickness: 1),
+      chipTheme: ChipThemeData(
+        backgroundColor: c(AppColors.surface),
+        selectedColor: c(AppColors.primaryContainer),
+        side: BorderSide(color: c(AppColors.border)),
+        shape: RoundedRectangleBorder(borderRadius: AppRadius.round.circular),
+        labelStyle: ColetteTextStyle.bodyMedium.textStyle.copyWith(color: c(AppColors.onSurface)),
+        secondaryLabelStyle: ColetteTextStyle.bodyMedium.textStyle.copyWith(color: c(AppColors.onSurface)),
+        checkmarkColor: c(AppColors.primary),
+        padding: AppSpacing.symmetric(horizontal: AppSpacing.sm, vertical: AppSpacing.xs),
+      ),
       snackBarTheme: const SnackBarThemeData(behavior: SnackBarBehavior.floating),
       switchTheme: SwitchThemeData(
         thumbColor: WidgetStateProperty.resolveWith(
@@ -1920,8 +1930,12 @@ Future<DateTime?> showColetteDateTimePicker(
   required DateTime initial,
   required CupertinoDatePickerMode mode,
   DateTime? maximum,
+  DateTime? minimum,
 }) {
-  var selected = initial;
+  var safeInitial = initial;
+  if (maximum != null && safeInitial.isAfter(maximum)) safeInitial = maximum;
+  if (minimum != null && safeInitial.isBefore(minimum)) safeInitial = minimum;
+  var selected = safeInitial;
   return showModalBottomSheet<DateTime>(
     context: context,
     builder: (sheetContext) => SafeArea(
@@ -1932,8 +1946,9 @@ Future<DateTime?> showColetteDateTimePicker(
             height: AppSize.massive.value * 2,
             child: CupertinoDatePicker(
               mode: mode,
-              initialDateTime: initial,
+              initialDateTime: safeInitial,
               maximumDate: maximum,
+              minimumDate: minimum,
               use24hFormat: true,
               onDateTimeChanged: (value) => selected = value,
             ),
@@ -4337,12 +4352,13 @@ git commit -m "feat: feature events (validation, repository Firestore, providers
 - Modify: `lib/l10n/app_fr.arb` (ajout de `unitMl`)
 - Test: `test/features/events/domain/use_cases/new_event_draft_test.dart`, `test/features/events/presentation/event_form_controller_test.dart`, `test/features/events/presentation/event_form_sheet_test.dart`
 
-- [ ] **Step 1: Ajouter la clé `unitMl` dans `lib/l10n/app_fr.arb`**
+- [ ] **Step 1: Ajouter les clés `unitMl` et `fieldQuantity` dans `lib/l10n/app_fr.arb`**
 
 Insérer après la ligne `"bottleMl": "{ml} ml",` et son bloc `@bottleMl` :
 
 ```json
   "unitMl": "ml",
+  "fieldQuantity": "Quantité",
 ```
 
 - [ ] **Step 2: Écrire les tests (rouges)**
@@ -4669,7 +4685,7 @@ class BottleField extends StatelessWidget {
         ),
         if (ml != null) ...[
           IntStepperRow(
-            label: s.careBottle,
+            label: s.fieldQuantity,
             value: ml,
             min: ValidateCareEvent.minBottleMl,
             max: ValidateCareEvent.maxBottleMl,
@@ -4779,6 +4795,7 @@ class _EventFormSheetState extends ConsumerState<EventFormSheet> {
       context,
       initial: isStart ? _draft.startAt : _draft.endAt,
       mode: CupertinoDatePickerMode.dateAndTime,
+      minimum: isStart ? null : _draft.startAt,
     );
     if (picked == null) return;
     setState(() {
