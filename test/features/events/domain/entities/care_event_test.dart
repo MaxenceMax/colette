@@ -25,6 +25,14 @@ void main() {
     expect(withAdrigyl.isEmpty, isFalse);
   });
 
+  test('toggle à false décoche un soin', () {
+    final toggled = empty
+        .toggle(CareType.bath, true)
+        .toggle(CareType.bath, false);
+    expect(toggled.has(CareType.bath), isFalse);
+    expect(toggled.isEmpty, isTrue);
+  });
+
   test('un biberon seul rend l\'événement non vide', () {
     final withBottle = empty.copyWith(bottleMl: 120);
     expect(withBottle.hasBottle, isTrue);
