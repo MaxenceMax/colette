@@ -221,7 +221,7 @@ service cloud.firestore {
 }
 ```
 
-L'auth anonyme est déclenchée silencieusement au démarrage. La confidentialité repose sur le caractère non devinable du code (36^8 combinaisons) et sur l'exigence d'une session Firebase signée.
+L'auth anonyme est déclenchée silencieusement au démarrage. La confidentialité repose sur le caractère non devinable du code (alphabet de 32 caractères sans O/0 ni I/1, soit 32^8 ≈ 1,1 × 10^12 combinaisons) et sur l'exigence d'une session Firebase signée.
 
 ### 5.2 Hors ligne
 
