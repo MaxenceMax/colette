@@ -28,11 +28,14 @@ class TimelinePage extends ConsumerWidget {
         child: const Icon(Icons.add),
       ),
       body: switch (events) {
-        AsyncData(:final value) when value.isEmpty => EmptyState(
-          icon: Icons.view_timeline_outlined,
-          message: s.journalEmpty,
-        ),
-        AsyncData(:final value) => _TimelineList(events: value),
+        AsyncValue(hasValue: true, value: final List<CareEvent> value)
+            when value.isEmpty =>
+          EmptyState(
+            icon: Icons.view_timeline_outlined,
+            message: s.journalEmpty,
+          ),
+        AsyncValue(hasValue: true, value: final List<CareEvent> value) =>
+          _TimelineList(events: value),
         AsyncError() => EmptyState(
           icon: Icons.error_outline,
           message: s.errorUnknown,
@@ -82,13 +85,23 @@ class _TimelineList extends ConsumerWidget {
       ),
     );
     if (confirmed != true) return false;
-    return ref.read(eventFormControllerProvider.notifier).delete(event.id);
+    final deleted = await ref
+        .read(eventFormControllerProvider.notifier)
+        .delete(event.id);
+    if (!deleted && context.mounted) {
+      ScaffoldMessenger.of(context)
+          .showSnackBar(SnackBar(content: Text(s.errorUnknown)));
+    }
+    return deleted;
   }
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final s = S.of(context);
     final now = ref.watch(clockProvider).now();
+    // Garde `eventFormControllerProvider` (autoDispose) en vie pendant la
+    // suppression déclenchée par un glissement, le temps de l'appel réseau.
+    ref.watch(eventFormControllerProvider);
     final groups = groupEventsByDay(events);
     final lastPageFull = events.length >= ref.watch(timelineLimitProvider);
     return NotificationListener<ScrollNotification>(
@@ -109,6 +122,7 @@ class _TimelineList extends ConsumerWidget {
                   itemBuilder: (context, index) {
                     final event = group.events[index];
                     return EventTile(
+                      key: ValueKey(event.id),
                       event: event,
                       onTap: () => showEventFormSheet(context, initial: event),
                       onConfirmDelete: () =>
