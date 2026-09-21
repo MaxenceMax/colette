@@ -2867,13 +2867,23 @@ abstract final class CareSettingsDto {
     'feedsPerDay': settings.feedsPerDay,
   };
 
+  static int _readInt(
+    Map<String, dynamic> map,
+    String key,
+    int fallback, {
+    required int min,
+    required int max,
+  }) => ((map[key] as num?)?.toInt() ?? fallback).clamp(min, max);
+
+  /// Borne chaque valeur à une plage sûre : un document modifié à la main
+  /// ne doit jamais casser les calculs.
   static CareSettings fromMap(Map<String, dynamic> map) => CareSettings(
-    adrigylPerDay: (map['adrigylPerDay'] as num?)?.toInt() ?? 1,
-    eyeCarePerDay: (map['eyeCarePerDay'] as num?)?.toInt() ?? 1,
-    noseCarePerDay: (map['noseCarePerDay'] as num?)?.toInt() ?? 1,
+    adrigylPerDay: _readInt(map, 'adrigylPerDay', 1, min: 0, max: 10),
+    eyeCarePerDay: _readInt(map, 'eyeCarePerDay', 1, min: 0, max: 10),
+    noseCarePerDay: _readInt(map, 'noseCarePerDay', 1, min: 0, max: 10),
     umbilicalCareEnabled: map['umbilicalCareEnabled'] as bool? ?? true,
-    bathEveryDays: (map['bathEveryDays'] as num?)?.toInt() ?? 2,
-    feedsPerDay: (map['feedsPerDay'] as num?)?.toInt() ?? 8,
+    bathEveryDays: _readInt(map, 'bathEveryDays', 2, min: 1, max: 30),
+    feedsPerDay: _readInt(map, 'feedsPerDay', 8, min: 1, max: 24),
   );
 }
 
@@ -5769,6 +5779,7 @@ import 'package:colette/features/events/domain/entities/care_event.dart';
 
 /// Plan biberons selon l'OMS : 150 ml/kg/jour (montée progressive la 1re semaine),
 /// réparti sur `feedsPerDay` prises ; repères par âge sans pesée.
+/// `feedsPerDay` est borné à 1 minimum pour ne jamais diviser par zéro.
 class ComputeFeedingPlan {
   const ComputeFeedingPlan();
 
@@ -5783,24 +5794,25 @@ class ComputeFeedingPlan {
     required CareEvent? lastBottle,
     required DateTime now,
   }) {
+    final safeFeedsPerDay = max(1, feedsPerDay);
     final day = dayOfLife(birthDate, now);
     final (dailyTargetMl, estimated) = switch (latestWeightGrams) {
       null => (dailyTargetFromAge(day), true),
       final grams => (_roundTo10(mlPerKg(day) * grams / 1000), false),
     };
-    final interval = Duration(minutes: (24 * 60 / feedsPerDay).round());
+    final interval = Duration(minutes: (24 * 60 / safeFeedsPerDay).round());
     final nextBottleAt = lastBottle == null ? now : lastBottle.startAt.add(interval);
     final givenMl = todayBottles.fold(0, (sum, e) => sum + (e.bottleMl ?? 0));
     final bottlesGiven = todayBottles.length;
-    final bottlesRemaining = max(0, feedsPerDay - bottlesGiven);
+    final bottlesRemaining = max(0, safeFeedsPerDay - bottlesGiven);
     final remainingMl = max(0, dailyTargetMl - givenMl);
     final raw = bottlesRemaining > 0
         ? remainingMl / bottlesRemaining
-        : dailyTargetMl / feedsPerDay;
+        : dailyTargetMl / safeFeedsPerDay;
     final suggestedMl = _roundTo10(raw).clamp(minSuggestedMl, maxSuggestedMl);
     return FeedingPlan(
       dailyTargetMl: dailyTargetMl,
-      feedsPerDay: feedsPerDay,
+      feedsPerDay: safeFeedsPerDay,
       nextBottleAt: nextBottleAt,
       suggestedMl: suggestedMl,
       bottlesGiven: bottlesGiven,
