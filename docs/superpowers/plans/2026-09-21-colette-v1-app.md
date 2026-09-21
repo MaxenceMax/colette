@@ -158,7 +158,7 @@ flutter:
 include: package:flutter_lints/flutter.yaml
 
 plugins:
-  riverpod_lint: ^3.1.9
+  riverpod_lint: 3.1.9
 
 analyzer:
   exclude:
