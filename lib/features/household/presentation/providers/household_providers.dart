@@ -23,7 +23,8 @@ HouseholdRepository householdRepository(Ref ref) =>
       ref.watch(clockProvider),
     );
 
-@riverpod
+/// Sans état : `keepAlive` car consommé par l'enregistrement push (keepAlive).
+@Riverpod(keepAlive: true)
 DeviceRepository deviceRepository(Ref ref) =>
     FirestoreDeviceRepository(ref.watch(firestoreProvider));
 

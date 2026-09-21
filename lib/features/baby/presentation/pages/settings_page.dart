@@ -7,6 +7,7 @@ import 'package:colette/features/baby/presentation/widgets/care_settings_section
 import 'package:colette/features/baby/presentation/widgets/weights_section.dart';
 import 'package:colette/features/household/presentation/providers/household_providers.dart';
 import 'package:colette/features/household/presentation/widgets/household_section.dart';
+import 'package:colette/features/notifications/presentation/widgets/notifications_section.dart';
 import 'package:colette/l10n/generated/app_localizations.dart';
 import 'package:colette/shared/ui/widgets/section_header.dart';
 import 'package:flutter/material.dart';
@@ -44,6 +45,8 @@ class SettingsPage extends ConsumerWidget {
               padding: EdgeInsets.zero,
               child: Center(child: CircularProgressIndicator()),
             ),
+          SectionHeader(title: s.settingsNotificationsSection),
+          const NotificationsSection(),
           if (code != null) ...[
             SectionHeader(title: s.settingsHouseholdSection),
             HouseholdSection(code: code),

@@ -105,8 +105,12 @@ final class HouseholdRepositoryProvider
 String _$householdRepositoryHash() =>
     r'1711b63e94f82c7c25221dcc771f86c6f43af71e';
 
+/// Sans état : `keepAlive` car consommé par l'enregistrement push (keepAlive).
+
 @ProviderFor(deviceRepository)
 final deviceRepositoryProvider = DeviceRepositoryProvider._();
+
+/// Sans état : `keepAlive` car consommé par l'enregistrement push (keepAlive).
 
 final class DeviceRepositoryProvider
     extends
@@ -116,13 +120,14 @@ final class DeviceRepositoryProvider
           DeviceRepository
         >
     with $Provider<DeviceRepository> {
+  /// Sans état : `keepAlive` car consommé par l'enregistrement push (keepAlive).
   DeviceRepositoryProvider._()
     : super(
         from: null,
         argument: null,
         retry: null,
         name: r'deviceRepositoryProvider',
-        isAutoDispose: true,
+        isAutoDispose: false,
         dependencies: null,
         $allTransitiveDependencies: null,
       );
@@ -149,7 +154,7 @@ final class DeviceRepositoryProvider
   }
 }
 
-String _$deviceRepositoryHash() => r'f1ddc12099f8d06fd6bfb56979a42fec603d6684';
+String _$deviceRepositoryHash() => r'fdb07678f90d21a8516fe6400eb1887bea98f368';
 
 @ProviderFor(householdCodeGenerator)
 final householdCodeGeneratorProvider = HouseholdCodeGeneratorProvider._();

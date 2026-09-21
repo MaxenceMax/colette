@@ -9,11 +9,13 @@ part of 'firebase_providers.dart';
 // GENERATED CODE - DO NOT MODIFY BY HAND
 // ignore_for_file: type=lint, type=warning
 /// Instance Firestore ; surchargée par `FakeFirebaseFirestore` en test.
+/// Singleton applicatif : `keepAlive` pour pouvoir être consommé par des providers `keepAlive`.
 
 @ProviderFor(firestore)
 final firestoreProvider = FirestoreProvider._();
 
 /// Instance Firestore ; surchargée par `FakeFirebaseFirestore` en test.
+/// Singleton applicatif : `keepAlive` pour pouvoir être consommé par des providers `keepAlive`.
 
 final class FirestoreProvider
     extends
@@ -24,13 +26,14 @@ final class FirestoreProvider
         >
     with $Provider<FirebaseFirestore> {
   /// Instance Firestore ; surchargée par `FakeFirebaseFirestore` en test.
+  /// Singleton applicatif : `keepAlive` pour pouvoir être consommé par des providers `keepAlive`.
   FirestoreProvider._()
     : super(
         from: null,
         argument: null,
         retry: null,
         name: r'firestoreProvider',
-        isAutoDispose: true,
+        isAutoDispose: false,
         dependencies: null,
         $allTransitiveDependencies: null,
       );
@@ -58,26 +61,29 @@ final class FirestoreProvider
   }
 }
 
-String _$firestoreHash() => r'597b1a9eb96f2fae51f5b578f4b5debe4f6d30c6';
+String _$firestoreHash() => r'864285def6284159b44f9598dcde96347e0c1dce';
 
 /// Instance Firebase Auth.
+/// Singleton applicatif : `keepAlive` pour pouvoir être consommé par des providers `keepAlive`.
 
 @ProviderFor(firebaseAuth)
 final firebaseAuthProvider = FirebaseAuthProvider._();
 
 /// Instance Firebase Auth.
+/// Singleton applicatif : `keepAlive` pour pouvoir être consommé par des providers `keepAlive`.
 
 final class FirebaseAuthProvider
     extends $FunctionalProvider<FirebaseAuth, FirebaseAuth, FirebaseAuth>
     with $Provider<FirebaseAuth> {
   /// Instance Firebase Auth.
+  /// Singleton applicatif : `keepAlive` pour pouvoir être consommé par des providers `keepAlive`.
   FirebaseAuthProvider._()
     : super(
         from: null,
         argument: null,
         retry: null,
         name: r'firebaseAuthProvider',
-        isAutoDispose: true,
+        isAutoDispose: false,
         dependencies: null,
         $allTransitiveDependencies: null,
       );
@@ -104,14 +110,16 @@ final class FirebaseAuthProvider
   }
 }
 
-String _$firebaseAuthHash() => r'8f84097cccd00af817397c1715c5f537399ba780';
+String _$firebaseAuthHash() => r'8c3e9d11b27110ca96130356b5ef4d5d34a5ffc2';
 
 /// Instance Firebase Messaging.
+/// Singleton applicatif : `keepAlive` pour pouvoir être consommé par des providers `keepAlive`.
 
 @ProviderFor(firebaseMessaging)
 final firebaseMessagingProvider = FirebaseMessagingProvider._();
 
 /// Instance Firebase Messaging.
+/// Singleton applicatif : `keepAlive` pour pouvoir être consommé par des providers `keepAlive`.
 
 final class FirebaseMessagingProvider
     extends
@@ -122,13 +130,14 @@ final class FirebaseMessagingProvider
         >
     with $Provider<FirebaseMessaging> {
   /// Instance Firebase Messaging.
+  /// Singleton applicatif : `keepAlive` pour pouvoir être consommé par des providers `keepAlive`.
   FirebaseMessagingProvider._()
     : super(
         from: null,
         argument: null,
         retry: null,
         name: r'firebaseMessagingProvider',
-        isAutoDispose: true,
+        isAutoDispose: false,
         dependencies: null,
         $allTransitiveDependencies: null,
       );
@@ -156,7 +165,7 @@ final class FirebaseMessagingProvider
   }
 }
 
-String _$firebaseMessagingHash() => r'5e9baf830c916e075321e6c66ba316573c77e98f';
+String _$firebaseMessagingHash() => r'6765ce963b9b8c50186b5132356d60eb68265741';
 
 /// Surchargé dans `main()` après `SharedPreferences.getInstance()`.
 

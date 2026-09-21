@@ -1,3 +1,4 @@
+import 'package:colette/app/notifications_gate.dart';
 import 'package:colette/app/router/app_router.dart';
 import 'package:colette/core/theme/theme_service.dart';
 import 'package:colette/l10n/generated/app_localizations.dart';
@@ -20,6 +21,8 @@ class ColetteApp extends ConsumerWidget {
       localizationsDelegates: S.localizationsDelegates,
       supportedLocales: S.supportedLocales,
       routerConfig: ref.watch(appRouterProvider),
+      builder: (context, child) =>
+          NotificationsGate(child: child ?? const SizedBox.shrink()),
     );
   }
 }
