@@ -29,12 +29,6 @@ void main() {
         ],
       );
       addTearDown(container.dispose);
-      // Garde les providers stream vivants : `sync()` les lit via `.future`
-      // sans les `watch`er, et une lecture ponctuelle laisserait le provider
-      // `autoDispose` se détruire avant que le flux Firestore n'ait émis,
-      // ce qui romprait le `Future` avec une erreur d'état.
-      container.listen(babyProfileProvider, (_, _) {});
-      container.listen(weightsProvider, (_, _) {});
       await container
           .read(babyRepositoryProvider)
           .saveProfile(
@@ -60,4 +54,21 @@ void main() {
       expect(plan['suggestedMl'], 60);
     },
   );
+
+  test('sync n\'échoue pas sans profil', () async {
+    final container = ProviderContainer(
+      overrides: [
+        firestoreProvider.overrideWithValue(FakeFirebaseFirestore()),
+        clockProvider.overrideWithValue(FixedClock(DateTime(2026, 9, 10, 12))),
+        householdLocalStoreProvider.overrideWithValue(
+          InMemoryHouseholdLocalStore(householdCode: 'ABCDEFGH'),
+        ),
+      ],
+    );
+    addTearDown(container.dispose);
+    await expectLater(
+      container.read(feedingPlanSyncProvider).sync(),
+      completes,
+    );
+  });
 }

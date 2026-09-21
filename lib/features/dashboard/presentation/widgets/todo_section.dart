@@ -38,8 +38,10 @@ class TodoSection extends ConsumerWidget {
         content: Text(s.saved),
         action: SnackBarAction(
           label: s.actionUndo,
-          onPressed: () =>
-              ref.read(eventFormControllerProvider.notifier).delete(saved.id),
+          onPressed: () {
+            if (!context.mounted) return;
+            ref.read(eventFormControllerProvider.notifier).delete(saved.id);
+          },
         ),
       ),
     );

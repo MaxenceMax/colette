@@ -1,16 +1,26 @@
 import 'package:colette/core/clock/app_clock.dart';
 import 'package:colette/core/clock/now_providers.dart';
+import 'package:colette/core/ids/id_generator.dart';
 import 'package:colette/features/baby/domain/entities/baby_profile.dart';
 import 'package:colette/features/baby/domain/entities/weight_entry.dart';
 import 'package:colette/features/baby/presentation/providers/baby_providers.dart';
 import 'package:colette/features/dashboard/presentation/pages/dashboard_page.dart';
+import 'package:colette/features/dashboard/presentation/providers/feeding_plan_sync.dart';
+import 'package:colette/features/events/domain/entities/care_event.dart';
+import 'package:colette/features/events/domain/repositories/events_repository.dart';
 import 'package:colette/features/events/presentation/providers/events_providers.dart';
 import 'package:colette/features/household/presentation/providers/household_providers.dart';
+import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/misc.dart' show Override;
 import 'package:flutter_test/flutter_test.dart';
+import 'package:fpdart/fpdart.dart';
+import 'package:mocktail/mocktail.dart';
 
 import '../../../helpers/care_event_factory.dart';
 import '../../../helpers/in_memory_household_local_store.dart';
 import '../../../helpers/pump_app.dart';
+
+class MockEventsRepository extends Mock implements EventsRepository {}
 
 void main() {
   final now = DateTime(2026, 9, 10, 12);
@@ -27,34 +37,37 @@ void main() {
     diaperChange: true,
   );
 
+  setUpAll(() => registerFallbackValue(makeEvent(startAt: DateTime(2026))));
+
+  List<Override> overridesFor(MockEventsRepository repo) => [
+    clockProvider.overrideWithValue(FixedClock(now)),
+    minuteTickerProvider.overrideWith((ref) => const Stream.empty()),
+    householdLocalStoreProvider.overrideWithValue(
+      InMemoryHouseholdLocalStore(householdCode: 'ABCDEFGH'),
+    ),
+    babyProfileProvider.overrideWith((ref) => Stream.value(profile)),
+    weightsProvider.overrideWith(
+      (ref) => Stream.value([
+        WeightEntry(id: 'w', measuredAt: DateTime(2026, 9, 9), grams: 3600),
+      ]),
+    ),
+    todayEventsProvider.overrideWith((ref) => Stream.value([adrigyl, bottle])),
+    latestBottleProvider.overrideWith((ref) => Stream.value(bottle)),
+    latestBathProvider.overrideWith((ref) => Stream.value(null)),
+    eventsRepositoryProvider.overrideWithValue(repo),
+    idGeneratorProvider.overrideWithValue(const FixedIdGenerator('e-new')),
+    feedingPlanSyncProvider.overrideWithValue(const NoopFeedingPlanSync()),
+  ];
+
   testWidgets(
     'affiche l\'âge, le prochain biberon, les tâches et les compteurs',
     (tester) async {
+      final repo = MockEventsRepository();
+      when(() => repo.save(any(), any())).thenAnswer((_) async => right(null));
       await pumpApp(
         tester,
         const DashboardPage(),
-        overrides: [
-          clockProvider.overrideWithValue(FixedClock(now)),
-          minuteTickerProvider.overrideWith((ref) => const Stream.empty()),
-          householdLocalStoreProvider.overrideWithValue(
-            InMemoryHouseholdLocalStore(householdCode: 'ABCDEFGH'),
-          ),
-          babyProfileProvider.overrideWith((ref) => Stream.value(profile)),
-          weightsProvider.overrideWith(
-            (ref) => Stream.value([
-              WeightEntry(
-                id: 'w',
-                measuredAt: DateTime(2026, 9, 9),
-                grams: 3600,
-              ),
-            ]),
-          ),
-          todayEventsProvider.overrideWith(
-            (ref) => Stream.value([adrigyl, bottle]),
-          ),
-          latestBottleProvider.overrideWith((ref) => Stream.value(bottle)),
-          latestBathProvider.overrideWith((ref) => Stream.value(null)),
-        ],
+        overrides: overridesFor(repo),
       );
 
       expect(find.text('Colette a 9 jours'), findsOneWidget);
@@ -65,6 +78,28 @@ void main() {
       expect(find.text('Soin des yeux'), findsOneWidget);
       expect(find.text('Bain'), findsOneWidget);
       expect(find.text('couches'), findsOneWidget);
+    },
+  );
+
+  testWidgets(
+    'taper une tâche à faire enregistre le soin et propose d\'annuler',
+    (tester) async {
+      final repo = MockEventsRepository();
+      when(() => repo.save(any(), any())).thenAnswer((_) async => right(null));
+      await pumpApp(
+        tester,
+        const DashboardPage(),
+        overrides: overridesFor(repo),
+      );
+      await tester.tap(find.text('Soin des yeux'));
+      await tester.pumpAndSettle();
+      final saved =
+          verify(() => repo.save('ABCDEFGH', captureAny())).captured.single
+              as CareEvent;
+      expect(saved.eyeCare, isTrue);
+      expect(saved.startAt, now);
+      expect(find.text('Enregistré'), findsOneWidget);
+      expect(find.widgetWithText(SnackBarAction, 'Annuler'), findsOneWidget);
     },
   );
 }
