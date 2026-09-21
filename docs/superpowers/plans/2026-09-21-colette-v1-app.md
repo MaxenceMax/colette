@@ -746,15 +746,18 @@ import 'package:shared_preferences/shared_preferences.dart';
 part 'firebase_providers.g.dart';
 
 /// Instance Firestore ; surchargée par `FakeFirebaseFirestore` en test.
-@riverpod
+/// Singleton applicatif : `keepAlive` pour pouvoir être consommé par des providers `keepAlive`.
+@Riverpod(keepAlive: true)
 FirebaseFirestore firestore(Ref ref) => FirebaseFirestore.instance;
 
 /// Instance Firebase Auth.
-@riverpod
+/// Singleton applicatif : `keepAlive` pour pouvoir être consommé par des providers `keepAlive`.
+@Riverpod(keepAlive: true)
 FirebaseAuth firebaseAuth(Ref ref) => FirebaseAuth.instance;
 
 /// Instance Firebase Messaging.
-@riverpod
+/// Singleton applicatif : `keepAlive` pour pouvoir être consommé par des providers `keepAlive`.
+@Riverpod(keepAlive: true)
 FirebaseMessaging firebaseMessaging(Ref ref) => FirebaseMessaging.instance;
 
 /// Surchargé dans `main()` après `SharedPreferences.getInstance()`.
@@ -2657,7 +2660,8 @@ HouseholdLocalStore householdLocalStore(Ref ref) =>
 HouseholdRepository householdRepository(Ref ref) =>
     FirestoreHouseholdRepository(ref.watch(firestoreProvider), ref.watch(clockProvider));
 
-@riverpod
+/// Sans état : `keepAlive` car consommé par l'enregistrement push (keepAlive).
+@Riverpod(keepAlive: true)
 DeviceRepository deviceRepository(Ref ref) =>
     FirestoreDeviceRepository(ref.watch(firestoreProvider));
 
