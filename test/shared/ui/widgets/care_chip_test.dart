@@ -24,4 +24,22 @@ void main() {
     await tester.tap(find.byType(CareChip));
     expect(received, isTrue);
   });
+
+  testWidgets('CareChip sélectionnée appelle onChanged(false) au tap', (
+    tester,
+  ) async {
+    bool? received;
+    await pumpApp(
+      tester,
+      Scaffold(
+        body: CareChip(
+          type: CareType.adrigyl,
+          selected: true,
+          onChanged: (value) => received = value,
+        ),
+      ),
+    );
+    await tester.tap(find.byType(CareChip));
+    expect(received, isFalse);
+  });
 }

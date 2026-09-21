@@ -1,6 +1,7 @@
 import 'package:colette/core/theme/app_colors.dart';
 import 'package:colette/core/theme/design_tokens.dart';
 import 'package:colette/core/theme/text_styles.dart';
+import 'package:colette/l10n/generated/app_localizations.dart';
 import 'package:flutter/material.dart';
 
 /// Ligne « libellé … [-] valeur [+] » bornée par [min] et [max].
@@ -34,6 +35,7 @@ class IntStepperRow extends StatelessWidget {
           onPressed: value - step >= min ? () => onChanged(value - step) : null,
           icon: const Icon(Icons.remove),
           color: context.appColor(AppColors.primary),
+          tooltip: S.of(context).actionDecrease,
         ),
         Text(
           suffix == null ? '$value' : '$value $suffix',
@@ -45,6 +47,7 @@ class IntStepperRow extends StatelessWidget {
           onPressed: value + step <= max ? () => onChanged(value + step) : null,
           icon: const Icon(Icons.add),
           color: context.appColor(AppColors.primary),
+          tooltip: S.of(context).actionIncrease,
         ),
         AppSpacing.xs.horizontalSpace,
       ],

@@ -37,22 +37,28 @@ class CareChip extends StatelessWidget {
       clipBehavior: Clip.antiAlias,
       child: InkWell(
         onTap: () => onChanged(!selected),
-        child: Padding(
-          padding: AppSpacing.symmetric(
-            horizontal: AppSpacing.md,
-            vertical: AppSpacing.sm,
-          ),
-          child: Row(
-            mainAxisSize: .min,
-            spacing: AppSpacing.xs.value,
-            children: [
-              Icon(type.icon, size: AppSize.xs.value, color: foreground),
-              Text(
-                type.label(S.of(context)),
-                style: Theme.of(context).coletteTextStyles.bodyMedium
-                    .copyWith(color: foreground),
+        child: ConstrainedBox(
+          constraints: BoxConstraints(minHeight: AppSize.xl.value),
+          child: Center(
+            widthFactor: 1,
+            child: Padding(
+              padding: AppSpacing.symmetric(
+                horizontal: AppSpacing.md,
+                vertical: AppSpacing.sm,
               ),
-            ],
+              child: Row(
+                mainAxisSize: .min,
+                spacing: AppSpacing.xs.value,
+                children: [
+                  Icon(type.icon, size: AppSize.xs.value, color: foreground),
+                  Text(
+                    type.label(S.of(context)),
+                    style: Theme.of(context).coletteTextStyles.bodyMedium
+                        .copyWith(color: foreground),
+                  ),
+                ],
+              ),
+            ),
           ),
         ),
       ),

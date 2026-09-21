@@ -13,10 +13,14 @@ Future<void> pumpApp(
   Widget child, {
   List<Override> overrides = const [],
 }) async {
+  final hasOnlineOverride = overrides.any(
+    (override) => override.origin == isOnlineProvider,
+  );
   await tester.pumpWidget(
     ProviderScope(
       overrides: [
-        isOnlineProvider.overrideWith((ref) => Stream.value(true)),
+        if (!hasOnlineOverride)
+          isOnlineProvider.overrideWith((ref) => Stream.value(true)),
         ...overrides,
       ],
       child: MaterialApp(

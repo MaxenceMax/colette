@@ -9,16 +9,19 @@ part of 'connectivity_provider.dart';
 // GENERATED CODE - DO NOT MODIFY BY HAND
 // ignore_for_file: type=lint, type=warning
 /// `true` tant qu'au moins une interface réseau est disponible.
+/// Émet d'abord l'état courant, puis chaque changement.
 
 @ProviderFor(isOnline)
 final isOnlineProvider = IsOnlineProvider._();
 
 /// `true` tant qu'au moins une interface réseau est disponible.
+/// Émet d'abord l'état courant, puis chaque changement.
 
 final class IsOnlineProvider
     extends $FunctionalProvider<AsyncValue<bool>, bool, Stream<bool>>
     with $FutureModifier<bool>, $StreamProvider<bool> {
   /// `true` tant qu'au moins une interface réseau est disponible.
+  /// Émet d'abord l'état courant, puis chaque changement.
   IsOnlineProvider._()
     : super(
         from: null,
@@ -44,4 +47,4 @@ final class IsOnlineProvider
   }
 }
 
-String _$isOnlineHash() => r'0c16e04f0417ce1398048393cde0ee3a799b5d5b';
+String _$isOnlineHash() => r'3feb5aac2ef2bf93acd29bdbb4821ed52ddec3b4';

@@ -31,4 +31,25 @@ void main() {
     await tester.pump();
     expect(value, 1);
   });
+
+  testWidgets('le bouton moins est désactivé quand value == min', (
+    tester,
+  ) async {
+    await pumpApp(
+      tester,
+      Scaffold(
+        body: IntStepperRow(
+          label: 'Adrigyl par jour',
+          value: 0,
+          min: 0,
+          max: 2,
+          onChanged: (_) {},
+        ),
+      ),
+    );
+    final button = tester.widget<IconButton>(
+      find.widgetWithIcon(IconButton, Icons.remove),
+    );
+    expect(button.onPressed, isNull);
+  });
 }

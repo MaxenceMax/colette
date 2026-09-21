@@ -10,7 +10,10 @@ Future<DateTime?> showColetteDateTimePicker(
   required CupertinoDatePickerMode mode,
   DateTime? maximum,
 }) {
-  var selected = initial;
+  final safeInitial = maximum != null && initial.isAfter(maximum)
+      ? maximum
+      : initial;
+  var selected = safeInitial;
   return showModalBottomSheet<DateTime>(
     context: context,
     builder: (sheetContext) => SafeArea(
@@ -21,7 +24,7 @@ Future<DateTime?> showColetteDateTimePicker(
             height: AppSize.massive.value * 2,
             child: CupertinoDatePicker(
               mode: mode,
-              initialDateTime: initial,
+              initialDateTime: safeInitial,
               maximumDate: maximum,
               use24hFormat: true,
               onDateTimeChanged: (value) => selected = value,
