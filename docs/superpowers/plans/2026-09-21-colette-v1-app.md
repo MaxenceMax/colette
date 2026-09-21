@@ -208,6 +208,7 @@ nullable-getter: false
   "fieldBirthDate": "Date de naissance",
   "fieldDeviceLabel": "Nom de cet iPhone",
   "fieldDeviceLabelHint": "iPhone de Maxence",
+  "deviceLabelDefault": "Cet iPhone",
   "fieldHouseholdCode": "Code du foyer",
   "actionCreate": "Créer",
   "actionJoin": "Rejoindre",
@@ -767,16 +768,23 @@ SharedPreferences sharedPreferences(Ref ref) => throw UnimplementedError(
 - [ ] **Step 10: Créer `lib/core/firebase/anonymous_auth.dart`**
 
 ```dart
+import 'dart:async';
 import 'dart:developer' as developer;
 
 import 'package:firebase_auth/firebase_auth.dart';
 
-/// Ouvre une session anonyme si aucune n'existe. Silencieux en cas d'échec
-/// réseau : la prochaine ouverture réessaiera.
-Future<void> ensureAnonymousSession(FirebaseAuth auth) async {
+/// Ouvre une session anonyme si aucune n'existe, sans bloquer le démarrage
+/// plus de [timeout] : hors ligne, la tentative continue en arrière-plan et
+/// la prochaine ouverture réessaiera. Les échecs sont journalisés, jamais propagés.
+Future<void> ensureAnonymousSession(
+  FirebaseAuth auth, {
+  Duration timeout = const Duration(seconds: 5),
+}) async {
   if (auth.currentUser != null) return;
   try {
-    await auth.signInAnonymously();
+    await auth.signInAnonymously().timeout(timeout);
+  } on TimeoutException {
+    developer.log('Anonymous sign-in still pending after timeout', name: 'colette');
   } on FirebaseAuthException catch (e, stackTrace) {
     developer.log('Anonymous sign-in failed', error: e, stackTrace: stackTrace, name: 'colette');
   }
@@ -3225,6 +3233,9 @@ part 'onboarding_controller.g.dart';
 /// Création ou jonction d'un foyer. L'état porte l'échec éventuel.
 @riverpod
 class OnboardingController extends _$OnboardingController {
+  /// Code généré, conservé entre deux tentatives pour ne pas créer d'orphelin.
+  String? _pendingCode;
+
   @override
   FutureOr<void> build() {}
 
@@ -3235,7 +3246,7 @@ class OnboardingController extends _$OnboardingController {
   }) => _run(() async {
     final name = babyName.trim();
     if (name.isEmpty) return left(const ValidationFailure(ValidationReason.emptyName));
-    final code = ref.read(householdCodeGeneratorProvider).generate();
+    final code = _pendingCode ??= ref.read(householdCodeGeneratorProvider).generate();
     final created = await ref.read(householdRepositoryProvider).create(code);
     if (created.leftOrNull case final failure?) return left(failure);
     final saved = await ref
@@ -3267,6 +3278,7 @@ class OnboardingController extends _$OnboardingController {
     final registered = await ref.read(deviceRepositoryProvider).saveDevice(code, device);
     if (registered.leftOrNull case final failure?) return left(failure);
     await ref.read(currentHouseholdCodeProvider.notifier).set(code);
+    _pendingCode = null;
     return right(null);
   }
 
@@ -3440,9 +3452,10 @@ class _CreateHouseholdPageState extends ConsumerState<CreateHouseholdPage> {
   }
 
   Future<void> _submit() async {
+    if (ref.read(onboardingControllerProvider).isLoading) return;
     final s = S.of(context);
     final label = _deviceController.text.trim().isEmpty
-        ? s.fieldDeviceLabelHint
+        ? s.deviceLabelDefault
         : _deviceController.text;
     await ref.read(onboardingControllerProvider.notifier).createHousehold(
       babyName: _nameController.text,
@@ -3531,9 +3544,10 @@ class _JoinHouseholdPageState extends ConsumerState<JoinHouseholdPage> {
   }
 
   Future<void> _submit() async {
+    if (ref.read(onboardingControllerProvider).isLoading) return;
     final s = S.of(context);
     final label = _deviceController.text.trim().isEmpty
-        ? s.fieldDeviceLabelHint
+        ? s.deviceLabelDefault
         : _deviceController.text;
     await ref
         .read(onboardingControllerProvider.notifier)
@@ -3690,7 +3704,7 @@ abstract final class AppRoutes {
 @riverpod
 GoRouter appRouter(Ref ref) {
   final hasHousehold = ref.watch(currentHouseholdCodeProvider) != null;
-  return GoRouter(
+  final router = GoRouter(
     initialLocation: hasHousehold ? AppRoutes.today : AppRoutes.onboarding,
     redirect: (context, state) {
       final onOnboarding = state.matchedLocation.startsWith(AppRoutes.onboarding);
@@ -3723,6 +3737,8 @@ GoRouter appRouter(Ref ref) {
       ),
     ],
   );
+  ref.onDispose(router.dispose);
+  return router;
 }
 ```
 
