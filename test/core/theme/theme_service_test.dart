@@ -26,4 +26,22 @@ void main() {
     expect(theme.coletteTextStyles.heading1.fontSize, 26);
     expect(theme.coletteTextStyles.body.fontSize, 14);
   });
+
+  test('titres en Fraunces, corps en DM Sans', () {
+    final styles = service.light().coletteTextStyles;
+    expect(styles.heading1.fontFamily, contains('Fraunces'));
+    expect(styles.body.fontFamily, contains('DMSans'));
+  });
+
+  test('le thème sombre colore le texte en onSurface.dark', () {
+    expect(
+      service.dark().textTheme.bodyMedium?.color,
+      AppColors.onSurface.dark,
+    );
+  });
+
+  test('le pouce du Switch change de couleur selon l\'état', () {
+    final thumb = service.light().switchTheme.thumbColor!;
+    expect(thumb.resolve({WidgetState.selected}), isNot(thumb.resolve({})));
+  });
 }

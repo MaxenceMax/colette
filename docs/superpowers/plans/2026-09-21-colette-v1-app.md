@@ -1274,8 +1274,12 @@ class ThemeService {
       navigationBarTheme: NavigationBarThemeData(
         backgroundColor: c(AppColors.surface),
         indicatorColor: c(AppColors.primaryContainer),
-        labelTextStyle: WidgetStatePropertyAll(
-          ColetteTextStyle.label.textStyle.copyWith(color: c(AppColors.onSurface)),
+        labelTextStyle: WidgetStateProperty.resolveWith(
+          (states) => ColetteTextStyle.label.textStyle.copyWith(
+            color: states.contains(WidgetState.selected)
+                ? c(AppColors.primary)
+                : c(AppColors.textSecondary),
+          ),
         ),
         iconTheme: WidgetStateProperty.resolveWith(
           (states) => IconThemeData(
@@ -1342,12 +1346,17 @@ class ThemeService {
       dividerTheme: DividerThemeData(color: c(AppColors.border), thickness: 1),
       snackBarTheme: const SnackBarThemeData(behavior: SnackBarBehavior.floating),
       switchTheme: SwitchThemeData(
-        thumbColor: WidgetStatePropertyAll(c(AppColors.onPrimary)),
+        thumbColor: WidgetStateProperty.resolveWith(
+          (states) => states.contains(WidgetState.selected)
+              ? c(AppColors.onPrimary)
+              : c(AppColors.textSecondary),
+        ),
         trackColor: WidgetStateProperty.resolveWith(
           (states) => states.contains(WidgetState.selected)
               ? c(AppColors.primary)
               : c(AppColors.border),
         ),
+        trackOutlineColor: const WidgetStatePropertyAll(Colors.transparent),
       ),
     );
   }
