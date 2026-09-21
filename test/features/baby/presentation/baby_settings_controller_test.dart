@@ -86,12 +86,10 @@ void main() {
   test('setCordFallenAt désactive le soin du nombril', () async {
     when(() => repo.saveProfile(any(), any()))
         .thenAnswer((_) async => right(null));
-    // Garde le provider vivant : sans écoute persistante, `container.read`
-    // referme aussitôt sa souscription temporaire et l'autoDispose détruit
-    // le provider avant que le flux n'émette (« disposed during loading »).
-    container.listen(babyProfileProvider, (_, _) {});
-    await container.read(babyProfileProvider.future);
-    final ok = await controller().setCordFallenAt(DateTime(2026, 9, 12));
+    final ok = await controller().setCordFallenAt(
+      profile,
+      DateTime(2026, 9, 12),
+    );
     expect(ok, isTrue);
     final saved =
         verify(() => repo.saveProfile('ABCDEFGH', captureAny())).captured.single
@@ -103,10 +101,8 @@ void main() {
   test('updateCareSettings enregistre et synchronise', () async {
     when(() => repo.saveProfile(any(), any()))
         .thenAnswer((_) async => right(null));
-    // Voir la note dans le test précédent : évite l'autoDispose prématuré.
-    container.listen(babyProfileProvider, (_, _) {});
-    await container.read(babyProfileProvider.future);
     final ok = await controller().updateCareSettings(
+      profile,
       const CareSettings(feedsPerDay: 7),
     );
     expect(ok, isTrue);

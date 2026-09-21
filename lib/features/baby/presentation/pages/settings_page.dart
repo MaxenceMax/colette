@@ -38,7 +38,7 @@ class SettingsPage extends ConsumerWidget {
             SectionHeader(title: s.settingsWeightsSection),
             const WeightsSection(),
             SectionHeader(title: s.settingsCareSection),
-            CareSettingsSection(settings: profile.careSettings),
+            CareSettingsSection(profile: profile),
           ] else
             const Padding(
               padding: EdgeInsets.zero,

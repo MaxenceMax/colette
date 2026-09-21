@@ -26,18 +26,19 @@ class BabySettingsController extends _$BabySettingsController {
     (code) => ref.read(babyRepositoryProvider).saveProfile(code, profile),
   );
 
-  Future<bool> updateCareSettings(CareSettings settings) =>
-      _withProfile((profile) => profile.copyWith(careSettings: settings));
+  Future<bool> updateCareSettings(BabyProfile profile, CareSettings settings) =>
+      saveProfile(profile.copyWith(careSettings: settings));
 
   /// Renseigner la date désactive le soin du nombril ; l'effacer le réactive.
-  Future<bool> setCordFallenAt(DateTime? date) => _withProfile(
-    (profile) => profile.copyWith(
-      cordFallenAt: date,
-      careSettings: profile.careSettings.copyWith(
-        umbilicalCareEnabled: date == null,
-      ),
-    ),
-  );
+  Future<bool> setCordFallenAt(BabyProfile profile, DateTime? date) =>
+      saveProfile(
+        profile.copyWith(
+          cordFallenAt: date,
+          careSettings: profile.careSettings.copyWith(
+            umbilicalCareEnabled: date == null,
+          ),
+        ),
+      );
 
   Future<bool> addWeight({required DateTime measuredAt, required int grams}) =>
       _run((code) async {
@@ -55,12 +56,6 @@ class BabySettingsController extends _$BabySettingsController {
   Future<bool> deleteWeight(String weightId) => _run(
     (code) => ref.read(babyRepositoryProvider).deleteWeight(code, weightId),
   );
-
-  Future<bool> _withProfile(BabyProfile Function(BabyProfile) update) async {
-    final profile = await ref.read(babyProfileProvider.future);
-    if (profile == null) return false;
-    return saveProfile(update(profile));
-  }
 
   Future<bool> _run(
     Future<Either<Failure, void>> Function(String code) action,

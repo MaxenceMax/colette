@@ -75,7 +75,7 @@ class BabySection extends ConsumerWidget {
     if (picked == null) return;
     await ref
         .read(babySettingsControllerProvider.notifier)
-        .setCordFallenAt(picked.dateOnly);
+        .setCordFallenAt(profile, picked.dateOnly);
   }
 
   @override
@@ -116,7 +116,7 @@ class BabySection extends ConsumerWidget {
                 IconButton(
                   onPressed: () => ref
                       .read(babySettingsControllerProvider.notifier)
-                      .setCordFallenAt(null),
+                      .setCordFallenAt(profile, null),
                   icon: const Icon(Icons.close),
                 ),
             ],
