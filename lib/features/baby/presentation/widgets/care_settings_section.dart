@@ -43,6 +43,8 @@ class _CareSettingsSectionState extends ConsumerState<CareSettingsSection> {
 
   @override
   Widget build(BuildContext context) {
+    // Garde le contrôleur autoDispose vivant pendant l'await de updateCareSettings.
+    ref.watch(babySettingsControllerProvider);
     final s = S.of(context);
     return ColetteCardSurface(
       padding: AppSpacing.sm.all,

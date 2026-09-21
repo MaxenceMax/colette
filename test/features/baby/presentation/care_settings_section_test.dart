@@ -1,12 +1,10 @@
 import 'package:colette/features/baby/domain/entities/baby_profile.dart';
 import 'package:colette/features/baby/domain/repositories/baby_repository.dart';
 import 'package:colette/features/baby/presentation/providers/baby_providers.dart';
-import 'package:colette/features/baby/presentation/providers/baby_settings_controller.dart';
 import 'package:colette/features/baby/presentation/widgets/care_settings_section.dart';
 import 'package:colette/features/dashboard/presentation/providers/feeding_plan_sync.dart';
 import 'package:colette/features/household/presentation/providers/household_providers.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:fpdart/fpdart.dart';
 import 'package:mocktail/mocktail.dart';
@@ -42,15 +40,6 @@ void main() {
         ),
       ],
     );
-    // En production, `SettingsPage` garde `babySettingsControllerProvider`
-    // vivant via `ref.listen` dans son `build` pendant que la section est
-    // montée. Ce test pompe `CareSettingsSection` seule (sans `SettingsPage`),
-    // donc rien ne l'empêche d'être détruit (autoDispose) pendant l'attente
-    // du premier tap ; on reproduit ici la même garde.
-    final container = ProviderScope.containerOf(
-      tester.element(find.byType(CareSettingsSection)),
-    );
-    container.listen(babySettingsControllerProvider, (_, _) {});
     final plusButtons = find.widgetWithIcon(IconButton, Icons.add);
     await tester.tap(plusButtons.first);
     await tester.pump();
