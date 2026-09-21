@@ -98,22 +98,22 @@ Mécanique identique à Calpin, renommée Colette. Aucune valeur de style en dur
 | primary | #A8573F | #D08A6F | cannelle : actions, accents, onglet actif |
 | onPrimary | #FFFFFF | #1C1514 | texte sur primary |
 | primaryContainer | #F3E2DA | #3A2A24 | poudre : lignes de tâches, fonds légers |
-| secondary | #E9B9A8 | #8C5F52 | rose poudré : compteurs, badges |
+| secondary | #E9B9A8 | #86584B | rose poudré : compteurs, badges |
 | onSecondary | #5C2A1B | #F7E6E0 | texte sur secondary |
-| accent | #D9A441 | #E4B85C | miel : mise en avant, warning doux |
+| accent | #D9A441 | #E4B85C | miel : fonds et décorations uniquement, jamais en texte |
 | pageBackground | #FBF5EF | #1C1514 | lin : fond des écrans |
 | surface | #FFFFFF | #2B2220 | cartes |
 | surfaceContainer | #F6EBE4 | #342925 | champs, zones secondaires |
 | onSurface | #2E2320 | #F1E6E0 | texte principal |
 | textSecondary | #7B655E | #B8A39B | dates, labels |
 | border | #EAD9CF | #4A3A34 | bordures fines |
-| success | #7F9E85 | #9DBBA2 | eucalyptus : fait, validé |
-| warning | #D9A441 | #E4B85C | en retard |
+| success | #57795D | #9DBBA2 | eucalyptus : fait, validé |
+| warning | #8F6412 | #E4B85C | en retard |
 | error | #C0563F | #E27A62 | erreurs |
 | categoryFeeding | #A8573F | #D08A6F | biberon |
-| categoryDiaper | #D9A441 | #E4B85C | pipi, caca, couche |
-| categoryCare | #7F9E85 | #9DBBA2 | yeux, nez, nombril, Adrigyl |
-| categoryBath | #E9B9A8 | #C98A79 | bain |
+| categoryDiaper | #8F6412 | #E4B85C | pipi, caca, couche |
+| categoryCare | #57795D | #9DBBA2 | yeux, nez, nombril, Adrigyl |
+| categoryBath | #A8624F | #C98A79 | bain |
 | shadow | #000000 | #FFFFFF | ombres |
 
 Accès : `context.appColor(AppColors.primary)`. Une couleur manquante s'ajoute dans l'enum avec ses deux valeurs avant tout usage.

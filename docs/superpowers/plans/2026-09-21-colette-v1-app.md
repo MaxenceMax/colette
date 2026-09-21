@@ -856,10 +856,10 @@ enum AppColors {
   primaryContainer(light: Color(0xFFF3E2DA), dark: Color(0xFF3A2A24)),
 
   /// Rose poudré : compteurs, badges.
-  secondary(light: Color(0xFFE9B9A8), dark: Color(0xFF8C5F52)),
+  secondary(light: Color(0xFFE9B9A8), dark: Color(0xFF86584B)),
   onSecondary(light: Color(0xFF5C2A1B), dark: Color(0xFFF7E6E0)),
 
-  /// Miel : mise en avant, alerte douce.
+  /// Miel : fonds et décorations uniquement, jamais en texte (contraste insuffisant en clair).
   accent(light: Color(0xFFD9A441), dark: Color(0xFFE4B85C)),
 
   // Surfaces
@@ -874,16 +874,16 @@ enum AppColors {
   border(light: Color(0xFFEAD9CF), dark: Color(0xFF4A3A34)),
 
   // Sémantique
-  /// Eucalyptus : fait, validé.
-  success(light: Color(0xFF7F9E85), dark: Color(0xFF9DBBA2)),
-  warning(light: Color(0xFFD9A441), dark: Color(0xFFE4B85C)),
+  /// Eucalyptus : fait, validé. Valeurs claires assombries pour rester lisibles en texte.
+  success(light: Color(0xFF57795D), dark: Color(0xFF9DBBA2)),
+  warning(light: Color(0xFF8F6412), dark: Color(0xFFE4B85C)),
   error(light: Color(0xFFC0563F), dark: Color(0xFFE27A62)),
 
   // Catégories de soins
   categoryFeeding(light: Color(0xFFA8573F), dark: Color(0xFFD08A6F)),
-  categoryDiaper(light: Color(0xFFD9A441), dark: Color(0xFFE4B85C)),
-  categoryCare(light: Color(0xFF7F9E85), dark: Color(0xFF9DBBA2)),
-  categoryBath(light: Color(0xFFE9B9A8), dark: Color(0xFFC98A79)),
+  categoryDiaper(light: Color(0xFF8F6412), dark: Color(0xFFE4B85C)),
+  categoryCare(light: Color(0xFF57795D), dark: Color(0xFF9DBBA2)),
+  categoryBath(light: Color(0xFFA8624F), dark: Color(0xFFC98A79)),
 
   shadow(light: Color(0xFF000000), dark: Color(0xFFFFFFFF));
 
