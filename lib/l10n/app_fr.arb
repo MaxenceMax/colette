@@ -76,6 +76,7 @@
   "careBottle": "Biberon",
   "bottleMl": "{ml} ml",
   "@bottleMl": { "placeholders": { "ml": { "type": "int" } } },
+  "unitMl": "ml",
   "journalTitle": "Journal",
   "journalEmpty": "Aucun événement pour l'instant. Appuie sur + pour commencer.",
   "dayToday": "Aujourd'hui",
