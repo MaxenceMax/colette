@@ -223,6 +223,9 @@ nullable-getter: false
   "errorEmptyName": "Le prénom est obligatoire.",
   "errorNetwork": "Pas de connexion. Réessaie dans un instant.",
   "errorUnknown": "Une erreur est survenue.",
+  "errorNotFound": "Introuvable : l'élément a peut-être été supprimé.",
+  "actionDecrease": "Diminuer",
+  "actionIncrease": "Augmenter",
   "errorEmptyEvent": "Coche au moins un soin ou renseigne un biberon.",
   "errorEndBeforeStart": "L'heure de fin doit être après le début.",
   "errorStartInFuture": "L'heure de début ne peut pas être dans le futur.",
@@ -1417,11 +1420,17 @@ import 'package:riverpod_annotation/riverpod_annotation.dart';
 
 part 'connectivity_provider.g.dart';
 
+bool _hasNetwork(List<ConnectivityResult> results) =>
+    results.isNotEmpty && !results.contains(ConnectivityResult.none);
+
 /// `true` tant qu'au moins une interface réseau est disponible.
+/// Émet d'abord l'état courant, puis chaque changement.
 @riverpod
-Stream<bool> isOnline(Ref ref) => Connectivity().onConnectivityChanged.map(
-  (results) => results.isNotEmpty && !results.contains(ConnectivityResult.none),
-);
+Stream<bool> isOnline(Ref ref) async* {
+  final connectivity = Connectivity();
+  yield _hasNetwork(await connectivity.checkConnectivity());
+  yield* connectivity.onConnectivityChanged.map(_hasNetwork);
+}
 ```
 
 - [ ] **Step 3: Créer `test/helpers/pump_app.dart`**
@@ -1874,7 +1883,7 @@ import 'package:colette/l10n/generated/app_localizations.dart';
 /// Texte affichable pour une [Failure].
 String failureMessage(Object failure, S s) => switch (failure) {
   NetworkFailure() => s.errorNetwork,
-  NotFoundFailure() => s.errorUnknownCode,
+  NotFoundFailure() => s.errorNotFound,
   ValidationFailure(:final reason) => switch (reason) {
     ValidationReason.emptyEvent => s.errorEmptyEvent,
     ValidationReason.endBeforeStart => s.errorEndBeforeStart,
@@ -1933,6 +1942,8 @@ Future<DateTime?> showColetteDateTimePicker(
   );
 }
 ```
+
+**Note post-revue (appliquée dans le code) :** `IntStepperRow` porte des `tooltip` (`actionDecrease` / `actionIncrease`) sur ses boutons ; `CareChip` garantit une hauteur tactile de `AppSize.xl` via `ConstrainedBox` ; `showColetteDateTimePicker` borne `initial` à `maximum` ; tests supplémentaires : `test/core/ui/failure_message_test.dart`, `test/shared/ui/widgets/offline_banner_test.dart` ; `pumpApp` n'ajoute son override `isOnlineProvider` que si l'appelant n'en fournit pas déjà un.
 
 - [ ] **Step 9: Générer, analyser, tester**
 
@@ -3113,14 +3124,16 @@ void main() {
     verifyNever(() => households.create(any()));
   });
 
-  test('joinHousehold propage NotFoundFailure pour un code inconnu', () async {
+  test('joinHousehold convertit NotFoundFailure en code inconnu', () async {
     when(() => households.join('ABCDEFGH')).thenAnswer((_) async => left(const NotFoundFailure()));
     final ok = await container.read(onboardingControllerProvider.notifier).joinHousehold(
       code: 'abcd efgh',
       deviceLabel: 'iPhone',
     );
     expect(ok, isFalse);
-    expect(container.read(onboardingControllerProvider).error, isA<NotFoundFailure>());
+    final error = container.read(onboardingControllerProvider).error;
+    expect(error, isA<ValidationFailure>());
+    expect((error! as ValidationFailure).reason, ValidationReason.unknownHouseholdCode);
     expect(store.householdCode, isNull);
   });
 
@@ -3238,7 +3251,13 @@ class OnboardingController extends _$OnboardingController {
           return left(const ValidationFailure(ValidationReason.unknownHouseholdCode));
         }
         final joined = await ref.read(householdRepositoryProvider).join(normalized);
-        if (joined.leftOrNull case final failure?) return left(failure);
+        if (joined.leftOrNull case final failure?) {
+          return left(
+            failure is NotFoundFailure
+                ? const ValidationFailure(ValidationReason.unknownHouseholdCode)
+                : failure,
+          );
+        }
         return _registerDeviceAndEnter(normalized, deviceLabel);
       });
 
