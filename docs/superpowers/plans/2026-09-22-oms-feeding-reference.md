@@ -713,7 +713,7 @@ Co-Authored-By: Claude Fable 5.1 <noreply@anthropic.com>"
 - Create: `lib/features/dashboard/presentation/widgets/feeding_target_section.dart`
 - Test: `test/features/dashboard/presentation/feeding_reference_sheet_test.dart`
 
-- [ ] **Étape 1 : clés l10n**
+- [x] **Étape 1 : clés l10n**
 
 Dans `lib/l10n/app_fr.arb`, insérer après la ligne `"feedingPlanUnavailable": ...,` :
 
@@ -750,7 +750,7 @@ Dans `lib/l10n/app_fr.arb`, insérer après la ligne `"feedingPlanUnavailable": 
 Run: `flutter gen-l10n`
 Expected: aucune erreur ; `S.of(context).feedingReferenceTitle` disponible.
 
-- [ ] **Étape 2 : test rouge**
+- [x] **Étape 2 : test rouge**
 
 Créer `test/features/dashboard/presentation/feeding_reference_sheet_test.dart` :
 
@@ -919,12 +919,12 @@ void main() {
 }
 ```
 
-- [ ] **Étape 3 : vérifier l'échec**
+- [x] **Étape 3 : vérifier l'échec**
 
 Run: `flutter test test/features/dashboard/presentation/feeding_reference_sheet_test.dart`
 Expected: échec de compilation, `feeding_reference_sheet.dart` introuvable.
 
-- [ ] **Étape 4 : section cible ajustable**
+- [x] **Étape 4 : section cible ajustable**
 
 Créer `lib/features/dashboard/presentation/widgets/feeding_target_section.dart` :
 
@@ -1024,7 +1024,7 @@ class _FeedingTargetSectionState extends ConsumerState<FeedingTargetSection> {
 }
 ```
 
-- [ ] **Étape 5 : feuille**
+- [x] **Étape 5 : feuille**
 
 Créer `lib/features/dashboard/presentation/widgets/feeding_reference_sheet.dart` :
 
@@ -1245,12 +1245,12 @@ class _ReferenceRow extends StatelessWidget {
 }
 ```
 
-- [ ] **Étape 6 : vérifier le vert**
+- [x] **Étape 6 : vérifier le vert**
 
 Run: `flutter test test/features/dashboard/presentation/feeding_reference_sheet_test.dart`
 Expected: 5 tests verts. Si le test du SnackBar échoue parce que le message n'apparaît pas, vérifier que `pumpApp` monte bien un `MaterialApp` (il fournit le `ScaffoldMessenger`) et que `pumpAndSettle` est appelé après le tap.
 
-- [ ] **Étape 7 : format, analyse, commit**
+- [x] **Étape 7 : format, analyse, commit**
 
 Run: `dart format lib test && dart analyze`
 Expected: aucune erreur ni avertissement.
