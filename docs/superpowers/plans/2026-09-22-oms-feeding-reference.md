@@ -353,7 +353,7 @@ Co-Authored-By: Claude Fable 5.1 <noreply@anthropic.com>"
 - Create: `lib/features/dashboard/domain/use_cases/compute_feeding_reference.dart`
 - Test: `test/features/dashboard/domain/compute_feeding_reference_test.dart`
 
-- [ ] **Étape 1 : test rouge**
+- [x] **Étape 1 : test rouge**
 
 Créer `test/features/dashboard/domain/compute_feeding_reference_test.dart` :
 
@@ -404,12 +404,12 @@ void main() {
 }
 ```
 
-- [ ] **Étape 2 : vérifier l'échec**
+- [x] **Étape 2 : vérifier l'échec**
 
 Run: `flutter test test/features/dashboard/domain/compute_feeding_reference_test.dart`
 Expected: échec de compilation, fichiers introuvables.
 
-- [ ] **Étape 3 : entité**
+- [x] **Étape 3 : entité**
 
 Créer `lib/features/dashboard/domain/entities/feeding_reference.dart` :
 
@@ -432,7 +432,7 @@ abstract class FeedingReference with _$FeedingReference {
 }
 ```
 
-- [ ] **Étape 4 : use case**
+- [x] **Étape 4 : use case**
 
 Créer `lib/features/dashboard/domain/use_cases/compute_feeding_reference.dart` :
 
@@ -466,12 +466,12 @@ class ComputeFeedingReference {
 }
 ```
 
-- [ ] **Étape 5 : générer et vérifier le vert**
+- [x] **Étape 5 : générer et vérifier le vert**
 
 Run: `dart run build_runner build -d && flutter test test/features/dashboard/domain/`
 Expected: tous verts.
 
-- [ ] **Étape 6 : commit**
+- [x] **Étape 6 : commit**
 
 ```bash
 git add lib/features/dashboard/domain/entities/feeding_reference.dart lib/features/dashboard/domain/entities/feeding_reference.freezed.dart lib/features/dashboard/domain/use_cases/compute_feeding_reference.dart test/features/dashboard/domain/compute_feeding_reference_test.dart
