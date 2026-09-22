@@ -9,15 +9,19 @@ import 'package:fake_cloud_firestore/fake_cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 import '../helpers/fake_push_token_source.dart';
 import '../helpers/in_memory_household_local_store.dart';
 
 void main() {
   Future<void> pumpColetteApp(WidgetTester tester, {String? code}) async {
+    SharedPreferences.setMockInitialValues({});
+    final prefs = await SharedPreferences.getInstance();
     await tester.pumpWidget(
       ProviderScope(
         overrides: [
+          sharedPreferencesProvider.overrideWithValue(prefs),
           householdLocalStoreProvider.overrideWithValue(
             InMemoryHouseholdLocalStore(householdCode: code),
           ),

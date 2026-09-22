@@ -1,5 +1,6 @@
 import 'package:colette/app/notifications_gate.dart';
 import 'package:colette/app/router/app_router.dart';
+import 'package:colette/core/theme/theme_mode_controller.dart';
 import 'package:colette/core/theme/theme_service.dart';
 import 'package:colette/l10n/generated/app_localizations.dart';
 import 'package:flutter/material.dart';
@@ -16,7 +17,7 @@ class ColetteApp extends ConsumerWidget {
       onGenerateTitle: (context) => S.of(context).appTitle,
       theme: themeService.light(),
       darkTheme: themeService.dark(),
-      themeMode: ThemeMode.system,
+      themeMode: ref.watch(themeModeControllerProvider),
       locale: const Locale('fr'),
       localizationsDelegates: S.localizationsDelegates,
       supportedLocales: S.supportedLocales,

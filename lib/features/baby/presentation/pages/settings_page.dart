@@ -11,10 +11,11 @@ import 'package:colette/features/notifications/presentation/providers/notificati
 import 'package:colette/features/notifications/presentation/widgets/notifications_section.dart';
 import 'package:colette/l10n/generated/app_localizations.dart';
 import 'package:colette/shared/ui/widgets/section_header.dart';
+import 'package:colette/shared/ui/widgets/theme_mode_section.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-/// Onglet Réglages : bébé, pesées, soins attendus, notifications, foyer.
+/// Onglet Réglages : bébé, pesées, soins attendus, notifications, apparence, foyer.
 class SettingsPage extends ConsumerWidget {
   const SettingsPage({super.key});
 
@@ -57,6 +58,8 @@ class SettingsPage extends ConsumerWidget {
             SectionHeader(title: s.settingsNotificationsSection),
             NotificationsSection(device: device),
           ],
+          SectionHeader(title: s.settingsAppearanceSection),
+          const ThemeModeSection(),
           if (code != null) ...[
             SectionHeader(title: s.settingsHouseholdSection),
             HouseholdSection(code: code),

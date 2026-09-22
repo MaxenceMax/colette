@@ -11,6 +11,7 @@ import 'package:colette/features/notifications/presentation/providers/notificati
 import 'package:fake_cloud_firestore/fake_cloud_firestore.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 import '../helpers/fake_push_token_source.dart';
 import '../helpers/in_memory_household_local_store.dart';
@@ -22,9 +23,12 @@ void main() {
     FakeFirebaseFirestore? firestore,
     String? code = 'ABCDEFGH',
   }) async {
+    SharedPreferences.setMockInitialValues({});
+    final prefs = await SharedPreferences.getInstance();
     await tester.pumpWidget(
       ProviderScope(
         overrides: [
+          sharedPreferencesProvider.overrideWithValue(prefs),
           householdLocalStoreProvider.overrideWithValue(
             InMemoryHouseholdLocalStore(householdCode: code, deviceId: 'dev-1'),
           ),
