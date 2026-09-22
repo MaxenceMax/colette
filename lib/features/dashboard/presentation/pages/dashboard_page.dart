@@ -1,4 +1,5 @@
 import 'package:colette/core/theme/design_tokens.dart';
+import 'package:colette/features/dashboard/presentation/providers/bottle_form_request.dart';
 import 'package:colette/features/dashboard/presentation/providers/dashboard_providers.dart';
 import 'package:colette/features/dashboard/presentation/widgets/dashboard_header.dart';
 import 'package:colette/features/dashboard/presentation/widgets/day_counters_row.dart';
@@ -12,10 +13,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 /// Onglet Aujourd'hui : âge, prochain biberon, reste à faire, compteurs.
 class DashboardPage extends ConsumerStatefulWidget {
-  const DashboardPage({super.key, this.openBottleForm = false});
-
-  /// Ouvre le formulaire biberon à l'affichage (arrivée par notification).
-  final bool openBottleForm;
+  const DashboardPage({super.key});
 
   @override
   ConsumerState<DashboardPage> createState() => _DashboardPageState();
@@ -25,13 +23,18 @@ class _DashboardPageState extends ConsumerState<DashboardPage> {
   @override
   void initState() {
     super.initState();
-    if (widget.openBottleForm) {
+    ref.listenManual(bottleFormRequestProvider, fireImmediately: true, (
+      _,
+      requested,
+    ) {
+      if (!requested) return;
       WidgetsBinding.instance.addPostFrameCallback((_) {
         if (!mounted) return;
+        ref.read(bottleFormRequestProvider.notifier).consume();
         final plan = ref.read(feedingPlanProvider);
         showEventFormSheet(context, suggestedBottleMl: plan?.suggestedMl);
       });
-    }
+    });
   }
 
   @override

@@ -60,21 +60,36 @@ void main() {
     expect(doc.data()?['fcmToken'], 'tok');
   });
 
-  // Route choisie volontairement différente de « /today » : go_router ne
-  // reconstruit pas la page de la branche déjà active quand seul le
-  // paramètre de requête change (confirmé par débogage : `go` et `push`
-  // vers `/today?bottle=1` depuis l'onglet Aujourd'hui n'ouvrent jamais
-  // `EventFormSheet`, et `push` depuis un autre onglet bloque même
-  // `pumpAndSettle`). Corriger cette limitation appartient à la page
-  // Aujourd'hui (tâche 14), pas à cette tâche ; ce test vérifie donc
-  // l'intention de la tâche 16 — que `onMessageOpened` déclenche bien une
-  // navigation vers la route reçue — avec une route qui change de branche.
   testWidgets('ouvrir une notification navigue vers sa route', (tester) async {
     final source = FakePushTokenSource(granted: true, token: 'tok');
     await pumpColetteApp(tester, pushSource: source);
     source.emitOpened({'route': '/journal'});
     await tester.pumpAndSettle();
     expect(find.byType(TimelinePage), findsOneWidget);
+  });
+
+  testWidgets(
+    'ouvrir la notification biberon depuis Aujourd\'hui ouvre le formulaire',
+    (tester) async {
+      final source = FakePushTokenSource(granted: true, token: 'tok');
+      await pumpColetteApp(tester, pushSource: source);
+      source.emitOpened({'route': '/today?bottle=1'});
+      await tester.pumpAndSettle();
+      expect(find.byType(EventFormSheet), findsOneWidget);
+    },
+  );
+
+  testWidgets('ouvrir la notification biberon depuis le Journal revient sur '
+      'Aujourd\'hui et ouvre le formulaire', (tester) async {
+    final source = FakePushTokenSource(granted: true, token: 'tok');
+    await pumpColetteApp(tester, pushSource: source);
+    await tester.tap(find.text('Journal'));
+    await tester.pumpAndSettle();
+    expect(find.byType(TimelinePage), findsOneWidget);
+    source.emitOpened({'route': '/today?bottle=1'});
+    await tester.pumpAndSettle();
+    expect(find.byType(EventFormSheet), findsOneWidget);
+    expect(find.byType(TimelinePage), findsNothing);
   });
 
   testWidgets('une route invalide est ignorée', (tester) async {
@@ -84,17 +99,38 @@ void main() {
     await tester.pumpAndSettle();
     expect(find.byType(EventFormSheet), findsNothing);
     expect(find.text('Aujourd\'hui'), findsWidgets);
+    source.emitOpened({'route': '/nope'});
+    await tester.pumpAndSettle();
+    expect(find.byType(EventFormSheet), findsNothing);
+    expect(find.text('Aujourd\'hui'), findsWidgets);
   });
 
-  testWidgets('le message initial est traité au démarrage', (tester) async {
+  testWidgets('le message initial est traité au démarrage (route biberon)', (
+    tester,
+  ) async {
     await pumpColetteApp(
       tester,
       pushSource: FakePushTokenSource(
         granted: true,
         token: 'tok',
-        initialMessageData: {'route': '/journal'},
+        initialMessageData: {'route': '/today?bottle=1'},
       ),
     );
-    expect(find.byType(TimelinePage), findsOneWidget);
+    expect(find.byType(EventFormSheet), findsOneWidget);
   });
+
+  testWidgets(
+    'le message initial est traité au démarrage (changement de branche)',
+    (tester) async {
+      await pumpColetteApp(
+        tester,
+        pushSource: FakePushTokenSource(
+          granted: true,
+          token: 'tok',
+          initialMessageData: {'route': '/journal'},
+        ),
+      );
+      expect(find.byType(TimelinePage), findsOneWidget);
+    },
+  );
 }

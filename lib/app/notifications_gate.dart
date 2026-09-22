@@ -1,6 +1,7 @@
 import 'dart:async';
 
 import 'package:colette/app/router/app_router.dart';
+import 'package:colette/features/dashboard/presentation/providers/bottle_form_request.dart';
 import 'package:colette/features/household/presentation/providers/household_providers.dart';
 import 'package:colette/features/notifications/presentation/providers/notifications_providers.dart';
 import 'package:flutter/material.dart';
@@ -36,10 +37,22 @@ class _NotificationsGateState extends ConsumerState<NotificationsGate> {
     });
   }
 
+  static const _allowedPaths = {
+    AppRoutes.today,
+    AppRoutes.journal,
+    AppRoutes.settings,
+  };
+
   void _navigate(Map<String, String> data) {
     final route = data['route'];
-    if (route == null || !route.startsWith('/')) return;
-    ref.read(appRouterProvider).go(route);
+    if (route == null) return;
+    final uri = Uri.tryParse(route);
+    if (uri == null || !_allowedPaths.contains(uri.path)) return;
+    if (uri.path == AppRoutes.today &&
+        uri.queryParameters[AppRoutes.openBottleParam] == '1') {
+      ref.read(bottleFormRequestProvider.notifier).request();
+    }
+    ref.read(appRouterProvider).go(uri.path);
   }
 
   @override
