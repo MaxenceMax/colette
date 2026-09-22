@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:colette/core/clock/app_clock.dart';
 import 'package:colette/core/clock/now_providers.dart';
 import 'package:colette/core/result/failure.dart';
@@ -69,9 +71,14 @@ void main() {
     );
   }
 
-  bool isHighlighted(WidgetTester tester, String label) {
+  // index 0 = table par âge, index 1 = règle au poids (ordre de l'arbre) :
+  // un même libellé (« Jour 1 »...) apparaît dans les deux tables.
+  bool isHighlighted(WidgetTester tester, String label, {int index = 0}) {
     final container = find
-        .ancestor(of: find.text(label), matching: find.byType(Container))
+        .ancestor(
+          of: find.text(label).at(index),
+          matching: find.byType(Container),
+        )
         .first;
     final decoration =
         tester.widget<Container>(container).decoration as BoxDecoration?;
@@ -89,6 +96,7 @@ void main() {
     expect(isHighlighted(tester, '1 à 2 mois'), isFalse);
     expect(isHighlighted(tester, 'Jour 6 et plus'), isTrue);
     expect(isHighlighted(tester, 'Jour 1'), isFalse);
+    expect(isHighlighted(tester, 'Jour 1', index: 1), isFalse);
     expect(find.text('150 ml/kg × 4,2 kg = 630 ml'), findsOneWidget);
     expect(find.text('Calcul OMS : 630 ml'), findsOneWidget);
     expect(find.widgetWithText(FilledButton, 'Ajuster'), findsOneWidget);
@@ -146,16 +154,53 @@ void main() {
     expect(find.widgetWithText(FilledButton, 'Ajuster'), findsNothing);
   });
 
-  testWidgets('une erreur d\'écriture affiche un SnackBar', (tester) async {
+  testWidgets(
+    'une erreur d\'écriture s\'affiche dans la feuille et annule l\'ajustement',
+    (tester) async {
+      final repo = MockBabyRepository();
+      when(() => repo.saveProfile(any(), any()))
+          .thenAnswer((_) async => left(const NetworkFailure()));
+      await pumpSheet(tester, overridesFor(repo));
+      await tester.tap(find.widgetWithText(FilledButton, 'Ajuster'));
+      await tester.pumpAndSettle();
+      expect(
+        find.text('Pas de connexion. Réessaie dans un instant.'),
+        findsOneWidget,
+      );
+      expect(find.widgetWithText(FilledButton, 'Ajuster'), findsOneWidget);
+    },
+  );
+
+  testWidgets('adopte une cible poussée par l\'autre appareil', (tester) async {
     final repo = MockBabyRepository();
-    when(() => repo.saveProfile(any(), any()))
-        .thenAnswer((_) async => left(const NetworkFailure()));
-    await pumpSheet(tester, overridesFor(repo));
-    await tester.tap(find.widgetWithText(FilledButton, 'Ajuster'));
+    final profileController = StreamController<BabyProfile?>.broadcast();
+    addTearDown(profileController.close);
+    await pumpSheet(tester, [
+      clockProvider.overrideWithValue(FixedClock(now)),
+      minuteTickerProvider.overrideWith((ref) => const Stream.empty()),
+      householdLocalStoreProvider.overrideWithValue(
+        InMemoryHouseholdLocalStore(householdCode: 'ABCDEFGH'),
+      ),
+      babyRepositoryProvider.overrideWithValue(repo),
+      babyProfileProvider.overrideWith((ref) => profileController.stream),
+      weightsProvider.overrideWith(
+        (ref) => Stream.value([
+          WeightEntry(id: 'w', measuredAt: DateTime(2026, 9, 9), grams: 4200),
+        ]),
+      ),
+      todayEventsProvider.overrideWith((ref) => Stream.value(const [])),
+      latestBottleProvider.overrideWith((ref) => Stream.value(null)),
+      feedingPlanSyncProvider.overrideWithValue(const NoopFeedingPlanSync()),
+    ]);
+
+    profileController.add(profile);
     await tester.pumpAndSettle();
-    expect(
-      find.text('Pas de connexion. Réessaie dans un instant.'),
-      findsOneWidget,
+    profileController.add(
+      profile.copyWith(careSettings: const CareSettings(dailyTargetMl: 700)),
     );
+    await tester.pumpAndSettle();
+
+    expect(find.text('700 ml'), findsOneWidget);
+    expect(find.widgetWithText(FilledButton, 'Ajuster'), findsNothing);
   });
 }

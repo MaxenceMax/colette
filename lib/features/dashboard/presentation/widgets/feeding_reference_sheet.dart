@@ -1,9 +1,7 @@
 import 'package:colette/core/theme/app_colors.dart';
 import 'package:colette/core/theme/design_tokens.dart';
 import 'package:colette/core/theme/text_styles.dart';
-import 'package:colette/core/ui/failure_message.dart';
 import 'package:colette/features/baby/presentation/providers/baby_providers.dart';
-import 'package:colette/features/baby/presentation/providers/baby_settings_controller.dart';
 import 'package:colette/features/dashboard/domain/entities/feeding_age_band.dart';
 import 'package:colette/features/dashboard/domain/entities/feeding_reference.dart';
 import 'package:colette/features/dashboard/domain/use_cases/compute_feeding_plan.dart';
@@ -30,12 +28,6 @@ class FeedingReferenceSheet extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final s = S.of(context);
-    ref.listen(babySettingsControllerProvider, (_, next) {
-      if (next case AsyncError(:final error)) {
-        ScaffoldMessenger.of(context)
-            .showSnackBar(SnackBar(content: Text(failureMessage(error, s))));
-      }
-    });
     final profile = ref.watch(babyProfileProvider).value;
     final reference = ref.watch(feedingReferenceProvider);
     final plan = ref.watch(feedingPlanProvider);
@@ -109,6 +101,8 @@ class _WeightRuleSection extends StatelessWidget {
   /// Jour de vie à partir duquel le plafond de 150 ml/kg s'applique.
   static const plateauDay = 6;
 
+  static final _kgFormat = NumberFormat('0.0', 'fr');
+
   final FeedingReference reference;
 
   @override
@@ -138,7 +132,7 @@ class _WeightRuleSection extends StatelessWidget {
               ? s.feedingPlanEstimated
               : s.feedingWeightCalc(
                   reference.mlPerKg,
-                  NumberFormat('0.0', 'fr').format(grams / 1000),
+                  _kgFormat.format(grams / 1000),
                   weightTargetMl,
                 ),
           style: styles.bodyMedium.copyWith(
@@ -197,11 +191,16 @@ class _ReferenceRow extends StatelessWidget {
               style: highlighted ? styles.bodyMedium : styles.body,
             ),
           ),
-          Text(
-            value,
-            style: styles.numberMedium.copyWith(
-              color: context.appColor(
-                highlighted ? AppColors.primary : AppColors.onSurface,
+          Flexible(
+            child: Text(
+              value,
+              textAlign: .end,
+              softWrap: false,
+              overflow: .fade,
+              style: styles.numberMedium.copyWith(
+                color: context.appColor(
+                  highlighted ? AppColors.primary : AppColors.onSurface,
+                ),
               ),
             ),
           ),

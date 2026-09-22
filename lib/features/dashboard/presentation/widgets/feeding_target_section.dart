@@ -1,6 +1,7 @@
 import 'package:colette/core/theme/app_colors.dart';
 import 'package:colette/core/theme/design_tokens.dart';
 import 'package:colette/core/theme/text_styles.dart';
+import 'package:colette/core/ui/failure_message.dart';
 import 'package:colette/features/baby/domain/entities/baby_profile.dart';
 import 'package:colette/features/baby/domain/entities/care_settings.dart';
 import 'package:colette/features/baby/presentation/providers/baby_settings_controller.dart';
@@ -52,7 +53,12 @@ class _FeedingTargetSectionState extends ConsumerState<FeedingTargetSection> {
   @override
   Widget build(BuildContext context) {
     // Garde le contrôleur autoDispose vivant pendant l'await de updateCareSettings.
-    ref.watch(babySettingsControllerProvider);
+    final write = ref.watch(babySettingsControllerProvider);
+    ref.listen(babySettingsControllerProvider, (_, next) {
+      if (next is AsyncError) {
+        setState(() => _target = widget.profile.careSettings.dailyTargetMl);
+      }
+    });
     final s = S.of(context);
     final styles = Theme.of(context).coletteTextStyles;
     final target = _target;
@@ -69,7 +75,12 @@ class _FeedingTargetSectionState extends ConsumerState<FeedingTargetSection> {
         Text(s.feedingTargetOms(widget.omsTargetMl), style: styles.body),
         if (target == null)
           FilledButton(
-            onPressed: () => _write(widget.omsTargetMl),
+            onPressed: () => _write(
+              widget.omsTargetMl.clamp(
+                CareSettings.minDailyTargetMl,
+                CareSettings.maxDailyTargetMl,
+              ),
+            ),
             child: Text(s.feedingTargetAdjust),
           )
         else ...[
@@ -87,6 +98,13 @@ class _FeedingTargetSectionState extends ConsumerState<FeedingTargetSection> {
             child: Text(s.feedingTargetReset),
           ),
         ],
+        if (write case AsyncError(:final error))
+          Text(
+            failureMessage(error, s),
+            style: styles.small.copyWith(
+              color: context.appColor(AppColors.error),
+            ),
+          ),
       ],
     );
   }

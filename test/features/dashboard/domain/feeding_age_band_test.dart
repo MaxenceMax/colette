@@ -37,7 +37,17 @@ void main() {
   });
 
   test('les valeurs sont déclarées par âge croissant', () {
-    expect(FeedingAgeBand.values.first, FeedingAgeBand.day1);
-    expect(FeedingAgeBand.values.last, FeedingAgeBand.month6Plus);
+    expect(FeedingAgeBand.values, [
+      FeedingAgeBand.day1,
+      FeedingAgeBand.day2,
+      FeedingAgeBand.day3,
+      FeedingAgeBand.day4,
+      FeedingAgeBand.day5,
+      FeedingAgeBand.day6ToMonth1,
+      FeedingAgeBand.month1To2,
+      FeedingAgeBand.month2To4,
+      FeedingAgeBand.month4To6,
+      FeedingAgeBand.month6Plus,
+    ]);
   });
 }
