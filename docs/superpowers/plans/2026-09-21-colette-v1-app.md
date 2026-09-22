@@ -928,7 +928,10 @@ enum AppColors {
   /// Eucalyptus : fait, validé. Valeurs claires assombries pour rester lisibles en texte.
   success(light: Color(0xFF57795D), dark: Color(0xFF9DBBA2)),
   warning(light: Color(0xFF8F6412), dark: Color(0xFFE4B85C)),
-  error(light: Color(0xFFC0563F), dark: Color(0xFFE27A62)),
+
+  /// Assombri (0xC0563F → 0xB4503B) : contraste WCAG sur `pageBackground.light`
+  /// passait de 4,18 (< 4,5) à 4,68.
+  error(light: Color(0xFFB4503B), dark: Color(0xFFE27A62)),
 
   // Catégories de soins
   categoryFeeding(light: Color(0xFFA8573F), dark: Color(0xFFD08A6F)),
@@ -5175,8 +5178,18 @@ void main() {
     expect(dayLabel(DateTime(2026, 9, 20), now: now, s: s), 'Hier');
   });
 
+  test('« Hier » reste juste la nuit du changement d\'heure', () {
+    // 30 mars 2026 à 00h30 : 24 h plus tôt tombe encore le 28 mars (heure d'été).
+    final dstNight = DateTime(2026, 3, 30, 0, 30);
+    expect(dayLabel(DateTime(2026, 3, 29), now: dstNight, s: s), 'Hier');
+    expect(dayLabel(DateTime(2026, 3, 28), now: dstNight, s: s), isNot('Hier'));
+  });
+
   test('les autres jours sont écrits en toutes lettres, capitalisés', () {
-    expect(dayLabel(DateTime(2026, 9, 15), now: now, s: s), 'Mardi 15 septembre');
+    expect(
+      dayLabel(DateTime(2026, 9, 15), now: now, s: s),
+      'Mardi 15 septembre',
+    );
   });
 }
 ```
@@ -5290,7 +5303,7 @@ import 'package:intl/intl.dart';
 /// « Aujourd'hui », « Hier », sinon « Mardi 15 septembre ».
 String dayLabel(DateTime day, {required DateTime now, required S s}) {
   if (day.isSameDay(now)) return s.dayToday;
-  if (day.isSameDay(now.subtract(const Duration(days: 1)))) return s.dayYesterday;
+  if (calendarDaysBetween(day, now) == 1) return s.dayYesterday;
   final text = DateFormat('EEEE d MMMM', 'fr').format(day);
   return '${text[0].toUpperCase()}${text.substring(1)}';
 }
@@ -6010,6 +6023,19 @@ void main() {
     );
   });
 
+  test('reste en semaines tant que 2 mois civils ne sont pas révolus', () {
+    // Naissance le 1er juillet : 61 jours le 31 août, mais 2 mois seulement le 1er septembre.
+    final july = DateTime(2026, 7, 1);
+    expect(
+      compute(birthDate: july, now: DateTime(2026, 8, 31)),
+      const BabyAge(unit: BabyAgeUnit.weeks, count: 8),
+    );
+    expect(
+      compute(birthDate: july, now: DateTime(2026, 9, 1)),
+      const BabyAge(unit: BabyAgeUnit.months, count: 2),
+    );
+  });
+
   test('ensuite : en mois civils', () {
     expect(
       compute(birthDate: birth, now: DateTime(2026, 11, 1)),
@@ -6264,11 +6290,11 @@ class ComputeBabyAge {
   BabyAge call({required DateTime birthDate, required DateTime now}) {
     final days = max(0, calendarDaysBetween(birthDate, now));
     if (days < 14) return BabyAge(unit: BabyAgeUnit.days, count: days);
-    if (days < 61) return BabyAge(unit: BabyAgeUnit.weeks, count: days ~/ 7);
-    return BabyAge(
-      unit: BabyAgeUnit.months,
-      count: _monthsBetween(birthDate, now),
-    );
+    // Bascule en mois civils seulement à partir de 2 mois révolus : un seuil
+    // en jours ferait afficher « 1 mois » juste après « 8 semaines ».
+    final months = _monthsBetween(birthDate, now);
+    if (months < 2) return BabyAge(unit: BabyAgeUnit.weeks, count: days ~/ 7);
+    return BabyAge(unit: BabyAgeUnit.months, count: months);
   }
 
   static int _monthsBetween(DateTime from, DateTime to) {
@@ -7826,7 +7852,7 @@ class HouseholdSection extends ConsumerWidget {
           ),
           if (deviceLabel != null)
             Text(
-              '${s.deviceLabelDefault} : $deviceLabel',
+              '${s.fieldDeviceLabel} : $deviceLabel',
               style: styles.body.copyWith(
                 color: context.appColor(AppColors.textSecondary),
               ),
@@ -9121,30 +9147,53 @@ double contrastRatio(Color a, Color b) {
   return (lighter + 0.05) / (darker + 0.05);
 }
 
+/// Paires (premier plan, fond) réellement utilisées par les widgets.
+const _pairs = [
+  (AppColors.onSurface, AppColors.surface),
+  (AppColors.onSurface, AppColors.pageBackground),
+  (AppColors.onSurface, AppColors.surfaceContainer),
+  (AppColors.onSurface, AppColors.primaryContainer),
+  (AppColors.textSecondary, AppColors.surface),
+  (AppColors.textSecondary, AppColors.pageBackground),
+  (AppColors.textSecondary, AppColors.surfaceContainer),
+  (AppColors.textSecondary, AppColors.primaryContainer),
+  (AppColors.primary, AppColors.surface),
+  (AppColors.primary, AppColors.pageBackground),
+  (AppColors.onPrimary, AppColors.primary),
+  (AppColors.onSecondary, AppColors.secondary),
+  (AppColors.error, AppColors.surface),
+  (AppColors.error, AppColors.pageBackground),
+  (AppColors.success, AppColors.surface),
+  (AppColors.success, AppColors.pageBackground),
+  (AppColors.warning, AppColors.surface),
+  (AppColors.onPrimary, AppColors.categoryFeeding),
+  (AppColors.onPrimary, AppColors.categoryDiaper),
+  (AppColors.onPrimary, AppColors.categoryCare),
+  (AppColors.onPrimary, AppColors.categoryBath),
+];
+
 void main() {
   const minAaContrast = 4.5;
 
-  for (final background in [
-    (name: 'primaryContainer', color: AppColors.primaryContainer.light),
-    (name: 'surface', color: AppColors.surface.light),
-    (name: 'pageBackground', color: AppColors.pageBackground.light),
-  ]) {
-    test(
-      'textSecondary.light sur ${background.name}.light : contraste AA (≥ 4,5)',
-      () {
-        final ratio = contrastRatio(
-          AppColors.textSecondary.light,
-          background.color,
-        );
-        expect(
-          ratio,
-          greaterThanOrEqualTo(minAaContrast),
-          reason:
-              'contraste ${ratio.toStringAsFixed(2)} entre textSecondary.light '
-              'et ${background.name}.light',
-        );
-      },
-    );
+  for (final (foreground, background) in _pairs) {
+    for (final (theme, pick) in [
+      ('clair', (AppColors c) => c.light),
+      ('sombre', (AppColors c) => c.dark),
+    ]) {
+      test(
+        '${foreground.name} sur ${background.name} en thème $theme : AA (≥ 4,5)',
+        () {
+          final ratio = contrastRatio(pick(foreground), pick(background));
+          expect(
+            ratio,
+            greaterThanOrEqualTo(minAaContrast),
+            reason:
+                'contraste ${ratio.toStringAsFixed(2)} entre ${foreground.name} '
+                'et ${background.name} ($theme)',
+          );
+        },
+      );
+    }
   }
 }
 ```

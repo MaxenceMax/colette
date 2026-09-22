@@ -105,11 +105,11 @@ Mécanique identique à Calpin, renommée Colette. Aucune valeur de style en dur
 | surface | #FFFFFF | #2B2220 | cartes |
 | surfaceContainer | #F6EBE4 | #342925 | champs, zones secondaires |
 | onSurface | #2E2320 | #F1E6E0 | texte principal |
-| textSecondary | #7B655E | #B8A39B | dates, labels |
+| textSecondary | #756059 | #B8A39B | dates, labels (assombri pour ≥ 4,5 sur primaryContainer) |
 | border | #EAD9CF | #4A3A34 | bordures fines |
 | success | #57795D | #9DBBA2 | eucalyptus : fait, validé |
 | warning | #8F6412 | #E4B85C | en retard |
-| error | #C0563F | #E27A62 | erreurs |
+| error | #B4503B | #E27A62 | erreurs (assombri pour ≥ 4,5 sur pageBackground) |
 | categoryFeeding | #A8573F | #D08A6F | biberon |
 | categoryDiaper | #8F6412 | #E4B85C | pipi, caca, couche |
 | categoryCare | #57795D | #9DBBA2 | yeux, nez, nombril, Adrigyl |
