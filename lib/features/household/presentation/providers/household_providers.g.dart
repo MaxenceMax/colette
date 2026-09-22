@@ -351,3 +351,54 @@ final class CurrentDeviceProvider
 }
 
 String _$currentDeviceHash() => r'524f034f9a9eac79fa1474a35b58668b6de666aa';
+
+/// Retire cet iPhone du foyer puis oublie le code foyer.
+
+@ProviderFor(LeaveHouseholdController)
+final leaveHouseholdControllerProvider = LeaveHouseholdControllerProvider._();
+
+/// Retire cet iPhone du foyer puis oublie le code foyer.
+final class LeaveHouseholdControllerProvider
+    extends $AsyncNotifierProvider<LeaveHouseholdController, void> {
+  /// Retire cet iPhone du foyer puis oublie le code foyer.
+  LeaveHouseholdControllerProvider._()
+    : super(
+        from: null,
+        argument: null,
+        retry: null,
+        name: r'leaveHouseholdControllerProvider',
+        isAutoDispose: true,
+        dependencies: null,
+        $allTransitiveDependencies: null,
+      );
+
+  @override
+  String debugGetCreateSourceHash() => _$leaveHouseholdControllerHash();
+
+  @$internal
+  @override
+  LeaveHouseholdController create() => LeaveHouseholdController();
+}
+
+String _$leaveHouseholdControllerHash() =>
+    r'1a323306b8cf730e59f3f8a93c099e31c143398b';
+
+/// Retire cet iPhone du foyer puis oublie le code foyer.
+
+abstract class _$LeaveHouseholdController extends $AsyncNotifier<void> {
+  FutureOr<void> build();
+  @$mustCallSuper
+  @override
+  WhenComplete runBuild() {
+    final ref = this.ref as $Ref<AsyncValue<void>, void>;
+    final element =
+        ref.element
+            as $ClassProviderElement<
+              AnyNotifier<AsyncValue<void>, void>,
+              AsyncValue<void>,
+              Object?,
+              Object?
+            >;
+    return element.handleCreate(ref, build);
+  }
+}

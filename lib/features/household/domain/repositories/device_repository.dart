@@ -16,4 +16,9 @@ abstract interface class DeviceRepository {
     String deviceId,
     String token,
   );
+
+  Future<Either<Failure, void>> deleteDevice(
+    String householdCode,
+    String deviceId,
+  );
 }

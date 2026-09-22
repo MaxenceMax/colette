@@ -47,4 +47,22 @@ void main() {
     expect(updated?.fcmToken, 'token-1');
     expect(updated?.label, 'iPhone de Maxence');
   });
+
+  test('deleteDevice retire le document', () async {
+    final repo = FirestoreDeviceRepository(FakeFirebaseFirestore());
+    const device = DeviceInfo(id: 'dev-1', label: 'iPhone');
+    await repo.saveDevice('ABCDEFGH', device);
+    final result = await repo.deleteDevice('ABCDEFGH', 'dev-1');
+    expect(result.isRight(), isTrue);
+    expect(await repo.watchDevice('ABCDEFGH', 'dev-1').first, isNull);
+  });
+
+  test(
+    'deleteDevice sans document existant renvoie quand même right',
+    () async {
+      final repo = FirestoreDeviceRepository(FakeFirebaseFirestore());
+      final result = await repo.deleteDevice('ABCDEFGH', 'nope');
+      expect(result.isRight(), isTrue);
+    },
+  );
 }

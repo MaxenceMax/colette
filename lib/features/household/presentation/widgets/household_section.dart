@@ -42,12 +42,14 @@ class HouseholdSection extends ConsumerWidget {
       ),
     );
     if (confirmed == true) {
-      await ref.read(currentHouseholdCodeProvider.notifier).clear();
+      await ref.read(leaveHouseholdControllerProvider.notifier).leave();
     }
   }
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    // Garde le contrôleur autoDispose vivant pendant l'await de leave().
+    final leaving = ref.watch(leaveHouseholdControllerProvider).isLoading;
     final s = S.of(context);
     final styles = Theme.of(context).coletteTextStyles;
     return ColetteCardSurface(
@@ -81,7 +83,7 @@ class HouseholdSection extends ConsumerWidget {
           ),
           const Divider(),
           TextButton.icon(
-            onPressed: () => _leave(context, ref),
+            onPressed: leaving ? null : () => _leave(context, ref),
             icon: Icon(Icons.logout, color: context.appColor(AppColors.error)),
             label: Text(
               s.settingsLeaveHousehold,

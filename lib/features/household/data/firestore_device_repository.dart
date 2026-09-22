@@ -49,4 +49,10 @@ class FirestoreDeviceRepository implements DeviceRepository {
       'updatedAt': FieldValue.serverTimestamp(),
     }, SetOptions(merge: true)),
   );
+
+  @override
+  Future<Either<Failure, void>> deleteDevice(
+    String householdCode,
+    String deviceId,
+  ) => guard(() => _doc(householdCode, deviceId).delete());
 }
