@@ -17,8 +17,9 @@ const _reasons = {
 
 /// Repository documents adossé au pont Swift via un [MethodChannel].
 class NativeDocumentsRepository implements DocumentsRepository {
-  NativeDocumentsRepository(this._channel);
+  const NativeDocumentsRepository(this._channel);
 
+  /// Nom du canal, partagé avec `DocumentsPlugin.swift`.
   static const channelName = 'colette/documents';
 
   final MethodChannel _channel;

@@ -22,7 +22,7 @@ void main() {
 
   setUp(() {
     calls = [];
-    repo = NativeDocumentsRepository(channel);
+    repo = const NativeDocumentsRepository(channel);
   });
 
   tearDown(() {
@@ -35,6 +35,7 @@ void main() {
     final result = await repo.rootFolder();
     expect(result.toNullable(), isNull);
     expect(calls.single.method, 'rootFolder');
+    expect(calls.single.arguments, isNull);
   });
 
   test('rootFolder mappe le nom', () async {
@@ -48,6 +49,7 @@ void main() {
     final result = await repo.pickRootFolder();
     expect(result.toNullable(), const DocumentRoot(name: 'Partagé'));
     expect(calls.single.method, 'pickRootFolder');
+    expect(calls.single.arguments, isNull);
   });
 
   test('forgetRootFolder appelle le canal', () async {
@@ -55,6 +57,7 @@ void main() {
     final result = await repo.forgetRootFolder();
     expect(result.isRight(), isTrue);
     expect(calls.single.method, 'forgetRootFolder');
+    expect(calls.single.arguments, isNull);
   });
 
   test('list transmet le chemin et mappe les entrées', () async {
@@ -128,5 +131,21 @@ void main() {
   test('canal absent → UnknownFailure', () async {
     final result = await repo.list('');
     expect(result.getLeft().toNullable(), isA<UnknownFailure>());
+  });
+
+  test('entrée malformée → UnknownFailure', () async {
+    mock(
+      (_) => [
+        {'name': 1},
+      ],
+    );
+    final result = await repo.list('');
+    expect(result.getLeft().toNullable(), isA<UnknownFailure>());
+  });
+
+  test('list renvoie une liste vide quand le canal renvoie null', () async {
+    mock((_) => null);
+    final result = await repo.list('');
+    expect(result.toNullable(), isEmpty);
   });
 }
