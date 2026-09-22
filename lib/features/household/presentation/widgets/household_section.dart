@@ -1,6 +1,7 @@
 import 'package:colette/core/theme/app_colors.dart';
 import 'package:colette/core/theme/design_tokens.dart';
 import 'package:colette/core/theme/text_styles.dart';
+import 'package:colette/features/documents/presentation/widgets/documents_root_section.dart';
 import 'package:colette/features/household/presentation/providers/household_providers.dart';
 import 'package:colette/l10n/generated/app_localizations.dart';
 import 'package:colette/shared/ui/widgets/colette_card_surface.dart';
@@ -89,6 +90,8 @@ class HouseholdSection extends ConsumerWidget {
                 color: context.appColor(AppColors.textSecondary),
               ),
             ),
+          const Divider(),
+          const DocumentsRootSection(),
           const Divider(),
           TextButton.icon(
             onPressed: leaving ? null : () => _leave(context, ref),
