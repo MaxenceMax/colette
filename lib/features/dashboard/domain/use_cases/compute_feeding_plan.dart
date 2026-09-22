@@ -1,6 +1,7 @@
 import 'dart:math';
 
 import 'package:colette/core/dates/date_extensions.dart';
+import 'package:colette/features/dashboard/domain/entities/feeding_age_band.dart';
 import 'package:colette/features/dashboard/domain/entities/feeding_plan.dart';
 import 'package:colette/features/events/domain/entities/care_event.dart';
 
@@ -59,13 +60,8 @@ class ComputeFeedingPlan {
   static int mlPerKg(int dayOfLife) => min(150, 60 + 20 * (dayOfLife - 1));
 
   /// Cible journalière indicative quand aucune pesée n'est connue.
-  static int dailyTargetFromAge(int dayOfLife) {
-    if (dayOfLife <= 5) return const [240, 320, 400, 440, 480][dayOfLife - 1];
-    if (dayOfLife <= 30) return 480;
-    if (dayOfLife <= 60) return 630;
-    if (dayOfLife <= 120) return 720;
-    return 900;
-  }
+  static int dailyTargetFromAge(int dayOfLife) =>
+      FeedingAgeBand.forDayOfLife(dayOfLife).dailyMl;
 
   static int _roundTo10(double value) => (value / 10).round() * 10;
 }
