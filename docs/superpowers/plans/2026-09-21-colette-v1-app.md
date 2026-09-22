@@ -216,7 +216,6 @@ nullable-getter: false
   "actionCancel": "Annuler",
   "actionUndo": "Annuler",
   "actionDelete": "Supprimer",
-  "actionRetry": "Réessayer",
   "actionCopy": "Copier",
   "actionAdd": "Ajouter",
   "actionChoose": "Choisir",
@@ -271,6 +270,9 @@ nullable-getter: false
   "careBottle": "Biberon",
   "bottleMl": "{ml} ml",
   "@bottleMl": { "placeholders": { "ml": { "type": "int" } } },
+  "unitMl": "ml",
+  "unitHour": "h",
+  "fieldQuantity": "Quantité",
   "journalTitle": "Journal",
   "journalEmpty": "Aucun événement pour l'instant. Appuie sur + pour commencer.",
   "dayToday": "Aujourd'hui",
@@ -311,9 +313,7 @@ nullable-getter: false
   "settingsLeaveHousehold": "Quitter ce foyer",
   "leaveHouseholdTitle": "Quitter ce foyer ?",
   "leaveHouseholdBody": "Les données restent sur le cloud. Tu pourras rejoindre à nouveau avec le code.",
-  "copied": "Code copié",
-  "hourLabel": "{hour}h",
-  "@hourLabel": { "placeholders": { "hour": { "type": "int" } } }
+  "copied": "Code copié"
 }
 ```
 
@@ -469,36 +469,45 @@ git commit -m "chore: projet iOS uniquement, dépendances Riverpod/Firebase, rè
 `test/core/result/failure_mapper_test.dart` :
 
 ```dart
-import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:colette/core/result/failure.dart';
-import 'package:colette/core/result/failure_mapper.dart';
+import 'package:colette/core/dates/date_extensions.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 void main() {
-  group('guard', () {
-    test('renvoie Right quand l\'action réussit', () async {
-      final result = await guard(() async => 42);
-      expect(result.getRight().toNullable(), 42);
-    });
+  test('dateOnly supprime l\'heure', () {
+    expect(DateTime(2026, 9, 21, 14, 30).dateOnly, DateTime(2026, 9, 21));
+  });
 
-    test('convertit FirebaseException unavailable en NetworkFailure', () async {
-      final result = await guard<int>(
-        () async => throw FirebaseException(plugin: 'cloud_firestore', code: 'unavailable'),
-      );
-      expect(result.getLeft().toNullable(), isA<NetworkFailure>());
-    });
+  test('isSameDay compare le jour civil', () {
+    expect(
+      DateTime(2026, 9, 21, 1).isSameDay(DateTime(2026, 9, 21, 23)),
+      isTrue,
+    );
+    expect(
+      DateTime(2026, 9, 21, 23).isSameDay(DateTime(2026, 9, 22, 0)),
+      isFalse,
+    );
+  });
 
-    test('convertit FirebaseException not-found en NotFoundFailure', () async {
-      final result = await guard<int>(
-        () async => throw FirebaseException(plugin: 'cloud_firestore', code: 'not-found'),
-      );
-      expect(result.getLeft().toNullable(), isA<NotFoundFailure>());
-    });
+  test('startOfNextDay renvoie minuit du lendemain', () {
+    expect(DateTime(2026, 9, 21, 14).startOfNextDay, DateTime(2026, 9, 22));
+  });
 
-    test('convertit toute autre exception en UnknownFailure', () async {
-      final result = await guard<int>(() async => throw StateError('boom'));
-      expect(result.getLeft().toNullable(), isA<UnknownFailure>());
-    });
+  test('startOfNextDay franchit les fins de mois et d\'année', () {
+    expect(DateTime(2026, 12, 31, 9).startOfNextDay, DateTime(2027, 1, 1));
+    expect(DateTime(2028, 2, 28, 9).startOfNextDay, DateTime(2028, 2, 29));
+  });
+
+  test('calendarDaysBetween compte des jours civils, insensible au changement d\'heure (DST)', () {
+    // Passage à l'heure d'été le 29 mars 2026 : `DateTime.difference` en
+    // heure locale perdrait 1h et compterait 9 jours au lieu de 10.
+    expect(
+      calendarDaysBetween(DateTime(2026, 3, 20), DateTime(2026, 3, 30, 12)),
+      10,
+    );
+    expect(
+      calendarDaysBetween(DateTime(2026, 3, 20), DateTime(2026, 10, 26)),
+      220,
+    );
   });
 }
 ```
@@ -720,6 +729,13 @@ extension DateOnlyX on DateTime {
   bool isSameDay(DateTime other) =>
       year == other.year && month == other.month && day == other.day;
 }
+
+/// Nombre de jours civils entre deux dates locales, insensible aux changements d'heure.
+int calendarDaysBetween(DateTime from, DateTime to) => DateTime.utc(
+  to.year,
+  to.month,
+  to.day,
+).difference(DateTime.utc(from.year, from.month, from.day)).inDays;
 ```
 
 - [ ] **Step 9: Créer `lib/core/firebase/firestore_paths.dart` et `firebase_providers.dart`**
@@ -789,9 +805,24 @@ Future<void> ensureAnonymousSession(
   try {
     await auth.signInAnonymously().timeout(timeout);
   } on TimeoutException {
-    developer.log('Anonymous sign-in still pending after timeout', name: 'colette');
+    developer.log(
+      'Anonymous sign-in still pending after timeout',
+      name: 'colette',
+    );
   } on FirebaseAuthException catch (e, stackTrace) {
-    developer.log('Anonymous sign-in failed', error: e, stackTrace: stackTrace, name: 'colette');
+    developer.log(
+      'Anonymous sign-in failed',
+      error: e,
+      stackTrace: stackTrace,
+      name: 'colette',
+    );
+  } catch (e, stackTrace) {
+    developer.log(
+      'Anonymous sign-in failed unexpectedly',
+      error: e,
+      stackTrace: stackTrace,
+      name: 'colette',
+    );
   }
 }
 ```
@@ -887,7 +918,10 @@ enum AppColors {
 
   // Texte
   onSurface(light: Color(0xFF2E2320), dark: Color(0xFFF1E6E0)),
-  textSecondary(light: Color(0xFF7B655E), dark: Color(0xFFB8A39B)),
+
+  /// Assombri (0x7B655E → 0x756059) : contraste WCAG sur `primaryContainer.light`
+  /// passait de 4,32 (< 4,5) à 4,67.
+  textSecondary(light: Color(0xFF756059), dark: Color(0xFFB8A39B)),
   border(light: Color(0xFFEAD9CF), dark: Color(0xFF4A3A34)),
 
   // Sémantique
@@ -1645,7 +1679,10 @@ class ColetteCardSurface extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final content = Padding(padding: padding ?? AppSpacing.md.all, child: child);
+    final content = Padding(
+      padding: padding ?? AppSpacing.md.all,
+      child: child,
+    );
     return Material(
       color: context.appColor(backgroundColor),
       shape: RoundedRectangleBorder(
@@ -1656,12 +1693,6 @@ class ColetteCardSurface extends StatelessWidget {
       child: onTap == null ? content : InkWell(onTap: onTap, child: content),
     );
   }
-}
-
-/// Enveloppe n'importe quel widget dans une [ColetteCardSurface].
-extension ColetteCardSurfaceX on Widget {
-  Widget withCardSurface({EdgeInsetsGeometry? padding, VoidCallback? onTap}) =>
-      ColetteCardSurface(padding: padding, onTap: onTap, child: this);
 }
 ```
 
@@ -2253,33 +2284,112 @@ git commit -m "feat: entités freezed CareEvent, BabyProfile, CareSettings, Weig
 `test/features/household/domain/household_code_generator_test.dart` :
 
 ```dart
-import 'dart:math';
-
-import 'package:colette/features/household/domain/household_code_generator.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:colette/core/clock/app_clock.dart';
+import 'package:colette/core/result/failure.dart';
+import 'package:colette/features/household/data/firestore_household_repository.dart';
+import 'package:colette/features/household/domain/entities/household.dart';
+import 'package:fake_cloud_firestore/fake_cloud_firestore.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:mocktail/mocktail.dart';
+
+// ignore: subtype_of_sealed_class
+class MockDocumentSnapshot extends Mock
+    implements DocumentSnapshot<Map<String, dynamic>> {}
+
+class MockSnapshotMetadata extends Mock implements SnapshotMetadata {}
 
 void main() {
-  test('génère 8 caractères de l\'alphabet sans ambiguïté', () {
-    final code = HouseholdCodeGenerator().generate();
-    expect(code.length, 8);
-    expect(code.split('').every(HouseholdCodeGenerator.alphabet.contains), isTrue);
+  final now = DateTime(2026, 9, 21, 10);
+
+  test('create écrit le document du foyer avec createdAt', () async {
+    final db = FakeFirebaseFirestore();
+    final repo = FirestoreHouseholdRepository(db, FixedClock(now));
+    final result = await repo.create('ABCDEFGH');
+    expect(result.getRight().toNullable()?.code, 'ABCDEFGH');
+    final doc = await db.collection('households').doc('ABCDEFGH').get();
+    expect(doc.exists, isTrue);
   });
 
-  test('est déterministe avec un Random seedé', () {
-    final a = HouseholdCodeGenerator(Random(42)).generate();
-    final b = HouseholdCodeGenerator(Random(42)).generate();
-    expect(a, b);
+  test('join renvoie NotFoundFailure pour un code inconnu', () async {
+    final repo = FirestoreHouseholdRepository(
+      FakeFirebaseFirestore(),
+      FixedClock(now),
+    );
+    final result = await repo.join('ZZZZZZZZ');
+    expect(result.getLeft().toNullable(), isA<NotFoundFailure>());
   });
 
-  test('isValid accepte un code généré et refuse les autres', () {
-    expect(HouseholdCodeGenerator.isValid(HouseholdCodeGenerator().generate()), isTrue);
-    expect(HouseholdCodeGenerator.isValid('ABCD'), isFalse);
-    expect(HouseholdCodeGenerator.isValid('ABCDEFG0'), isFalse);
-    expect(HouseholdCodeGenerator.isValid('abcdefgh'), isFalse);
+  test('join renvoie le foyer existant', () async {
+    final db = FakeFirebaseFirestore();
+    final repo = FirestoreHouseholdRepository(db, FixedClock(now));
+    await repo.create('ABCDEFGH');
+    final result = await repo.join('ABCDEFGH');
+    expect(result.getRight().toNullable()?.createdAt, now);
   });
 
-  test('normalize met en majuscules et retire les espaces', () {
-    expect(HouseholdCodeGenerator.normalize(' abcd efgh '), 'ABCDEFGH');
+  // fake_cloud_firestore ne simule pas `isFromCache` sur un simple `.get()`
+  // (il faudrait un vrai SDK ou une connexion) : la fonction de mapping est
+  // testée séparément avec un instantané construit à la main.
+  group('mapJoinSnapshot', () {
+    test('hors ligne sans document en cache local : NetworkFailure', () {
+      final snap = MockDocumentSnapshot();
+      final metadata = MockSnapshotMetadata();
+      when(() => snap.exists).thenReturn(false);
+      when(() => snap.metadata).thenReturn(metadata);
+      when(() => metadata.isFromCache).thenReturn(true);
+      final result = FirestoreHouseholdRepository.mapJoinSnapshot(
+        'ABCDEFGH',
+        snap,
+        FixedClock(now),
+      );
+      expect(result.getLeft().toNullable(), isA<NetworkFailure>());
+    });
+
+    test('en ligne sans document : NotFoundFailure', () {
+      final snap = MockDocumentSnapshot();
+      final metadata = MockSnapshotMetadata();
+      when(() => snap.exists).thenReturn(false);
+      when(() => snap.metadata).thenReturn(metadata);
+      when(() => metadata.isFromCache).thenReturn(false);
+      final result = FirestoreHouseholdRepository.mapJoinSnapshot(
+        'ABCDEFGH',
+        snap,
+        FixedClock(now),
+      );
+      expect(result.getLeft().toNullable(), isA<NotFoundFailure>());
+    });
+
+    test('document sans createdAt : utilise l\'horloge au lieu de planter', () {
+      final snap = MockDocumentSnapshot();
+      when(() => snap.exists).thenReturn(true);
+      when(() => snap.data()).thenReturn(<String, dynamic>{});
+      final result = FirestoreHouseholdRepository.mapJoinSnapshot(
+        'ABCDEFGH',
+        snap,
+        FixedClock(now),
+      );
+      expect(
+        result.getRight().toNullable(),
+        Household(code: 'ABCDEFGH', createdAt: now),
+      );
+    });
+
+    test('document avec createdAt : le convertit', () {
+      final snap = MockDocumentSnapshot();
+      when(() => snap.exists).thenReturn(true);
+      when(() => snap.data())
+          .thenReturn(<String, dynamic>{'createdAt': Timestamp.fromDate(now)});
+      final result = FirestoreHouseholdRepository.mapJoinSnapshot(
+        'ABCDEFGH',
+        snap,
+        FixedClock(DateTime(2099)),
+      );
+      expect(
+        result.getRight().toNullable(),
+        Household(code: 'ABCDEFGH', createdAt: now),
+      );
+    });
   });
 }
 ```
@@ -2574,20 +2684,42 @@ class FirestoreHouseholdRepository implements HouseholdRepository {
   @override
   Future<Either<Failure, Household>> create(String code) => guard(() async {
     final now = _clock.now();
-    await _doc(code).set({'createdAt': Timestamp.fromDate(now)}, SetOptions(merge: true));
+    await _doc(code)
+        .set({'createdAt': Timestamp.fromDate(now)}, SetOptions(merge: true));
     return Household(code: code, createdAt: now);
   });
 
   @override
   Future<Either<Failure, Household>> join(String code) async {
     final snapshot = await guard(() => _doc(code).get());
-    return snapshot.flatMap<Household>((snap) {
-      final data = snap.data();
-      if (data == null) return left(const NotFoundFailure());
-      return right(
-        Household(code: code, createdAt: (data['createdAt'] as Timestamp).toDate()),
+    return snapshot.flatMap<Household>(
+      (snap) => mapJoinSnapshot(code, snap, _clock),
+    );
+  }
+
+  /// Traduit l'instantané Firestore en résultat métier. Séparée de [join]
+  /// pour être testable sans dépendre du comportement `isFromCache` de
+  /// `fake_cloud_firestore` (qui ne le simule pas via un simple `.get()`).
+  ///
+  /// Hors ligne sans document en cache local : le document existe peut-être
+  /// réellement, donc `NetworkFailure` plutôt que `NotFoundFailure`.
+  /// `createdAt` absent ou invalide : horloge courante plutôt qu'une
+  /// exception qui échapperait à l'`Either`.
+  static Either<Failure, Household> mapJoinSnapshot(
+    String code,
+    DocumentSnapshot<Map<String, dynamic>> snap,
+    AppClock clock,
+  ) {
+    if (!snap.exists) {
+      return left(
+        snap.metadata.isFromCache
+            ? const NetworkFailure()
+            : const NotFoundFailure(),
       );
-    });
+    }
+    final createdAt =
+        (snap.data()?['createdAt'] as Timestamp?)?.toDate() ?? clock.now();
+    return right(Household(code: code, createdAt: createdAt));
   }
 }
 ```
@@ -3084,8 +3216,10 @@ import 'package:riverpod_annotation/riverpod_annotation.dart';
 
 part 'baby_providers.g.dart';
 
-@riverpod
-BabyRepository babyRepository(Ref ref) => FirestoreBabyRepository(ref.watch(firestoreProvider));
+/// Sans état : `keepAlive` car consommé par `feedingPlanSyncProvider` (keepAlive).
+@Riverpod(keepAlive: true)
+BabyRepository babyRepository(Ref ref) =>
+    FirestoreBabyRepository(ref.watch(firestoreProvider));
 
 /// Profil du bébé du foyer courant.
 @riverpod
@@ -4338,7 +4472,7 @@ class FirestoreEventsRepository implements EventsRepository {
 - [ ] **Step 7: Créer `lib/features/events/presentation/providers/events_providers.dart`**
 
 ```dart
-import 'package:colette/core/clock/app_clock.dart';
+import 'package:colette/core/clock/now_providers.dart';
 import 'package:colette/core/dates/date_extensions.dart';
 import 'package:colette/core/firebase/firebase_providers.dart';
 import 'package:colette/features/events/data/repositories/firestore_events_repository.dart';
@@ -4352,7 +4486,8 @@ part 'events_providers.g.dart';
 /// Taille d'une page du journal.
 const timelinePageSize = 30;
 
-@riverpod
+/// Sans état : `keepAlive` car consommé par `feedingPlanSyncProvider` (keepAlive).
+@Riverpod(keepAlive: true)
 EventsRepository eventsRepository(Ref ref) =>
     FirestoreEventsRepository(ref.watch(firestoreProvider));
 
@@ -4361,7 +4496,7 @@ EventsRepository eventsRepository(Ref ref) =>
 Stream<List<CareEvent>> todayEvents(Ref ref) {
   final code = ref.watch(currentHouseholdCodeProvider);
   if (code == null) return Stream.value(const []);
-  final today = ref.watch(clockProvider).now().dateOnly;
+  final today = ref.watch(todayProvider);
   return ref
       .watch(eventsRepositoryProvider)
       .watchBetween(code, from: today, to: today.startOfNextDay);
@@ -4828,7 +4963,12 @@ Future<bool?> showEventFormSheet(
 
 /// Formulaire de création ou d'édition d'un événement.
 class EventFormSheet extends ConsumerStatefulWidget {
-  const EventFormSheet({super.key, this.initial, this.preChecked, this.suggestedBottleMl});
+  const EventFormSheet({
+    super.key,
+    this.initial,
+    this.preChecked,
+    this.suggestedBottleMl,
+  });
 
   final CareEvent? initial;
   final CareType? preChecked;
@@ -4847,7 +4987,8 @@ class _EventFormSheetState extends ConsumerState<EventFormSheet> {
   @override
   void initState() {
     super.initState();
-    _draft = widget.initial ??
+    _draft =
+        widget.initial ??
         newEventDraft(
           now: ref.read(clockProvider).now(),
           deviceId: ref.read(deviceIdProvider),
@@ -4870,11 +5011,15 @@ class _EventFormSheetState extends ConsumerState<EventFormSheet> {
       initial: isStart ? _draft.startAt : _draft.endAt,
       mode: CupertinoDatePickerMode.dateAndTime,
       minimum: isStart ? null : _draft.startAt,
+      maximum: isStart ? ref.read(clockProvider).now() : null,
     );
     if (picked == null) return;
     setState(() {
       _draft = isStart
-          ? _draft.copyWith(startAt: picked, endAt: picked.isAfter(_draft.endAt) ? picked : _draft.endAt)
+          ? _draft.copyWith(
+              startAt: picked,
+              endAt: picked.isAfter(_draft.endAt) ? picked : _draft.endAt,
+            )
           : _draft.copyWith(endAt: picked);
     });
   }
@@ -4893,16 +5038,25 @@ class _EventFormSheetState extends ConsumerState<EventFormSheet> {
     final styles = Theme.of(context).coletteTextStyles;
     ref.listen(eventFormControllerProvider, (_, next) {
       if (next case AsyncError(:final error)) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text(failureMessage(error, s))),
-        );
+        ScaffoldMessenger.of(context)
+            .showSnackBar(SnackBar(content: Text(failureMessage(error, s))));
       }
     });
     final isLoading = ref.watch(eventFormControllerProvider) is AsyncLoading;
     final umbilicalEnabled =
-        ref.watch(babyProfileProvider).value?.careSettings.umbilicalCareEnabled ?? true;
+        ref
+            .watch(babyProfileProvider)
+            .value
+            ?.careSettings
+            .umbilicalCareEnabled ??
+        true;
     final visibleCares = CareType.values
-        .where((type) => type != CareType.umbilicalCare || umbilicalEnabled || _draft.umbilicalCare)
+        .where(
+          (type) =>
+              type != CareType.umbilicalCare ||
+              umbilicalEnabled ||
+              _draft.umbilicalCare,
+        )
         .toList();
 
     return Padding(
@@ -4911,7 +5065,10 @@ class _EventFormSheetState extends ConsumerState<EventFormSheet> {
         shrinkWrap: true,
         padding: AppSpacing.lg.all,
         children: [
-          Text(_isEditing ? s.eventFormEditTitle : s.eventFormNewTitle, style: styles.heading2),
+          Text(
+            _isEditing ? s.eventFormEditTitle : s.eventFormNewTitle,
+            style: styles.heading2,
+          ),
           AppSpacing.md.verticalSpace,
           Row(
             spacing: AppSpacing.sm.value,
@@ -4941,19 +5098,24 @@ class _EventFormSheetState extends ConsumerState<EventFormSheet> {
                 CareChip(
                   type: type,
                   selected: _draft.has(type),
-                  onChanged: (value) => setState(() => _draft = _draft.toggle(type, value)),
+                  onChanged: (value) =>
+                      setState(() => _draft = _draft.toggle(type, value)),
                 ),
             ],
           ),
           AppSpacing.md.verticalSpace,
           BottleField(
             bottleMl: _draft.bottleMl,
-            onChanged: (ml) => setState(() => _draft = _draft.copyWith(bottleMl: ml)),
+            onChanged: (ml) =>
+                setState(() => _draft = _draft.copyWith(bottleMl: ml)),
           ),
           AppSpacing.md.verticalSpace,
           TextField(
             controller: _noteController,
-            decoration: InputDecoration(labelText: s.fieldNote, hintText: s.fieldNoteHint),
+            decoration: InputDecoration(
+              labelText: s.fieldNote,
+              hintText: s.fieldNoteHint,
+            ),
             minLines: 1,
             maxLines: 3,
             textCapitalization: .sentences,
@@ -5520,9 +5682,33 @@ void main() {
   group('règles OMS', () {
     test('jour de vie : 1 le jour de la naissance', () {
       expect(ComputeFeedingPlan.dayOfLife(birth, DateTime(2026, 9, 1, 23)), 1);
-      expect(ComputeFeedingPlan.dayOfLife(birth, DateTime(2026, 9, 2, 0, 5)), 2);
+      expect(
+        ComputeFeedingPlan.dayOfLife(birth, DateTime(2026, 9, 2, 0, 5)),
+        2,
+      );
       expect(ComputeFeedingPlan.dayOfLife(birth, DateTime(2026, 8, 31)), 1);
     });
+
+    test(
+      'jour de vie : jours civils, insensible au changement d\'heure (DST)',
+      () {
+        // Passage à l'heure d'été le 29 mars 2026 entre les deux dates.
+        expect(
+          ComputeFeedingPlan.dayOfLife(
+            DateTime(2026, 3, 20),
+            DateTime(2026, 3, 30, 12),
+          ),
+          11,
+        );
+        expect(
+          ComputeFeedingPlan.dayOfLife(
+            DateTime(2026, 3, 20),
+            DateTime(2026, 10, 26),
+          ),
+          221,
+        );
+      },
+    );
 
     test('ml par kg : 60 le jour 1, +20 par jour, plafonné à 150', () {
       expect(ComputeFeedingPlan.mlPerKg(1), 60);
@@ -5541,30 +5727,33 @@ void main() {
     });
   });
 
-  test('jour 10, 3 600 g, 2 biberons de 60 : cible 540, reste 420 sur 6 prises', () {
-    final now = DateTime(2026, 9, 10, 12);
-    final bottles = [
-      makeEvent(id: 'a', startAt: DateTime(2026, 9, 10, 6), bottleMl: 60),
-      makeEvent(id: 'b', startAt: DateTime(2026, 9, 10, 9), bottleMl: 60),
-    ];
-    final plan = compute(
-      birthDate: birth,
-      latestWeightGrams: 3600,
-      feedsPerDay: 8,
-      todayBottles: bottles,
-      lastBottle: bottles.last,
-      now: now,
-    );
-    expect(plan.dailyTargetMl, 540);
-    expect(plan.isEstimatedFromAge, isFalse);
-    expect(plan.bottlesGiven, 2);
-    expect(plan.bottlesRemaining, 6);
-    expect(plan.givenMl, 120);
-    expect(plan.remainingMl, 420);
-    expect(plan.suggestedMl, 70);
-    expect(plan.nextBottleAt, DateTime(2026, 9, 10, 12));
-    expect(plan.lateBy(now), Duration.zero);
-  });
+  test(
+    'jour 10, 3 600 g, 2 biberons de 60 : cible 540, reste 420 sur 6 prises',
+    () {
+      final now = DateTime(2026, 9, 10, 12);
+      final bottles = [
+        makeEvent(id: 'a', startAt: DateTime(2026, 9, 10, 6), bottleMl: 60),
+        makeEvent(id: 'b', startAt: DateTime(2026, 9, 10, 9), bottleMl: 60),
+      ];
+      final plan = compute(
+        birthDate: birth,
+        latestWeightGrams: 3600,
+        feedsPerDay: 8,
+        todayBottles: bottles,
+        lastBottle: bottles.last,
+        now: now,
+      );
+      expect(plan.dailyTargetMl, 540);
+      expect(plan.isEstimatedFromAge, isFalse);
+      expect(plan.bottlesGiven, 2);
+      expect(plan.bottlesRemaining, 6);
+      expect(plan.givenMl, 120);
+      expect(plan.remainingMl, 420);
+      expect(plan.suggestedMl, 70);
+      expect(plan.nextBottleAt, DateTime(2026, 9, 10, 12));
+      expect(plan.lateBy(now), Duration.zero);
+    },
+  );
 
   test('sans biberon, le prochain est maintenant et la suggestion vaut cible / prises', () {
     final now = DateTime(2026, 9, 1, 12);
@@ -5596,7 +5785,11 @@ void main() {
   });
 
   test('le retard est calculé depuis le dernier biberon + intervalle', () {
-    final last = makeEvent(id: 'a', startAt: DateTime(2026, 9, 10, 6), bottleMl: 90);
+    final last = makeEvent(
+      id: 'a',
+      startAt: DateTime(2026, 9, 10, 6),
+      bottleMl: 90,
+    );
     final plan = compute(
       birthDate: birth,
       latestWeightGrams: 3600,
@@ -5624,7 +5817,11 @@ void main() {
   test('toutes les prises données : suggestion = cible / prises', () {
     final bottles = List.generate(
       8,
-      (i) => makeEvent(id: '$i', startAt: DateTime(2026, 9, 10, i * 2), bottleMl: 60),
+      (i) => makeEvent(
+        id: '$i',
+        startAt: DateTime(2026, 9, 10, i * 2),
+        bottleMl: 60,
+      ),
     );
     final plan = compute(
       birthDate: birth,
@@ -5636,6 +5833,19 @@ void main() {
     );
     expect(plan.bottlesRemaining, 0);
     expect(plan.suggestedMl, 70);
+  });
+
+  test('feedsPerDay à 0 est traité comme 1 sans planter', () {
+    final plan = compute(
+      birthDate: birth,
+      latestWeightGrams: 3600,
+      feedsPerDay: 0,
+      todayBottles: const [],
+      lastBottle: null,
+      now: DateTime(2026, 9, 10, 12),
+    );
+    expect(plan.feedsPerDay, 1);
+    expect(plan.suggestedMl, 240);
   });
 }
 ```
@@ -5655,7 +5865,12 @@ void main() {
   final now = DateTime(2026, 9, 21, 14);
 
   test('réglages par défaut sans événement : 5 tâches, aucune faite', () {
-    final tasks = compute(settings: const CareSettings(), todayEvents: const [], lastBath: null, now: now);
+    final tasks = compute(
+      settings: const CareSettings(),
+      todayEvents: const [],
+      lastBath: null,
+      now: now,
+    );
     expect(tasks.map((t) => t.type), [
       CareType.adrigyl,
       CareType.eyeCare,
@@ -5668,7 +5883,12 @@ void main() {
 
   test('un Adrigyl aujourd\'hui marque la tâche faite avec son heure', () {
     final event = makeEvent(startAt: DateTime(2026, 9, 21, 8), adrigyl: true);
-    final tasks = compute(settings: const CareSettings(), todayEvents: [event], lastBath: null, now: now);
+    final tasks = compute(
+      settings: const CareSettings(),
+      todayEvents: [event],
+      lastBath: null,
+      now: now,
+    );
     final adrigyl = tasks.firstWhere((t) => t.type == CareType.adrigyl);
     expect(adrigyl.isDone, isTrue);
     expect(adrigyl.lastDoneAt, event.startAt);
@@ -5700,19 +5920,49 @@ void main() {
 
   test('bain hier avec bathEveryDays 2 : pas attendu aujourd\'hui', () {
     final bath = makeEvent(startAt: DateTime(2026, 9, 20, 18), bath: true);
-    final tasks = compute(settings: const CareSettings(), todayEvents: const [], lastBath: bath, now: now);
+    final tasks = compute(
+      settings: const CareSettings(),
+      todayEvents: const [],
+      lastBath: bath,
+      now: now,
+    );
     expect(tasks.any((t) => t.type == CareType.bath), isFalse);
   });
 
   test('bain avant-hier avec bathEveryDays 2 : attendu', () {
     final bath = makeEvent(startAt: DateTime(2026, 9, 19, 18), bath: true);
-    final tasks = compute(settings: const CareSettings(), todayEvents: const [], lastBath: bath, now: now);
+    final tasks = compute(
+      settings: const CareSettings(),
+      todayEvents: const [],
+      lastBath: bath,
+      now: now,
+    );
     expect(tasks.any((t) => t.type == CareType.bath && !t.isDone), isTrue);
   });
 
+  test(
+    'DST : bain de 2 jours civils reste attendu malgré le changement d\'heure',
+    () {
+      // Passage à l'heure d'été le 29 mars 2026 entre le bain et maintenant.
+      final bath = makeEvent(startAt: DateTime(2026, 3, 28, 20), bath: true);
+      final tasks = compute(
+        settings: const CareSettings(),
+        todayEvents: const [],
+        lastBath: bath,
+        now: DateTime(2026, 3, 30, 8),
+      );
+      expect(tasks.any((t) => t.type == CareType.bath && !t.isDone), isTrue);
+    },
+  );
+
   test('bain aujourd\'hui : listé et fait', () {
     final bath = makeEvent(startAt: DateTime(2026, 9, 21, 9), bath: true);
-    final tasks = compute(settings: const CareSettings(), todayEvents: [bath], lastBath: bath, now: now);
+    final tasks = compute(
+      settings: const CareSettings(),
+      todayEvents: [bath],
+      lastBath: bath,
+      now: now,
+    );
     final task = tasks.firstWhere((t) => t.type == CareType.bath);
     expect(task.isDone, isTrue);
   });
@@ -5731,19 +5981,48 @@ void main() {
   final birth = DateTime(2026, 9, 1, 10);
 
   test('moins de 14 jours : en jours', () {
-    expect(compute(birthDate: birth, now: DateTime(2026, 9, 1, 12)), const BabyAge(unit: BabyAgeUnit.days, count: 0));
-    expect(compute(birthDate: birth, now: DateTime(2026, 9, 14, 8)), const BabyAge(unit: BabyAgeUnit.days, count: 13));
+    expect(
+      compute(birthDate: birth, now: DateTime(2026, 9, 1, 12)),
+      const BabyAge(unit: BabyAgeUnit.days, count: 0),
+    );
+    expect(
+      compute(birthDate: birth, now: DateTime(2026, 9, 14, 8)),
+      const BabyAge(unit: BabyAgeUnit.days, count: 13),
+    );
+  });
+
+  test('jours civils, insensible au changement d\'heure (DST)', () {
+    // Passage à l'heure d'été le 29 mars 2026 entre les deux dates.
+    expect(
+      compute(birthDate: DateTime(2026, 3, 20), now: DateTime(2026, 3, 30, 12)),
+      const BabyAge(unit: BabyAgeUnit.days, count: 10),
+    );
   });
 
   test('de 14 jours à 2 mois : en semaines', () {
-    expect(compute(birthDate: birth, now: DateTime(2026, 9, 15)), const BabyAge(unit: BabyAgeUnit.weeks, count: 2));
-    expect(compute(birthDate: birth, now: DateTime(2026, 10, 30)), const BabyAge(unit: BabyAgeUnit.weeks, count: 8));
+    expect(
+      compute(birthDate: birth, now: DateTime(2026, 9, 15)),
+      const BabyAge(unit: BabyAgeUnit.weeks, count: 2),
+    );
+    expect(
+      compute(birthDate: birth, now: DateTime(2026, 10, 30)),
+      const BabyAge(unit: BabyAgeUnit.weeks, count: 8),
+    );
   });
 
   test('ensuite : en mois civils', () {
-    expect(compute(birthDate: birth, now: DateTime(2026, 11, 1)), const BabyAge(unit: BabyAgeUnit.months, count: 2));
-    expect(compute(birthDate: birth, now: DateTime(2026, 11, 30)), const BabyAge(unit: BabyAgeUnit.months, count: 2));
-    expect(compute(birthDate: birth, now: DateTime(2027, 3, 1)), const BabyAge(unit: BabyAgeUnit.months, count: 6));
+    expect(
+      compute(birthDate: birth, now: DateTime(2026, 11, 1)),
+      const BabyAge(unit: BabyAgeUnit.months, count: 2),
+    );
+    expect(
+      compute(birthDate: birth, now: DateTime(2026, 11, 30)),
+      const BabyAge(unit: BabyAgeUnit.months, count: 2),
+    );
+    expect(
+      compute(birthDate: birth, now: DateTime(2027, 3, 1)),
+      const BabyAge(unit: BabyAgeUnit.months, count: 6),
+    );
   });
 }
 ```
@@ -5843,6 +6122,7 @@ import 'package:colette/features/events/domain/entities/care_event.dart';
 
 /// Plan biberons selon l'OMS : 150 ml/kg/jour (montée progressive la 1re semaine),
 /// réparti sur `feedsPerDay` prises ; repères par âge sans pesée.
+///
 /// `feedsPerDay` est borné à 1 minimum pour ne jamais diviser par zéro.
 class ComputeFeedingPlan {
   const ComputeFeedingPlan();
@@ -5865,7 +6145,9 @@ class ComputeFeedingPlan {
       final grams => (_roundTo10(mlPerKg(day) * grams / 1000), false),
     };
     final interval = Duration(minutes: (24 * 60 / safeFeedsPerDay).round());
-    final nextBottleAt = lastBottle == null ? now : lastBottle.startAt.add(interval);
+    final nextBottleAt = lastBottle == null
+        ? now
+        : lastBottle.startAt.add(interval);
     final givenMl = todayBottles.fold(0, (sum, e) => sum + (e.bottleMl ?? 0));
     final bottlesGiven = todayBottles.length;
     final bottlesRemaining = max(0, safeFeedsPerDay - bottlesGiven);
@@ -5887,7 +6169,7 @@ class ComputeFeedingPlan {
 
   /// Jour de vie en jours civils ; 1 le jour de la naissance, jamais moins.
   static int dayOfLife(DateTime birthDate, DateTime now) =>
-      max(1, now.dateOnly.difference(birthDate.dateOnly).inDays + 1);
+      max(1, calendarDaysBetween(birthDate, now) + 1);
 
   /// 60 ml/kg le jour 1, +20 ml/kg par jour, plafonné à 150 ml/kg.
   static int mlPerKg(int dayOfLife) => min(150, 60 + 20 * (dayOfLife - 1));
@@ -5943,9 +6225,12 @@ class ComputeDailyCareStatus {
     );
 
     return [
-      if (settings.adrigylPerDay > 0) task(CareType.adrigyl, settings.adrigylPerDay),
-      if (settings.eyeCarePerDay > 0) task(CareType.eyeCare, settings.eyeCarePerDay),
-      if (settings.noseCarePerDay > 0) task(CareType.noseCare, settings.noseCarePerDay),
+      if (settings.adrigylPerDay > 0)
+        task(CareType.adrigyl, settings.adrigylPerDay),
+      if (settings.eyeCarePerDay > 0)
+        task(CareType.eyeCare, settings.eyeCarePerDay),
+      if (settings.noseCarePerDay > 0)
+        task(CareType.noseCare, settings.noseCarePerDay),
       if (settings.umbilicalCareEnabled) task(CareType.umbilicalCare, 1),
       if (bathExpected || bathToday) task(CareType.bath, 1),
     ];
@@ -5958,7 +6243,7 @@ class ComputeDailyCareStatus {
     required DateTime now,
   }) {
     if (lastBath == null) return true;
-    final daysSince = now.dateOnly.difference(lastBath.startAt.dateOnly).inDays;
+    final daysSince = calendarDaysBetween(lastBath.startAt, now);
     return daysSince >= bathEveryDays;
   }
 }
@@ -5977,10 +6262,13 @@ class ComputeBabyAge {
   const ComputeBabyAge();
 
   BabyAge call({required DateTime birthDate, required DateTime now}) {
-    final days = max(0, now.dateOnly.difference(birthDate.dateOnly).inDays);
+    final days = max(0, calendarDaysBetween(birthDate, now));
     if (days < 14) return BabyAge(unit: BabyAgeUnit.days, count: days);
     if (days < 61) return BabyAge(unit: BabyAgeUnit.weeks, count: days ~/ 7);
-    return BabyAge(unit: BabyAgeUnit.months, count: _monthsBetween(birthDate, now));
+    return BabyAge(
+      unit: BabyAgeUnit.months,
+      count: _monthsBetween(birthDate, now),
+    );
   }
 
   static int _monthsBetween(DateTime from, DateTime to) {
@@ -6605,6 +6893,7 @@ import 'package:colette/core/ids/id_generator.dart';
 import 'package:colette/core/theme/app_colors.dart';
 import 'package:colette/core/theme/design_tokens.dart';
 import 'package:colette/core/theme/text_styles.dart';
+import 'package:colette/core/ui/failure_message.dart';
 import 'package:colette/features/dashboard/presentation/providers/dashboard_providers.dart';
 import 'package:colette/features/dashboard/presentation/widgets/care_task_row.dart';
 import 'package:colette/features/events/domain/use_cases/new_event_draft.dart';
@@ -6619,7 +6908,11 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 class TodoSection extends ConsumerWidget {
   const TodoSection({super.key});
 
-  Future<void> _quickAdd(BuildContext context, WidgetRef ref, CareType type) async {
+  Future<void> _quickAdd(
+    BuildContext context,
+    WidgetRef ref,
+    CareType type,
+  ) async {
     final s = S.of(context);
     final draft = newEventDraft(
       now: ref.read(clockProvider).now(),
@@ -6627,8 +6920,17 @@ class TodoSection extends ConsumerWidget {
       id: ref.read(idGeneratorProvider).newId(),
       preChecked: type,
     );
-    final saved = await ref.read(eventFormControllerProvider.notifier).submit(draft);
-    if (saved == null || !context.mounted) return;
+    final saved = await ref
+        .read(eventFormControllerProvider.notifier)
+        .submit(draft);
+    if (!context.mounted) return;
+    if (saved == null) {
+      if (ref.read(eventFormControllerProvider) case AsyncError(:final error)) {
+        ScaffoldMessenger.of(context)
+            .showSnackBar(SnackBar(content: Text(failureMessage(error, s))));
+      }
+      return;
+    }
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
         content: Text(s.saved),
@@ -6654,16 +6956,18 @@ class TodoSection extends ConsumerWidget {
     if (tasks.isEmpty) {
       return Text(
         s.todoAllDone,
-        style: Theme.of(context).coletteTextStyles.body.copyWith(
-          color: context.appColor(AppColors.textSecondary),
-        ),
+        style: Theme.of(context).coletteTextStyles.body
+            .copyWith(color: context.appColor(AppColors.textSecondary)),
       );
     }
     return Column(
       spacing: AppSpacing.sm.value,
       children: [
         for (final task in pending)
-          CareTaskRow(task: task, onTap: () => _quickAdd(context, ref, task.type)),
+          CareTaskRow(
+            task: task,
+            onTap: () => _quickAdd(context, ref, task.type),
+          ),
         for (final task in done) CareTaskRow(task: task, onTap: null),
       ],
     );
@@ -7488,6 +7792,7 @@ class HouseholdSection extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     // Garde le contrôleur autoDispose vivant pendant l'await de leave().
     final leaving = ref.watch(leaveHouseholdControllerProvider).isLoading;
+    final deviceLabel = ref.watch(currentDeviceProvider).value?.label;
     final s = S.of(context);
     final styles = Theme.of(context).coletteTextStyles;
     return ColetteCardSurface(
@@ -7519,6 +7824,13 @@ class HouseholdSection extends ConsumerWidget {
               ),
             ],
           ),
+          if (deviceLabel != null)
+            Text(
+              '${s.deviceLabelDefault} : $deviceLabel',
+              style: styles.body.copyWith(
+                color: context.appColor(AppColors.textSecondary),
+              ),
+            ),
           const Divider(),
           TextButton.icon(
             onPressed: leaving ? null : () => _leave(context, ref),
@@ -8616,6 +8928,231 @@ Expected: `No issues found!` (les règles `riverpod_lint` tournent dans `dart an
 
 Run: `flutter build ios --simulator --no-codesign`
 Expected: `Built build/ios/iphonesimulator/Runner.app`. Si Firebase refuse les options placeholder au lancement, c'est attendu tant que `flutterfire configure` n'a pas été exécuté ; la compilation, elle, doit passer.
+
+- [ ] **Step 3 bis: Tests ajoutés lors de la revue finale**
+
+`test/core/firebase/anonymous_auth_test.dart` :
+
+```dart
+import 'package:colette/core/firebase/anonymous_auth.dart';
+import 'package:firebase_auth/firebase_auth.dart';
+import 'package:flutter_test/flutter_test.dart';
+import 'package:mocktail/mocktail.dart';
+
+class MockFirebaseAuth extends Mock implements FirebaseAuth {}
+
+class MockUser extends Mock implements User {}
+
+class MockUserCredential extends Mock implements UserCredential {}
+
+void main() {
+  late MockFirebaseAuth auth;
+
+  setUp(() => auth = MockFirebaseAuth());
+
+  test('ne fait rien si une session existe déjà', () async {
+    when(() => auth.currentUser).thenReturn(MockUser());
+    await ensureAnonymousSession(auth);
+    verifyNever(() => auth.signInAnonymously());
+  });
+
+  test('ouvre une session anonyme si aucune n\'existe', () async {
+    when(() => auth.currentUser).thenReturn(null);
+    when(() => auth.signInAnonymously())
+        .thenAnswer((_) async => MockUserCredential());
+    await ensureAnonymousSession(auth);
+    verify(() => auth.signInAnonymously()).called(1);
+  });
+
+  test('avale une FirebaseAuthException sans la propager', () async {
+    when(() => auth.currentUser).thenReturn(null);
+    when(() => auth.signInAnonymously())
+        .thenThrow(FirebaseAuthException(code: 'network-request-failed'));
+    await expectLater(ensureAnonymousSession(auth), completes);
+  });
+
+  test('avale toute autre exception du plugin sans la propager', () async {
+    when(() => auth.currentUser).thenReturn(null);
+    when(() => auth.signInAnonymously()).thenThrow(Exception('boom'));
+    await expectLater(ensureAnonymousSession(auth), completes);
+  });
+}
+```
+
+`test/features/household/presentation/household_section_test.dart` :
+
+```dart
+import 'package:colette/features/household/domain/entities/device_info.dart';
+import 'package:colette/features/household/presentation/providers/household_providers.dart';
+import 'package:colette/features/household/presentation/widgets/household_section.dart';
+import 'package:flutter_test/flutter_test.dart';
+
+import '../../../helpers/pump_app.dart';
+
+void main() {
+  testWidgets('affiche le nom de l\'appareil sous le code', (tester) async {
+    await pumpApp(
+      tester,
+      const HouseholdSection(code: 'ABCDEFGH'),
+      overrides: [
+        currentDeviceProvider.overrideWith(
+          (ref) => Stream.value(
+            const DeviceInfo(id: 'dev-1', label: 'iPhone de Maxence'),
+          ),
+        ),
+      ],
+    );
+    expect(find.textContaining('iPhone de Maxence'), findsOneWidget);
+  });
+
+  testWidgets('n\'affiche rien tant que l\'appareil n\'est pas chargé', (
+    tester,
+  ) async {
+    await pumpApp(
+      tester,
+      const HouseholdSection(code: 'ABCDEFGH'),
+      overrides: [
+        currentDeviceProvider.overrideWith((ref) => Stream.value(null)),
+      ],
+    );
+    expect(find.textContaining('iPhone'), findsNothing);
+  });
+}
+```
+
+`test/features/dashboard/presentation/todo_section_test.dart` :
+
+```dart
+import 'package:colette/core/clock/app_clock.dart';
+import 'package:colette/core/clock/now_providers.dart';
+import 'package:colette/core/ids/id_generator.dart';
+import 'package:colette/core/result/failure.dart';
+import 'package:colette/features/baby/domain/entities/baby_profile.dart';
+import 'package:colette/features/baby/presentation/providers/baby_providers.dart';
+import 'package:colette/features/dashboard/presentation/providers/feeding_plan_sync.dart';
+import 'package:colette/features/dashboard/presentation/widgets/todo_section.dart';
+import 'package:colette/features/events/domain/repositories/events_repository.dart';
+import 'package:colette/features/events/presentation/providers/events_providers.dart';
+import 'package:colette/features/household/presentation/providers/household_providers.dart';
+import 'package:flutter/material.dart';
+import 'package:flutter_test/flutter_test.dart';
+import 'package:fpdart/fpdart.dart';
+import 'package:mocktail/mocktail.dart';
+
+import '../../../helpers/care_event_factory.dart';
+import '../../../helpers/in_memory_household_local_store.dart';
+import '../../../helpers/pump_app.dart';
+
+class MockEventsRepository extends Mock implements EventsRepository {}
+
+void main() {
+  final now = DateTime(2026, 9, 10, 12);
+  final profile = BabyProfile(name: 'Colette', birthDate: DateTime(2026, 9, 1));
+
+  setUpAll(() => registerFallbackValue(makeEvent(startAt: DateTime(2026))));
+
+  testWidgets(
+    'un échec de sauvegarde du quick-add affiche le message d\'erreur',
+    (tester) async {
+      final repo = MockEventsRepository();
+      when(() => repo.save(any(), any()))
+          .thenAnswer((_) async => left(const NetworkFailure()));
+      await pumpApp(
+        tester,
+        const Scaffold(body: TodoSection()),
+        overrides: [
+          clockProvider.overrideWithValue(FixedClock(now)),
+          minuteTickerProvider.overrideWith((ref) => const Stream.empty()),
+          householdLocalStoreProvider.overrideWithValue(
+            InMemoryHouseholdLocalStore(householdCode: 'ABCDEFGH'),
+          ),
+          babyProfileProvider.overrideWith((ref) => Stream.value(profile)),
+          todayEventsProvider.overrideWith((ref) => Stream.value(const [])),
+          latestBottleProvider.overrideWith((ref) => Stream.value(null)),
+          latestBathProvider.overrideWith((ref) => Stream.value(null)),
+          eventsRepositoryProvider.overrideWithValue(repo),
+          idGeneratorProvider.overrideWithValue(
+            const FixedIdGenerator('e-new'),
+          ),
+          feedingPlanSyncProvider.overrideWithValue(
+            const NoopFeedingPlanSync(),
+          ),
+        ],
+      );
+      await tester.tap(find.text('Soin des yeux'));
+      await tester.pumpAndSettle();
+      expect(
+        find.text('Pas de connexion. Réessaie dans un instant.'),
+        findsOneWidget,
+      );
+    },
+  );
+}
+```
+
+`test/core/theme/app_colors_contrast_test.dart` :
+
+```dart
+import 'dart:math';
+
+import 'package:colette/core/theme/app_colors.dart';
+import 'package:flutter/material.dart';
+import 'package:flutter_test/flutter_test.dart';
+
+/// Luminance relative WCAG d'une composante sRGB (0.0-1.0).
+double _linearChannel(double c) =>
+    c <= 0.03928 ? c / 12.92 : pow((c + 0.055) / 1.055, 2.4).toDouble();
+
+/// Luminance relative WCAG d'une [Color] (0 = noir, 1 = blanc).
+double _relativeLuminance(Color color) {
+  final r = _linearChannel(color.r);
+  final g = _linearChannel(color.g);
+  final b = _linearChannel(color.b);
+  return 0.2126 * r + 0.7152 * g + 0.0722 * b;
+}
+
+/// Ratio de contraste WCAG entre deux couleurs (1 à 21 ; ≥ 4,5 pour du texte
+/// normal selon le niveau AA).
+double contrastRatio(Color a, Color b) {
+  final la = _relativeLuminance(a);
+  final lb = _relativeLuminance(b);
+  final lighter = max(la, lb);
+  final darker = min(la, lb);
+  return (lighter + 0.05) / (darker + 0.05);
+}
+
+void main() {
+  const minAaContrast = 4.5;
+
+  for (final background in [
+    (name: 'primaryContainer', color: AppColors.primaryContainer.light),
+    (name: 'surface', color: AppColors.surface.light),
+    (name: 'pageBackground', color: AppColors.pageBackground.light),
+  ]) {
+    test(
+      'textSecondary.light sur ${background.name}.light : contraste AA (≥ 4,5)',
+      () {
+        final ratio = contrastRatio(
+          AppColors.textSecondary.light,
+          background.color,
+        );
+        expect(
+          ratio,
+          greaterThanOrEqualTo(minAaContrast),
+          reason:
+              'contraste ${ratio.toStringAsFixed(2)} entre textSecondary.light '
+              'et ${background.name}.light',
+        );
+      },
+    );
+  }
+}
+```
+
+- [ ] **Step 3 ter: iOS en portrait uniquement**
+
+Run: `/usr/libexec/PlistBuddy -c 'Delete :UISupportedInterfaceOrientations' -c 'Add :UISupportedInterfaceOrientations array' -c 'Add :UISupportedInterfaceOrientations:0 string UIInterfaceOrientationPortrait' ios/Runner/Info.plist`
+Expected: le paysage (hors périmètre v1) n'est plus proposé. `git add ios/Runner/Info.plist` dans le commit de la tâche.
 
 - [ ] **Step 4: Commit**
 
