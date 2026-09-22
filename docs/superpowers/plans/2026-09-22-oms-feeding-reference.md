@@ -1270,7 +1270,7 @@ Co-Authored-By: Claude Fable 5.1 <noreply@anthropic.com>"
 - Modify: `lib/features/dashboard/presentation/widgets/next_bottle_card.dart`
 - Test: `test/features/dashboard/presentation/dashboard_page_test.dart`
 
-- [ ] **Étape 1 : tests rouges**
+- [x] **Étape 1 : tests rouges**
 
 Dans `test/features/dashboard/presentation/dashboard_page_test.dart`, ajouter l'import `package:colette/features/baby/domain/entities/care_settings.dart`, puis donner à `overridesFor` un paramètre `baby` :
 
@@ -1351,12 +1351,12 @@ Ajouter à la fin de `main()` :
   });
 ```
 
-- [ ] **Étape 2 : vérifier l'échec**
+- [x] **Étape 2 : vérifier l'échec**
 
 Run: `flutter test test/features/dashboard/presentation/dashboard_page_test.dart`
 Expected: les trois nouveaux tests échouent (« 80 ml » existe déjà grâce à la Tâche 5, mais la mention et l'icône manquent).
 
-- [ ] **Étape 3 : carte**
+- [x] **Étape 3 : carte**
 
 Dans `lib/features/dashboard/presentation/widgets/next_bottle_card.dart`, ajouter l'import :
 
@@ -1407,12 +1407,12 @@ Remplacer le bloc final `if (plan.isEstimatedFromAge) Text(...)` par :
             ),
 ```
 
-- [ ] **Étape 4 : vérifier le vert**
+- [x] **Étape 4 : vérifier le vert**
 
 Run: `flutter test test/features/dashboard/`
 Expected: tous verts, y compris le test existant « affiche l'âge, le prochain biberon… » (le titre « Prochain biberon » reste trouvé une fois).
 
-- [ ] **Étape 5 : format, analyse, commit**
+- [x] **Étape 5 : format, analyse, commit**
 
 Run: `dart format lib test && dart analyze`
 Expected: aucune erreur.
