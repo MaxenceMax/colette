@@ -10,7 +10,12 @@ abstract class FeedingPlan with _$FeedingPlan {
   const FeedingPlan._();
 
   const factory FeedingPlan({
+    /// Cible effective : ajustée si renseignée, sinon OMS.
     required int dailyTargetMl,
+
+    /// Cible calculée selon l'OMS, toujours disponible.
+    required int omsTargetMl,
+    required bool isTargetOverridden,
     required int feedsPerDay,
     required DateTime nextBottleAt,
     required int suggestedMl,
