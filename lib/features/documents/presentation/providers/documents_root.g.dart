@@ -36,7 +36,7 @@ final class DocumentsRootProvider
   DocumentsRoot create() => DocumentsRoot();
 }
 
-String _$documentsRootHash() => r'41facbe60865fd576f0e50b2d6e2b90c8ec88d3a';
+String _$documentsRootHash() => r'12695257bba58d64e370826f3bc6167ac2d86348';
 
 /// Dossier racine choisi sur cet iPhone ; `null` tant qu'aucun n'est choisi.
 

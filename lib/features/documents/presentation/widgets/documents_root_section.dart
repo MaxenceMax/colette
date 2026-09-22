@@ -7,10 +7,21 @@ import 'package:colette/features/documents/presentation/providers/documents_root
 import 'package:colette/l10n/generated/app_localizations.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:fpdart/fpdart.dart';
 
 /// Réglage du dossier iCloud : nom, changer, oublier.
 class DocumentsRootSection extends ConsumerWidget {
   const DocumentsRootSection({super.key});
+
+  Future<void> _pick(BuildContext context, WidgetRef ref) async {
+    final s = S.of(context);
+    final result = await ref.read(documentsRootProvider.notifier).pick();
+    if (!context.mounted) return;
+    if (result case Left(:final value)) {
+      ScaffoldMessenger.of(context)
+          .showSnackBar(SnackBar(content: Text(failureMessage(value, s))));
+    }
+  }
 
   Future<void> _forget(BuildContext context, WidgetRef ref) async {
     final s = S.of(context);
@@ -32,34 +43,26 @@ class DocumentsRootSection extends ConsumerWidget {
       ),
     );
     if (!context.mounted) return;
-    if (confirmed == true) {
-      await ref.read(documentsRootProvider.notifier).forget();
+    if (confirmed != true) return;
+    final result = await ref.read(documentsRootProvider.notifier).forget();
+    if (!context.mounted) return;
+    if (result case Left(:final value)) {
+      ScaffoldMessenger.of(context)
+          .showSnackBar(SnackBar(content: Text(failureMessage(value, s))));
     }
   }
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
-    final s = S.of(context);
-    ref.listen(documentsRootProvider, (_, next) {
-      if (next case AsyncError(:final error)) {
-        ScaffoldMessenger.of(context)
-            .showSnackBar(SnackBar(content: Text(failureMessage(error, s))));
-      }
-    });
-    return switch (ref.watch(documentsRootProvider)) {
-      AsyncValue(:final value, hasValue: true, isLoading: false)
-          when value != null =>
-        _RootRow(
-          root: value,
-          onChange: () => ref.read(documentsRootProvider.notifier).pick(),
+  Widget build(BuildContext context, WidgetRef ref) =>
+      switch (ref.watch(documentsRootProvider)) {
+        AsyncData(value: final root?) => _RootRow(
+          root: root,
+          onChange: () => _pick(context, ref),
           onForget: () => _forget(context, ref),
         ),
-      AsyncLoading() => const LinearProgressIndicator(),
-      _ => _NoRootRow(
-        onPick: () => ref.read(documentsRootProvider.notifier).pick(),
-      ),
-    };
-  }
+        AsyncLoading() => const LinearProgressIndicator(),
+        _ => _NoRootRow(onPick: () => _pick(context, ref)),
+      };
 }
 
 /// Dossier choisi : nom et actions.

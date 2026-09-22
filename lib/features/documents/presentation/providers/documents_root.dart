@@ -2,6 +2,7 @@ import 'package:colette/core/result/failure.dart';
 import 'package:colette/core/result/no_retry.dart';
 import 'package:colette/features/documents/domain/entities/document_root.dart';
 import 'package:colette/features/documents/presentation/providers/documents_providers.dart';
+import 'package:fpdart/fpdart.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
 part 'documents_root.g.dart';
@@ -15,55 +16,52 @@ class DocumentsRoot extends _$DocumentsRoot {
     return result.fold((failure) => throw failure, (root) => root);
   }
 
-  /// Ouvre le sélecteur iOS. Renvoie `true` si un dossier a été choisi.
-  Future<bool> pick() async {
+  /// Ouvre le sélecteur iOS. `right(true)` si un dossier a été choisi,
+  /// `right(false)` si annulé (ou si un build/pick est déjà en vol),
+  /// `left(failure)` sinon. En cas d'échec ou d'annulation, l'état précédent
+  /// est restauré.
+  Future<Either<Failure, bool>> pick() async {
     // Un `build` initial (ou un `pick` précédent) encore en vol écraserait
     // l'état posé ici avec son propre résultat une fois résolu.
-    if (state.isLoading) return false;
+    if (state.isLoading) return right(false);
     final previous = state;
     state = const AsyncLoading();
     final result = await ref.read(documentsRepositoryProvider).pickRootFolder();
     return result.fold(
       (failure) {
-        state = switch (failure) {
-          DocumentsFailure(reason: DocumentsReason.cancelled) => previous,
-          _ => _errorKeepingPrevious(failure, previous),
+        state = previous;
+        return switch (failure) {
+          DocumentsFailure(reason: DocumentsReason.cancelled) => right(false),
+          _ => left(failure),
         };
-        return false;
       },
       (root) {
         state = AsyncData(root);
         ref.invalidate(documentsFolderProvider);
-        return true;
+        return right(true);
       },
     );
   }
 
   /// Oublie le dossier : Colette ne l'affiche plus, rien n'est supprimé.
-  Future<void> forget() async {
+  Future<Either<Failure, void>> forget() async {
     // Un `build` initial (ou un `pick`) encore en vol écraserait l'état posé
     // ici avec son propre résultat une fois résolu.
-    if (state.isLoading) return;
+    if (state.isLoading) return right(null);
     final previous = state;
     final result = await ref
         .read(documentsRepositoryProvider)
         .forgetRootFolder();
-    state = result.fold((failure) => _errorKeepingPrevious(failure, previous), (
-      _,
-    ) {
-      ref.invalidate(documentsFolderProvider);
-      return const AsyncData(null);
-    });
-  }
-
-  /// Erreur qui conserve la dernière valeur connue de [previous], pour ne
-  /// pas faire disparaître le dossier affiché suite à un échec.
-  AsyncValue<DocumentRoot?> _errorKeepingPrevious(
-    Object failure,
-    AsyncValue<DocumentRoot?> previous,
-  ) {
-    final error = AsyncError<DocumentRoot?>(failure, StackTrace.current);
-    // ignore: invalid_use_of_internal_member
-    return error.copyWithPrevious(previous);
+    return result.fold(
+      (failure) {
+        state = previous;
+        return left(failure);
+      },
+      (_) {
+        state = const AsyncData(null);
+        ref.invalidate(documentsFolderProvider);
+        return right(null);
+      },
+    );
   }
 }

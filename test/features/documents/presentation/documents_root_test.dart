@@ -53,7 +53,7 @@ void main() {
       final completer = Completer<Either<Failure, DocumentRoot?>>();
       when(() => repo.rootFolder()).thenAnswer((_) => completer.future);
 
-      expect(await notifier().pick(), isFalse);
+      expect(await notifier().pick(), right(false));
 
       verifyNever(() => repo.pickRootFolder());
     },
@@ -66,7 +66,7 @@ void main() {
     container.listen(documentsFolderProvider(''), (_, _) {});
     await container.read(documentsFolderProvider('').future);
 
-    expect(await notifier().pick(), isTrue);
+    expect(await notifier().pick(), right(true));
 
     expect(container.read(documentsRootProvider).value, root);
     await container.read(documentsFolderProvider('').future);
@@ -80,7 +80,7 @@ void main() {
     );
     await container.read(documentsRootProvider.future);
 
-    expect(await notifier().pick(), isFalse);
+    expect(await notifier().pick(), right(false));
 
     expect(
       container.read(documentsRootProvider),
@@ -88,31 +88,24 @@ void main() {
     );
   });
 
-  test('pick en échec passe en erreur', () async {
-    when(() => repo.rootFolder()).thenAnswer((_) async => right(null));
-    when(
-      () => repo.pickRootFolder(),
-    ).thenAnswer((_) async => left(const DocumentsFailure(DocumentsReason.io)));
-    await container.read(documentsRootProvider.future);
+  test(
+    'pick en échec renvoie l\'échec et conserve le dossier précédent',
+    () async {
+      when(() => repo.rootFolder()).thenAnswer((_) async => right(root));
+      when(() => repo.pickRootFolder()).thenAnswer(
+        (_) async => left(const DocumentsFailure(DocumentsReason.io)),
+      );
+      await container.read(documentsRootProvider.future);
+      final previous = container.read(documentsRootProvider);
 
-    expect(await notifier().pick(), isFalse);
+      expect(
+        await notifier().pick(),
+        left(const DocumentsFailure(DocumentsReason.io)),
+      );
 
-    expect(container.read(documentsRootProvider).hasError, isTrue);
-  });
-
-  test('pick en échec conserve le dossier précédent', () async {
-    when(() => repo.rootFolder()).thenAnswer((_) async => right(root));
-    when(
-      () => repo.pickRootFolder(),
-    ).thenAnswer((_) async => left(const DocumentsFailure(DocumentsReason.io)));
-    await container.read(documentsRootProvider.future);
-
-    expect(await notifier().pick(), isFalse);
-
-    final state = container.read(documentsRootProvider);
-    expect(state.hasError, isTrue);
-    expect(state.value, root);
-  });
+      expect(container.read(documentsRootProvider), previous);
+    },
+  );
 
   test(
     'forget pendant un build en vol ne fait rien : le build écraserait l\'état',
@@ -120,7 +113,7 @@ void main() {
       final completer = Completer<Either<Failure, DocumentRoot?>>();
       when(() => repo.rootFolder()).thenAnswer((_) => completer.future);
 
-      await notifier().forget();
+      expect(await notifier().forget(), right(null));
 
       verifyNever(() => repo.forgetRootFolder());
     },
@@ -140,20 +133,27 @@ void main() {
     verify(() => repo.forgetRootFolder()).called(1);
   });
 
-  test('forget en échec passe en erreur', () async {
-    when(() => repo.rootFolder()).thenAnswer((_) async => right(root));
-    when(
-      () => repo.forgetRootFolder(),
-    ).thenAnswer((_) async => left(const DocumentsFailure(DocumentsReason.io)));
-    await container.read(documentsRootProvider.future);
-    container.listen(documentsFolderProvider(''), (_, _) {});
-    await container.read(documentsFolderProvider('').future);
+  test(
+    'forget en échec renvoie l\'échec et conserve le dossier précédent',
+    () async {
+      when(() => repo.rootFolder()).thenAnswer((_) async => right(root));
+      when(() => repo.forgetRootFolder()).thenAnswer(
+        (_) async => left(const DocumentsFailure(DocumentsReason.io)),
+      );
+      await container.read(documentsRootProvider.future);
+      container.listen(documentsFolderProvider(''), (_, _) {});
+      await container.read(documentsFolderProvider('').future);
+      final previous = container.read(documentsRootProvider);
 
-    await notifier().forget();
+      expect(
+        await notifier().forget(),
+        left(const DocumentsFailure(DocumentsReason.io)),
+      );
 
-    expect(container.read(documentsRootProvider).hasError, isTrue);
-    // L'échec ne doit pas invalider les listes déjà chargées.
-    await container.read(documentsFolderProvider('').future);
-    verify(() => repo.list('')).called(1);
-  });
+      expect(container.read(documentsRootProvider), previous);
+      // L'échec ne doit pas invalider les listes déjà chargées.
+      await container.read(documentsFolderProvider('').future);
+      verify(() => repo.list('')).called(1);
+    },
+  );
 }

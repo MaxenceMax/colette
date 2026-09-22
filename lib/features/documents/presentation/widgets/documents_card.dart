@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:colette/app/router/app_router.dart';
 import 'package:colette/core/theme/app_colors.dart';
 import 'package:colette/core/theme/design_tokens.dart';
@@ -95,7 +97,8 @@ class _PickCard extends ConsumerWidget {
             ],
           ),
           TextButton.icon(
-            onPressed: () => ref.read(documentsRootProvider.notifier).pick(),
+            onPressed: () =>
+                unawaited(ref.read(documentsRootProvider.notifier).pick()),
             icon: const Icon(Icons.folder_open_outlined),
             label: Text(s.documentsCardPick),
           ),
