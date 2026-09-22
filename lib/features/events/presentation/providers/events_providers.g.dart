@@ -190,16 +190,22 @@ final class LatestBottleProvider
 String _$latestBottleHash() => r'd0fc1f02cfc5b64cba03d7ec7888fc263f67c7b5';
 
 /// Nombre de changes enregistrés depuis [from] ; `0` sans foyer.
+/// [from] doit être une valeur stable (`stock.countedAt`), jamais `DateTime.now()` :
+/// chaque valeur distincte ouvre un listener Firestore séparé.
 
 @ProviderFor(diaperChangesSince)
 final diaperChangesSinceProvider = DiaperChangesSinceFamily._();
 
 /// Nombre de changes enregistrés depuis [from] ; `0` sans foyer.
+/// [from] doit être une valeur stable (`stock.countedAt`), jamais `DateTime.now()` :
+/// chaque valeur distincte ouvre un listener Firestore séparé.
 
 final class DiaperChangesSinceProvider
     extends $FunctionalProvider<AsyncValue<int>, int, Stream<int>>
     with $FutureModifier<int>, $StreamProvider<int> {
   /// Nombre de changes enregistrés depuis [from] ; `0` sans foyer.
+  /// [from] doit être une valeur stable (`stock.countedAt`), jamais `DateTime.now()` :
+  /// chaque valeur distincte ouvre un listener Firestore séparé.
   DiaperChangesSinceProvider._({
     required DiaperChangesSinceFamily super.from,
     required DateTime super.argument,
@@ -247,6 +253,8 @@ String _$diaperChangesSinceHash() =>
     r'b347b8ecabfb9c554341fcefd707045ee8021b75';
 
 /// Nombre de changes enregistrés depuis [from] ; `0` sans foyer.
+/// [from] doit être une valeur stable (`stock.countedAt`), jamais `DateTime.now()` :
+/// chaque valeur distincte ouvre un listener Firestore séparé.
 
 final class DiaperChangesSinceFamily extends $Family
     with $FunctionalFamilyOverride<Stream<int>, DateTime> {
@@ -260,6 +268,8 @@ final class DiaperChangesSinceFamily extends $Family
       );
 
   /// Nombre de changes enregistrés depuis [from] ; `0` sans foyer.
+  /// [from] doit être une valeur stable (`stock.countedAt`), jamais `DateTime.now()` :
+  /// chaque valeur distincte ouvre un listener Firestore séparé.
 
   DiaperChangesSinceProvider call(DateTime from) =>
       DiaperChangesSinceProvider._(argument: from, from: this);
