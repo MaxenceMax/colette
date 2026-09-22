@@ -74,6 +74,8 @@
   "careNoseCare": "Soin du nez",
   "careUmbilicalCare": "Soin du nombril",
   "careBottle": "Biberon",
+  "bottleRollingIntake": "{count, plural, =0{0 biberon} =1{1 biberon} other{{count} biberons}} · {ml} ml sur les dernières 24 h",
+  "@bottleRollingIntake": { "placeholders": { "count": { "type": "int" }, "ml": { "type": "int" } } },
   "bottleMl": "{ml} ml",
   "@bottleMl": { "placeholders": { "ml": { "type": "int" } } },
   "unitMl": "ml",

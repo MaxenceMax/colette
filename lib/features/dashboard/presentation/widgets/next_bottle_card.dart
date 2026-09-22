@@ -31,6 +31,7 @@ class NextBottleCard extends ConsumerWidget {
       );
     }
     final now = ref.watch(currentMinuteProvider);
+    final rolling = ref.watch(rollingIntakeProvider);
     return ColetteCardSurface(
       onTap: () =>
           showEventFormSheet(context, suggestedBottleMl: plan.suggestedMl),
@@ -80,6 +81,12 @@ class NextBottleCard extends ConsumerWidget {
               minHeight: AppSpacing.sm.value,
               backgroundColor: context.appColor(AppColors.primaryContainer),
               color: context.appColor(AppColors.primary),
+            ),
+          ),
+          Text(
+            s.bottleRollingIntake(rolling.bottles, rolling.ml),
+            style: styles.small.copyWith(
+              color: context.appColor(AppColors.textSecondary),
             ),
           ),
           if (plan.isEstimatedFromAge)

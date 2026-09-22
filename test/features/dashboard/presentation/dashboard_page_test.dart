@@ -39,7 +39,16 @@ void main() {
 
   setUpAll(() => registerFallbackValue(makeEvent(startAt: DateTime(2026))));
 
-  List<Override> overridesFor(MockEventsRepository repo) => [
+  final lateBottle = makeEvent(
+    id: 'y',
+    startAt: DateTime(2026, 9, 9, 23, 50),
+    bottleMl: 90,
+  );
+
+  List<Override> overridesFor(
+    MockEventsRepository repo, {
+    List<CareEvent>? recent,
+  }) => [
     clockProvider.overrideWithValue(FixedClock(now)),
     minuteTickerProvider.overrideWith((ref) => const Stream.empty()),
     householdLocalStoreProvider.overrideWithValue(
@@ -52,6 +61,9 @@ void main() {
       ]),
     ),
     todayEventsProvider.overrideWith((ref) => Stream.value([adrigyl, bottle])),
+    recentEventsProvider.overrideWith(
+      (ref) => Stream.value(recent ?? [adrigyl, bottle, lateBottle]),
+    ),
     latestBottleProvider.overrideWith((ref) => Stream.value(bottle)),
     latestBathProvider.overrideWith((ref) => Stream.value(null)),
     eventsRepositoryProvider.overrideWithValue(repo),
@@ -75,6 +87,10 @@ void main() {
       expect(find.text('70 ml'), findsOneWidget);
       expect(find.text('en retard de 60 min'), findsOneWidget);
       expect(find.text('fait à 09h00'), findsOneWidget);
+      expect(
+        find.text('2 biberons · 150 ml sur les dernières 24 h'),
+        findsOneWidget,
+      );
       expect(find.text('Soin des yeux'), findsOneWidget);
       expect(find.text('Bain'), findsOneWidget);
       expect(find.text('couches'), findsOneWidget);
@@ -102,4 +118,19 @@ void main() {
       expect(find.widgetWithText(SnackBarAction, 'Annuler'), findsOneWidget);
     },
   );
+
+  testWidgets('affiche zéro biberon sur 24 h sans événement récent', (
+    tester,
+  ) async {
+    final repo = MockEventsRepository();
+    await pumpApp(
+      tester,
+      const DashboardPage(),
+      overrides: overridesFor(repo, recent: const []),
+    );
+    expect(
+      find.text('0 biberon · 0 ml sur les dernières 24 h'),
+      findsOneWidget,
+    );
+  });
 }

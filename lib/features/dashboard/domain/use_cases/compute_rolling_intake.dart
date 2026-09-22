@@ -10,7 +10,8 @@ class ComputeRollingIntake {
   RollingIntake call({required List<CareEvent> events, required DateTime now}) {
     final from = now.subtract(window);
     final bottles = events.where(
-      (e) => e.hasBottle && !e.startAt.isBefore(from) && !e.startAt.isAfter(now),
+      (e) =>
+          e.hasBottle && !e.startAt.isBefore(from) && !e.startAt.isAfter(now),
     );
     return RollingIntake(
       bottles: bottles.length,

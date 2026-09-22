@@ -103,6 +103,50 @@ final class TodayEventsProvider
 
 String _$todayEventsHash() => r'7bd8bf5d9e73e49f0dae5c32b7d71e7877e98d6c';
 
+/// Événements d'hier et d'aujourd'hui (couvre toujours les 24 h glissantes).
+
+@ProviderFor(recentEvents)
+final recentEventsProvider = RecentEventsProvider._();
+
+/// Événements d'hier et d'aujourd'hui (couvre toujours les 24 h glissantes).
+
+final class RecentEventsProvider
+    extends
+        $FunctionalProvider<
+          AsyncValue<List<CareEvent>>,
+          List<CareEvent>,
+          Stream<List<CareEvent>>
+        >
+    with $FutureModifier<List<CareEvent>>, $StreamProvider<List<CareEvent>> {
+  /// Événements d'hier et d'aujourd'hui (couvre toujours les 24 h glissantes).
+  RecentEventsProvider._()
+    : super(
+        from: null,
+        argument: null,
+        retry: null,
+        name: r'recentEventsProvider',
+        isAutoDispose: true,
+        dependencies: null,
+        $allTransitiveDependencies: null,
+      );
+
+  @override
+  String debugGetCreateSourceHash() => _$recentEventsHash();
+
+  @$internal
+  @override
+  $StreamProviderElement<List<CareEvent>> $createElement(
+    $ProviderPointer pointer,
+  ) => $StreamProviderElement(pointer);
+
+  @override
+  Stream<List<CareEvent>> create(Ref ref) {
+    return recentEvents(ref);
+  }
+}
+
+String _$recentEventsHash() => r'6d6122759ca6e80d70987deebfa233792be97f22';
+
 /// Dernier bain enregistré, toutes dates confondues.
 
 @ProviderFor(latestBath)

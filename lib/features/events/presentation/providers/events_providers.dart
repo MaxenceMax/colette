@@ -28,6 +28,21 @@ Stream<List<CareEvent>> todayEvents(Ref ref) {
       .watchBetween(code, from: today, to: today.startOfNextDay);
 }
 
+/// Événements d'hier et d'aujourd'hui (couvre toujours les 24 h glissantes).
+@riverpod
+Stream<List<CareEvent>> recentEvents(Ref ref) {
+  final code = ref.watch(currentHouseholdCodeProvider);
+  if (code == null) return Stream.value(const []);
+  final today = ref.watch(todayProvider);
+  return ref
+      .watch(eventsRepositoryProvider)
+      .watchBetween(
+        code,
+        from: today.startOfPreviousDay,
+        to: today.startOfNextDay,
+      );
+}
+
 /// Dernier bain enregistré, toutes dates confondues.
 @riverpod
 Stream<CareEvent?> latestBath(Ref ref) {
