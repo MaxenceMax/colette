@@ -26,12 +26,18 @@ void main() {
       ],
     );
     addTearDown(container.dispose);
-    container.listen(documentsWriteControllerProvider, (_, _) {});
+    // Garde les instances utilisées par les tests vivantes (autoDispose)
+    // pendant leurs await.
+    container.listen(
+      documentsWriteControllerProvider('Ordonnances'),
+      (_, _) {},
+    );
+    container.listen(documentsWriteControllerProvider(''), (_, _) {});
     container.listen(documentsFolderProvider('Ordonnances'), (_, _) {});
   });
 
-  DocumentsWriteController controller() =>
-      container.read(documentsWriteControllerProvider.notifier);
+  DocumentsWriteController controller(String folderPath) =>
+      container.read(documentsWriteControllerProvider(folderPath).notifier);
 
   test(
     'scan nomme le fichier avec l\'horloge et rafraîchit la liste',
@@ -44,12 +50,14 @@ void main() {
       ).thenAnswer((_) async => right('Scan 22-09-2026 14h32.pdf'));
       await container.read(documentsFolderProvider('Ordonnances').future);
 
-      await controller().scan('Ordonnances');
+      await controller('Ordonnances').scan();
 
       await container.read(documentsFolderProvider('Ordonnances').future);
       verify(() => repo.list('Ordonnances')).called(2);
       expect(
-        container.read(documentsWriteControllerProvider).hasError,
+        container
+            .read(documentsWriteControllerProvider('Ordonnances'))
+            .hasError,
         isFalse,
       );
     },
@@ -60,7 +68,7 @@ void main() {
         .thenAnswer((_) async => right('facture.pdf'));
     await container.read(documentsFolderProvider('Ordonnances').future);
 
-    await controller().importFile('Ordonnances');
+    await controller('Ordonnances').importFile();
 
     await container.read(documentsFolderProvider('Ordonnances').future);
     verify(() => repo.list('Ordonnances')).called(2);
@@ -70,17 +78,26 @@ void main() {
     when(() => repo.importFile(folderPath: '')).thenAnswer(
       (_) async => left(const DocumentsFailure(DocumentsReason.cancelled)),
     );
-    await controller().importFile('');
-    expect(container.read(documentsWriteControllerProvider).hasError, isFalse);
+    await controller('').importFile();
+    await container.read(documentsFolderProvider('Ordonnances').future);
+    // Invalidation uniquement en cas de succès : un seul appel initial.
+    verify(() => repo.list(any())).called(1);
+    expect(
+      container.read(documentsWriteControllerProvider('')).hasError,
+      isFalse,
+    );
   });
 
   test('io passe en erreur', () async {
     when(
       () => repo.importFile(folderPath: ''),
     ).thenAnswer((_) async => left(const DocumentsFailure(DocumentsReason.io)));
-    await controller().importFile('');
+    await controller('').importFile();
+    await container.read(documentsFolderProvider('Ordonnances').future);
+    // Invalidation uniquement en cas de succès : un seul appel initial.
+    verify(() => repo.list(any())).called(1);
     expect(
-      container.read(documentsWriteControllerProvider).error,
+      container.read(documentsWriteControllerProvider('')).error,
       const DocumentsFailure(DocumentsReason.io),
     );
   });

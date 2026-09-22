@@ -10,22 +10,24 @@ import 'package:riverpod_annotation/riverpod_annotation.dart';
 
 part 'documents_write_controller.g.dart';
 
-/// Ajout d'un document (scan ou import) dans un dossier.
+/// Ajout d'un document (scan ou import) dans [folderPath].
+///
+/// Famille par dossier : la page racine et une sous-page poussée observent
+/// chacune leur propre instance, sans se déclencher mutuellement.
 @riverpod
 class DocumentsWriteController extends _$DocumentsWriteController {
   @override
-  FutureOr<void> build() {}
+  FutureOr<void> build(String folderPath) {}
 
-  Future<void> scan(String folderPath) => _run(folderPath, (repo) {
+  Future<void> scan() => _run((repo) {
     final fileName = buildScanFileName(ref.read(clockProvider).now());
     return repo.scan(folderPath: folderPath, fileName: fileName);
   });
 
-  Future<void> importFile(String folderPath) =>
-      _run(folderPath, (repo) => repo.importFile(folderPath: folderPath));
+  Future<void> importFile() =>
+      _run((repo) => repo.importFile(folderPath: folderPath));
 
   Future<void> _run(
-    String folderPath,
     Future<Either<Failure, String>> Function(DocumentsRepository repo) action,
   ) async {
     state = const AsyncLoading();

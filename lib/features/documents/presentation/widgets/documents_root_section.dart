@@ -14,12 +14,13 @@ class DocumentsRootSection extends ConsumerWidget {
   const DocumentsRootSection({super.key});
 
   Future<void> _pick(BuildContext context, WidgetRef ref) async {
+    // Capturés avant l'await : pick() passe par AsyncLoading, ce qui remplace
+    // la ligne affichée par un indicateur et démonte ce context.
+    final messenger = ScaffoldMessenger.of(context);
     final s = S.of(context);
     final result = await ref.read(documentsRootProvider.notifier).pick();
-    if (!context.mounted) return;
     if (result case Left(:final value)) {
-      ScaffoldMessenger.of(context)
-          .showSnackBar(SnackBar(content: Text(failureMessage(value, s))));
+      messenger.showSnackBar(SnackBar(content: Text(failureMessage(value, s))));
     }
   }
 
@@ -44,11 +45,12 @@ class DocumentsRootSection extends ConsumerWidget {
     );
     if (confirmed != true) return;
     if (!context.mounted) return;
+    // Capturé avant l'await : forget() passe par AsyncLoading, ce qui
+    // remplace la ligne affichée par un indicateur et démonte ce context.
+    final messenger = ScaffoldMessenger.of(context);
     final result = await ref.read(documentsRootProvider.notifier).forget();
-    if (!context.mounted) return;
     if (result case Left(:final value)) {
-      ScaffoldMessenger.of(context)
-          .showSnackBar(SnackBar(content: Text(failureMessage(value, s))));
+      messenger.showSnackBar(SnackBar(content: Text(failureMessage(value, s))));
     }
   }
 

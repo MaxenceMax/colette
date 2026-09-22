@@ -1,3 +1,4 @@
+import 'package:colette/core/theme/app_colors.dart';
 import 'package:colette/core/theme/design_tokens.dart';
 import 'package:colette/features/documents/presentation/providers/documents_write_controller.dart';
 import 'package:colette/l10n/generated/app_localizations.dart';
@@ -12,7 +13,9 @@ class DocumentsAddButton extends ConsumerWidget {
 
   Future<void> _open(BuildContext context, WidgetRef ref) async {
     final s = S.of(context);
-    final controller = ref.read(documentsWriteControllerProvider.notifier);
+    final controller = ref.read(
+      documentsWriteControllerProvider(folderPath).notifier,
+    );
     final action = await showModalBottomSheet<_AddAction>(
       context: context,
       builder: (sheetContext) => SafeArea(
@@ -39,9 +42,9 @@ class DocumentsAddButton extends ConsumerWidget {
     );
     switch (action) {
       case _AddAction.scan:
-        await controller.scan(folderPath);
+        await controller.scan();
       case _AddAction.importFile:
-        await controller.importFile(folderPath);
+        await controller.importFile();
       case null:
         break;
     }
@@ -50,7 +53,9 @@ class DocumentsAddButton extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     // Garde le contrôleur autoDispose vivant pendant l'await de l'action.
-    final writing = ref.watch(documentsWriteControllerProvider).isLoading;
+    final writing = ref
+        .watch(documentsWriteControllerProvider(folderPath))
+        .isLoading;
     return FloatingActionButton(
       onPressed: writing ? null : () => _open(context, ref),
       child: writing
@@ -58,6 +63,7 @@ class DocumentsAddButton extends ConsumerWidget {
               dimension: AppSize.sm.value,
               child: CircularProgressIndicator(
                 strokeWidth: AppSpacing.xxs.value,
+                color: context.appColor(AppColors.onPrimary),
               ),
             )
           : const Icon(Icons.add),

@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:colette/app/colette_app.dart';
 import 'package:colette/app/router/app_router.dart';
 import 'package:colette/core/clock/app_clock.dart';
@@ -173,12 +175,17 @@ void main() {
       when(() => repo.list('')).thenAnswer(
         (_) async => left(const DocumentsFailure(DocumentsReason.accessDenied)),
       );
-      when(() => repo.pickRootFolder()).thenAnswer(
-        (_) async => left(const DocumentsFailure(DocumentsReason.io)),
-      );
+      when(() => repo.pickRootFolder()).thenAnswer((_) async {
+        // Résout après une frame : laisse le temps au provider de passer par
+        // AsyncLoading (donc à la vue dédiée d'être démontée) avant que le
+        // résultat n'arrive, comme en conditions réelles.
+        await Future<void>.delayed(Duration.zero);
+        return left(const DocumentsFailure(DocumentsReason.io));
+      });
       await pumpPage(tester);
       expect(find.text("Colette n'a plus accès au dossier"), findsOneWidget);
       await tester.tap(find.text('Choisir le dossier partagé'));
+      await tester.pump();
       await tester.pumpAndSettle();
       expect(find.text("Impossible d'accéder à ce document"), findsOneWidget);
       expect(find.text("Colette n'a plus accès au dossier"), findsOneWidget);
@@ -202,6 +209,33 @@ void main() {
     expect(find.text('b.pdf'), findsOneWidget);
     expect(listCalls, 2);
   });
+
+  testWidgets(
+    'tirer pour rafraîchir : la liste reste affichée pendant le chargement',
+    (tester) async {
+      final completer = Completer<Either<Failure, List<DocumentEntry>>>();
+      var listCalls = 0;
+      when(() => repo.list('')).thenAnswer((_) {
+        listCalls++;
+        return listCalls == 1
+            ? Future.value(right([entry('a.pdf')]))
+            : completer.future;
+      });
+      await pumpPage(tester);
+      expect(find.text('a.pdf'), findsOneWidget);
+
+      await tester.fling(find.byType(ListView), const Offset(0, 300), 1000);
+      await tester.pump();
+
+      // Toujours affichée : `AsyncValue(:final value, hasValue: true)`
+      // capte aussi l'AsyncLoading avec previousData du rafraîchissement.
+      expect(find.text('a.pdf'), findsOneWidget);
+
+      completer.complete(right([entry('a.pdf')]));
+      await tester.pumpAndSettle();
+      expect(find.text('a.pdf'), findsOneWidget);
+    },
+  );
 
   testWidgets('tirer pour rafraîchir : échec sans exception non gérée', (
     tester,
@@ -310,6 +344,51 @@ void main() {
     await tester.tap(find.text('Importer un fichier'));
     await tester.pumpAndSettle();
     expect(find.text("Impossible d'enregistrer le document"), findsOneWidget);
+  });
+
+  testWidgets('« + » dans un sous-dossier : un seul SnackBar '
+      '(contrôleur par dossier, pas global)', (tester) async {
+    when(
+      () => repo.list(''),
+    ).thenAnswer((_) async => right([entry('Ordonnances', isDirectory: true)]));
+    when(() => repo.list('Ordonnances'))
+        .thenAnswer((_) async => right(const []));
+    when(
+      () => repo.importFile(folderPath: 'Ordonnances'),
+    ).thenAnswer((_) async => left(const DocumentsFailure(DocumentsReason.io)));
+    await pumpPage(tester);
+    // Pousse la page du sous-dossier : la page racine reste dans la pile
+    // du Navigator, avec son propre `ref.listen` sur le contrôleur
+    // d'écriture.
+    await tester.tap(find.text('Ordonnances'));
+    await tester.pumpAndSettle();
+
+    await tester.tap(find.byType(FloatingActionButton));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Importer un fichier'));
+    await tester.pumpAndSettle();
+
+    // Un contrôleur global partagé entre la page racine et la page du
+    // sous-dossier déclencherait le `ref.listen` des deux pages ; la
+    // famille par dossier garantit qu'un seul SnackBar s'affiche.
+    // (Le SnackBar de Flutter n'affiche qu'un message à la fois — un
+    // second appel à showSnackBar met en file d'attente plutôt que
+    // d'empiler un second widget visible : voir le rapport pour la preuve
+    // empirique du double appel avec l'ancien contrôleur global.)
+    expect(find.text("Impossible d'enregistrer le document"), findsOneWidget);
+  });
+
+  testWidgets('import annulé : pas de SnackBar', (tester) async {
+    when(() => repo.list('')).thenAnswer((_) async => right(const []));
+    when(() => repo.importFile(folderPath: '')).thenAnswer(
+      (_) async => left(const DocumentsFailure(DocumentsReason.cancelled)),
+    );
+    await pumpPage(tester);
+    await tester.tap(find.byType(FloatingActionButton));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Importer un fichier'));
+    await tester.pumpAndSettle();
+    expect(find.byType(SnackBar), findsNothing);
   });
 
   testWidgets('pas de « + » quand l\'accès est perdu', (tester) async {

@@ -88,11 +88,16 @@ void main() {
     (tester) async {
       when(() => repo.rootFolder())
           .thenAnswer((_) async => right(const DocumentRoot(name: 'Colette')));
-      when(() => repo.pickRootFolder()).thenAnswer(
-        (_) async => left(const DocumentsFailure(DocumentsReason.io)),
-      );
+      when(() => repo.pickRootFolder()).thenAnswer((_) async {
+        // Résout après une frame : laisse le temps au provider de passer par
+        // AsyncLoading (donc à _RootRow d'être remplacée par l'indicateur)
+        // avant que le résultat n'arrive, comme en conditions réelles.
+        await Future<void>.delayed(Duration.zero);
+        return left(const DocumentsFailure(DocumentsReason.io));
+      });
       await pumpSection(tester);
       await tester.tap(find.text('Changer de dossier'));
+      await tester.pump();
       await tester.pumpAndSettle();
       expect(find.text("Impossible d'accéder à ce document"), findsOneWidget);
       expect(find.text('Colette'), findsOneWidget);
@@ -104,15 +109,20 @@ void main() {
   ) async {
     when(() => repo.rootFolder())
         .thenAnswer((_) async => right(const DocumentRoot(name: 'Colette')));
-    when(
-      () => repo.forgetRootFolder(),
-    ).thenAnswer((_) async => left(const DocumentsFailure(DocumentsReason.io)));
+    when(() => repo.forgetRootFolder()).thenAnswer((_) async {
+      // Résout après une frame : laisse le temps au provider de passer par
+      // AsyncLoading (donc à _RootRow d'être remplacée par l'indicateur)
+      // avant que le résultat n'arrive, comme en conditions réelles.
+      await Future<void>.delayed(Duration.zero);
+      return left(const DocumentsFailure(DocumentsReason.io));
+    });
     await pumpSection(tester);
     await tester.tap(find.text('Oublier le dossier'));
     await tester.pumpAndSettle();
     await tester.tap(
       find.widgetWithText(TextButton, 'Oublier le dossier').last,
     );
+    await tester.pump();
     await tester.pumpAndSettle();
     expect(find.text("Impossible d'accéder à ce document"), findsOneWidget);
     expect(find.text('Colette'), findsOneWidget);

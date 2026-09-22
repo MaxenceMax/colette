@@ -62,11 +62,16 @@ void main() {
     tester,
   ) async {
     when(() => repo.rootFolder()).thenAnswer((_) async => right(null));
-    when(
-      () => repo.pickRootFolder(),
-    ).thenAnswer((_) async => left(const DocumentsFailure(DocumentsReason.io)));
+    when(() => repo.pickRootFolder()).thenAnswer((_) async {
+      // Résout après une frame : laisse le temps au provider de passer par
+      // AsyncLoading (donc à _PickCard d'être remplacée par _LoadingCard)
+      // avant que le résultat n'arrive, comme en conditions réelles.
+      await Future<void>.delayed(Duration.zero);
+      return left(const DocumentsFailure(DocumentsReason.io));
+    });
     await pumpCard(tester);
     await tester.tap(find.text('Choisir le dossier partagé'));
+    await tester.pump();
     await tester.pumpAndSettle();
     expect(find.text("Impossible d'accéder à ce document"), findsOneWidget);
     expect(find.text('Choisir le dossier partagé'), findsOneWidget);

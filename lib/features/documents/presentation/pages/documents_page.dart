@@ -28,7 +28,7 @@ class DocumentsPage extends ConsumerWidget {
       '' => rootName ?? s.documentsCardTitle,
       _ => path.split('/').last,
     };
-    ref.listen(documentsWriteControllerProvider, (_, next) {
+    ref.listen(documentsWriteControllerProvider(path), (_, next) {
       if (next case AsyncError(:final error)) {
         switch (error) {
           case DocumentsFailure(
@@ -54,14 +54,6 @@ class DocumentsPage extends ConsumerWidget {
     return Scaffold(
       appBar: AppBar(title: Text(title)),
       body: switch (folder) {
-        AsyncData(value: final entries) when entries.isEmpty => EmptyState(
-          icon: Icons.folder_open_outlined,
-          message: s.documentsEmptyFolder,
-        ),
-        AsyncData(value: final entries) => _EntriesList(
-          entries: entries,
-          folderPath: path,
-        ),
         AsyncError(
           error: DocumentsFailure(
             reason: DocumentsReason.noFolder || DocumentsReason.accessDenied,
@@ -72,10 +64,22 @@ class DocumentsPage extends ConsumerWidget {
           icon: Icons.error_outline,
           message: failureMessage(error, s),
         ),
+        // `hasValue` capte aussi un rechargement (AsyncLoading avec
+        // previousData) : la liste reste affichée pendant le rafraîchissement
+        // ou après une écriture, plutôt que de basculer sur le spinner.
+        AsyncValue(:final value, hasValue: true)
+            when value != null && value.isEmpty =>
+          EmptyState(
+            icon: Icons.folder_open_outlined,
+            message: s.documentsEmptyFolder,
+          ),
+        AsyncValue(:final value, hasValue: true) when value != null =>
+          _EntriesList(entries: value, folderPath: path),
         _ => const Center(child: CircularProgressIndicator()),
       },
       floatingActionButton: switch (folder) {
-        AsyncData() => DocumentsAddButton(folderPath: path),
+        AsyncError() => null,
+        final f when f.hasValue => DocumentsAddButton(folderPath: path),
         _ => null,
       },
     );
