@@ -20,7 +20,7 @@ class ComputeFeedingReference {
       weightGrams: latestWeightGrams,
       weightTargetMl: switch (latestWeightGrams) {
         null => null,
-        final grams => ComputeFeedingPlan.roundTo10(mlPerKg * grams / 1000),
+        final grams => ComputeFeedingPlan.weightTargetMl(day, grams),
       },
     );
   }

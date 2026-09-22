@@ -29,7 +29,7 @@ class ComputeFeedingPlan {
     final day = dayOfLife(birthDate, now);
     final (omsTargetMl, estimated) = switch (latestWeightGrams) {
       null => (dailyTargetFromAge(day), true),
-      final grams => (roundTo10(mlPerKg(day) * grams / 1000), false),
+      final grams => (weightTargetMl(day, grams), false),
     };
     final dailyTargetMl = dailyTargetMlOverride ?? omsTargetMl;
     final interval = Duration(minutes: (24 * 60 / safeFeedsPerDay).round());
@@ -70,4 +70,8 @@ class ComputeFeedingPlan {
 
   /// Arrondi au multiple de 10 ml le plus proche.
   static int roundTo10(double value) => (value / 10).round() * 10;
+
+  /// Cible journalière OMS calculée sur la dernière pesée, arrondie à 10 ml.
+  static int weightTargetMl(int dayOfLife, int grams) =>
+      roundTo10(mlPerKg(dayOfLife) * grams / 1000);
 }

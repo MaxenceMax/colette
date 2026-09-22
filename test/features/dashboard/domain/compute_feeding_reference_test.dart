@@ -1,4 +1,5 @@
 import 'package:colette/features/dashboard/domain/entities/feeding_age_band.dart';
+import 'package:colette/features/dashboard/domain/use_cases/compute_feeding_plan.dart';
 import 'package:colette/features/dashboard/domain/use_cases/compute_feeding_reference.dart';
 import 'package:flutter_test/flutter_test.dart';
 
@@ -40,5 +41,23 @@ void main() {
     );
     // 150 × 3,57 = 535,5 → 540.
     expect(reference.weightTargetMl, 540);
+  });
+
+  test('la cible au poids concorde avec omsTargetMl du plan', () {
+    final now = DateTime(2026, 9, 10, 12);
+    final reference = compute(
+      birthDate: birth,
+      latestWeightGrams: 4200,
+      now: now,
+    );
+    final plan = const ComputeFeedingPlan()(
+      birthDate: birth,
+      latestWeightGrams: 4200,
+      feedsPerDay: 8,
+      todayBottles: const [],
+      lastBottle: null,
+      now: now,
+    );
+    expect(reference.weightTargetMl, plan.omsTargetMl);
   });
 }
