@@ -6,6 +6,7 @@ import 'package:colette/features/dashboard/presentation/widgets/day_counters_row
 import 'package:colette/features/dashboard/presentation/widgets/next_bottle_card.dart';
 import 'package:colette/features/dashboard/presentation/widgets/todo_section.dart';
 import 'package:colette/features/diapers/presentation/widgets/diaper_stock_alert_card.dart';
+import 'package:colette/features/documents/presentation/widgets/documents_card.dart';
 import 'package:colette/features/events/presentation/widgets/event_form_sheet.dart';
 import 'package:colette/l10n/generated/app_localizations.dart';
 import 'package:colette/shared/ui/widgets/section_header.dart';
@@ -54,6 +55,8 @@ class _DashboardPageState extends ConsumerState<DashboardPage> {
             const TodoSection(),
             AppSpacing.lg.verticalSpace,
             const DayCountersRow(),
+            AppSpacing.lg.verticalSpace,
+            const DocumentsCard(),
             AppSpacing.xl.verticalSpace,
           ],
         ),
