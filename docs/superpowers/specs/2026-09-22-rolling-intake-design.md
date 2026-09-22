@@ -40,7 +40,7 @@ Présentation :
 - `dashboard_providers.dart` : `rollingIntakeProvider` = `ComputeRollingIntake()(events: recentEvents, now: currentMinute)`.
 - `next_bottle_card.dart` : `ref.watch(rollingIntakeProvider)` et nouvelle ligne.
 
-`from = DateTime(today.year, today.month, today.day − 1)` : 48 h glissantes couvrent toujours `[now − 24 h, now]` puisque `now` est dans le jour `today`.
+`from = today.startOfPreviousDay` : 48 h glissantes couvrent toujours `[now − 24 h, now]` puisque `now` est dans le jour `today`.
 
 ## 5. Fichiers touchés
 
@@ -50,7 +50,7 @@ Présentation :
 - `lib/features/dashboard/presentation/providers/dashboard_providers.dart` : `rollingIntakeProvider`.
 - `lib/features/dashboard/presentation/widgets/next_bottle_card.dart` : ligne ajoutée.
 - `lib/l10n/app_fr.arb` : clé `bottleRollingIntake` avec placeholders `count` (pluriel) et `ml`.
-- `core/dates/date_extensions.dart` : getter `startOfPreviousDay` si utile (symétrique de `startOfNextDay`).
+- `lib/core/dates/date_extensions.dart` : getter `startOfPreviousDay` (symétrique de `startOfNextDay`), utilisé par `recentEventsProvider`.
 - Tests : `compute_rolling_intake_test.dart` (nouveau), `dashboard_page_test.dart` (ligne visible avec override de `recentEventsProvider`).
 
 Documentation : spec v1 §6.2 complétée d'une phrase sur l'indicateur.
