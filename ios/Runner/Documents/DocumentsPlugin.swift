@@ -36,6 +36,13 @@ final class DocumentsPlugin: NSObject {
         result(try list(path: try argument("path", of: call)))
       case "preview":
         try preview(path: try argument("path", of: call), result: result)
+      case "scan":
+        try scan(
+          path: try argument("path", of: call),
+          fileName: try argument("fileName", of: call),
+          result: result)
+      case "importFile":
+        try importFile(path: try argument("path", of: call), result: result)
       default:
         result(FlutterMethodNotImplemented)
       }
@@ -83,6 +90,59 @@ final class DocumentsPlugin: NSObject {
     defer { root.close() }
     let folder = try DocumentsStore.resolve(path, under: root.url)
     return try DocumentsLister.list(folder: folder, relativePath: path)
+  }
+
+  private func scan(path: String, fileName: String, result: @escaping FlutterResult) throws {
+    let root = try store.openRoot()
+    let folder = try resolve(path, under: root)
+    presenter.scan { outcome in
+      defer { root.close() }
+      switch outcome {
+      case .failure(let error):
+        result(error.flutterError)
+      case .success(let pages):
+        result(
+          Self.written { try DocumentsWriter.writePDF(pages: pages, named: fileName, in: folder) })
+      }
+    }
+  }
+
+  private func importFile(path: String, result: @escaping FlutterResult) throws {
+    let root = try store.openRoot()
+    let folder = try resolve(path, under: root)
+    presenter.pickFile { outcome in
+      defer { root.close() }
+      switch outcome {
+      case .failure(let error):
+        result(error.flutterError)
+      case .success(let source):
+        result(
+          Self.written {
+            try DocumentsWriter.copy(source, named: source.lastPathComponent, in: folder)
+          })
+      }
+    }
+  }
+
+  /// Nom du fichier écrit, ou l'erreur du canal ; la portée sécurisée reste ouverte autour.
+  private static func written(_ write: () throws -> String) -> Any {
+    do {
+      return ["name": try write()]
+    } catch let error as DocumentsError {
+      return error.flutterError
+    } catch {
+      return DocumentsError.io(error.localizedDescription).flutterError
+    }
+  }
+
+  /// Dossier sous la racine ; ferme la portée sécurisée si le chemin est refusé.
+  private func resolve(_ path: String, under root: ScopedRoot) throws -> URL {
+    do {
+      return try DocumentsStore.resolve(path, under: root.url)
+    } catch {
+      root.close()
+      throw error
+    }
   }
 
   private func preview(path: String, result: @escaping FlutterResult) throws {

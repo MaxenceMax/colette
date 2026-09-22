@@ -14,6 +14,7 @@
 		4D2942D0F180D733D67E5710 /* DocumentsPresenter.swift in Sources */ = {isa = PBXBuildFile; fileRef = 722252BF848C237EC62FDE31 /* DocumentsPresenter.swift */; };
 		508BC55B67FD5D2A44705DAB /* DocumentsError.swift in Sources */ = {isa = PBXBuildFile; fileRef = D68608E299311B4105CEBB80 /* DocumentsError.swift */; };
 		596EBB5F5D17D2901458DF4D /* DocumentsLister.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4A5D72E7D7823DE93FFA722B /* DocumentsLister.swift */; };
+		6012B65C6AEE35D85AF314B4 /* DocumentsWriter.swift in Sources */ = {isa = PBXBuildFile; fileRef = 921D69F2B532018408C9E192 /* DocumentsWriter.swift */; };
 		6392AF056DDCA164E01D49CC /* Pods_RunnerTests.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = BE8E1BDB2FE270821CAE266A /* Pods_RunnerTests.framework */; };
 		713D465B4FF5C0555E9A0D9B /* GoogleService-Info.plist in Resources */ = {isa = PBXBuildFile; fileRef = 84C7B8CB5AE5E56480F7BF1B /* GoogleService-Info.plist */; };
 		74858FAF1ED2DC5600515810 /* AppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 74858FAE1ED2DC5600515810 /* AppDelegate.swift */; };
@@ -70,6 +71,7 @@
 		7BEA2DEA22BDFD7E94B87F93 /* Pods-RunnerTests.debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-RunnerTests.debug.xcconfig"; path = "Target Support Files/Pods-RunnerTests/Pods-RunnerTests.debug.xcconfig"; sourceTree = "<group>"; };
 		82810532C45088827DD28BF4 /* Pods-Runner.profile.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-Runner.profile.xcconfig"; path = "Target Support Files/Pods-Runner/Pods-Runner.profile.xcconfig"; sourceTree = "<group>"; };
 		84C7B8CB5AE5E56480F7BF1B /* GoogleService-Info.plist */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.plist.xml; name = "GoogleService-Info.plist"; path = "Runner/GoogleService-Info.plist"; sourceTree = "<group>"; };
+		921D69F2B532018408C9E192 /* DocumentsWriter.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = DocumentsWriter.swift; sourceTree = "<group>"; };
 		9740EEB21CF90195004384FC /* Debug.xcconfig */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.xcconfig; name = Debug.xcconfig; path = Flutter/Debug.xcconfig; sourceTree = "<group>"; };
 		9740EEB31CF90195004384FC /* Generated.xcconfig */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.xcconfig; name = Generated.xcconfig; path = Flutter/Generated.xcconfig; sourceTree = "<group>"; };
 		97C146EE1CF9000F007C117D /* Runner.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = Runner.app; sourceTree = BUILT_PRODUCTS_DIR; };
@@ -118,6 +120,7 @@
 				6D2E7664532727AE34A98434 /* DocumentsPlugin.swift */,
 				722252BF848C237EC62FDE31 /* DocumentsPresenter.swift */,
 				1FF6F0D7293FDBDB18A725A2 /* DocumentsStore.swift */,
+				921D69F2B532018408C9E192 /* DocumentsWriter.swift */,
 			);
 			name = Documents;
 			path = Documents;
@@ -435,6 +438,7 @@
 				A31A584CD443ED3340EED7C4 /* DocumentsPlugin.swift in Sources */,
 				4D2942D0F180D733D67E5710 /* DocumentsPresenter.swift in Sources */,
 				074BB3DD2BDB9AC52DA61355 /* DocumentsStore.swift in Sources */,
+				6012B65C6AEE35D85AF314B4 /* DocumentsWriter.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
