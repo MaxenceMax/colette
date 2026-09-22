@@ -73,6 +73,13 @@ class _FeedingTargetSectionState extends ConsumerState<FeedingTargetSection> {
           ),
         ),
         Text(s.feedingTargetOms(widget.omsTargetMl), style: styles.body),
+        if (write case AsyncError(:final error))
+          Text(
+            failureMessage(error, s),
+            style: styles.small.copyWith(
+              color: context.appColor(AppColors.error),
+            ),
+          ),
         if (target == null)
           FilledButton(
             onPressed: () => _write(
@@ -98,13 +105,6 @@ class _FeedingTargetSectionState extends ConsumerState<FeedingTargetSection> {
             child: Text(s.feedingTargetReset),
           ),
         ],
-        if (write case AsyncError(:final error))
-          Text(
-            failureMessage(error, s),
-            style: styles.small.copyWith(
-              color: context.appColor(AppColors.error),
-            ),
-          ),
       ],
     );
   }

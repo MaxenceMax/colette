@@ -185,22 +185,20 @@ class _ReferenceRow extends StatelessWidget {
       ),
       child: Row(
         children: [
-          Expanded(
+          Flexible(
             child: Text(
               label,
               style: highlighted ? styles.bodyMedium : styles.body,
             ),
           ),
-          Flexible(
-            child: Text(
-              value,
-              textAlign: .end,
-              softWrap: false,
-              overflow: .fade,
-              style: styles.numberMedium.copyWith(
-                color: context.appColor(
-                  highlighted ? AppColors.primary : AppColors.onSurface,
-                ),
+          Text(
+            value,
+            textAlign: .end,
+            softWrap: false,
+            overflow: .fade,
+            style: styles.numberMedium.copyWith(
+              color: context.appColor(
+                highlighted ? AppColors.primary : AppColors.onSurface,
               ),
             ),
           ),
