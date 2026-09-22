@@ -36,6 +36,19 @@ void main() {
     );
   });
 
+  test('reste en semaines tant que 2 mois civils ne sont pas révolus', () {
+    // Naissance le 1er juillet : 61 jours le 31 août, mais 2 mois seulement le 1er septembre.
+    final july = DateTime(2026, 7, 1);
+    expect(
+      compute(birthDate: july, now: DateTime(2026, 8, 31)),
+      const BabyAge(unit: BabyAgeUnit.weeks, count: 8),
+    );
+    expect(
+      compute(birthDate: july, now: DateTime(2026, 9, 1)),
+      const BabyAge(unit: BabyAgeUnit.months, count: 2),
+    );
+  });
+
   test('ensuite : en mois civils', () {
     expect(
       compute(birthDate: birth, now: DateTime(2026, 11, 1)),

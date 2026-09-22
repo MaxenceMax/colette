@@ -14,6 +14,13 @@ void main() {
     expect(dayLabel(DateTime(2026, 9, 20), now: now, s: s), 'Hier');
   });
 
+  test('« Hier » reste juste la nuit du changement d\'heure', () {
+    // 30 mars 2026 à 00h30 : 24 h plus tôt tombe encore le 28 mars (heure d'été).
+    final dstNight = DateTime(2026, 3, 30, 0, 30);
+    expect(dayLabel(DateTime(2026, 3, 29), now: dstNight, s: s), 'Hier');
+    expect(dayLabel(DateTime(2026, 3, 28), now: dstNight, s: s), isNot('Hier'));
+  });
+
   test('les autres jours sont écrits en toutes lettres, capitalisés', () {
     expect(
       dayLabel(DateTime(2026, 9, 15), now: now, s: s),

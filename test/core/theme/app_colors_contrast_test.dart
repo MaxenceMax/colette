@@ -26,29 +26,52 @@ double contrastRatio(Color a, Color b) {
   return (lighter + 0.05) / (darker + 0.05);
 }
 
+/// Paires (premier plan, fond) réellement utilisées par les widgets.
+const _pairs = [
+  (AppColors.onSurface, AppColors.surface),
+  (AppColors.onSurface, AppColors.pageBackground),
+  (AppColors.onSurface, AppColors.surfaceContainer),
+  (AppColors.onSurface, AppColors.primaryContainer),
+  (AppColors.textSecondary, AppColors.surface),
+  (AppColors.textSecondary, AppColors.pageBackground),
+  (AppColors.textSecondary, AppColors.surfaceContainer),
+  (AppColors.textSecondary, AppColors.primaryContainer),
+  (AppColors.primary, AppColors.surface),
+  (AppColors.primary, AppColors.pageBackground),
+  (AppColors.onPrimary, AppColors.primary),
+  (AppColors.onSecondary, AppColors.secondary),
+  (AppColors.error, AppColors.surface),
+  (AppColors.error, AppColors.pageBackground),
+  (AppColors.success, AppColors.surface),
+  (AppColors.success, AppColors.pageBackground),
+  (AppColors.warning, AppColors.surface),
+  (AppColors.onPrimary, AppColors.categoryFeeding),
+  (AppColors.onPrimary, AppColors.categoryDiaper),
+  (AppColors.onPrimary, AppColors.categoryCare),
+  (AppColors.onPrimary, AppColors.categoryBath),
+];
+
 void main() {
   const minAaContrast = 4.5;
 
-  for (final background in [
-    (name: 'primaryContainer', color: AppColors.primaryContainer.light),
-    (name: 'surface', color: AppColors.surface.light),
-    (name: 'pageBackground', color: AppColors.pageBackground.light),
-  ]) {
-    test(
-      'textSecondary.light sur ${background.name}.light : contraste AA (≥ 4,5)',
-      () {
-        final ratio = contrastRatio(
-          AppColors.textSecondary.light,
-          background.color,
-        );
-        expect(
-          ratio,
-          greaterThanOrEqualTo(minAaContrast),
-          reason:
-              'contraste ${ratio.toStringAsFixed(2)} entre textSecondary.light '
-              'et ${background.name}.light',
-        );
-      },
-    );
+  for (final (foreground, background) in _pairs) {
+    for (final (theme, pick) in [
+      ('clair', (AppColors c) => c.light),
+      ('sombre', (AppColors c) => c.dark),
+    ]) {
+      test(
+        '${foreground.name} sur ${background.name} en thème $theme : AA (≥ 4,5)',
+        () {
+          final ratio = contrastRatio(pick(foreground), pick(background));
+          expect(
+            ratio,
+            greaterThanOrEqualTo(minAaContrast),
+            reason:
+                'contraste ${ratio.toStringAsFixed(2)} entre ${foreground.name} '
+                'et ${background.name} ($theme)',
+          );
+        },
+      );
+    }
   }
 }

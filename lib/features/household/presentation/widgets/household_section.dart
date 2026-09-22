@@ -84,7 +84,7 @@ class HouseholdSection extends ConsumerWidget {
           ),
           if (deviceLabel != null)
             Text(
-              '${s.deviceLabelDefault} : $deviceLabel',
+              '${s.fieldDeviceLabel} : $deviceLabel',
               style: styles.body.copyWith(
                 color: context.appColor(AppColors.textSecondary),
               ),

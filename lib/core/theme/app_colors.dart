@@ -35,7 +35,10 @@ enum AppColors {
   /// Eucalyptus : fait, validé. Valeurs claires assombries pour rester lisibles en texte.
   success(light: Color(0xFF57795D), dark: Color(0xFF9DBBA2)),
   warning(light: Color(0xFF8F6412), dark: Color(0xFFE4B85C)),
-  error(light: Color(0xFFC0563F), dark: Color(0xFFE27A62)),
+
+  /// Assombri (0xC0563F → 0xB4503B) : contraste WCAG sur `pageBackground.light`
+  /// passait de 4,18 (< 4,5) à 4,68.
+  error(light: Color(0xFFB4503B), dark: Color(0xFFE27A62)),
 
   // Catégories de soins
   categoryFeeding(light: Color(0xFFA8573F), dark: Color(0xFFD08A6F)),
