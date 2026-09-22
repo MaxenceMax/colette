@@ -12,7 +12,7 @@ export function selectBottleRecipients(devices: Device[]): Device[] {
   return devices.filter((d) => d.notifyBottleReminder !== false);
 }
 
-export const bottleReminder = onSchedule({ schedule: 'every 5 minutes', timeZone: ZONE }, async () => {
+export const bottleReminder = onSchedule({ schedule: 'every 5 minutes', timeZone: ZONE, maxInstances: 1 }, async () => {
   const now = new Date();
   const households = await db().collection('households').get();
 

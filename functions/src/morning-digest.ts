@@ -28,7 +28,7 @@ export function buildDigestBody(pending: string[]): string {
   return pending.join(', ');
 }
 
-export const morningDigest = onSchedule({ schedule: '0 * * * *', timeZone: ZONE }, async () => {
+export const morningDigest = onSchedule({ schedule: '0 * * * *', timeZone: ZONE, maxInstances: 1 }, async () => {
   const now = new Date();
   const hour = nearestHourInParis(now);
   const todayKey = todayKeyInParis(now);
