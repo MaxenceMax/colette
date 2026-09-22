@@ -49,4 +49,11 @@ final class DocumentsFailure extends Failure {
   const DocumentsFailure(this.reason);
 
   final DocumentsReason reason;
+
+  @override
+  bool operator ==(Object other) =>
+      other is DocumentsFailure && other.reason == reason;
+
+  @override
+  int get hashCode => reason.hashCode;
 }
