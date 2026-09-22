@@ -5,6 +5,7 @@ import 'package:colette/core/theme/design_tokens.dart';
 import 'package:colette/core/theme/text_styles.dart';
 import 'package:colette/features/dashboard/domain/entities/feeding_plan.dart';
 import 'package:colette/features/dashboard/presentation/providers/dashboard_providers.dart';
+import 'package:colette/features/dashboard/presentation/widgets/feeding_reference_sheet.dart';
 import 'package:colette/features/events/presentation/widgets/event_form_sheet.dart';
 import 'package:colette/l10n/generated/app_localizations.dart';
 import 'package:colette/shared/ui/widgets/colette_card_surface.dart';
@@ -39,11 +40,24 @@ class NextBottleCard extends ConsumerWidget {
         crossAxisAlignment: .start,
         spacing: AppSpacing.xs.value,
         children: [
-          Text(
-            s.nextBottleTitle,
-            style: styles.overline.copyWith(
-              color: context.appColor(AppColors.primary),
-            ),
+          Row(
+            children: [
+              Expanded(
+                child: Text(
+                  s.nextBottleTitle,
+                  style: styles.overline.copyWith(
+                    color: context.appColor(AppColors.primary),
+                  ),
+                ),
+              ),
+              IconButton(
+                onPressed: () => showFeedingReferenceSheet(context),
+                icon: const Icon(Icons.info_outline),
+                color: context.appColor(AppColors.textSecondary),
+                tooltip: s.feedingReferenceTooltip,
+                visualDensity: VisualDensity.compact,
+              ),
+            ],
           ),
           Row(
             crossAxisAlignment: .baseline,
@@ -89,7 +103,14 @@ class NextBottleCard extends ConsumerWidget {
               color: context.appColor(AppColors.textSecondary),
             ),
           ),
-          if (plan.isEstimatedFromAge)
+          if (plan.isTargetOverridden)
+            Text(
+              s.feedingPlanAdjusted(plan.dailyTargetMl, plan.omsTargetMl),
+              style: styles.small.copyWith(
+                color: context.appColor(AppColors.textSecondary),
+              ),
+            )
+          else if (plan.isEstimatedFromAge)
             Text(
               s.feedingPlanEstimated,
               style: styles.small.copyWith(

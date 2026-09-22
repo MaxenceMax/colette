@@ -2,6 +2,7 @@ import 'package:colette/core/clock/app_clock.dart';
 import 'package:colette/core/clock/now_providers.dart';
 import 'package:colette/core/ids/id_generator.dart';
 import 'package:colette/features/baby/domain/entities/baby_profile.dart';
+import 'package:colette/features/baby/domain/entities/care_settings.dart';
 import 'package:colette/features/baby/domain/entities/weight_entry.dart';
 import 'package:colette/features/baby/presentation/providers/baby_providers.dart';
 import 'package:colette/features/dashboard/presentation/pages/dashboard_page.dart';
@@ -48,13 +49,14 @@ void main() {
   List<Override> overridesFor(
     MockEventsRepository repo, {
     List<CareEvent>? recent,
+    BabyProfile? baby,
   }) => [
     clockProvider.overrideWithValue(FixedClock(now)),
     minuteTickerProvider.overrideWith((ref) => const Stream.empty()),
     householdLocalStoreProvider.overrideWithValue(
       InMemoryHouseholdLocalStore(householdCode: 'ABCDEFGH'),
     ),
-    babyProfileProvider.overrideWith((ref) => Stream.value(profile)),
+    babyProfileProvider.overrideWith((ref) => Stream.value(baby ?? profile)),
     weightsProvider.overrideWith(
       (ref) => Stream.value([
         WeightEntry(id: 'w', measuredAt: DateTime(2026, 9, 9), grams: 3600),
@@ -132,5 +134,45 @@ void main() {
       find.text('0 biberon · 0 ml sur les dernières 24 h'),
       findsOneWidget,
     );
+  });
+
+  testWidgets(
+    'avec une cible ajustée, la carte l\'indique et la suggestion suit',
+    (tester) async {
+      final repo = MockEventsRepository();
+      await pumpApp(
+        tester,
+        const DashboardPage(),
+        overrides: overridesFor(
+          repo,
+          baby: profile.copyWith(
+            careSettings: const CareSettings(dailyTargetMl: 600),
+          ),
+        ),
+      );
+      // (600 − 60) / 7 = 77,1 → 80 ; cible OMS : 150 × 3,6 = 540.
+      expect(find.text('80 ml'), findsOneWidget);
+      expect(
+        find.text('Cible ajustée à 600 ml · OMS : 540 ml'),
+        findsOneWidget,
+      );
+    },
+  );
+
+  testWidgets('sans cible ajustée, aucune mention d\'ajustement', (
+    tester,
+  ) async {
+    final repo = MockEventsRepository();
+    await pumpApp(tester, const DashboardPage(), overrides: overridesFor(repo));
+    expect(find.textContaining('Cible ajustée'), findsNothing);
+  });
+
+  testWidgets('l\'icône info ouvre la feuille Repères OMS', (tester) async {
+    final repo = MockEventsRepository();
+    await pumpApp(tester, const DashboardPage(), overrides: overridesFor(repo));
+    await tester.tap(find.byTooltip('Voir les repères OMS'));
+    await tester.pumpAndSettle();
+    expect(find.text('Repères OMS'), findsOneWidget);
+    expect(find.text('Repères par âge'), findsOneWidget);
   });
 }
