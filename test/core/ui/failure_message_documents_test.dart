@@ -27,7 +27,7 @@ void main() {
   test('io → message d\'accès neutre', () {
     expect(
       failureMessage(const DocumentsFailure(DocumentsReason.io), s),
-      "Impossible d'accéder à ce document.",
+      "Impossible d'accéder à ce document",
     );
   });
 

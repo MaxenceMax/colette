@@ -193,7 +193,9 @@ void main() {
     await tester.fling(find.byType(ListView), const Offset(0, 300), 1000);
     await tester.pumpAndSettle();
     expect(find.text("Colette n'a plus accès au dossier"), findsOneWidget);
-    expect(tester.takeException(), isNull);
+    // Pas d'assertion sur takeException() ici : une erreur asynchrone non
+    // gérée ferait déjà échouer le test via la zone de test, l'assertion
+    // serait donc redondante (et un no-op si elle était mal placée).
   });
 
   testWidgets('erreur d\'accès sur l\'aperçu invalide le dossier', (

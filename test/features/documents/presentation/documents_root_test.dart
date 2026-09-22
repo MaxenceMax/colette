@@ -100,6 +100,20 @@ void main() {
     expect(container.read(documentsRootProvider).hasError, isTrue);
   });
 
+  test('pick en échec conserve le dossier précédent', () async {
+    when(() => repo.rootFolder()).thenAnswer((_) async => right(root));
+    when(
+      () => repo.pickRootFolder(),
+    ).thenAnswer((_) async => left(const DocumentsFailure(DocumentsReason.io)));
+    await container.read(documentsRootProvider.future);
+
+    expect(await notifier().pick(), isFalse);
+
+    final state = container.read(documentsRootProvider);
+    expect(state.hasError, isTrue);
+    expect(state.value, root);
+  });
+
   test(
     'forget pendant un build en vol ne fait rien : le build écraserait l\'état',
     () async {

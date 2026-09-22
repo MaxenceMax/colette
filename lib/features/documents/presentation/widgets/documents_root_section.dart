@@ -1,6 +1,7 @@
 import 'package:colette/core/theme/app_colors.dart';
 import 'package:colette/core/theme/design_tokens.dart';
 import 'package:colette/core/theme/text_styles.dart';
+import 'package:colette/core/ui/failure_message.dart';
 import 'package:colette/features/documents/domain/entities/document_root.dart';
 import 'package:colette/features/documents/presentation/providers/documents_root.dart';
 import 'package:colette/l10n/generated/app_localizations.dart';
@@ -30,6 +31,7 @@ class DocumentsRootSection extends ConsumerWidget {
         ],
       ),
     );
+    if (!context.mounted) return;
     if (confirmed == true) {
       await ref.read(documentsRootProvider.notifier).forget();
     }
@@ -38,21 +40,23 @@ class DocumentsRootSection extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final s = S.of(context);
+    ref.listen(documentsRootProvider, (_, next) {
+      if (next case AsyncError(:final error)) {
+        ScaffoldMessenger.of(context)
+            .showSnackBar(SnackBar(content: Text(failureMessage(error, s))));
+      }
+    });
     return switch (ref.watch(documentsRootProvider)) {
-      AsyncData(value: final root?) => _RootRow(
-        root: root,
-        onChange: () => ref.read(documentsRootProvider.notifier).pick(),
-        onForget: () => _forget(context, ref),
-      ),
-      AsyncLoading() => const LinearProgressIndicator(),
-      _ => ListTile(
-        contentPadding: EdgeInsets.zero,
-        leading: const Icon(Icons.folder_shared_outlined),
-        title: Text(s.settingsDocumentsNone),
-        trailing: TextButton(
-          onPressed: () => ref.read(documentsRootProvider.notifier).pick(),
-          child: Text(s.documentsCardPick),
+      AsyncValue(:final value, hasValue: true, isLoading: false)
+          when value != null =>
+        _RootRow(
+          root: value,
+          onChange: () => ref.read(documentsRootProvider.notifier).pick(),
+          onForget: () => _forget(context, ref),
         ),
+      AsyncLoading() => const LinearProgressIndicator(),
+      _ => _NoRootRow(
+        onPick: () => ref.read(documentsRootProvider.notifier).pick(),
       ),
     };
   }
@@ -76,6 +80,7 @@ class _RootRow extends StatelessWidget {
     final styles = Theme.of(context).coletteTextStyles;
     return Column(
       crossAxisAlignment: .start,
+      spacing: AppSpacing.xs.value,
       children: [
         ListTile(
           contentPadding: EdgeInsets.zero,
@@ -105,6 +110,34 @@ class _RootRow extends StatelessWidget {
               ),
             ),
           ],
+        ),
+      ],
+    );
+  }
+}
+
+/// Aucun dossier choisi : message puis bouton pour en choisir un.
+class _NoRootRow extends StatelessWidget {
+  const _NoRootRow({required this.onPick});
+
+  final VoidCallback onPick;
+
+  @override
+  Widget build(BuildContext context) {
+    final s = S.of(context);
+    return Column(
+      crossAxisAlignment: .start,
+      spacing: AppSpacing.xs.value,
+      children: [
+        ListTile(
+          contentPadding: EdgeInsets.zero,
+          leading: const Icon(Icons.folder_shared_outlined),
+          title: Text(s.settingsDocumentsNone),
+        ),
+        TextButton.icon(
+          onPressed: onPick,
+          icon: const Icon(Icons.folder_open_outlined),
+          label: Text(s.documentsCardPick),
         ),
       ],
     );

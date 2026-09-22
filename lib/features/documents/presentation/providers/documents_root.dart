@@ -27,7 +27,7 @@ class DocumentsRoot extends _$DocumentsRoot {
       (failure) {
         state = switch (failure) {
           DocumentsFailure(reason: DocumentsReason.cancelled) => previous,
-          _ => AsyncError(failure, StackTrace.current),
+          _ => _errorKeepingPrevious(failure, previous),
         };
         return false;
       },
@@ -44,14 +44,26 @@ class DocumentsRoot extends _$DocumentsRoot {
     // Un `build` initial (ou un `pick`) encore en vol écraserait l'état posé
     // ici avec son propre résultat une fois résolu.
     if (state.isLoading) return;
+    final previous = state;
     final result = await ref
         .read(documentsRepositoryProvider)
         .forgetRootFolder();
-    state = result.fold((failure) => AsyncError(failure, StackTrace.current), (
+    state = result.fold((failure) => _errorKeepingPrevious(failure, previous), (
       _,
     ) {
       ref.invalidate(documentsFolderProvider);
       return const AsyncData(null);
     });
+  }
+
+  /// Erreur qui conserve la dernière valeur connue de [previous], pour ne
+  /// pas faire disparaître le dossier affiché suite à un échec.
+  AsyncValue<DocumentRoot?> _errorKeepingPrevious(
+    Object failure,
+    AsyncValue<DocumentRoot?> previous,
+  ) {
+    final error = AsyncError<DocumentRoot?>(failure, StackTrace.current);
+    // ignore: invalid_use_of_internal_member
+    return error.copyWithPrevious(previous);
   }
 }

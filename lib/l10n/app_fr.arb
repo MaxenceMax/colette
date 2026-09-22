@@ -148,7 +148,7 @@
   "documentsActionImport": "Importer un fichier",
   "documentsErrorNotDownloaded": "Ce document n'est pas encore téléchargé sur cet iPhone",
   "documentsErrorWrite": "Impossible d'enregistrer le document",
-  "documentsErrorIo": "Impossible d'accéder à ce document.",
+  "documentsErrorIo": "Impossible d'accéder à ce document",
   "documentsErrorAccess": "Colette n'a pas accès à ce dossier",
   "settingsDocumentsNone": "Aucun dossier choisi",
   "settingsDocumentsFolder": "Dossier documents",

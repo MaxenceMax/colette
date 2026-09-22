@@ -1,7 +1,10 @@
+import 'package:colette/core/result/failure.dart';
+import 'package:colette/core/theme/design_tokens.dart';
 import 'package:colette/features/documents/domain/entities/document_root.dart';
 import 'package:colette/features/documents/domain/repositories/documents_repository.dart';
 import 'package:colette/features/documents/presentation/providers/documents_providers.dart';
 import 'package:colette/features/documents/presentation/widgets/documents_root_section.dart';
+import 'package:colette/shared/ui/widgets/colette_card_surface.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:fpdart/fpdart.dart';
@@ -18,8 +21,14 @@ void main() {
 
   Future<void> pumpSection(WidgetTester tester) => pumpApp(
     tester,
-    const Scaffold(body: DocumentsRootSection()),
+    Scaffold(
+      body: ListView(
+        padding: AppSpacing.md.horizontal,
+        children: const [ColetteCardSurface(child: DocumentsRootSection())],
+      ),
+    ),
     overrides: [documentsRepositoryProvider.overrideWithValue(repo)],
+    viewSize: const Size(375, 812),
   );
 
   testWidgets('sans dossier : « Aucun dossier choisi » et bouton', (
@@ -29,6 +38,7 @@ void main() {
     await pumpSection(tester);
     expect(find.text('Aucun dossier choisi'), findsOneWidget);
     expect(find.text('Choisir le dossier partagé'), findsOneWidget);
+    expect(tester.takeException(), isNull);
   });
 
   testWidgets('avec dossier : nom, changer et oublier', (tester) async {
@@ -72,6 +82,22 @@ void main() {
     verify(() => repo.forgetRootFolder()).called(1);
     expect(find.text('Aucun dossier choisi'), findsOneWidget);
   });
+
+  testWidgets(
+    'changer en échec : SnackBar et le dossier précédent reste affiché',
+    (tester) async {
+      when(() => repo.rootFolder())
+          .thenAnswer((_) async => right(const DocumentRoot(name: 'Colette')));
+      when(() => repo.pickRootFolder()).thenAnswer(
+        (_) async => left(const DocumentsFailure(DocumentsReason.io)),
+      );
+      await pumpSection(tester);
+      await tester.tap(find.text('Changer de dossier'));
+      await tester.pumpAndSettle();
+      expect(find.text("Impossible d'accéder à ce document"), findsOneWidget);
+      expect(find.text('Colette'), findsOneWidget);
+    },
+  );
 
   testWidgets('annuler la confirmation ne fait rien', (tester) async {
     when(() => repo.rootFolder())

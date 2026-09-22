@@ -8,11 +8,21 @@ import 'package:flutter_test/flutter_test.dart';
 
 /// Monte [child] dans une `MaterialApp` fr avec le thème Colette
 /// et un `ProviderScope` surchargeable.
+///
+/// [viewSize], si renseigné, fixe la taille de la vue de test (utile pour
+/// reproduire une largeur d'iPhone précise) ; la taille est restaurée après
+/// le test.
 Future<void> pumpApp(
   WidgetTester tester,
   Widget child, {
   List<Override> overrides = const [],
+  Size? viewSize,
 }) async {
+  if (viewSize != null) {
+    tester.view.physicalSize = viewSize;
+    tester.view.devicePixelRatio = 1;
+    addTearDown(tester.view.reset);
+  }
   final hasOnlineOverride = overrides.any(
     (override) => override.origin == isOnlineProvider,
   );

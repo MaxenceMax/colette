@@ -1,3 +1,5 @@
+import 'dart:developer' as developer;
+
 import 'package:colette/core/result/failure.dart';
 import 'package:colette/core/ui/failure_message.dart';
 import 'package:colette/features/documents/domain/entities/document_entry.dart';
@@ -68,7 +70,14 @@ class _EntriesList extends ConsumerWidget {
           documentsFolderProvider(folderPath).future,
         );
         await refreshed;
-      } on Object catch (_) {}
+      } on Object catch (error, stackTrace) {
+        developer.log(
+          'Rafraîchissement documents',
+          name: 'colette',
+          error: error,
+          stackTrace: stackTrace,
+        );
+      }
     },
     child: ListView.builder(
       physics: const AlwaysScrollableScrollPhysics(),
