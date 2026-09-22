@@ -27,12 +27,31 @@ describe('pendingCares', () => {
 
   it('nombril désactivé et bain récent : ni nombril ni bain', () => {
     const pending = pendingCares({
-      settings: { ...DEFAULT_CARE_SETTINGS, umbilicalCareEnabled: false },
+      settings: { ...DEFAULT_CARE_SETTINGS, umbilicalCarePerDay: 0 },
       todayEvents: [],
       lastBathAt: new Date('2026-09-20T16:00:00Z'),
       now,
     });
     expect(pending).toEqual(['Adrigyl', 'Soin des yeux', 'Soin du nez']);
+  });
+
+  it('nombril 3 par jour : deux soins faits encore en attente, trois faits absent', () => {
+    const care = (hour: string) => ({ startAt: new Date(`2026-09-21T${hour}:00:00Z`), umbilicalCare: true });
+    const twoDone = pendingCares({
+      settings: DEFAULT_CARE_SETTINGS,
+      todayEvents: [care('03'), care('05')],
+      lastBathAt: null,
+      now,
+    });
+    expect(twoDone).toContain('Soin du nombril');
+
+    const threeDone = pendingCares({
+      settings: DEFAULT_CARE_SETTINGS,
+      todayEvents: [care('03'), care('04'), care('05')],
+      lastBathAt: null,
+      now,
+    });
+    expect(threeDone).not.toContain('Soin du nombril');
   });
   it('adrigylPerDay à 0 : Adrigyl jamais attendu', () => {
     const pending = pendingCares({

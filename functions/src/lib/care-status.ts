@@ -21,7 +21,8 @@ export function pendingCares({ settings, todayEvents, lastBathAt, now }: Input):
   if (settings.adrigylPerDay > 0 && count('adrigyl') < settings.adrigylPerDay) pending.push(CARE_LABELS.adrigyl);
   if (settings.eyeCarePerDay > 0 && count('eyeCare') < settings.eyeCarePerDay) pending.push(CARE_LABELS.eyeCare);
   if (settings.noseCarePerDay > 0 && count('noseCare') < settings.noseCarePerDay) pending.push(CARE_LABELS.noseCare);
-  if (settings.umbilicalCareEnabled && count('umbilicalCare') < 1) pending.push(CARE_LABELS.umbilicalCare);
+  if (settings.umbilicalCarePerDay > 0 && count('umbilicalCare') < settings.umbilicalCarePerDay)
+    pending.push(CARE_LABELS.umbilicalCare);
   if (isBathExpected(lastBathAt, settings.bathEveryDays, now) && count('bath') < 1) pending.push(CARE_LABELS.bath);
   return pending;
 }

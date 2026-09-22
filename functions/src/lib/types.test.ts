@@ -14,7 +14,7 @@ describe('withDefaults', () => {
       noseCarePerDay: null,
       bathEveryDays: null,
       feedsPerDay: undefined,
-      umbilicalCareEnabled: null,
+      umbilicalCarePerDay: null,
     } as never);
 
     expect(settings).toEqual(DEFAULT_CARE_SETTINGS);
@@ -35,7 +35,7 @@ describe('withDefaults', () => {
       noseCarePerDay: 10,
       bathEveryDays: 1,
       feedsPerDay: 24,
-      umbilicalCareEnabled: true,
+      umbilicalCarePerDay: 3,
     });
 
     expect(withDefaults({ bathEveryDays: 60, feedsPerDay: 0 })).toMatchObject({
@@ -52,7 +52,7 @@ describe('withDefaults', () => {
         noseCarePerDay: 3,
         bathEveryDays: 7,
         feedsPerDay: 6,
-        umbilicalCareEnabled: false,
+        umbilicalCarePerDay: 2,
       }),
     ).toEqual({
       adrigylPerDay: 2,
@@ -60,7 +60,7 @@ describe('withDefaults', () => {
       noseCarePerDay: 3,
       bathEveryDays: 7,
       feedsPerDay: 6,
-      umbilicalCareEnabled: false,
+      umbilicalCarePerDay: 2,
     });
   });
 
@@ -71,8 +71,11 @@ describe('withDefaults', () => {
     });
   });
 
-  it('nombril : activé sauf refus explicite', () => {
-    expect(withDefaults({ umbilicalCareEnabled: false }).umbilicalCareEnabled).toBe(false);
-    expect(withDefaults({ umbilicalCareEnabled: undefined }).umbilicalCareEnabled).toBe(true);
+  it("nombril : repli sur l'ancien booléen umbilicalCareEnabled", () => {
+    expect(withDefaults({ umbilicalCareEnabled: false }).umbilicalCarePerDay).toBe(0);
+    expect(withDefaults({ umbilicalCareEnabled: true }).umbilicalCarePerDay).toBe(3);
+    expect(withDefaults({ umbilicalCarePerDay: 0, umbilicalCareEnabled: true }).umbilicalCarePerDay).toBe(0);
+    expect(withDefaults({ umbilicalCarePerDay: 42 }).umbilicalCarePerDay).toBe(10);
+    expect(withDefaults({ umbilicalCarePerDay: Number.NaN }).umbilicalCarePerDay).toBe(3);
   });
 });

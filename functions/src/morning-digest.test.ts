@@ -221,6 +221,8 @@ describe('morningDigest', () => {
       events: [
         { startAt: at('2026-09-21T05:00:00Z'), adrigyl: true, eyeCare: true, noseCare: true },
         { startAt: at('2026-09-21T05:30:00Z'), umbilicalCare: true, bath: true },
+        { startAt: at('2026-09-21T09:00:00Z'), umbilicalCare: true },
+        { startAt: at('2026-09-21T15:00:00Z'), umbilicalCare: true },
       ],
     });
 
