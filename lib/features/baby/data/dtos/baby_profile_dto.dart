@@ -11,6 +11,10 @@ abstract final class CareSettingsDto {
     'umbilicalCarePerDay': settings.umbilicalCarePerDay,
     'bathEveryDays': settings.bathEveryDays,
     'feedsPerDay': settings.feedsPerDay,
+    'dailyTargetMl': settings.dailyTargetMl?.clamp(
+      CareSettings.minDailyTargetMl,
+      CareSettings.maxDailyTargetMl,
+    ),
   };
 
   static int _readInt(
@@ -19,7 +23,28 @@ abstract final class CareSettingsDto {
     int fallback, {
     required int min,
     required int max,
-  }) => ((map[key] as num?)?.toInt() ?? fallback).clamp(min, max);
+  }) {
+    final raw = map[key];
+    return (raw is num && raw.isFinite ? raw.toInt() : fallback).clamp(
+      min,
+      max,
+    );
+  }
+
+  /// Entier optionnel borné ; absent ou non numérique → `null`.
+  /// Arrondi au multiple de `step` le plus proche avant de borner.
+  static int? _readOptionalInt(
+    Map<String, dynamic> map,
+    String key, {
+    required int min,
+    required int max,
+    int step = 1,
+  }) {
+    final raw = map[key];
+    if (raw is! num || !raw.isFinite) return null;
+    final rounded = (raw.toInt() / step).round() * step;
+    return rounded.clamp(min, max);
+  }
 
   /// Documents antérieurs : seul le booléen `umbilicalCareEnabled` existe.
   static int _readUmbilicalCarePerDay(Map<String, dynamic> map) {
@@ -38,6 +63,13 @@ abstract final class CareSettingsDto {
     umbilicalCarePerDay: _readUmbilicalCarePerDay(map),
     bathEveryDays: _readInt(map, 'bathEveryDays', 2, min: 1, max: 30),
     feedsPerDay: _readInt(map, 'feedsPerDay', 8, min: 1, max: 24),
+    dailyTargetMl: _readOptionalInt(
+      map,
+      'dailyTargetMl',
+      min: CareSettings.minDailyTargetMl,
+      max: CareSettings.maxDailyTargetMl,
+      step: CareSettings.dailyTargetStepMl,
+    ),
   );
 }
 

@@ -64,13 +64,18 @@ class BabySettingsController extends _$BabySettingsController {
   ) async {
     final code = ref.read(currentHouseholdCodeProvider);
     if (code == null) return false;
+    // Lu avant l'await : le contrôleur autoDispose peut être détruit pendant l'écriture
+    // (feuille refermée), la sync du plan doit quand même partir.
+    final sync = ref.read(feedingPlanSyncProvider);
     state = const AsyncLoading();
     final result = await action(code);
-    state = result.fold(
-      (failure) => AsyncError(failure, StackTrace.current),
-      (_) => const AsyncData(null),
-    );
-    if (result.isRight()) await ref.read(feedingPlanSyncProvider).sync();
+    if (ref.mounted) {
+      state = result.fold(
+        (failure) => AsyncError(failure, StackTrace.current),
+        (_) => const AsyncData(null),
+      );
+    }
+    if (result.isRight()) await sync.sync();
     return result.isRight();
   }
 }

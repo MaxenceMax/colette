@@ -7,6 +7,7 @@ import 'package:colette/features/events/domain/entities/care_event.dart';
 
 /// Plan biberons selon l'OMS : 150 ml/kg/jour (montée progressive la 1re semaine),
 /// réparti sur `feedsPerDay` prises ; repères par âge sans pesée.
+/// Une cible ajustée (`dailyTargetMlOverride`) remplace la cible OMS.
 ///
 /// `feedsPerDay` est borné à 1 minimum pour ne jamais diviser par zéro.
 class ComputeFeedingPlan {
@@ -22,13 +23,15 @@ class ComputeFeedingPlan {
     required List<CareEvent> todayBottles,
     required CareEvent? lastBottle,
     required DateTime now,
+    int? dailyTargetMlOverride,
   }) {
     final safeFeedsPerDay = max(1, feedsPerDay);
     final day = dayOfLife(birthDate, now);
-    final (dailyTargetMl, estimated) = switch (latestWeightGrams) {
+    final (omsTargetMl, estimated) = switch (latestWeightGrams) {
       null => (dailyTargetFromAge(day), true),
-      final grams => (_roundTo10(mlPerKg(day) * grams / 1000), false),
+      final grams => (weightTargetMl(day, grams), false),
     };
+    final dailyTargetMl = dailyTargetMlOverride ?? omsTargetMl;
     final interval = Duration(minutes: (24 * 60 / safeFeedsPerDay).round());
     final nextBottleAt = lastBottle == null
         ? now
@@ -40,9 +43,11 @@ class ComputeFeedingPlan {
     final raw = bottlesRemaining > 0
         ? remainingMl / bottlesRemaining
         : dailyTargetMl / safeFeedsPerDay;
-    final suggestedMl = _roundTo10(raw).clamp(minSuggestedMl, maxSuggestedMl);
+    final suggestedMl = roundTo10(raw).clamp(minSuggestedMl, maxSuggestedMl);
     return FeedingPlan(
       dailyTargetMl: dailyTargetMl,
+      omsTargetMl: omsTargetMl,
+      isTargetOverridden: dailyTargetMlOverride != null,
       feedsPerDay: safeFeedsPerDay,
       nextBottleAt: nextBottleAt,
       suggestedMl: suggestedMl,
@@ -59,9 +64,17 @@ class ComputeFeedingPlan {
   /// 60 ml/kg le jour 1, +20 ml/kg par jour, plafonné à 150 ml/kg.
   static int mlPerKg(int dayOfLife) => min(150, 60 + 20 * (dayOfLife - 1));
 
+  /// Jour de vie à partir duquel `mlPerKg` atteint son plafond de 150.
+  static const mlPerKgPlateauDay = 6;
+
   /// Cible journalière indicative quand aucune pesée n'est connue.
   static int dailyTargetFromAge(int dayOfLife) =>
       FeedingAgeBand.forDayOfLife(dayOfLife).dailyMl;
 
-  static int _roundTo10(double value) => (value / 10).round() * 10;
+  /// Arrondi au multiple de 10 ml le plus proche.
+  static int roundTo10(double value) => (value / 10).round() * 10;
+
+  /// Cible journalière OMS calculée sur la dernière pesée, arrondie à 10 ml.
+  static int weightTargetMl(int dayOfLife, int grams) =>
+      roundTo10(mlPerKg(dayOfLife) * grams / 1000);
 }

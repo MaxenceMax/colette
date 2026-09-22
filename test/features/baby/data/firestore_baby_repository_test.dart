@@ -75,4 +75,18 @@ void main() {
     expect((data['feedingPlan'] as Map)['suggestedMl'], 120);
     expect(data['baby'], isNotNull);
   });
+
+  test('saveProfile efface une cible ajustée retirée', () async {
+    final repo = FirestoreBabyRepository(FakeFirebaseFirestore());
+    final withTarget = profile.copyWith(
+      careSettings: const CareSettings(dailyTargetMl: 600),
+    );
+    await repo.saveProfile(code, withTarget);
+    await repo.saveProfile(
+      code,
+      withTarget.copyWith(careSettings: const CareSettings()),
+    );
+    final stored = await repo.watchProfile(code).first;
+    expect(stored?.careSettings.dailyTargetMl, isNull);
+  });
 }

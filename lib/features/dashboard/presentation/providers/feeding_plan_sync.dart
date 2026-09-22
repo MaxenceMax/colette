@@ -57,6 +57,7 @@ final class FirestoreFeedingPlanSync implements FeedingPlanSync {
         todayBottles: today.where((e) => e.hasBottle).toList(),
         lastBottle: lastBottle,
         now: now,
+        dailyTargetMlOverride: profile.careSettings.dailyTargetMl,
       );
       await babyRepository.saveFeedingPlan(
         code,

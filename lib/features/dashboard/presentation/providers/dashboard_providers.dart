@@ -3,10 +3,12 @@ import 'package:colette/features/baby/presentation/providers/baby_providers.dart
 import 'package:colette/features/dashboard/domain/entities/baby_age.dart';
 import 'package:colette/features/dashboard/domain/entities/care_task.dart';
 import 'package:colette/features/dashboard/domain/entities/feeding_plan.dart';
+import 'package:colette/features/dashboard/domain/entities/feeding_reference.dart';
 import 'package:colette/features/dashboard/domain/entities/rolling_intake.dart';
 import 'package:colette/features/dashboard/domain/use_cases/compute_baby_age.dart';
 import 'package:colette/features/dashboard/domain/use_cases/compute_daily_care_status.dart';
 import 'package:colette/features/dashboard/domain/use_cases/compute_feeding_plan.dart';
+import 'package:colette/features/dashboard/domain/use_cases/compute_feeding_reference.dart';
 import 'package:colette/features/dashboard/domain/use_cases/compute_rolling_intake.dart';
 import 'package:colette/features/events/presentation/providers/events_providers.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
@@ -28,6 +30,19 @@ FeedingPlan? feedingPlan(Ref ref) {
     feedsPerDay: profile.careSettings.feedsPerDay,
     todayBottles: today.where((e) => e.hasBottle).toList(),
     lastBottle: ref.watch(latestBottleProvider).value,
+    now: ref.watch(currentMinuteProvider),
+    dailyTargetMlOverride: profile.careSettings.dailyTargetMl,
+  );
+}
+
+/// Repères OMS du jour ; `null` sans profil.
+@riverpod
+FeedingReference? feedingReference(Ref ref) {
+  final profile = ref.watch(babyProfileProvider).value;
+  if (profile == null) return null;
+  return const ComputeFeedingReference()(
+    birthDate: profile.birthDate,
+    latestWeightGrams: ref.watch(latestWeightProvider)?.grams,
     now: ref.watch(currentMinuteProvider),
   );
 }
