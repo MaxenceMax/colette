@@ -8,11 +8,13 @@ import 'package:colette/features/baby/domain/entities/care_settings.dart';
 import 'package:colette/features/baby/domain/entities/weight_entry.dart';
 import 'package:colette/features/baby/domain/repositories/baby_repository.dart';
 import 'package:colette/features/baby/presentation/providers/baby_providers.dart';
+import 'package:colette/features/baby/presentation/providers/baby_settings_controller.dart';
 import 'package:colette/features/dashboard/presentation/providers/feeding_plan_sync.dart';
 import 'package:colette/features/dashboard/presentation/widgets/feeding_reference_sheet.dart';
 import 'package:colette/features/events/presentation/providers/events_providers.dart';
 import 'package:colette/features/household/presentation/providers/household_providers.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_riverpod/misc.dart' show Override;
 import 'package:flutter_test/flutter_test.dart';
 import 'package:fpdart/fpdart.dart';
@@ -59,16 +61,16 @@ void main() {
   // La feuille est une longue liste défilante ; on agrandit la surface de test
   // pour que tout son contenu soit visible sans avoir à défiler explicitement
   // (sinon `find.text` ignore par défaut les widgets hors du viewport visible).
-  Future<void> pumpSheet(WidgetTester tester, List<Override> overrides) async {
+  Future<void> pumpSheet(
+    WidgetTester tester,
+    List<Override> overrides, {
+    Widget child = const Scaffold(body: FeedingReferenceSheet()),
+  }) async {
     tester.view.physicalSize = const Size(800, 2400);
     tester.view.devicePixelRatio = 1.0;
     addTearDown(tester.view.resetPhysicalSize);
     addTearDown(tester.view.resetDevicePixelRatio);
-    await pumpApp(
-      tester,
-      const Scaffold(body: FeedingReferenceSheet()),
-      overrides: overrides,
-    );
+    await pumpApp(tester, child, overrides: overrides);
   }
 
   // index 0 = table par âge, index 1 = règle au poids (ordre de l'arbre) :
@@ -170,6 +172,42 @@ void main() {
       expect(find.widgetWithText(FilledButton, 'Ajuster'), findsOneWidget);
     },
   );
+
+  testWidgets('n\'affiche pas une erreur antérieure du contrôleur', (
+    tester,
+  ) async {
+    final repo = MockBabyRepository();
+    when(() => repo.deleteWeight(any(), any()))
+        .thenAnswer((_) async => left(const NetworkFailure()));
+    await pumpSheet(
+      tester,
+      overridesFor(repo),
+      child: Scaffold(
+        body: Column(
+          children: [
+            Consumer(
+              builder: (_, ref, _) => TextButton(
+                onPressed: () => ref
+                    .read(babySettingsControllerProvider.notifier)
+                    .deleteWeight('w'),
+                child: const Text('boom'),
+              ),
+            ),
+            const Expanded(child: FeedingReferenceSheet()),
+          ],
+        ),
+      ),
+    );
+
+    await tester.tap(find.text('boom'));
+    await tester.pumpAndSettle();
+
+    expect(
+      find.text('Pas de connexion. Réessaie dans un instant.'),
+      findsNothing,
+    );
+    expect(find.widgetWithText(FilledButton, 'Ajuster'), findsOneWidget);
+  });
 
   testWidgets('adopte une cible poussée par l\'autre appareil', (tester) async {
     final repo = MockBabyRepository();

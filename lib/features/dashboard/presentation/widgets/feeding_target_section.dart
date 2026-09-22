@@ -29,6 +29,7 @@ class FeedingTargetSection extends ConsumerStatefulWidget {
 
 class _FeedingTargetSectionState extends ConsumerState<FeedingTargetSection> {
   late int? _target = widget.profile.careSettings.dailyTargetMl;
+  Object? _error;
 
   @override
   void didUpdateWidget(covariant FeedingTargetSection oldWidget) {
@@ -40,25 +41,28 @@ class _FeedingTargetSectionState extends ConsumerState<FeedingTargetSection> {
     }
   }
 
-  void _write(int? target) {
-    setState(() => _target = target);
-    ref
+  Future<void> _write(int? target) async {
+    setState(() {
+      _target = target;
+      _error = null;
+    });
+    final ok = await ref
         .read(babySettingsControllerProvider.notifier)
         .updateCareSettings(
           widget.profile,
           widget.profile.careSettings.copyWith(dailyTargetMl: target),
         );
+    if (!mounted || ok) return;
+    setState(() {
+      _error = ref.read(babySettingsControllerProvider).error;
+      _target = widget.profile.careSettings.dailyTargetMl;
+    });
   }
 
   @override
   Widget build(BuildContext context) {
     // Garde le contrôleur autoDispose vivant pendant l'await de updateCareSettings.
-    final write = ref.watch(babySettingsControllerProvider);
-    ref.listen(babySettingsControllerProvider, (_, next) {
-      if (next is AsyncError) {
-        setState(() => _target = widget.profile.careSettings.dailyTargetMl);
-      }
-    });
+    ref.watch(babySettingsControllerProvider);
     final s = S.of(context);
     final styles = Theme.of(context).coletteTextStyles;
     final target = _target;
@@ -73,7 +77,7 @@ class _FeedingTargetSectionState extends ConsumerState<FeedingTargetSection> {
           ),
         ),
         Text(s.feedingTargetOms(widget.omsTargetMl), style: styles.body),
-        if (write case AsyncError(:final error))
+        if (_error case final error?)
           Text(
             failureMessage(error, s),
             style: styles.small.copyWith(
