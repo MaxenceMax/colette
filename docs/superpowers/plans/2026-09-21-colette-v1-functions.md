@@ -78,7 +78,13 @@ Maxence remplace la valeur par l'identifiant de son projet, ou lance `firebase u
 rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
-    match /households/{code}/{document=**} {
+    // Le document foyer est atteignable par son code, jamais énumérable.
+    match /households/{code} {
+      allow get, write: if request.auth != null;
+      allow list: if false;
+    }
+    // Sous-collections : events, weights, devices.
+    match /households/{code}/{collection}/{docId} {
       allow read, write: if request.auth != null;
     }
   }
@@ -198,7 +204,7 @@ git commit -m "chore: config Firebase (règles, index) et projet Cloud Functions
 
 **Files:**
 - Create: `functions/src/lib/types.ts`, `functions/src/lib/firestore.ts`, `functions/src/lib/paris-time.ts`
-- Test: `functions/src/lib/paris-time.test.ts`
+- Test: `functions/src/lib/paris-time.test.ts`, `functions/src/lib/types.test.ts`
 
 - [ ] **Step 1: Écrire le test (rouge)**
 
@@ -206,7 +212,14 @@ git commit -m "chore: config Firebase (règles, index) et projet Cloud Functions
 
 ```ts
 import { describe, expect, it } from 'vitest';
-import { formatHourMinute, hourInParis, startOfTodayInParis } from './paris-time';
+import {
+  formatHourMinute,
+  hourInParis,
+  nearestHourInParis,
+  startOfTodayInParis,
+  startOfTomorrowInParis,
+  todayKeyInParis,
+} from './paris-time';
 
 describe('paris-time', () => {
   it('formate en « 14h32 » heure de Paris', () => {
@@ -221,6 +234,44 @@ describe('paris-time', () => {
     expect(startOfTodayInParis(new Date('2026-09-21T12:32:00Z')).toISOString()).toBe(
       '2026-09-20T22:00:00.000Z',
     );
+  });
+
+  it('donne minuit de Paris en UTC en heure d\'hiver', () => {
+    expect(startOfTodayInParis(new Date('2026-01-15T12:00:00Z')).toISOString()).toBe(
+      '2026-01-14T23:00:00.000Z',
+    );
+  });
+});
+
+describe('startOfTomorrowInParis', () => {
+  it('donne minuit du lendemain (heure d\'été)', () => {
+    expect(startOfTomorrowInParis(new Date('2026-09-21T12:32:00Z')).toISOString()).toBe(
+      '2026-09-21T22:00:00.000Z',
+    );
+  });
+
+  it('donne minuit du lendemain (heure d\'hiver)', () => {
+    expect(startOfTomorrowInParis(new Date('2026-01-15T12:00:00Z')).toISOString()).toBe(
+      '2026-01-15T23:00:00.000Z',
+    );
+  });
+});
+
+describe('nearestHourInParis', () => {
+  it('arrondit à l\'heure la plus proche', () => {
+    expect(nearestHourInParis(new Date('2026-09-21T05:59:00Z'))).toBe(8);
+    expect(nearestHourInParis(new Date('2026-09-21T06:29:00Z'))).toBe(8);
+    expect(nearestHourInParis(new Date('2026-09-21T06:31:00Z'))).toBe(9);
+  });
+});
+
+describe('todayKeyInParis', () => {
+  it('donne la date du jour à Paris au format yyyy-LL-dd', () => {
+    expect(todayKeyInParis(new Date('2026-09-21T12:32:00Z'))).toBe('2026-09-21');
+  });
+
+  it('bascule au jour suivant dès minuit à Paris', () => {
+    expect(todayKeyInParis(new Date('2026-09-21T22:30:00Z'))).toBe('2026-09-22');
   });
 });
 ```
@@ -261,6 +312,7 @@ export type BabyDoc = {
 export type FeedingPlanDoc = {
   nextBottleAt: Timestamp;
   suggestedMl: number;
+  computedAt?: Timestamp;
 };
 
 export type DeviceDoc = {
@@ -270,6 +322,7 @@ export type DeviceDoc = {
   notifyBottleReminder?: boolean;
   notifyMorningDigest?: boolean;
   morningDigestHour?: number;
+  lastDigestSentOn?: string;
 };
 
 export type Device = DeviceDoc & { id: string };
@@ -295,8 +348,23 @@ export function toCareEvent(doc: EventDoc): CareEvent {
   return { ...doc, startAt: doc.startAt.toDate() };
 }
 
+/** Borne une valeur comme le client : un document modifié à la main ne doit jamais casser les calculs. */
+function clamped(value: unknown, min: number, max: number, fallback: number): number {
+  if (typeof value !== 'number' || !Number.isFinite(value)) return fallback;
+  return Math.min(max, Math.max(min, Math.trunc(value)));
+}
+
+/** Mêmes valeurs par défaut et mêmes bornes que `CareSettingsDto.fromMap` côté client. */
 export function withDefaults(settings: Partial<CareSettings> | undefined): CareSettings {
-  return { ...DEFAULT_CARE_SETTINGS, ...(settings ?? {}) };
+  const raw = settings ?? {};
+  return {
+    adrigylPerDay: clamped(raw.adrigylPerDay, 0, 10, DEFAULT_CARE_SETTINGS.adrigylPerDay),
+    eyeCarePerDay: clamped(raw.eyeCarePerDay, 0, 10, DEFAULT_CARE_SETTINGS.eyeCarePerDay),
+    noseCarePerDay: clamped(raw.noseCarePerDay, 0, 10, DEFAULT_CARE_SETTINGS.noseCarePerDay),
+    umbilicalCareEnabled: raw.umbilicalCareEnabled !== false,
+    bathEveryDays: clamped(raw.bathEveryDays, 1, 30, DEFAULT_CARE_SETTINGS.bathEveryDays),
+    feedsPerDay: clamped(raw.feedsPerDay, 1, 24, DEFAULT_CARE_SETTINGS.feedsPerDay),
+  };
 }
 ```
 
@@ -336,6 +404,21 @@ export function startOfTodayInParis(date: Date): Date {
   return paris(date).startOf('day').toJSDate();
 }
 
+/** Minuit du lendemain à Paris : borne haute exclusive des événements du jour. */
+export function startOfTomorrowInParis(date: Date): Date {
+  return paris(date).startOf('day').plus({ days: 1 }).toJSDate();
+}
+
+/** Heure de Paris la plus proche : 7h59 et 8h29 donnent 8, 8h31 donne 9. */
+export function nearestHourInParis(date: Date): number {
+  return paris(date).plus({ minutes: 30 }).startOf('hour').hour;
+}
+
+/** « 2026-09-21 » : la journée civile parisienne, clé d'idempotence du digest. */
+export function todayKeyInParis(date: Date): string {
+  return paris(date).toFormat('yyyy-LL-dd');
+}
+
 /** Nombre de jours civils (Paris) entre deux instants. */
 export function calendarDaysBetween(from: Date, to: Date): number {
   return Math.floor(paris(to).startOf('day').diff(paris(from).startOf('day'), 'days').days);
@@ -347,7 +430,92 @@ export function calendarDaysBetween(from: Date, to: Date): number {
 Run: `cd functions && npm test`
 Expected: 3 tests passent.
 
-- [ ] **Step 7: Commit**
+- [ ] **Step 7: Tester `withDefaults` — `functions/src/lib/types.test.ts`**
+
+Bornes identiques au client (`baby_profile_dto.dart`) : 0–10, 1–30, 1–24, troncature puis clamp, repli sur le défaut pour `null`/`NaN`.
+
+```ts
+import { describe, expect, it } from 'vitest';
+import { DEFAULT_CARE_SETTINGS, withDefaults } from './types';
+
+describe('withDefaults', () => {
+  it('sans réglages : les valeurs par défaut du client', () => {
+    expect(withDefaults(undefined)).toEqual(DEFAULT_CARE_SETTINGS);
+    expect(withDefaults({})).toEqual(DEFAULT_CARE_SETTINGS);
+  });
+
+  it('valeurs nulles ou absentes : repli sur les valeurs par défaut', () => {
+    const settings = withDefaults({
+      adrigylPerDay: null,
+      eyeCarePerDay: undefined,
+      noseCarePerDay: null,
+      bathEveryDays: null,
+      feedsPerDay: undefined,
+      umbilicalCareEnabled: null,
+    } as never);
+
+    expect(settings).toEqual(DEFAULT_CARE_SETTINGS);
+  });
+
+  it('valeurs hors bornes : ramenées dans les bornes du client', () => {
+    expect(
+      withDefaults({
+        adrigylPerDay: 42,
+        eyeCarePerDay: -3,
+        noseCarePerDay: 10,
+        bathEveryDays: 0,
+        feedsPerDay: 99,
+      }),
+    ).toEqual({
+      adrigylPerDay: 10,
+      eyeCarePerDay: 0,
+      noseCarePerDay: 10,
+      bathEveryDays: 1,
+      feedsPerDay: 24,
+      umbilicalCareEnabled: true,
+    });
+
+    expect(withDefaults({ bathEveryDays: 60, feedsPerDay: 0 })).toMatchObject({
+      bathEveryDays: 30,
+      feedsPerDay: 1,
+    });
+  });
+
+  it('valeurs normales : conservées telles quelles', () => {
+    expect(
+      withDefaults({
+        adrigylPerDay: 2,
+        eyeCarePerDay: 0,
+        noseCarePerDay: 3,
+        bathEveryDays: 7,
+        feedsPerDay: 6,
+        umbilicalCareEnabled: false,
+      }),
+    ).toEqual({
+      adrigylPerDay: 2,
+      eyeCarePerDay: 0,
+      noseCarePerDay: 3,
+      bathEveryDays: 7,
+      feedsPerDay: 6,
+      umbilicalCareEnabled: false,
+    });
+  });
+
+  it('valeurs non numériques : repli sur les valeurs par défaut', () => {
+    expect(withDefaults({ adrigylPerDay: 'deux', feedsPerDay: Number.NaN } as never)).toMatchObject({
+      adrigylPerDay: 1,
+      feedsPerDay: 8,
+    });
+  });
+
+  it('nombril : activé sauf refus explicite', () => {
+    expect(withDefaults({ umbilicalCareEnabled: false }).umbilicalCareEnabled).toBe(false);
+    expect(withDefaults({ umbilicalCareEnabled: undefined }).umbilicalCareEnabled).toBe(true);
+  });
+});
+```
+
+- [ ] **Step 8: Commit**
 
 ```bash
 cd /Users/maxencemontet/Documents/colette
@@ -374,7 +542,7 @@ import { summarizeEvent } from './summary';
 describe('summarizeEvent', () => {
   const at = new Date('2026-09-21T12:32:00Z');
 
-  it('liste biberon puis soins, avec l\'heure de Paris', () => {
+  it("liste biberon puis soins, avec l'heure de Paris", () => {
     expect(summarizeEvent({ startAt: at, bottleMl: 120, diaperChange: true, adrigyl: true })).toBe(
       'Biberon 120 ml · Couche · Adrigyl à 14h32',
     );
@@ -382,6 +550,10 @@ describe('summarizeEvent', () => {
 
   it('gère un événement à un seul soin', () => {
     expect(summarizeEvent({ startAt: at, bath: true })).toBe('Bain à 14h32');
+  });
+
+  it("sans biberon ni soin, décrit un événement simple", () => {
+    expect(summarizeEvent({ startAt: at })).toBe('Événement à 14h32');
   });
 });
 ```
@@ -406,7 +578,7 @@ describe('pendingCares', () => {
     ]);
   });
 
-  it('un soin fait aujourd\'hui disparaît de la liste', () => {
+  it("un soin fait aujourd'hui disparaît de la liste", () => {
     const pending = pendingCares({
       settings: DEFAULT_CARE_SETTINGS,
       todayEvents: [{ startAt: new Date('2026-09-21T05:00:00Z'), adrigyl: true }],
@@ -425,6 +597,27 @@ describe('pendingCares', () => {
     });
     expect(pending).toEqual(['Adrigyl', 'Soin des yeux', 'Soin du nez']);
   });
+  it('adrigylPerDay à 0 : Adrigyl jamais attendu', () => {
+    const pending = pendingCares({
+      settings: { ...DEFAULT_CARE_SETTINGS, adrigylPerDay: 0 },
+      todayEvents: [],
+      lastBathAt: null,
+      now,
+    });
+
+    expect(pending).not.toContain('Adrigyl');
+  });
+
+  it('adrigylPerDay à 2 avec une prise faite : encore en attente', () => {
+    const pending = pendingCares({
+      settings: { ...DEFAULT_CARE_SETTINGS, adrigylPerDay: 2 },
+      todayEvents: [{ startAt: new Date('2026-09-21T05:00:00Z'), adrigyl: true }],
+      lastBathAt: null,
+      now,
+    });
+
+    expect(pending).toContain('Adrigyl');
+  });
 });
 
 describe('isBathExpected', () => {
@@ -440,21 +633,87 @@ describe('isBathExpected', () => {
 
 ```ts
 import { describe, expect, it } from 'vitest';
-import { isReminderDue, REMINDER_LEAD_MS } from './reminder';
+import { isReminderDue, REMINDER_LEAD_MS, REMINDER_TOLERANCE_MS } from './reminder';
 
 describe('isReminderDue', () => {
   const next = new Date('2026-09-21T12:30:00Z');
+  const computedAt = new Date('2026-09-21T09:30:00Z');
 
   it('pas encore dans la fenêtre de 10 min', () => {
-    expect(isReminderDue({ nextBottleAt: next, lastNotifiedFor: null, now: new Date('2026-09-21T12:15:00Z') })).toBe(false);
+    expect(
+      isReminderDue({ nextBottleAt: next, computedAt, lastNotifiedFor: null, now: new Date('2026-09-21T12:15:00Z') }),
+    ).toBe(false);
   });
 
   it('dû dès 10 min avant', () => {
-    expect(isReminderDue({ nextBottleAt: next, lastNotifiedFor: null, now: new Date(next.getTime() - REMINDER_LEAD_MS) })).toBe(true);
+    expect(
+      isReminderDue({
+        nextBottleAt: next,
+        computedAt,
+        lastNotifiedFor: null,
+        now: new Date(next.getTime() - REMINDER_LEAD_MS),
+      }),
+    ).toBe(true);
   });
 
   it('jamais deux fois pour la même échéance', () => {
-    expect(isReminderDue({ nextBottleAt: next, lastNotifiedFor: next, now: new Date('2026-09-21T12:25:00Z') })).toBe(false);
+    expect(
+      isReminderDue({ nextBottleAt: next, computedAt, lastNotifiedFor: next, now: new Date('2026-09-21T12:25:00Z') }),
+    ).toBe(false);
+  });
+
+  it('plan calculé à son échéance (aucun biberon enregistré) : rien à rappeler', () => {
+    expect(
+      isReminderDue({ nextBottleAt: next, computedAt: next, lastNotifiedFor: null, now: new Date(next) }),
+    ).toBe(false);
+  });
+
+  it('plan calculé après son échéance (dernier biberon trop ancien) : rien à rappeler', () => {
+    expect(
+      isReminderDue({
+        nextBottleAt: next,
+        computedAt: new Date(next.getTime() + 60 * 1000),
+        lastNotifiedFor: null,
+        now: new Date(next.getTime() + 60 * 1000),
+      }),
+    ).toBe(false);
+  });
+
+  it('plus rien au-delà de la tolérance de 15 min', () => {
+    expect(
+      isReminderDue({
+        nextBottleAt: next,
+        computedAt,
+        lastNotifiedFor: null,
+        now: new Date(next.getTime() + 20 * 60 * 1000),
+      }),
+    ).toBe(false);
+    expect(REMINDER_TOLERANCE_MS).toBe(15 * 60 * 1000);
+  });
+
+  it('encore dû 14 min après l’échéance', () => {
+    expect(
+      isReminderDue({
+        nextBottleAt: next,
+        computedAt,
+        lastNotifiedFor: null,
+        now: new Date(next.getTime() + 14 * 60 * 1000),
+      }),
+    ).toBe(true);
+  });
+
+  it('sans computedAt, la fenêtre seule décide', () => {
+    expect(
+      isReminderDue({
+        nextBottleAt: next,
+        computedAt: null,
+        lastNotifiedFor: null,
+        now: new Date('2026-09-21T12:15:00Z'),
+      }),
+    ).toBe(false);
+    expect(
+      isReminderDue({ nextBottleAt: next, computedAt: null, lastNotifiedFor: null, now: new Date(next) }),
+    ).toBe(true);
   });
 });
 ```
@@ -490,7 +749,8 @@ export function summarizeEvent(event: CareEvent): string {
   for (const key of ORDER) {
     if (event[key]) parts.push(CARE_LABELS[key]);
   }
-  return `${parts.join(' · ')} à ${formatHourMinute(event.startAt)}`;
+  const label = parts.length === 0 ? 'Événement' : parts.join(' · ');
+  return `${label} à ${formatHourMinute(event.startAt)}`;
 }
 ```
 
@@ -530,12 +790,19 @@ export function pendingCares({ settings, todayEvents, lastBathAt, now }: Input):
 
 ```ts
 export const REMINDER_LEAD_MS = 10 * 60 * 1000;
+export const REMINDER_TOLERANCE_MS = 15 * 60 * 1000;
 
-type Input = { nextBottleAt: Date; lastNotifiedFor: Date | null; now: Date };
+type Input = { nextBottleAt: Date; computedAt: Date | null; lastNotifiedFor: Date | null; now: Date };
 
-/** Dû à partir de 10 min avant l'échéance, une seule fois par échéance. */
-export function isReminderDue({ nextBottleAt, lastNotifiedFor, now }: Input): boolean {
+/**
+ * Dû entre 10 min avant l'échéance et 15 min après, une seule fois par échéance.
+ * Un plan calculé à ou après son échéance (aucun biberon encore enregistré, ou
+ * dernier biberon trop ancien) ne déclenche rien : le parent sait déjà.
+ */
+export function isReminderDue({ nextBottleAt, computedAt, lastNotifiedFor, now }: Input): boolean {
   if (lastNotifiedFor && lastNotifiedFor.getTime() === nextBottleAt.getTime()) return false;
+  if (computedAt && computedAt.getTime() >= nextBottleAt.getTime()) return false;
+  if (now.getTime() > nextBottleAt.getTime() + REMINDER_TOLERANCE_MS) return false;
   return nextBottleAt.getTime() - REMINDER_LEAD_MS <= now.getTime();
 }
 ```
@@ -594,9 +861,13 @@ export async function sendToDevices(code: string, devices: Device[], payload: Pu
 
   await Promise.all(
     stale.map((d) =>
-      db().collection('households').doc(code).collection('devices').doc(d.id).update({
-        fcmToken: FieldValue.delete(),
-      }),
+      db()
+        .collection('households')
+        .doc(code)
+        .collection('devices')
+        .doc(d.id)
+        .update({ fcmToken: FieldValue.delete() })
+        .catch((err) => logger.warn('Token mort non effacé', { code, deviceId: d.id, err })),
     ),
   );
 
@@ -618,10 +889,12 @@ Expected: aucune erreur TypeScript.
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import type { Device } from './types';
 
-const { sendEachForMulticast, updateCalls, loggerInfo } = vi.hoisted(() => ({
+const { sendEachForMulticast, updateCalls, failingDeviceIds, loggerInfo, loggerWarn } = vi.hoisted(() => ({
   sendEachForMulticast: vi.fn(),
   updateCalls: [] as Array<{ code: string; deviceId: string; data: unknown }>,
+  failingDeviceIds: new Set<string>(),
   loggerInfo: vi.fn(),
+  loggerWarn: vi.fn(),
 }));
 
 vi.mock('firebase-admin/messaging', () => ({
@@ -629,7 +902,7 @@ vi.mock('firebase-admin/messaging', () => ({
 }));
 
 vi.mock('firebase-functions', () => ({
-  logger: { info: loggerInfo },
+  logger: { info: loggerInfo, warn: loggerWarn },
 }));
 
 vi.mock('./firestore', () => ({
@@ -644,7 +917,9 @@ vi.mock('./firestore', () => ({
               doc: (deviceId: string) => ({
                 update: (data: unknown) => {
                   updateCalls.push({ code, deviceId, data });
-                  return Promise.resolve();
+                  return failingDeviceIds.has(deviceId)
+                    ? Promise.reject(new Error('NOT_FOUND: document absent'))
+                    : Promise.resolve();
                 },
               }),
             };
@@ -661,7 +936,9 @@ describe('sendToDevices', () => {
   beforeEach(() => {
     sendEachForMulticast.mockReset();
     loggerInfo.mockReset();
+    loggerWarn.mockReset();
     updateCalls.length = 0;
+    failingDeviceIds.clear();
   });
 
   it("ne fait aucun appel FCM si aucun appareil n'a de token", async () => {
@@ -727,6 +1004,30 @@ describe('sendToDevices', () => {
       expect(call.code).toBe('ABC123');
     }
   });
+
+  it("n'échoue pas quand l'appareil a été supprimé entre-temps", async () => {
+    sendEachForMulticast.mockResolvedValue({
+      responses: [
+        { success: true },
+        { success: false, error: { code: 'messaging/registration-token-not-registered' } },
+        { success: false, error: { code: 'messaging/invalid-registration-token' } },
+      ],
+      successCount: 1,
+      failureCount: 2,
+    });
+    failingDeviceIds.add('parti');
+    const devices: Device[] = [
+      { id: 'ok', fcmToken: 'token-ok' },
+      { id: 'parti', fcmToken: 'token-parti' },
+      { id: 'stale', fcmToken: 'token-stale' },
+    ];
+
+    const count = await sendToDevices('ABC123', devices, { title: 'Titre', body: 'Corps' });
+
+    expect(count).toBe(1);
+    expect(updateCalls.map((c) => c.deviceId).sort()).toEqual(['parti', 'stale']);
+    expect(loggerWarn).toHaveBeenCalledTimes(1);
+  });
 });
 ```
 
@@ -758,8 +1059,12 @@ import { sendToDevices } from './lib/push';
 import { summarizeEvent } from './lib/summary';
 import { toCareEvent, type Device, type EventDoc } from './lib/types';
 
-/** Appareils à notifier : ni l'auteur, ni ceux ayant désactivé les notifications des autres événements. */
+/**
+ * Appareils à notifier : ni l'auteur, ni ceux ayant désactivé les notifications des autres événements.
+ * Sans auteur identifié, impossible de savoir qui prévenir : personne n'est notifié.
+ */
 export function selectRecipients(devices: Device[], createdByDeviceId: string | undefined): Device[] {
+  if (!createdByDeviceId) return [];
   return devices.filter((d) => d.id !== createdByDeviceId && d.notifyOnOthersEvents !== false);
 }
 
@@ -795,14 +1100,35 @@ export { onEventCreated } from './on-event-created';
 Les helpers purs (`selectRecipients`) sont testés ; `firebase-functions/v2/firestore` est mocké, le câblage du trigger ne l'est pas.
 
 ```ts
-import { describe, expect, it, vi } from 'vitest';
-import type { Device } from './lib/types';
+import { Timestamp } from 'firebase-admin/firestore';
+import { beforeEach, describe, expect, it, vi } from 'vitest';
+import type { Device, DeviceDoc, EventDoc } from './lib/types';
+
+const { sendToDevices } = vi.hoisted(() => ({ sendToDevices: vi.fn() }));
 
 vi.mock('firebase-functions/v2/firestore', () => ({
   onDocumentCreated: (_path: string, handler: unknown) => handler,
 }));
 
-const { selectRecipients } = await import('./on-event-created');
+vi.mock('./lib/push', () => ({ sendToDevices }));
+
+const { selectRecipients, onEventCreated } = await import('./on-event-created');
+
+/** Instantané Firestore minimal : données de l'événement et chemin vers le foyer. */
+function fakeSnapshot(code: string, data: EventDoc, devices: Array<DeviceDoc & { id: string }>) {
+  const householdRef = {
+    collection: (name: string) => {
+      if (name !== 'devices') throw new Error(`sous-collection inattendue: ${name}`);
+      return { get: async () => ({ docs: devices.map(({ id, ...rest }) => ({ id, data: () => rest })) }) };
+    },
+  };
+  return {
+    params: { code },
+    data: { data: () => data, ref: { parent: { parent: householdRef } } },
+  };
+}
+
+const handler = onEventCreated as unknown as (event: unknown) => Promise<void>;
 
 describe('selectRecipients', () => {
   it("exclut l'appareil auteur de l'événement", () => {
@@ -836,15 +1162,50 @@ describe('selectRecipients', () => {
     expect(recipients).toEqual([]);
   });
 
-  it('gère un événement sans auteur connu en ne notifiant que selon la préférence', () => {
+  it('un événement sans auteur identifié ne notifie personne', () => {
     const devices: Device[] = [
       { id: 'd1', notifyOnOthersEvents: false },
       { id: 'd2', notifyOnOthersEvents: true },
     ];
 
-    const recipients = selectRecipients(devices, undefined);
+    expect(selectRecipients(devices, undefined)).toEqual([]);
+  });
+});
 
-    expect(recipients.map((d) => d.id)).toEqual(['d2']);
+describe('onEventCreated', () => {
+  const startAt = Timestamp.fromDate(new Date('2026-09-21T12:32:00Z'));
+
+  beforeEach(() => {
+    sendToDevices.mockReset();
+    sendToDevices.mockResolvedValue(1);
+  });
+
+  it("notifie les autres appareils, avec la route du journal", async () => {
+    await handler(
+      fakeSnapshot('ABC123', { startAt, bottleMl: 120, createdByDeviceId: 'author' }, [
+        { id: 'author', label: 'iPhone de Maxence' },
+        { id: 'other', label: 'iPhone de Julie' },
+        { id: 'muet', notifyOnOthersEvents: false },
+      ]),
+    );
+
+    expect(sendToDevices).toHaveBeenCalledTimes(1);
+    const [code, devices, payload] = sendToDevices.mock.calls[0];
+    expect(code).toBe('ABC123');
+    expect(devices.map((d: Device) => d.id)).toEqual(['other']);
+    expect(payload).toEqual({
+      title: 'iPhone de Maxence a ajouté un événement',
+      body: 'Biberon 120 ml à 14h32',
+      data: { route: '/journal' },
+    });
+  });
+
+  it("n'envoie rien quand l'événement n'a pas d'auteur identifié", async () => {
+    await handler(
+      fakeSnapshot('ABC123', { startAt, bath: true }, [{ id: 'd1' }, { id: 'd2' }]),
+    );
+
+    expect(sendToDevices).not.toHaveBeenCalled();
   });
 });
 ```
@@ -874,6 +1235,7 @@ git commit -m "feat(functions): push à l'autre iPhone à la création d'un év�
 
 ```ts
 import type { Timestamp } from 'firebase-admin/firestore';
+import { logger } from 'firebase-functions';
 import { onSchedule } from 'firebase-functions/v2/scheduler';
 import { db, loadDevices } from './lib/firestore';
 import { formatHourMinute, ZONE } from './lib/paris-time';
@@ -891,19 +1253,34 @@ export const bottleReminder = onSchedule({ schedule: 'every 5 minutes', timeZone
   const households = await db().collection('households').get();
 
   for (const doc of households.docs) {
-    const plan = doc.get('feedingPlan') as FeedingPlanDoc | undefined;
-    if (!plan) continue;
-    const nextBottleAt = plan.nextBottleAt.toDate();
-    const lastNotifiedFor = (doc.get('lastBottleNotifiedFor') as Timestamp | undefined)?.toDate() ?? null;
-    if (!isReminderDue({ nextBottleAt, lastNotifiedFor, now })) continue;
+    try {
+      const plan = doc.get('feedingPlan') as FeedingPlanDoc | undefined;
+      if (!plan?.nextBottleAt) continue;
+      const nextBottleAt = plan.nextBottleAt.toDate();
+      const lastNotifiedFor = (doc.get('lastBottleNotifiedFor') as Timestamp | undefined)?.toDate() ?? null;
+      const due = isReminderDue({
+        nextBottleAt,
+        computedAt: plan.computedAt?.toDate() ?? null,
+        lastNotifiedFor,
+        now,
+      });
+      if (!due) continue;
 
-    const devices = selectBottleRecipients(await loadDevices(doc.ref));
-    await sendToDevices(doc.id, devices, {
-      title: 'Biberon dans 10 min',
-      body: `Environ ${plan.suggestedMl} ml, prévu vers ${formatHourMinute(nextBottleAt)}`,
-      data: { route: '/today?bottle=1' },
-    });
-    await doc.ref.update({ lastBottleNotifiedFor: plan.nextBottleAt });
+      const recipients = selectBottleRecipients(await loadDevices(doc.ref));
+      const sent = await sendToDevices(doc.id, recipients, {
+        title: 'Biberon dans 10 min',
+        body: `Environ ${plan.suggestedMl} ml, prévu vers ${formatHourMinute(nextBottleAt)}`,
+        data: { route: '/today?bottle=1' },
+      });
+
+      // L'échéance n'est consommée que si le rappel est parti, ou si personne ne l'attend :
+      // sinon le tick suivant réessaie, dans la limite de la tolérance de 15 min.
+      if (sent > 0 || recipients.length === 0) {
+        await doc.ref.update({ lastBottleNotifiedFor: plan.nextBottleAt });
+      }
+    } catch (err) {
+      logger.error('Rappel biberon en échec pour un foyer', { household: doc.id, err });
+    }
   }
 });
 ```
@@ -919,14 +1296,80 @@ export { bottleReminder } from './bottle-reminder';
 Les helpers purs (`selectBottleRecipients`) sont testés ; `firebase-functions/v2/scheduler` est mocké.
 
 ```ts
-import { describe, expect, it, vi } from 'vitest';
-import type { Device } from './lib/types';
+import { Timestamp } from 'firebase-admin/firestore';
+import { beforeEach, describe, expect, it, vi } from 'vitest';
+import type { Device, DeviceDoc, FeedingPlanDoc } from './lib/types';
+
+const { sendToDevices, loggerError, households, updates } = vi.hoisted(() => ({
+  sendToDevices: vi.fn(),
+  loggerError: vi.fn(),
+  households: [] as FakeHousehold[],
+  updates: [] as Array<{ household: string; data: Record<string, unknown> }>,
+}));
+
+type FakeHousehold = {
+  id: string;
+  fields: Record<string, unknown>;
+  devices?: Array<DeviceDoc & { id: string }>;
+  fails?: boolean;
+};
 
 vi.mock('firebase-functions/v2/scheduler', () => ({
   onSchedule: (_options: unknown, handler: unknown) => handler,
 }));
 
-const { selectBottleRecipients } = await import('./bottle-reminder');
+vi.mock('firebase-functions', () => ({
+  logger: { info: vi.fn(), warn: vi.fn(), error: loggerError },
+}));
+
+vi.mock('./lib/push', () => ({ sendToDevices }));
+
+vi.mock('./lib/firestore', async (importOriginal) => ({
+  ...(await importOriginal<typeof import('./lib/firestore')>()),
+  db: () => ({
+    collection: (name: string) => {
+      if (name !== 'households') throw new Error(`collection inattendue: ${name}`);
+      return {
+        get: async () => ({
+          docs: households.map((h) => ({
+            id: h.id,
+            get: (field: string) => h.fields[field],
+            ref: {
+              update: async (data: Record<string, unknown>) => {
+                updates.push({ household: h.id, data });
+              },
+              collection: (sub: string) => {
+                if (sub !== 'devices') throw new Error(`sous-collection inattendue: ${sub}`);
+                return {
+                  get: async () => {
+                    if (h.fails) throw new Error('Firestore indisponible');
+                    return {
+                      docs: (h.devices ?? []).map(({ id, ...rest }) => ({ id, data: () => rest })),
+                    };
+                  },
+                };
+              },
+            },
+          })),
+        }),
+      };
+    },
+  }),
+}));
+
+const { selectBottleRecipients, bottleReminder } = await import('./bottle-reminder');
+
+const handler = bottleReminder as unknown as () => Promise<void>;
+
+/** Plan dû : échéance dans 5 min, calculé bien avant (un biberon a donc été enregistré). */
+function duePlan(): FeedingPlanDoc {
+  const next = new Date(Date.now() + 5 * 60 * 1000);
+  return {
+    nextBottleAt: Timestamp.fromDate(next),
+    suggestedMl: 120,
+    computedAt: Timestamp.fromDate(new Date(next.getTime() - 3 * 60 * 60 * 1000)),
+  };
+}
 
 describe('selectBottleRecipients', () => {
   it('inclut les appareils sans préférence définie', () => {
@@ -957,6 +1400,95 @@ describe('selectBottleRecipients', () => {
     expect(selectBottleRecipients(devices)).toEqual([]);
   });
 });
+
+describe('bottleReminder', () => {
+  beforeEach(() => {
+    sendToDevices.mockReset();
+    sendToDevices.mockResolvedValue(1);
+    loggerError.mockReset();
+    households.length = 0;
+    updates.length = 0;
+  });
+
+  it("notifie une fois et consomme l'échéance", async () => {
+    const plan = duePlan();
+    households.push({ id: 'ABC123', fields: { feedingPlan: plan }, devices: [{ id: 'd1' }] });
+
+    await handler();
+
+    expect(sendToDevices).toHaveBeenCalledTimes(1);
+    const [code, devices, payload] = sendToDevices.mock.calls[0];
+    expect(code).toBe('ABC123');
+    expect(devices.map((d: Device) => d.id)).toEqual(['d1']);
+    expect(payload.data).toEqual({ route: '/today?bottle=1' });
+    expect(payload.body).toContain('120 ml');
+    expect(updates).toEqual([{ household: 'ABC123', data: { lastBottleNotifiedFor: plan.nextBottleAt } }]);
+  });
+
+  it("ne renotifie pas une échéance déjà notifiée", async () => {
+    const plan = duePlan();
+    households.push({
+      id: 'ABC123',
+      fields: { feedingPlan: plan, lastBottleNotifiedFor: plan.nextBottleAt },
+      devices: [{ id: 'd1' }],
+    });
+
+    await handler();
+
+    expect(sendToDevices).not.toHaveBeenCalled();
+    expect(updates).toEqual([]);
+  });
+
+  it("ne consomme pas l'échéance quand rien n'a pu être envoyé", async () => {
+    sendToDevices.mockResolvedValue(0);
+    households.push({ id: 'ABC123', fields: { feedingPlan: duePlan() }, devices: [{ id: 'd1' }] });
+
+    await handler();
+
+    expect(sendToDevices).toHaveBeenCalledTimes(1);
+    expect(updates).toEqual([]);
+  });
+
+  it("consomme l'échéance quand personne n'attend le rappel", async () => {
+    sendToDevices.mockResolvedValue(0);
+    const plan = duePlan();
+    households.push({
+      id: 'ABC123',
+      fields: { feedingPlan: plan },
+      devices: [{ id: 'd1', notifyBottleReminder: false }],
+    });
+
+    await handler();
+
+    expect(updates).toEqual([{ household: 'ABC123', data: { lastBottleNotifiedFor: plan.nextBottleAt } }]);
+  });
+
+  it('ignore un plan incomplet sans bloquer les foyers suivants', async () => {
+    households.push(
+      { id: 'SANS', fields: { feedingPlan: { suggestedMl: 120 } }, devices: [{ id: 'd0' }] },
+      { id: 'ABC123', fields: { feedingPlan: duePlan() }, devices: [{ id: 'd1' }] },
+    );
+
+    await handler();
+
+    expect(sendToDevices).toHaveBeenCalledTimes(1);
+    expect(sendToDevices.mock.calls[0][0]).toBe('ABC123');
+  });
+
+  it("journalise l'échec d'un foyer et poursuit la boucle", async () => {
+    households.push(
+      { id: 'KO', fields: { feedingPlan: duePlan() }, fails: true },
+      { id: 'ABC123', fields: { feedingPlan: duePlan() }, devices: [{ id: 'd1' }] },
+    );
+
+    await handler();
+
+    expect(loggerError).toHaveBeenCalledTimes(1);
+    expect(loggerError.mock.calls[0][1]).toMatchObject({ household: 'KO' });
+    expect(sendToDevices).toHaveBeenCalledTimes(1);
+    expect(sendToDevices.mock.calls[0][0]).toBe('ABC123');
+  });
+});
 ```
 
 - [ ] **Step 3: Compiler**
@@ -984,16 +1516,28 @@ git commit -m "feat(functions): rappel biberon 10 min avant l'échéance"
 
 ```ts
 import { Timestamp } from 'firebase-admin/firestore';
+import { logger } from 'firebase-functions';
 import { onSchedule } from 'firebase-functions/v2/scheduler';
 import { pendingCares } from './lib/care-status';
 import { db, loadDevices } from './lib/firestore';
-import { hourInParis, startOfTodayInParis, ZONE } from './lib/paris-time';
+import {
+  nearestHourInParis,
+  startOfTodayInParis,
+  startOfTomorrowInParis,
+  todayKeyInParis,
+  ZONE,
+} from './lib/paris-time';
 import { sendToDevices } from './lib/push';
 import { toCareEvent, withDefaults, type BabyDoc, type Device, type EventDoc } from './lib/types';
 
-/** Appareils à notifier : digest activé et heure choisie égale à l'heure courante (8h par défaut). */
-export function selectMorningDigestRecipients(devices: Device[], hour: number): Device[] {
-  return devices.filter((d) => d.notifyMorningDigest !== false && (d.morningDigestHour ?? 8) === hour);
+/**
+ * Appareils à notifier : digest activé, heure choisie égale à l'heure courante (8h par défaut),
+ * et digest pas déjà reçu aujourd'hui.
+ */
+export function selectMorningDigestRecipients(devices: Device[], hour: number, todayKey: string): Device[] {
+  return devices.filter(
+    (d) => d.notifyMorningDigest !== false && (d.morningDigestHour ?? 8) === hour && d.lastDigestSentOn !== todayKey,
+  );
 }
 
 /** « Adrigyl, Soin des yeux, Bain » */
@@ -1003,32 +1547,54 @@ export function buildDigestBody(pending: string[]): string {
 
 export const morningDigest = onSchedule({ schedule: '0 * * * *', timeZone: ZONE }, async () => {
   const now = new Date();
-  const hour = hourInParis(now);
+  const hour = nearestHourInParis(now);
+  const todayKey = todayKeyInParis(now);
   const households = await db().collection('households').get();
 
   for (const doc of households.docs) {
-    const devices = selectMorningDigestRecipients(await loadDevices(doc.ref), hour);
-    if (devices.length === 0) continue;
-    const baby = doc.get('baby') as BabyDoc | undefined;
-    if (!baby) continue;
+    try {
+      const devices = selectMorningDigestRecipients(await loadDevices(doc.ref), hour, todayKey);
+      if (devices.length === 0) continue;
+      const baby = doc.get('baby') as BabyDoc | undefined;
+      if (!baby) continue;
 
-    const events = doc.ref.collection('events');
-    const todaySnap = await events.where('startAt', '>=', Timestamp.fromDate(startOfTodayInParis(now))).get();
-    const lastBathSnap = await events.where('bath', '==', true).orderBy('startAt', 'desc').limit(1).get();
+      const events = doc.ref.collection('events');
+      const todaySnap = await events
+        .where('startAt', '>=', Timestamp.fromDate(startOfTodayInParis(now)))
+        .where('startAt', '<', Timestamp.fromDate(startOfTomorrowInParis(now)))
+        .get();
+      const lastBathSnap = await events.where('bath', '==', true).orderBy('startAt', 'desc').limit(1).get();
 
-    const pending = pendingCares({
-      settings: withDefaults(baby.careSettings),
-      todayEvents: todaySnap.docs.map((d) => toCareEvent(d.data() as EventDoc)),
-      lastBathAt: lastBathSnap.empty ? null : (lastBathSnap.docs[0].data() as EventDoc).startAt.toDate(),
-      now,
-    });
-    if (pending.length === 0) continue;
+      const pending = pendingCares({
+        settings: withDefaults(baby.careSettings),
+        todayEvents: todaySnap.docs.map((d) => toCareEvent(d.data() as EventDoc)),
+        lastBathAt: lastBathSnap.empty ? null : (lastBathSnap.docs[0].data() as EventDoc).startAt.toDate(),
+        now,
+      });
+      if (pending.length === 0) continue;
 
-    await sendToDevices(doc.id, devices, {
-      title: `Aujourd'hui pour ${baby.name}`,
-      body: buildDigestBody(pending),
-      data: { route: '/today' },
-    });
+      const sent = await sendToDevices(doc.id, devices, {
+        title: baby.name ? `Aujourd'hui pour ${baby.name}` : "Aujourd'hui pour bébé",
+        body: buildDigestBody(pending),
+        data: { route: '/today' },
+      });
+      if (sent === 0) continue;
+
+      // Marque la journée pour ne pas renvoyer le même digest au tick suivant.
+      await Promise.all(
+        devices.map((d) =>
+          doc.ref
+            .collection('devices')
+            .doc(d.id)
+            .update({ lastDigestSentOn: todayKey })
+            .catch((err: unknown) =>
+              logger.warn('Digest non marqué pour un appareil', { household: doc.id, deviceId: d.id, err }),
+            ),
+        ),
+      );
+    } catch (err) {
+      logger.error('Digest matinal en échec pour un foyer', { household: doc.id, err });
+    }
   }
 });
 ```
@@ -1058,32 +1624,125 @@ export { morningDigest } from './morning-digest';
 Les helpers purs (`selectMorningDigestRecipients`, `buildDigestBody`) sont testés ; `firebase-functions/v2/scheduler` est mocké.
 
 ```ts
-import { describe, expect, it, vi } from 'vitest';
-import type { Device } from './lib/types';
+import { Timestamp } from 'firebase-admin/firestore';
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
+import type { BabyDoc, Device, DeviceDoc, EventDoc } from './lib/types';
+
+const { sendToDevices, loggerError, loggerWarn, households, deviceUpdates } = vi.hoisted(() => ({
+  sendToDevices: vi.fn(),
+  loggerError: vi.fn(),
+  loggerWarn: vi.fn(),
+  households: [] as FakeHousehold[],
+  deviceUpdates: [] as Array<{ household: string; deviceId: string; data: Record<string, unknown> }>,
+}));
+
+type FakeHousehold = {
+  id: string;
+  baby?: BabyDoc;
+  devices?: Array<DeviceDoc & { id: string }>;
+  events?: EventDoc[];
+  fails?: boolean;
+};
 
 vi.mock('firebase-functions/v2/scheduler', () => ({
   onSchedule: (_options: unknown, handler: unknown) => handler,
 }));
 
-const { buildDigestBody, selectMorningDigestRecipients } = await import('./morning-digest');
+vi.mock('firebase-functions', () => ({
+  logger: { info: vi.fn(), warn: loggerWarn, error: loggerError },
+}));
+
+vi.mock('./lib/push', () => ({ sendToDevices }));
+
+type Filter = [field: string, op: string, value: unknown];
+
+/** Requête Firestore en mémoire : filtres sur `startAt` et `bath`, tri et limite. */
+function fakeQuery(events: EventDoc[], filters: Filter[] = [], desc = false, max?: number) {
+  const matches = (event: EventDoc) =>
+    filters.every(([field, op, value]) => {
+      if (field === 'bath') return Boolean(event.bath) === value;
+      if (field !== 'startAt') throw new Error(`filtre inattendu: ${field}`);
+      const at = event.startAt.toMillis();
+      const bound = (value as Timestamp).toMillis();
+      if (op === '>=') return at >= bound;
+      if (op === '<') return at < bound;
+      throw new Error(`opérateur inattendu: ${op}`);
+    });
+
+  return {
+    where: (field: string, op: string, value: unknown) => fakeQuery(events, [...filters, [field, op, value]], desc, max),
+    orderBy: (_field: string, direction?: string) => fakeQuery(events, filters, direction === 'desc', max),
+    limit: (n: number) => fakeQuery(events, filters, desc, n),
+    get: async () => {
+      const found = events
+        .filter(matches)
+        .sort((a, b) => (desc ? b.startAt.toMillis() - a.startAt.toMillis() : a.startAt.toMillis() - b.startAt.toMillis()))
+        .slice(0, max ?? Number.MAX_SAFE_INTEGER);
+      return { docs: found.map((e) => ({ data: () => e })), empty: found.length === 0 };
+    },
+  };
+}
+
+vi.mock('./lib/firestore', async (importOriginal) => ({
+  ...(await importOriginal<typeof import('./lib/firestore')>()),
+  db: () => ({
+    collection: (name: string) => {
+      if (name !== 'households') throw new Error(`collection inattendue: ${name}`);
+      return {
+        get: async () => ({
+          docs: households.map((h) => ({
+            id: h.id,
+            get: (field: string) => (field === 'baby' ? h.baby : undefined),
+            ref: {
+              collection: (sub: string) => {
+                if (sub === 'events') return fakeQuery(h.events ?? []);
+                if (sub !== 'devices') throw new Error(`sous-collection inattendue: ${sub}`);
+                return {
+                  get: async () => {
+                    if (h.fails) throw new Error('Firestore indisponible');
+                    return { docs: (h.devices ?? []).map(({ id, ...rest }) => ({ id, data: () => rest })) };
+                  },
+                  doc: (deviceId: string) => ({
+                    update: async (data: Record<string, unknown>) => {
+                      if (deviceId === 'disparu') throw new Error('NOT_FOUND: appareil supprimé');
+                      deviceUpdates.push({ household: h.id, deviceId, data });
+                    },
+                  }),
+                };
+              },
+            },
+          })),
+        }),
+      };
+    },
+  }),
+}));
+
+const { buildDigestBody, selectMorningDigestRecipients, morningDigest } = await import('./morning-digest');
+
+const handler = morningDigest as unknown as () => Promise<void>;
+
+const NOW = new Date('2026-09-21T06:00:00Z'); // 8h, heure de Paris
+const TODAY_KEY = '2026-09-21';
+const at = (iso: string) => Timestamp.fromDate(new Date(iso));
 
 describe('selectMorningDigestRecipients', () => {
   it("inclut un appareil sans préférence dont l'heure par défaut (8h) correspond", () => {
     const devices: Device[] = [{ id: 'd1' }];
 
-    expect(selectMorningDigestRecipients(devices, 8).map((d) => d.id)).toEqual(['d1']);
+    expect(selectMorningDigestRecipients(devices, 8, TODAY_KEY).map((d) => d.id)).toEqual(['d1']);
   });
 
   it("exclut un appareil sans préférence si l'heure courante n'est pas 8h", () => {
     const devices: Device[] = [{ id: 'd1' }];
 
-    expect(selectMorningDigestRecipients(devices, 9)).toEqual([]);
+    expect(selectMorningDigestRecipients(devices, 9, TODAY_KEY)).toEqual([]);
   });
 
   it('inclut un appareil ayant explicitement choisi cette heure', () => {
     const devices: Device[] = [{ id: 'd1', morningDigestHour: 9 }];
 
-    expect(selectMorningDigestRecipients(devices, 9).map((d) => d.id)).toEqual(['d1']);
+    expect(selectMorningDigestRecipients(devices, 9, TODAY_KEY).map((d) => d.id)).toEqual(['d1']);
   });
 
   it('exclut les appareils ayant désactivé le digest matinal, même à leur heure', () => {
@@ -1094,7 +1753,7 @@ describe('selectMorningDigestRecipients', () => {
     ];
 
     expect(
-      selectMorningDigestRecipients(devices, 8)
+      selectMorningDigestRecipients(devices, 8, TODAY_KEY)
         .map((d) => d.id)
         .sort(),
     ).toEqual(['d2', 'd3']);
@@ -1103,7 +1762,16 @@ describe('selectMorningDigestRecipients', () => {
   it("renvoie un tableau vide si aucun appareil n'est dû à cette heure", () => {
     const devices: Device[] = [{ id: 'd1', morningDigestHour: 20 }];
 
-    expect(selectMorningDigestRecipients(devices, 8)).toEqual([]);
+    expect(selectMorningDigestRecipients(devices, 8, TODAY_KEY)).toEqual([]);
+  });
+
+  it('exclut un appareil déjà servi aujourd’hui', () => {
+    const devices: Device[] = [
+      { id: 'servi', lastDigestSentOn: TODAY_KEY },
+      { id: 'hier', lastDigestSentOn: '2026-09-20' },
+    ];
+
+    expect(selectMorningDigestRecipients(devices, 8, TODAY_KEY).map((d) => d.id)).toEqual(['hier']);
   });
 });
 
@@ -1118,6 +1786,144 @@ describe('buildDigestBody', () => {
 
   it('renvoie le libellé seul pour un unique soin en attente', () => {
     expect(buildDigestBody(['Bain'])).toBe('Bain');
+  });
+});
+
+describe('morningDigest', () => {
+  beforeEach(() => {
+    vi.useFakeTimers({ toFake: ['Date'] });
+    vi.setSystemTime(NOW);
+    sendToDevices.mockReset();
+    sendToDevices.mockResolvedValue(1);
+    loggerError.mockReset();
+    loggerWarn.mockReset();
+    households.length = 0;
+    deviceUpdates.length = 0;
+  });
+
+  afterEach(() => {
+    vi.useRealTimers();
+  });
+
+  it('envoie les soins en attente et marque les appareils servis', async () => {
+    households.push({
+      id: 'ABC123',
+      baby: { name: 'Colette' },
+      devices: [{ id: 'd1' }, { id: 'd2', morningDigestHour: 8 }, { id: 'd3', morningDigestHour: 20 }],
+      events: [{ startAt: at('2026-09-21T05:00:00Z'), adrigyl: true }],
+    });
+
+    await handler();
+
+    expect(sendToDevices).toHaveBeenCalledTimes(1);
+    const [code, devices, payload] = sendToDevices.mock.calls[0];
+    expect(code).toBe('ABC123');
+    expect(devices.map((d: Device) => d.id)).toEqual(['d1', 'd2']);
+    expect(payload).toEqual({
+      title: "Aujourd'hui pour Colette",
+      body: buildDigestBody(['Soin des yeux', 'Soin du nez', 'Soin du nombril', 'Bain']),
+      data: { route: '/today' },
+    });
+    expect(deviceUpdates).toEqual([
+      { household: 'ABC123', deviceId: 'd1', data: { lastDigestSentOn: TODAY_KEY } },
+      { household: 'ABC123', deviceId: 'd2', data: { lastDigestSentOn: TODAY_KEY } },
+    ]);
+  });
+
+  it("n'envoie rien pour un foyer sans bébé", async () => {
+    households.push({ id: 'ABC123', devices: [{ id: 'd1' }] });
+
+    await handler();
+
+    expect(sendToDevices).not.toHaveBeenCalled();
+    expect(deviceUpdates).toEqual([]);
+  });
+
+  it("n'envoie rien quand tous les soins sont faits", async () => {
+    households.push({
+      id: 'ABC123',
+      baby: { name: 'Colette' },
+      devices: [{ id: 'd1' }],
+      events: [
+        { startAt: at('2026-09-21T05:00:00Z'), adrigyl: true, eyeCare: true, noseCare: true },
+        { startAt: at('2026-09-21T05:30:00Z'), umbilicalCare: true, bath: true },
+      ],
+    });
+
+    await handler();
+
+    expect(sendToDevices).not.toHaveBeenCalled();
+  });
+
+  it('exclut un appareil déjà servi aujourd’hui', async () => {
+    households.push({
+      id: 'ABC123',
+      baby: { name: 'Colette' },
+      devices: [{ id: 'd1', lastDigestSentOn: TODAY_KEY }],
+      events: [],
+    });
+
+    await handler();
+
+    expect(sendToDevices).not.toHaveBeenCalled();
+  });
+
+  it("ne compte pas les événements datés de demain", async () => {
+    households.push({
+      id: 'ABC123',
+      baby: { name: 'Colette' },
+      devices: [{ id: 'd1' }],
+      events: [{ startAt: at('2026-09-21T23:00:00Z'), adrigyl: true }],
+    });
+
+    await handler();
+
+    expect(sendToDevices.mock.calls[0][2].body).toContain('Adrigyl');
+  });
+
+  it('se rabat sur « bébé » quand le prénom manque', async () => {
+    households.push({ id: 'ABC123', baby: { name: '' }, devices: [{ id: 'd1' }], events: [] });
+
+    await handler();
+
+    expect(sendToDevices.mock.calls[0][2].title).toBe("Aujourd'hui pour bébé");
+  });
+
+  it("journalise l'échec d'un foyer et poursuit la boucle", async () => {
+    households.push(
+      { id: 'KO', baby: { name: 'Colette' }, fails: true },
+      { id: 'ABC123', baby: { name: 'Colette' }, devices: [{ id: 'd1' }], events: [] },
+    );
+
+    await handler();
+
+    expect(loggerError).toHaveBeenCalledTimes(1);
+    expect(loggerError.mock.calls[0][1]).toMatchObject({ household: 'KO' });
+    expect(sendToDevices).toHaveBeenCalledTimes(1);
+    expect(sendToDevices.mock.calls[0][0]).toBe('ABC123');
+  });
+
+  it("n'échoue pas si un appareil a disparu avant le marquage", async () => {
+    households.push({
+      id: 'ABC123',
+      baby: { name: 'Colette' },
+      devices: [{ id: 'disparu' }, { id: 'd2' }],
+      events: [],
+    });
+
+    await handler();
+
+    expect(deviceUpdates.map((u) => u.deviceId)).toEqual(['d2']);
+    expect(loggerWarn).toHaveBeenCalledTimes(1);
+  });
+
+  it('ne marque aucun appareil quand rien n’a pu être envoyé', async () => {
+    sendToDevices.mockResolvedValue(0);
+    households.push({ id: 'ABC123', baby: { name: 'Colette' }, devices: [{ id: 'd1' }], events: [] });
+
+    await handler();
+
+    expect(deviceUpdates).toEqual([]);
   });
 });
 ```
