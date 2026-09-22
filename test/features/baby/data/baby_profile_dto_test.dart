@@ -25,6 +25,14 @@ void main() {
     expect(settings.adrigylPerDay, 10);
   });
 
+  test('CareSettingsDto.fromMap ignore une valeur non finie', () {
+    expect(
+      CareSettingsDto.fromMap(const {'feedsPerDay': double.infinity})
+          .feedsPerDay,
+      8,
+    );
+  });
+
   test('CareSettingsDto.fromMap lit umbilicalCarePerDay borné', () {
     expect(
       CareSettingsDto.fromMap(const {'umbilicalCarePerDay': 2})
@@ -107,6 +115,34 @@ void main() {
       final map = CareSettingsDto.toMap(const CareSettings());
       expect(map.containsKey('dailyTargetMl'), isTrue);
       expect(map['dailyTargetMl'], isNull);
+    });
+
+    test('NaN → null', () {
+      expect(
+        CareSettingsDto.fromMap(const {'dailyTargetMl': double.nan})
+            .dailyTargetMl,
+        isNull,
+      );
+    });
+
+    test('arrondi au pas de 10', () {
+      expect(
+        CareSettingsDto.fromMap(const {'dailyTargetMl': 617}).dailyTargetMl,
+        620,
+      );
+      expect(
+        CareSettingsDto.fromMap(const {'dailyTargetMl': 614}).dailyTargetMl,
+        610,
+      );
+    });
+
+    test('toMap borne la valeur', () {
+      expect(
+        CareSettingsDto.toMap(
+          const CareSettings(dailyTargetMl: 9999),
+        )['dailyTargetMl'],
+        1500,
+      );
     });
   });
 }

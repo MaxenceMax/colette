@@ -11,7 +11,10 @@ abstract final class CareSettingsDto {
     'umbilicalCarePerDay': settings.umbilicalCarePerDay,
     'bathEveryDays': settings.bathEveryDays,
     'feedsPerDay': settings.feedsPerDay,
-    'dailyTargetMl': settings.dailyTargetMl,
+    'dailyTargetMl': settings.dailyTargetMl?.clamp(
+      CareSettings.minDailyTargetMl,
+      CareSettings.maxDailyTargetMl,
+    ),
   };
 
   static int _readInt(
@@ -22,18 +25,25 @@ abstract final class CareSettingsDto {
     required int max,
   }) {
     final raw = map[key];
-    return (raw is num ? raw.toInt() : fallback).clamp(min, max);
+    return (raw is num && raw.isFinite ? raw.toInt() : fallback).clamp(
+      min,
+      max,
+    );
   }
 
   /// Entier optionnel borné ; absent ou non numérique → `null`.
+  /// Arrondi au multiple de `step` le plus proche avant de borner.
   static int? _readOptionalInt(
     Map<String, dynamic> map,
     String key, {
     required int min,
     required int max,
+    int step = 1,
   }) {
     final raw = map[key];
-    return raw is num ? raw.toInt().clamp(min, max) : null;
+    if (raw is! num || !raw.isFinite) return null;
+    final rounded = (raw.toInt() / step).round() * step;
+    return rounded.clamp(min, max);
   }
 
   /// Documents antérieurs : seul le booléen `umbilicalCareEnabled` existe.
@@ -58,6 +68,7 @@ abstract final class CareSettingsDto {
       'dailyTargetMl',
       min: CareSettings.minDailyTargetMl,
       max: CareSettings.maxDailyTargetMl,
+      step: CareSettings.dailyTargetStepMl,
     ),
   );
 }
