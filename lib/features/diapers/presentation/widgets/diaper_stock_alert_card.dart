@@ -25,7 +25,7 @@ class DiaperStockAlertCard extends ConsumerWidget {
   }
 }
 
-/// Corps de la carte, sur fond `categoryDiaper` (paire de contraste validée avec `onPrimary`).
+/// Corps de la carte, sur fond `warning` ; le texte en `onPrimary` (paire validée par le test de contraste).
 class _AlertCard extends StatelessWidget {
   const _AlertCard({required this.remaining});
 
@@ -34,12 +34,13 @@ class _AlertCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final color = context.appColor(AppColors.onPrimary);
+    // Marge portée par la carte : un espaceur dans la ListView laisserait un trou quand la carte est masquée.
     return Padding(
       padding: AppSpacing.md.bottom,
       child: ColetteCardSurface(
-        backgroundColor: AppColors.categoryDiaper,
-        borderColor: AppColors.categoryDiaper,
-        onTap: () => GoRouter.maybeOf(context)?.go(AppRoutes.settings),
+        backgroundColor: AppColors.warning,
+        borderColor: AppColors.warning,
+        onTap: () => context.go(AppRoutes.settings),
         child: Row(
           children: [
             Icon(Icons.baby_changing_station, color: color),

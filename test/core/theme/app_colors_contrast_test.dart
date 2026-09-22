@@ -45,6 +45,7 @@ const _pairs = [
   (AppColors.success, AppColors.surface),
   (AppColors.success, AppColors.pageBackground),
   (AppColors.warning, AppColors.surface),
+  (AppColors.onPrimary, AppColors.warning),
   (AppColors.onPrimary, AppColors.categoryFeeding),
   (AppColors.onPrimary, AppColors.categoryDiaper),
   (AppColors.onPrimary, AppColors.categoryCare),
