@@ -1,11 +1,16 @@
+import 'dart:async';
+
 import 'package:colette/core/result/failure.dart';
 import 'package:colette/core/theme/design_tokens.dart';
+import 'package:colette/core/theme/theme_service.dart';
 import 'package:colette/features/documents/domain/entities/document_root.dart';
 import 'package:colette/features/documents/domain/repositories/documents_repository.dart';
 import 'package:colette/features/documents/presentation/providers/documents_providers.dart';
 import 'package:colette/features/documents/presentation/widgets/documents_root_section.dart';
+import 'package:colette/l10n/generated/app_localizations.dart';
 import 'package:colette/shared/ui/widgets/colette_card_surface.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:fpdart/fpdart.dart';
 import 'package:mocktail/mocktail.dart';
@@ -138,5 +143,40 @@ void main() {
     await tester.pumpAndSettle();
     verifyNever(() => repo.forgetRootFolder());
     expect(find.text('Colette'), findsOneWidget);
+  });
+
+  testWidgets('pendant le chargement : barre de progression', (tester) async {
+    final completer = Completer<Either<Failure, DocumentRoot?>>();
+    when(() => repo.rootFolder()).thenAnswer((_) => completer.future);
+    // Pas de pumpApp/pumpAndSettle : la barre indéterminée tourne
+    // indéfiniment tant que le completer n'est pas résolu.
+    tester.view.physicalSize = const Size(375, 812);
+    tester.view.devicePixelRatio = 1;
+    addTearDown(tester.view.reset);
+    await tester.pumpWidget(
+      ProviderScope(
+        overrides: [documentsRepositoryProvider.overrideWithValue(repo)],
+        child: MaterialApp(
+          theme: const ThemeService().light(),
+          locale: const Locale('fr'),
+          localizationsDelegates: S.localizationsDelegates,
+          supportedLocales: S.supportedLocales,
+          home: Scaffold(
+            body: ListView(
+              padding: AppSpacing.md.horizontal,
+              children: const [
+                ColetteCardSurface(child: DocumentsRootSection()),
+              ],
+            ),
+          ),
+        ),
+      ),
+    );
+    await tester.pump();
+
+    expect(find.byType(LinearProgressIndicator), findsOneWidget);
+
+    completer.complete(right(const DocumentRoot(name: 'Colette')));
+    await tester.pumpAndSettle();
   });
 }

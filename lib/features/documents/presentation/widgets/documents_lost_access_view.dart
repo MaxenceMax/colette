@@ -13,8 +13,10 @@ class DocumentsLostAccessView extends ConsumerWidget {
   const DocumentsLostAccessView({super.key});
 
   Future<void> _pick(BuildContext context, WidgetRef ref) async {
-    // Capturés avant l'await : pick() passe par AsyncLoading, ce qui
-    // remplace cette vue par un indicateur et démonte ce context.
+    // Capturés avant l'await : convention partagée par tous les appelants de
+    // pick(), car la carte Aujourd'hui, elle, est bien remplacée pendant
+    // l'AsyncLoading. Cette vue dépend de documentsFolderProvider (pas de
+    // documentsRootProvider) et reste montée pendant l'appel.
     final messenger = ScaffoldMessenger.of(context);
     final s = S.of(context);
     final result = await ref.read(documentsRootProvider.notifier).pick();

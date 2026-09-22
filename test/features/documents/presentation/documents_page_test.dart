@@ -46,7 +46,7 @@ void main() {
         .thenAnswer((_) async => right(const DocumentRoot(name: 'Colette')));
   });
 
-  Future<void> pumpPage(WidgetTester tester) async {
+  Future<void> pumpPage(WidgetTester tester, {bool settle = true}) async {
     final router = GoRouter(
       initialLocation: AppRoutes.todayDocuments,
       routes: [
@@ -76,7 +76,11 @@ void main() {
         ),
       ),
     );
-    await tester.pumpAndSettle();
+    if (settle) {
+      await tester.pumpAndSettle();
+    } else {
+      await tester.pump();
+    }
   }
 
   testWidgets('liste triée avec le nom de la racine en titre', (tester) async {
@@ -397,5 +401,101 @@ void main() {
     );
     await pumpPage(tester);
     expect(find.byType(FloatingActionButton), findsNothing);
+  });
+
+  testWidgets('icônes selon le type et l\'extension', (tester) async {
+    when(() => repo.list('')).thenAnswer(
+      (_) async => right([
+        entry('Dossier', isDirectory: true),
+        entry('a.pdf'),
+        entry('photo.JPG'),
+        entry('scan.heic'),
+        entry('notes.txt'),
+      ]),
+    );
+    await pumpPage(tester);
+    expect(find.byIcon(Icons.folder_outlined), findsOneWidget);
+    expect(find.byIcon(Icons.picture_as_pdf_outlined), findsOneWidget);
+    expect(find.byIcon(Icons.image_outlined), findsNWidgets(2));
+    expect(find.byIcon(Icons.insert_drive_file_outlined), findsOneWidget);
+    final folderTile = tester.widget<ListTile>(
+      find.ancestor(of: find.text('Dossier'), matching: find.byType(ListTile)),
+    );
+    expect(folderTile.subtitle, isNull);
+    expect(find.text('22 sept. 2026'), findsNWidgets(4));
+  });
+
+  testWidgets('fichier en cours de téléchargement : spinner, pas d\'icône '
+      'nuage', (tester) async {
+    when(() => repo.list('')).thenAnswer(
+      (_) async => right([entry('a.pdf', status: DownloadStatus.downloading)]),
+    );
+    // Pas de pumpAndSettle : le statut ne change jamais dans ce test, donc le
+    // spinner de la ligne reste affiché et son animation ne se termine jamais.
+    await pumpPage(tester, settle: false);
+    await tester.pump();
+    expect(find.byType(CircularProgressIndicator), findsOneWidget);
+    expect(find.byIcon(Icons.cloud_download_outlined), findsNothing);
+  });
+
+  testWidgets('la ligne reste occupée pendant son propre aperçu', (
+    tester,
+  ) async {
+    when(() => repo.list('')).thenAnswer((_) async => right([entry('a.pdf')]));
+    final completer = Completer<Either<Failure, void>>();
+    when(() => repo.preview('a.pdf')).thenAnswer((_) => completer.future);
+    await pumpPage(tester);
+
+    await tester.tap(find.text('a.pdf'));
+    await tester.pump();
+    expect(find.byType(CircularProgressIndicator), findsOneWidget);
+
+    await tester.tap(find.text('a.pdf'));
+    verify(() => repo.preview('a.pdf')).called(1);
+
+    completer.complete(right(null));
+    await tester.pumpAndSettle();
+  });
+
+  testWidgets('premier chargement : indicateur centré, pas de « + »', (
+    tester,
+  ) async {
+    final completer = Completer<Either<Failure, List<DocumentEntry>>>();
+    when(() => repo.list('')).thenAnswer((_) => completer.future);
+    // Pas de pumpAndSettle avant complétion : l'indicateur de la page tourne
+    // indéfiniment tant que le completer n'est pas résolu.
+    await pumpPage(tester, settle: false);
+
+    expect(find.byType(CircularProgressIndicator), findsOneWidget);
+    expect(find.byType(FloatingActionButton), findsNothing);
+
+    completer.complete(right([entry('a.pdf')]));
+    await tester.pumpAndSettle();
+    expect(find.text('a.pdf'), findsOneWidget);
+    expect(find.byType(FloatingActionButton), findsOneWidget);
+  });
+
+  testWidgets('« + » occupé pendant un import : désactivé, avec spinner', (
+    tester,
+  ) async {
+    when(() => repo.list('')).thenAnswer((_) async => right(const []));
+    final completer = Completer<Either<Failure, String>>();
+    when(() => repo.importFile(folderPath: ''))
+        .thenAnswer((_) => completer.future);
+    await pumpPage(tester);
+
+    await tester.tap(find.byType(FloatingActionButton));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Importer un fichier'));
+    await tester.pump();
+
+    final fab = tester.widget<FloatingActionButton>(
+      find.byType(FloatingActionButton),
+    );
+    expect(fab.onPressed, isNull);
+    expect(find.byType(CircularProgressIndicator), findsOneWidget);
+
+    completer.complete(right('x.pdf'));
+    await tester.pumpAndSettle();
   });
 }

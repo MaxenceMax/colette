@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:colette/app/router/app_router.dart';
 import 'package:colette/core/result/failure.dart';
 import 'package:colette/core/theme/theme_service.dart';
@@ -109,5 +111,37 @@ void main() {
     await tester.tap(find.byType(ColetteCardSurface));
     await tester.pumpAndSettle();
     expect(find.text('documents-marker'), findsOneWidget);
+  });
+
+  testWidgets('pendant le chargement : indicateur, titre, pas de tap', (
+    tester,
+  ) async {
+    final completer = Completer<Either<Failure, DocumentRoot?>>();
+    when(() => repo.rootFolder()).thenAnswer((_) => completer.future);
+    // Pas de pumpApp/pumpAndSettle : l'indicateur de la carte tourne
+    // indéfiniment tant que le completer n'est pas résolu.
+    await tester.pumpWidget(
+      ProviderScope(
+        overrides: [documentsRepositoryProvider.overrideWithValue(repo)],
+        child: MaterialApp(
+          theme: const ThemeService().light(),
+          locale: const Locale('fr'),
+          localizationsDelegates: S.localizationsDelegates,
+          supportedLocales: S.supportedLocales,
+          home: const Scaffold(body: DocumentsCard()),
+        ),
+      ),
+    );
+    await tester.pump();
+
+    expect(find.byType(CircularProgressIndicator), findsOneWidget);
+    expect(find.text('Documents'), findsOneWidget);
+    expect(
+      tester.widget<ColetteCardSurface>(find.byType(ColetteCardSurface)).onTap,
+      isNull,
+    );
+
+    completer.complete(right(const DocumentRoot(name: 'Colette')));
+    await tester.pumpAndSettle();
   });
 }
