@@ -15,6 +15,14 @@
         { "fieldPath": "hasBottle", "order": "ASCENDING" },
         { "fieldPath": "startAt", "order": "DESCENDING" }
       ]
+    },
+    {
+      "collectionGroup": "events",
+      "queryScope": "COLLECTION",
+      "fields": [
+        { "fieldPath": "diaperChange", "order": "ASCENDING" },
+        { "fieldPath": "startAt", "order": "ASCENDING" }
+      ]
     }
   ],
   "fieldOverrides": []

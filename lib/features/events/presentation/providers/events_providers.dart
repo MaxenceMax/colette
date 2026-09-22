@@ -44,6 +44,16 @@ Stream<CareEvent?> latestBottle(Ref ref) {
   return ref.watch(eventsRepositoryProvider).watchLatestBottle(code);
 }
 
+/// Nombre de changes enregistrés depuis [from] ; `0` sans foyer.
+@riverpod
+Stream<int> diaperChangesSince(Ref ref, DateTime from) {
+  final code = ref.watch(currentHouseholdCodeProvider);
+  if (code == null) return Stream.value(0);
+  return ref
+      .watch(eventsRepositoryProvider)
+      .watchDiaperChangeCountSince(code, from: from);
+}
+
 /// Nombre d'événements demandés au journal ; grandit par pages.
 @riverpod
 class TimelineLimit extends _$TimelineLimit {

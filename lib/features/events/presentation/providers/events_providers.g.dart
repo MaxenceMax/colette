@@ -189,6 +189,85 @@ final class LatestBottleProvider
 
 String _$latestBottleHash() => r'd0fc1f02cfc5b64cba03d7ec7888fc263f67c7b5';
 
+/// Nombre de changes enregistrés depuis [from] ; `0` sans foyer.
+
+@ProviderFor(diaperChangesSince)
+final diaperChangesSinceProvider = DiaperChangesSinceFamily._();
+
+/// Nombre de changes enregistrés depuis [from] ; `0` sans foyer.
+
+final class DiaperChangesSinceProvider
+    extends $FunctionalProvider<AsyncValue<int>, int, Stream<int>>
+    with $FutureModifier<int>, $StreamProvider<int> {
+  /// Nombre de changes enregistrés depuis [from] ; `0` sans foyer.
+  DiaperChangesSinceProvider._({
+    required DiaperChangesSinceFamily super.from,
+    required DateTime super.argument,
+  }) : super(
+         retry: null,
+         name: r'diaperChangesSinceProvider',
+         isAutoDispose: true,
+         dependencies: null,
+         $allTransitiveDependencies: null,
+       );
+
+  @override
+  String debugGetCreateSourceHash() => _$diaperChangesSinceHash();
+
+  @override
+  String toString() {
+    return r'diaperChangesSinceProvider'
+        ''
+        '($argument)';
+  }
+
+  @$internal
+  @override
+  $StreamProviderElement<int> $createElement($ProviderPointer pointer) =>
+      $StreamProviderElement(pointer);
+
+  @override
+  Stream<int> create(Ref ref) {
+    final argument = this.argument as DateTime;
+    return diaperChangesSince(ref, argument);
+  }
+
+  @override
+  bool operator ==(Object other) {
+    return other is DiaperChangesSinceProvider && other.argument == argument;
+  }
+
+  @override
+  int get hashCode {
+    return argument.hashCode;
+  }
+}
+
+String _$diaperChangesSinceHash() =>
+    r'b347b8ecabfb9c554341fcefd707045ee8021b75';
+
+/// Nombre de changes enregistrés depuis [from] ; `0` sans foyer.
+
+final class DiaperChangesSinceFamily extends $Family
+    with $FunctionalFamilyOverride<Stream<int>, DateTime> {
+  DiaperChangesSinceFamily._()
+    : super(
+        retry: null,
+        name: r'diaperChangesSinceProvider',
+        dependencies: null,
+        $allTransitiveDependencies: null,
+        isAutoDispose: true,
+      );
+
+  /// Nombre de changes enregistrés depuis [from] ; `0` sans foyer.
+
+  DiaperChangesSinceProvider call(DateTime from) =>
+      DiaperChangesSinceProvider._(argument: from, from: this);
+
+  @override
+  String toString() => r'diaperChangesSinceProvider';
+}
+
 /// Nombre d'événements demandés au journal ; grandit par pages.
 
 @ProviderFor(TimelineLimit)
