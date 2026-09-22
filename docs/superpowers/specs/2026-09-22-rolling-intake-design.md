@@ -21,7 +21,7 @@ Alternatives écartées :
 | --- | --- |
 | Fenêtre | Événements avec `hasBottle` dont `startAt` est dans `[now − 24 h, now]`, bornes incluses. |
 | Biberons | Nombre d'événements retenus. |
-| ml | Somme des `bottleMl` ; un biberon sans quantité compte 0 ml. |
+| ml | Somme des `bottleMl` (un biberon a toujours une quantité : `hasBottle` ⇔ `bottleMl != null`). |
 | Affichage | Ligne de texte secondaire dans `NextBottleCard`, sous la barre de progression, avant la mention « estimé ». Style `small`, couleur `textSecondary`. |
 | Libellé | « {n} biberon(s) · {ml} ml sur les dernières 24 h », pluriel ICU (`=0{0 biberon} =1{1 biberon} other{{n} biberons}`). Toujours affichée, même à zéro. |
 | Sans profil | La carte « plan indisponible » n'est pas modifiée. |
@@ -57,7 +57,7 @@ Documentation : spec v1 §6.2 complétée d'une phrase sur l'indicateur.
 
 ## 6. Tests
 
-- Use case : liste vide → (0, 0) ; biberon à exactement `now − 24 h` retenu ; biberon à `now − 24 h − 1 min` exclu ; biberon sans `bottleMl` compte 1 biberon et 0 ml ; événement sans biberon ignoré ; biberon dans le futur (`> now`) exclu.
+- Use case : liste vide → (0, 0) ; biberon à exactement `now − 24 h` retenu ; biberon à `now − 24 h − 1 min` exclu ; événement sans biberon ignoré ; biberon dans le futur (`> now`) exclu.
 - Présentation : la carte affiche « 2 biberons · 150 ml sur les dernières 24 h » avec deux biberons dans le flux récent dont un la veille au soir ; « 0 biberon · 0 ml » avec un flux vide.
 
 Vérification finale : `dart run build_runner build -d`, `dart format lib test`, `dart analyze`, `flutter test`.
