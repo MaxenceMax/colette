@@ -1432,7 +1432,7 @@ Co-Authored-By: Claude Fable 5.1 <noreply@anthropic.com>"
 - Modify: `docs/superpowers/specs/2026-09-21-colette-v1-design.md:270-299`
 - Modify: `docs/superpowers/specs/2026-09-22-oms-feeding-reference-design.md:85`
 
-- [ ] **Étape 1 : spec v1**
+- [x] **Étape 1 : spec v1**
 
 Dans `docs/superpowers/specs/2026-09-21-colette-v1-design.md`, après le paragraphe qui commence par « La carte affiche en complément le nombre de biberons… » (§6.3), ajouter :
 
@@ -1440,7 +1440,7 @@ Dans `docs/superpowers/specs/2026-09-21-colette-v1-design.md`, après le paragra
 La table par âge est portée par l'enum `FeedingAgeBand`, source unique. Une cible journalière ajustée (`careSettings.dailyTargetMl`, `null` = OMS) remplace la cible OMS dans le calcul ; la carte affiche alors « Cible ajustée à X ml · OMS : Y ml ». Une feuille « Repères OMS », ouverte par une icône info sur la carte, montre la table par âge, la règle ml/kg, la ligne du jour et permet d'ajuster la cible. Le snapshot `feedingPlan` garde la même forme ; voir `2026-09-22-oms-feeding-reference-design.md`.
 ```
 
-- [ ] **Étape 2 : spec de la fonctionnalité**
+- [x] **Étape 2 : spec de la fonctionnalité**
 
 Dans `docs/superpowers/specs/2026-09-22-oms-feeding-reference-design.md`, dans la liste « Fichiers touchés », remplacer la ligne `lib/l10n/app_fr.arb` par :
 
@@ -1455,7 +1455,7 @@ Et dans la même liste, remplacer la ligne `feeding_reference_sheet.dart (nouvea
 - `lib/features/dashboard/presentation/widgets/feeding_target_section.dart` (nouveau) : `FeedingTargetSection`, cible ajustable avec état local optimiste.
 ```
 
-- [ ] **Étape 3 : vérification complète**
+- [x] **Étape 3 : vérification complète**
 
 Run: `dart run build_runner build -d && flutter gen-l10n && dart format lib test && dart analyze && flutter test`
 Expected: build sans erreur, `dart format` ne modifie aucun fichier, `dart analyze` sans problème, tous les tests verts.
@@ -1470,7 +1470,7 @@ Lancer l'app sur un simulateur iPhone (`flutter run` ou le tool simulateur), ave
 4. « Revenir au calcul OMS » remet la carte dans son état initial.
 5. Passer en thème sombre (Réglages › Apparence) : la ligne surlignée reste lisible.
 
-- [ ] **Étape 5 : commit**
+- [x] **Étape 5 : commit**
 
 ```bash
 git add docs/superpowers/specs/2026-09-21-colette-v1-design.md docs/superpowers/specs/2026-09-22-oms-feeding-reference-design.md
