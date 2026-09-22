@@ -25,7 +25,7 @@
 - Modify: `lib/features/dashboard/domain/use_cases/compute_feeding_plan.dart:66-72`
 - Test: `test/features/dashboard/domain/feeding_age_band_test.dart`
 
-- [ ] **Étape 1 : test rouge**
+- [x] **Étape 1 : test rouge**
 
 Créer `test/features/dashboard/domain/feeding_age_band_test.dart` :
 
@@ -70,12 +70,12 @@ void main() {
 }
 ```
 
-- [ ] **Étape 2 : vérifier l'échec**
+- [x] **Étape 2 : vérifier l'échec**
 
 Run: `flutter test test/features/dashboard/domain/feeding_age_band_test.dart`
 Expected: échec de compilation, `feeding_age_band.dart` introuvable.
 
-- [ ] **Étape 3 : implémentation**
+- [x] **Étape 3 : implémentation**
 
 Créer `lib/features/dashboard/domain/entities/feeding_age_band.dart` :
 
@@ -122,12 +122,12 @@ Dans `lib/features/dashboard/domain/use_cases/compute_feeding_plan.dart`, ajoute
       FeedingAgeBand.forDayOfLife(dayOfLife).dailyMl;
 ```
 
-- [ ] **Étape 4 : vérifier le vert**
+- [x] **Étape 4 : vérifier le vert**
 
 Run: `flutter test test/features/dashboard/domain/`
 Expected: tous verts, y compris `compute_feeding_plan_test.dart` (le test « repères par âge sans pesée » garde les mêmes valeurs).
 
-- [ ] **Étape 5 : commit**
+- [x] **Étape 5 : commit**
 
 ```bash
 git add lib/features/dashboard/domain/entities/feeding_age_band.dart lib/features/dashboard/domain/use_cases/compute_feeding_plan.dart test/features/dashboard/domain/feeding_age_band_test.dart
