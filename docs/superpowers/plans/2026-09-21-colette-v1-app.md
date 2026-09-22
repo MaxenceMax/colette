@@ -6670,6 +6670,7 @@ class _Counter extends StatelessWidget {
 
 ```dart
 import 'package:colette/core/theme/design_tokens.dart';
+import 'package:colette/features/dashboard/presentation/providers/bottle_form_request.dart';
 import 'package:colette/features/dashboard/presentation/providers/dashboard_providers.dart';
 import 'package:colette/features/dashboard/presentation/widgets/dashboard_header.dart';
 import 'package:colette/features/dashboard/presentation/widgets/day_counters_row.dart';
@@ -6683,10 +6684,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 /// Onglet Aujourd'hui : âge, prochain biberon, reste à faire, compteurs.
 class DashboardPage extends ConsumerStatefulWidget {
-  const DashboardPage({super.key, this.openBottleForm = false});
-
-  /// Ouvre le formulaire biberon à l'affichage (arrivée par notification).
-  final bool openBottleForm;
+  const DashboardPage({super.key});
 
   @override
   ConsumerState<DashboardPage> createState() => _DashboardPageState();
@@ -6696,13 +6694,18 @@ class _DashboardPageState extends ConsumerState<DashboardPage> {
   @override
   void initState() {
     super.initState();
-    if (widget.openBottleForm) {
+    ref.listenManual(bottleFormRequestProvider, fireImmediately: true, (
+      _,
+      requested,
+    ) {
+      if (!requested) return;
       WidgetsBinding.instance.addPostFrameCallback((_) {
         if (!mounted) return;
+        ref.read(bottleFormRequestProvider.notifier).consume();
         final plan = ref.read(feedingPlanProvider);
         showEventFormSheet(context, suggestedBottleMl: plan?.suggestedMl);
       });
-    }
+    });
   }
 
   @override
@@ -6729,25 +6732,25 @@ class _DashboardPageState extends ConsumerState<DashboardPage> {
 }
 ```
 
-- [ ] **Step 12: Modifier la route Aujourd'hui dans `lib/app/router/app_router.dart`**
+- [ ] **Step 12: Créer le signal d'ouverture `lib/features/dashboard/presentation/providers/bottle_form_request.dart`**
 
-Remplacer :
-
-```dart
-            routes: [GoRoute(path: AppRoutes.today, builder: (_, _) => const DashboardPage())],
-```
-
-par :
+La route `/today` reste `builder: (_, _) => const DashboardPage()`. L'ouverture du formulaire biberon à l'arrivée par notification passe par un signal Riverpod keepAlive, pas par un paramètre de requête : `StatefulShellRoute.indexedStack` ne reconstruit pas la page d'une branche déjà active quand seule la query change, donc un `go('/today?bottle=1')` depuis Aujourd'hui n'aurait aucun effet. `NotificationsGate` (tâche 16) appelle `request()`, `DashboardPage` consomme le signal dans son `listenManual` (`fireImmediately: true` pour le démarrage à froid).
 
 ```dart
-            routes: [
-              GoRoute(
-                path: AppRoutes.today,
-                builder: (_, state) => DashboardPage(
-                  openBottleForm: state.uri.queryParameters[AppRoutes.openBottleParam] == '1',
-                ),
-              ),
-            ],
+import 'package:riverpod_annotation/riverpod_annotation.dart';
+
+part 'bottle_form_request.g.dart';
+
+/// Demande d'ouverture du formulaire biberon sur Aujourd'hui (arrivée par notification).
+@Riverpod(keepAlive: true)
+class BottleFormRequest extends _$BottleFormRequest {
+  @override
+  bool build() => false;
+
+  void request() => state = true;
+
+  void consume() => state = false;
+}
 ```
 
 **Note post-revue (appliquée dans le code) :** `feeding_plan_sync_test.dart` contient aussi un test « sync n'échoue pas sans profil » ; `dashboard_page_test.dart` surcharge `feedingPlanSyncProvider` (noop) et `eventsRepositoryProvider` (mock) et contient un test « taper une tâche à faire enregistre le soin et propose d'annuler ».
@@ -7737,6 +7740,7 @@ final class FirebasePushTokenSource implements PushTokenSource {
 
 ```dart
 import 'dart:async';
+import 'dart:developer' as developer;
 
 import 'package:colette/core/firebase/firebase_providers.dart';
 import 'package:colette/features/household/domain/entities/device_info.dart';
@@ -7769,12 +7773,21 @@ class PushRegistration extends _$PushRegistration {
     final token = await source.getToken();
     if (token != null) await _saveToken(code, token);
     await _refreshSubscription?.cancel();
-    _refreshSubscription = source.onTokenRefresh.listen((newToken) => _saveToken(code, newToken));
+    _refreshSubscription = source.onTokenRefresh.listen(
+      (newToken) => _saveToken(code, newToken),
+    );
   }
 
-  Future<void> _saveToken(String code, String token) => ref
-      .read(deviceRepositoryProvider)
-      .updateFcmToken(code, ref.read(deviceIdProvider), token);
+  Future<void> _saveToken(String code, String token) async {
+    final result = await ref
+        .read(deviceRepositoryProvider)
+        .updateFcmToken(code, ref.read(deviceIdProvider), token);
+    result.fold(
+      (failure) =>
+          developer.log('Token FCM non enregistré : $failure', name: 'colette'),
+      (_) {},
+    );
+  }
 }
 
 /// Enregistre les préférences de notification de cet iPhone.
@@ -7787,7 +7800,9 @@ class NotificationSettingsController extends _$NotificationSettingsController {
     final code = ref.read(currentHouseholdCodeProvider);
     if (code == null) return false;
     state = const AsyncLoading();
-    final result = await ref.read(deviceRepositoryProvider).saveDevice(code, device);
+    final result = await ref
+        .read(deviceRepositoryProvider)
+        .saveDevice(code, device);
     state = result.fold(
       (failure) => AsyncError(failure, StackTrace.current),
       (_) => const AsyncData(null),
@@ -7803,7 +7818,6 @@ class NotificationSettingsController extends _$NotificationSettingsController {
 import 'package:colette/core/theme/design_tokens.dart';
 import 'package:colette/core/theme/text_styles.dart';
 import 'package:colette/features/household/domain/entities/device_info.dart';
-import 'package:colette/features/household/presentation/providers/household_providers.dart';
 import 'package:colette/features/notifications/presentation/providers/notifications_providers.dart';
 import 'package:colette/l10n/generated/app_localizations.dart';
 import 'package:colette/shared/ui/widgets/colette_card_surface.dart';
@@ -7812,24 +7826,46 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 /// Préférences de notification de cet iPhone.
-class NotificationsSection extends ConsumerWidget {
-  const NotificationsSection({super.key});
+/// Tient une copie locale optimiste : un échec d'enregistrement revient en arrière.
+class NotificationsSection extends ConsumerStatefulWidget {
+  const NotificationsSection({super.key, required this.device});
+
+  final DeviceInfo device;
 
   static const minHour = 5;
   static const maxHour = 12;
 
-  Future<void> _save(WidgetRef ref, DeviceInfo device, {bool enabling = false}) async {
-    await ref.read(notificationSettingsControllerProvider.notifier).save(device);
-    if (enabling) await ref.read(pushRegistrationProvider.notifier).register();
+  @override
+  ConsumerState<NotificationsSection> createState() =>
+      _NotificationsSectionState();
+}
+
+class _NotificationsSectionState extends ConsumerState<NotificationsSection> {
+  late DeviceInfo _device = widget.device;
+
+  @override
+  void didUpdateWidget(covariant NotificationsSection oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    final writing = ref.read(notificationSettingsControllerProvider).isLoading;
+    if (widget.device != oldWidget.device && !writing) {
+      _device = widget.device;
+    }
+  }
+
+  Future<void> _update(DeviceInfo next, {bool enabling = false}) async {
+    setState(() => _device = next);
+    final ok = await ref
+        .read(notificationSettingsControllerProvider.notifier)
+        .save(next);
+    if (!ok && mounted) setState(() => _device = widget.device);
+    if (ok && enabling) ref.read(pushRegistrationProvider.notifier).register();
   }
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  Widget build(BuildContext context) {
     // Garde le contrôleur autoDispose vivant pendant l'await de save.
     ref.watch(notificationSettingsControllerProvider);
     final s = S.of(context);
-    final device = ref.watch(currentDeviceProvider).value;
-    if (device == null) return const SizedBox.shrink();
     final body = Theme.of(context).coletteTextStyles.body;
     return ColetteCardSurface(
       padding: AppSpacing.sm.all,
@@ -7838,29 +7874,32 @@ class NotificationsSection extends ConsumerWidget {
           SwitchListTile(
             contentPadding: AppSpacing.sm.horizontal,
             title: Text(s.settingsNotifyOthersEvents, style: body),
-            value: device.notifyOnOthersEvents,
-            onChanged: (v) => _save(ref, device.copyWith(notifyOnOthersEvents: v), enabling: v),
+            value: _device.notifyOnOthersEvents,
+            onChanged: (v) =>
+                _update(_device.copyWith(notifyOnOthersEvents: v), enabling: v),
           ),
           SwitchListTile(
             contentPadding: AppSpacing.sm.horizontal,
             title: Text(s.settingsNotifyBottle, style: body),
-            value: device.notifyBottleReminder,
-            onChanged: (v) => _save(ref, device.copyWith(notifyBottleReminder: v), enabling: v),
+            value: _device.notifyBottleReminder,
+            onChanged: (v) =>
+                _update(_device.copyWith(notifyBottleReminder: v), enabling: v),
           ),
           SwitchListTile(
             contentPadding: AppSpacing.sm.horizontal,
             title: Text(s.settingsNotifyMorning, style: body),
-            value: device.notifyMorningDigest,
-            onChanged: (v) => _save(ref, device.copyWith(notifyMorningDigest: v), enabling: v),
+            value: _device.notifyMorningDigest,
+            onChanged: (v) =>
+                _update(_device.copyWith(notifyMorningDigest: v), enabling: v),
           ),
-          if (device.notifyMorningDigest)
+          if (_device.notifyMorningDigest)
             IntStepperRow(
               label: s.settingsMorningHour,
-              value: device.morningDigestHour,
-              min: minHour,
-              max: maxHour,
+              value: _device.morningDigestHour,
+              min: NotificationsSection.minHour,
+              max: NotificationsSection.maxHour,
               suffix: s.unitHour,
-              onChanged: (v) => _save(ref, device.copyWith(morningDigestHour: v)),
+              onChanged: (v) => _update(_device.copyWith(morningDigestHour: v)),
             ),
         ],
       ),
@@ -7875,6 +7914,7 @@ class NotificationsSection extends ConsumerWidget {
 import 'dart:async';
 
 import 'package:colette/app/router/app_router.dart';
+import 'package:colette/features/dashboard/presentation/providers/bottle_form_request.dart';
 import 'package:colette/features/household/presentation/providers/household_providers.dart';
 import 'package:colette/features/notifications/presentation/providers/notifications_providers.dart';
 import 'package:flutter/material.dart';
@@ -7896,20 +7936,36 @@ class _NotificationsGateState extends ConsumerState<NotificationsGate> {
   @override
   void initState() {
     super.initState();
-    ref.listenManual(currentHouseholdCodeProvider, fireImmediately: true, (_, code) {
+    ref.listenManual(currentHouseholdCodeProvider, fireImmediately: true, (
+      _,
+      code,
+    ) {
       if (code != null) ref.read(pushRegistrationProvider.notifier).register();
     });
     final source = ref.read(pushTokenSourceProvider);
     _openedSubscription = source.onMessageOpened.listen(_navigate);
     source.getInitialMessageData().then((data) {
-      if (data != null) _navigate(data);
+      if (!mounted || data == null) return;
+      _navigate(data);
     });
   }
 
+  static const _allowedPaths = {
+    AppRoutes.today,
+    AppRoutes.journal,
+    AppRoutes.settings,
+  };
+
   void _navigate(Map<String, String> data) {
     final route = data['route'];
-    if (route == null || !route.startsWith('/')) return;
-    ref.read(appRouterProvider).go(route);
+    if (route == null) return;
+    final uri = Uri.tryParse(route);
+    if (uri == null || !_allowedPaths.contains(uri.path)) return;
+    if (uri.path == AppRoutes.today &&
+        uri.queryParameters[AppRoutes.openBottleParam] == '1') {
+      ref.read(bottleFormRequestProvider.notifier).request();
+    }
+    ref.read(appRouterProvider).go(uri.path);
   }
 
   @override
@@ -7933,11 +7989,140 @@ Ajouter l'import `package:colette/app/notifications_gate.dart` et, dans `Materia
 
 - [ ] **Step 10: Ajouter la section dans `lib/features/baby/presentation/pages/settings_page.dart`**
 
-Ajouter l'import `package:colette/features/notifications/presentation/widgets/notifications_section.dart` et, juste avant `if (code != null) ...[`, insérer :
+Ajouter les imports `package:colette/features/notifications/presentation/widgets/notifications_section.dart` et `package:colette/features/notifications/presentation/providers/notifications_providers.dart`. Dans `build`, à côté du `ref.listen(babySettingsControllerProvider, …)`, ajouter le même SnackBar pour le contrôleur des notifications :
 
 ```dart
-          SectionHeader(title: s.settingsNotificationsSection),
-          const NotificationsSection(),
+    ref.listen(notificationSettingsControllerProvider, (_, next) {
+      if (next case AsyncError(:final error)) {
+        ScaffoldMessenger.of(context)
+            .showSnackBar(SnackBar(content: Text(failureMessage(error, s))));
+      }
+    });
+    final device = ref.watch(currentDeviceProvider).value;
+```
+
+et, juste avant `if (code != null) ...[`, insérer (pas d'en-tête sans contenu pendant le chargement du flux) :
+
+```dart
+          if (device != null) ...[
+            SectionHeader(title: s.settingsNotificationsSection),
+            NotificationsSection(device: device),
+          ],
+```
+
+- [ ] **Step 10 bis: Tests de la section — `test/features/notifications/presentation/notifications_section_test.dart`**
+
+Copie locale optimiste (deux taps rapides s'additionnent), activation d'un switch qui enregistre puis déclenche `register()`, et retour arrière du switch sur échec :
+
+```dart
+import 'package:colette/core/result/failure.dart';
+import 'package:colette/features/household/domain/entities/device_info.dart';
+import 'package:colette/features/household/domain/repositories/device_repository.dart';
+import 'package:colette/features/household/presentation/providers/household_providers.dart';
+import 'package:colette/features/notifications/presentation/providers/notifications_providers.dart';
+import 'package:colette/features/notifications/presentation/widgets/notifications_section.dart';
+import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/misc.dart' show Override;
+import 'package:flutter_test/flutter_test.dart';
+import 'package:fpdart/fpdart.dart';
+import 'package:mocktail/mocktail.dart';
+
+import '../../../helpers/fake_push_token_source.dart';
+import '../../../helpers/in_memory_household_local_store.dart';
+import '../../../helpers/pump_app.dart';
+
+class MockDeviceRepository extends Mock implements DeviceRepository {}
+
+void main() {
+  const device = DeviceInfo(id: 'dev-1', label: 'iPhone');
+  late MockDeviceRepository devices;
+
+  setUpAll(() => registerFallbackValue(device));
+
+  setUp(() {
+    devices = MockDeviceRepository();
+    when(() => devices.updateFcmToken(any(), any(), any()))
+        .thenAnswer((_) async => right(null));
+  });
+
+  List<Override> overrides() => [
+    deviceRepositoryProvider.overrideWithValue(devices),
+    householdLocalStoreProvider.overrideWithValue(
+      InMemoryHouseholdLocalStore(householdCode: 'ABCDEFGH'),
+    ),
+    pushTokenSourceProvider.overrideWithValue(
+      FakePushTokenSource(granted: true, token: 'tok'),
+    ),
+  ];
+
+  testWidgets('deux taps rapides sur l\'heure du digest s\'additionnent', (
+    tester,
+  ) async {
+    when(() => devices.saveDevice(any(), any()))
+        .thenAnswer((_) async => right(null));
+    await pumpApp(
+      tester,
+      const Scaffold(
+        body: SingleChildScrollView(
+          child: NotificationsSection(device: device),
+        ),
+      ),
+      overrides: overrides(),
+    );
+    final plusButton = find.widgetWithIcon(IconButton, Icons.add);
+    await tester.tap(plusButton);
+    await tester.pump();
+    await tester.tap(plusButton);
+    await tester.pumpAndSettle();
+    final saved = verify(() => devices.saveDevice('ABCDEFGH', captureAny()))
+        .captured
+        .cast<DeviceInfo>();
+    expect(saved.last.morningDigestHour, 10);
+    expect(find.text('10 h'), findsOneWidget);
+  });
+
+  testWidgets(
+    'activer un switch enregistre et déclenche l\'enregistrement push',
+    (tester) async {
+      when(() => devices.saveDevice(any(), any()))
+          .thenAnswer((_) async => right(null));
+      await pumpApp(
+        tester,
+        NotificationsSection(
+          device: device.copyWith(notifyBottleReminder: false),
+        ),
+        overrides: overrides(),
+      );
+      await tester.tap(find.widgetWithText(SwitchListTile, 'Rappel biberon'));
+      await tester.pumpAndSettle();
+      final saved = verify(() => devices.saveDevice('ABCDEFGH', captureAny()))
+          .captured
+          .cast<DeviceInfo>();
+      expect(saved.single.notifyBottleReminder, isTrue);
+      verify(() => devices.updateFcmToken('ABCDEFGH', any(), 'tok')).called(1);
+    },
+  );
+
+  testWidgets('un échec d\'enregistrement remet le switch en arrière', (
+    tester,
+  ) async {
+    when(() => devices.saveDevice(any(), any()))
+        .thenAnswer((_) async => left(const NetworkFailure()));
+    await pumpApp(
+      tester,
+      NotificationsSection(
+        device: device.copyWith(notifyBottleReminder: false),
+      ),
+      overrides: overrides(),
+    );
+    await tester.tap(find.widgetWithText(SwitchListTile, 'Rappel biberon'));
+    await tester.pumpAndSettle();
+    final tile = tester.widget<SwitchListTile>(
+      find.widgetWithText(SwitchListTile, 'Rappel biberon'),
+    );
+    expect(tile.value, isFalse);
+  });
+}
 ```
 
 - [ ] **Step 11: Surcharger la source push dans `test/app/app_router_test.dart`**
@@ -7953,6 +8138,149 @@ et dans la liste `overrides` de `pumpColetteApp` :
 
 ```dart
           pushTokenSourceProvider.overrideWithValue(FakePushTokenSource()),
+```
+
+- [ ] **Step 11 bis: Tests de la gate — `test/app/notifications_gate_test.dart`**
+
+Token écrit dans Firestore au démarrage avec un foyer, ouverture du formulaire biberon depuis Aujourd'hui et depuis le Journal, changement d'onglet par route, routes invalides ignorées, message initial (démarrage à froid) :
+
+```dart
+import 'package:colette/app/colette_app.dart';
+import 'package:colette/core/clock/now_providers.dart';
+import 'package:colette/core/connectivity/connectivity_provider.dart';
+import 'package:colette/core/firebase/firebase_providers.dart';
+import 'package:colette/core/firebase/firestore_paths.dart';
+import 'package:colette/features/events/presentation/pages/timeline_page.dart';
+import 'package:colette/features/events/presentation/widgets/event_form_sheet.dart';
+import 'package:colette/features/household/presentation/providers/household_providers.dart';
+import 'package:colette/features/notifications/presentation/providers/notifications_providers.dart';
+import 'package:fake_cloud_firestore/fake_cloud_firestore.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:flutter_test/flutter_test.dart';
+
+import '../helpers/fake_push_token_source.dart';
+import '../helpers/in_memory_household_local_store.dart';
+
+void main() {
+  Future<void> pumpColetteApp(
+    WidgetTester tester, {
+    required FakePushTokenSource pushSource,
+    FakeFirebaseFirestore? firestore,
+  }) async {
+    await tester.pumpWidget(
+      ProviderScope(
+        overrides: [
+          householdLocalStoreProvider.overrideWithValue(
+            InMemoryHouseholdLocalStore(
+              householdCode: 'ABCDEFGH',
+              deviceId: 'dev-1',
+            ),
+          ),
+          isOnlineProvider.overrideWith((ref) => Stream.value(true)),
+          firestoreProvider.overrideWithValue(
+            firestore ?? FakeFirebaseFirestore(),
+          ),
+          minuteTickerProvider.overrideWith((ref) => const Stream.empty()),
+          pushTokenSourceProvider.overrideWithValue(pushSource),
+        ],
+        child: const ColetteApp(),
+      ),
+    );
+    await tester.pumpAndSettle();
+  }
+
+  testWidgets('au démarrage avec un foyer, le token est écrit dans Firestore', (
+    tester,
+  ) async {
+    final firestore = FakeFirebaseFirestore();
+    await pumpColetteApp(
+      tester,
+      pushSource: FakePushTokenSource(granted: true, token: 'tok'),
+      firestore: firestore,
+    );
+    final doc = await firestore
+        .collection(FirestorePaths.households)
+        .doc('ABCDEFGH')
+        .collection(FirestorePaths.devices)
+        .doc('dev-1')
+        .get();
+    expect(doc.data()?['fcmToken'], 'tok');
+  });
+
+  testWidgets('ouvrir une notification navigue vers sa route', (tester) async {
+    final source = FakePushTokenSource(granted: true, token: 'tok');
+    await pumpColetteApp(tester, pushSource: source);
+    source.emitOpened({'route': '/journal'});
+    await tester.pumpAndSettle();
+    expect(find.byType(TimelinePage), findsOneWidget);
+  });
+
+  testWidgets(
+    'ouvrir la notification biberon depuis Aujourd\'hui ouvre le formulaire',
+    (tester) async {
+      final source = FakePushTokenSource(granted: true, token: 'tok');
+      await pumpColetteApp(tester, pushSource: source);
+      source.emitOpened({'route': '/today?bottle=1'});
+      await tester.pumpAndSettle();
+      expect(find.byType(EventFormSheet), findsOneWidget);
+    },
+  );
+
+  testWidgets('ouvrir la notification biberon depuis le Journal revient sur '
+      'Aujourd\'hui et ouvre le formulaire', (tester) async {
+    final source = FakePushTokenSource(granted: true, token: 'tok');
+    await pumpColetteApp(tester, pushSource: source);
+    await tester.tap(find.text('Journal'));
+    await tester.pumpAndSettle();
+    expect(find.byType(TimelinePage), findsOneWidget);
+    source.emitOpened({'route': '/today?bottle=1'});
+    await tester.pumpAndSettle();
+    expect(find.byType(EventFormSheet), findsOneWidget);
+    expect(find.byType(TimelinePage), findsNothing);
+  });
+
+  testWidgets('une route invalide est ignorée', (tester) async {
+    final source = FakePushTokenSource(granted: true, token: 'tok');
+    await pumpColetteApp(tester, pushSource: source);
+    source.emitOpened({'route': 'javascript:evil'});
+    await tester.pumpAndSettle();
+    expect(find.byType(EventFormSheet), findsNothing);
+    expect(find.text('Aujourd\'hui'), findsWidgets);
+    source.emitOpened({'route': '/nope'});
+    await tester.pumpAndSettle();
+    expect(find.byType(EventFormSheet), findsNothing);
+    expect(find.text('Aujourd\'hui'), findsWidgets);
+  });
+
+  testWidgets('le message initial est traité au démarrage (route biberon)', (
+    tester,
+  ) async {
+    await pumpColetteApp(
+      tester,
+      pushSource: FakePushTokenSource(
+        granted: true,
+        token: 'tok',
+        initialMessageData: {'route': '/today?bottle=1'},
+      ),
+    );
+    expect(find.byType(EventFormSheet), findsOneWidget);
+  });
+
+  testWidgets(
+    'le message initial est traité au démarrage (changement de branche)',
+    (tester) async {
+      await pumpColetteApp(
+        tester,
+        pushSource: FakePushTokenSource(
+          granted: true,
+          token: 'tok',
+          initialMessageData: {'route': '/journal'},
+        ),
+      );
+      expect(find.byType(TimelinePage), findsOneWidget);
+    },
+  );
+}
 ```
 
 - [ ] **Step 12: Activer le mode arrière-plan push dans `ios/Runner/Info.plist`**
@@ -8059,4 +8387,4 @@ git commit -m "docs: README de mise en route"
 - §2 stack → T1 ; §3 architecture → T1–T16 ; §4 design system → T3, T4, T5 ; §5 données → T7, T8, T10 (+ `hasBottle`) ; §5.1 règles et §5.2 hors ligne → plan functions + `OfflineBanner` T5 ; §6.1 onboarding → T9 ; §6.2 dashboard → T13, T14 ; §6.3 plan biberons et écriture `feedingPlan` → T13, T14 (sync appelé par T11 modifié, T15) ; §6.4 journal → T12 ; §6.5 formulaire → T11 ; §6.6 réglages → T15, T16 ; §7 notifications client → T16 (fonctions : plan compagnon) ; §8 erreurs → T2, `failureMessage` T5 ; §9 tests → chaque tâche ; §10 CLAUDE.md → T1 ; §11 prérequis → README T17.
 - Non couvert volontairement : bouton « Réessayer » sur échec d'écriture (la snackbar affiche le message ; l'utilisateur ré-appuie sur Enregistrer). Mode thème utilisateur : hors v1.
 
-**Cohérence des noms entre tâches :** `currentHouseholdCodeProvider`, `deviceIdProvider`, `deviceRepositoryProvider` (T7) ; `babyRepositoryProvider`, `babyProfileProvider`, `weightsProvider`, `latestWeightProvider` (T8) ; `eventsRepositoryProvider`, `todayEventsProvider`, `latestBathProvider`, `latestBottleProvider`, `timelineLimitProvider`, `timelineEventsProvider` (T10) ; `eventFormControllerProvider` (T11) ; `feedingPlanSyncProvider` + `NoopFeedingPlanSync` (T14) ; `currentMinuteProvider`, `todayProvider`, `minuteTickerProvider` (T14) ; `pushTokenSourceProvider`, `pushRegistrationProvider`, `notificationSettingsControllerProvider` (T16). `IntStepperRow(label, value, min, max, step, suffix, onChanged)` identique en T5, T11, T15, T16. `showColetteDateTimePicker(context, initial:, mode:, maximum:)` identique en T5, T9, T11, T15.
+**Cohérence des noms entre tâches :** `currentHouseholdCodeProvider`, `deviceIdProvider`, `deviceRepositoryProvider` (T7) ; `babyRepositoryProvider`, `babyProfileProvider`, `weightsProvider`, `latestWeightProvider` (T8) ; `eventsRepositoryProvider`, `todayEventsProvider`, `latestBathProvider`, `latestBottleProvider`, `timelineLimitProvider`, `timelineEventsProvider` (T10) ; `eventFormControllerProvider` (T11) ; `feedingPlanSyncProvider` + `NoopFeedingPlanSync` (T14) ; `currentMinuteProvider`, `todayProvider`, `minuteTickerProvider` (T14) ; `pushTokenSourceProvider`, `pushRegistrationProvider`, `notificationSettingsControllerProvider` (T16) ; `bottleFormRequestProvider` (T14, consommé par la gate T16). `IntStepperRow(label, value, min, max, step, suffix, onChanged)` identique en T5, T11, T15, T16. `showColetteDateTimePicker(context, initial:, mode:, maximum:)` identique en T5, T9, T11, T15.
