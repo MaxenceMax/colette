@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+	<key>API_KEY</key>
+	<string>AIzaSyB9EprBQ1YKoOBTtWElqdpKdE9WEfy0Qtg</string>
+	<key>GCM_SENDER_ID</key>
+	<string>761820765070</string>
+	<key>PLIST_VERSION</key>
+	<string>1</string>
+	<key>BUNDLE_ID</key>
+	<string>fr.montet.colette</string>
+	<key>PROJECT_ID</key>
+	<string>colette-b0a19</string>
+	<key>STORAGE_BUCKET</key>
+	<string>colette-b0a19.firebasestorage.app</string>
+	<key>IS_ADS_ENABLED</key>
+	<false></false>
+	<key>IS_ANALYTICS_ENABLED</key>
+	<false></false>
+	<key>IS_APPINVITE_ENABLED</key>
+	<true></true>
+	<key>IS_GCM_ENABLED</key>
+	<true></true>
+	<key>IS_SIGNIN_ENABLED</key>
+	<true></true>
+	<key>GOOGLE_APP_ID</key>
+	<string>1:761820765070:ios:0ad973cf3f67eb59e8a2df</string>
+</dict>
+</plist>

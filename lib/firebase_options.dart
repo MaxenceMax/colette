@@ -8,11 +8,11 @@ class DefaultFirebaseOptions {
   static FirebaseOptions get currentPlatform => ios;
 
   static const FirebaseOptions ios = FirebaseOptions(
-    apiKey: 'REPLACE_ME',
-    appId: '1:000000000000:ios:0000000000000000',
-    messagingSenderId: '000000000000',
-    projectId: 'colette-placeholder',
-    storageBucket: 'colette-placeholder.appspot.com',
+    apiKey: 'AIzaSyB9EprBQ1YKoOBTtWElqdpKdE9WEfy0Qtg',
+    appId: '1:761820765070:ios:0ad973cf3f67eb59e8a2df',
+    messagingSenderId: '761820765070',
+    projectId: 'colette-b0a19',
+    storageBucket: 'colette-b0a19.firebasestorage.app',
     iosBundleId: 'fr.montet.colette',
   );
 }

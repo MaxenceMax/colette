@@ -8,7 +8,29 @@
       "source": "functions",
       "codebase": "default",
       "runtime": "nodejs22",
-      "predeploy": ["npm --prefix \"$RESOURCE_DIR\" run build"]
+      "predeploy": [
+        "npm --prefix \"$RESOURCE_DIR\" run build"
+      ]
     }
-  ]
+  ],
+  "flutter": {
+    "platforms": {
+      "ios": {
+        "default": {
+          "projectId": "colette-b0a19",
+          "appId": "1:761820765070:ios:0ad973cf3f67eb59e8a2df",
+          "uploadDebugSymbols": false,
+          "fileOutput": "ios/Runner/GoogleService-Info.plist"
+        }
+      },
+      "dart": {
+        "lib/firebase_options.dart": {
+          "projectId": "colette-b0a19",
+          "configurations": {
+            "ios": "1:761820765070:ios:0ad973cf3f67eb59e8a2df"
+          }
+        }
+      }
+    }
+  }
 }
