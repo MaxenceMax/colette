@@ -44,7 +44,8 @@ class _DiaperStockSheetState extends ConsumerState<DiaperStockSheet> {
   late final TextEditingController _controller = TextEditingController(
     text: switch (widget.mode) {
       DiaperStockSheetMode.recount => '',
-      DiaperStockSheetMode.addPack => '${widget.current?.lastPackSize ?? 44}',
+      DiaperStockSheetMode.addPack =>
+        '${widget.current?.lastPackSize ?? DiaperStock.defaultPackSize}',
     },
   );
 
@@ -73,12 +74,21 @@ class _DiaperStockSheetState extends ConsumerState<DiaperStockSheet> {
 
   @override
   Widget build(BuildContext context) {
-    // Garde le contrôleur autoDispose vivant pendant l'await de _save.
-    ref.watch(diaperStockControllerProvider);
+    // Garde le contrôleur autoDispose vivant pendant l'await de _save
+    // et désactive le bouton pendant l'écriture.
+    final isSaving = ref.watch(diaperStockControllerProvider) is AsyncLoading;
     final s = S.of(context);
-    final (title, action) = switch (widget.mode) {
-      DiaperStockSheetMode.recount => (s.diapersRecountTitle, s.actionSave),
-      DiaperStockSheetMode.addPack => (s.diapersAddPackTitle, s.actionAdd),
+    final (title, field, action) = switch (widget.mode) {
+      DiaperStockSheetMode.recount => (
+        s.diapersRecountTitle,
+        s.fieldDiaperCount,
+        s.actionSave,
+      ),
+      DiaperStockSheetMode.addPack => (
+        s.diapersAddPackTitle,
+        s.fieldPackSize,
+        s.actionAdd,
+      ),
     };
     return Padding(
       padding: EdgeInsets.only(bottom: MediaQuery.viewInsetsOf(context).bottom),
@@ -90,12 +100,12 @@ class _DiaperStockSheetState extends ConsumerState<DiaperStockSheet> {
           AppSpacing.md.verticalSpace,
           TextField(
             controller: _controller,
-            decoration: InputDecoration(labelText: s.fieldDiaperCount),
+            decoration: InputDecoration(labelText: field),
             keyboardType: TextInputType.number,
             autofocus: true,
           ),
           AppSpacing.lg.verticalSpace,
-          FilledButton(onPressed: _save, child: Text(action)),
+          FilledButton(onPressed: isSaving ? null : _save, child: Text(action)),
         ],
       ),
     );

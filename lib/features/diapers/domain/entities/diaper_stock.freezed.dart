@@ -215,7 +215,7 @@ return $default(_that.count,_that.countedAt,_that.alertThreshold,_that.lastPackS
 
 
 class _DiaperStock extends DiaperStock {
-  const _DiaperStock({required this.count, required this.countedAt, this.alertThreshold = 10, this.lastPackSize = 44}): super._();
+  const _DiaperStock({required this.count, required this.countedAt, this.alertThreshold = 10, this.lastPackSize = DiaperStock.defaultPackSize}): super._();
   
 
 @override final  int count;

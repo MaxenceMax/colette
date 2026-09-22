@@ -120,6 +120,7 @@
   "diapersRecountTitle": "Couches en stock",
   "diapersAddPackTitle": "Taille du paquet",
   "fieldDiaperCount": "Nombre de couches",
+  "fieldPackSize": "Couches dans le paquet",
   "diapersAlertLow": "{count, plural, =0{Plus aucune couche} =1{Plus que 1 couche} other{Plus que {count} couches}}",
   "@diapersAlertLow": { "placeholders": { "count": { "type": "int" } } },
   "settingsNotificationsSection": "Notifications de cet iPhone",

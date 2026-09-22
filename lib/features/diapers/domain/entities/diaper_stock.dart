@@ -7,11 +7,13 @@ part 'diaper_stock.freezed.dart';
 abstract class DiaperStock with _$DiaperStock {
   const DiaperStock._();
 
+  static const defaultPackSize = 44;
+
   const factory DiaperStock({
     required int count,
     required DateTime countedAt,
     @Default(10) int alertThreshold,
-    @Default(44) int lastPackSize,
+    @Default(DiaperStock.defaultPackSize) int lastPackSize,
   }) = _DiaperStock;
 
   /// Nouveau comptage à [now] ; seuil et taille de paquet conservés.
