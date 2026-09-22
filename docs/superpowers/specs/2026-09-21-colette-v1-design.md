@@ -341,10 +341,10 @@ Volume attendu : quelques dizaines de pushs par jour, 8 640 exécutions du cron 
 
 ## 8. Gestion des erreurs
 
-- Repositories et use cases renvoient `Either<Failure, T>`. `Failure` est une classe sealed : `NetworkFailure`, `NotFoundFailure`, `ValidationFailure(message)`, `UnknownFailure(error, stackTrace)`.
+- Repositories et use cases renvoient `Either<Failure, T>`. `Failure` est une classe sealed : `NetworkFailure`, `NotFoundFailure`, `ValidationFailure(reason)` (enum `ValidationReason`, traduit par la présentation), `UnknownFailure(error, stackTrace)`.
 - Les data sources laissent remonter les exceptions Firebase ; les repositories les convertissent en `Failure`.
 - Les notifiers Riverpod exposent `AsyncValue` ; l'UI utilise `switch` sur `AsyncData` / `AsyncLoading` / `AsyncError`.
-- Échec d'écriture : snackbar avec message et bouton « Réessayer ». Aucun `print`, aucun catch vide ; les erreurs inattendues passent par `dart:developer log`.
+- Échec d'écriture : snackbar avec le message de l'échec (`failureMessage`), sans bouton « Réessayer » : l'utilisateur ré-appuie sur l'action, le formulaire ou la bascule ayant conservé sa saisie (les bascules et compteurs optimistes reviennent en arrière). Aucun `print`, aucun catch vide ; les erreurs inattendues passent par `dart:developer log`.
 
 ## 9. Tests
 
