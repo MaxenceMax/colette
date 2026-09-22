@@ -14,6 +14,7 @@ String failureMessage(Object failure, S s) => switch (failure) {
     ValidationReason.emptyName => s.errorEmptyName,
     ValidationReason.unknownHouseholdCode => s.errorUnknownCode,
     ValidationReason.notificationsDenied => s.errorNotificationsDenied,
+    ValidationReason.invalidDiaperCount => s.errorInvalidDiaperCount,
   },
   _ => s.errorUnknown,
 };
