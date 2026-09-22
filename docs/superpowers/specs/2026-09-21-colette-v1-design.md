@@ -203,6 +203,7 @@ households/{code}/devices/{deviceId}
   notifyBottleReminder: true
   notifyMorningDigest: true
   morningDigestHour: 8
+  lastDigestSentOn: string | null     « 2026-09-22 » (Paris), écrit par le digest du matin
   updatedAt: Timestamp
 ```
 
@@ -214,14 +215,21 @@ Le `code` du foyer est une chaîne de 8 caractères alphanumériques majuscules 
 rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
-    match /households/{code}/{document=**} {
+    // Le document foyer est atteignable par son code, jamais énumérable :
+    // `list` refusé, sinon un client anonyme pourrait récupérer tous les codes.
+    match /households/{code} {
+      allow get, write: if request.auth != null;
+      allow list: if false;
+    }
+    // Sous-collections : events, weights, devices.
+    match /households/{code}/{collection}/{docId} {
       allow read, write: if request.auth != null;
     }
   }
 }
 ```
 
-L'auth anonyme est déclenchée silencieusement au démarrage. La confidentialité repose sur le caractère non devinable du code (alphabet de 32 caractères sans O/0 ni I/1, soit 32^8 ≈ 1,1 × 10^12 combinaisons) et sur l'exigence d'une session Firebase signée.
+L'auth anonyme est déclenchée silencieusement au démarrage. Le client ne liste jamais `households` (il accède toujours à `.doc(code)`), et les Cloud Functions passent par l'Admin SDK. La confidentialité repose sur le caractère non devinable du code (alphabet de 32 caractères sans O/0 ni I/1, soit 32^8 ≈ 1,1 × 10^12 combinaisons) et sur l'exigence d'une session Firebase signée.
 
 ### 5.2 Hors ligne
 
@@ -321,13 +329,13 @@ Dossier `functions/` TypeScript, Firebase Functions v2, région `europe-west1`, 
 
 | Fonction | Déclencheur | Comportement |
 | --- | --- | --- |
-| `onEventCreated` | Firestore `onDocumentCreated` sur `households/{code}/events/{id}` | Envoie un push à chaque appareil du foyer dont `deviceId ≠ createdByDeviceId` et `notifyOnOthersEvents` est vrai. Titre : « {label appareil} a ajouté un événement ». Corps : résumé (ex. « Biberon 120 ml · Couche · Adrigyl à 14h32 »). |
-| `bottleReminder` | `onSchedule('every 5 minutes')` | Pour chaque foyer dont `feedingPlan.nextBottleAt − 10 min ≤ now` et `lastBottleNotifiedFor ≠ feedingPlan.nextBottleAt` : push « Biberon dans 10 min · env. {suggestedMl} ml » aux appareils avec `notifyBottleReminder`, puis écrit `lastBottleNotifiedFor`. |
-| `morningDigest` | `onSchedule('every 60 minutes')` | Pour chaque appareil dont `morningDigestHour` correspond à l'heure courante Europe/Paris et `notifyMorningDigest` est vrai : calcule les soins attendus non faits ce jour (même règle que §6.2, réimplémentée en TypeScript avec ses tests) et envoie « Aujourd'hui : Adrigyl, soin des yeux, bain ». Rien n'est envoyé si tout est déjà fait. |
+| `onEventCreated` | Firestore `onDocumentCreated` sur `households/{code}/events/{id}` | Envoie un push à chaque appareil du foyer dont `deviceId ≠ createdByDeviceId` et `notifyOnOthersEvents` est vrai ; sans `createdByDeviceId`, personne n'est notifié. Titre : « {label appareil} a ajouté un événement ». Corps : résumé (ex. « Biberon 120 ml · Couche · Adrigyl à 14h32 »). |
+| `bottleReminder` | `onSchedule('every 5 minutes')` | Pour chaque foyer dont `feedingPlan.nextBottleAt − 10 min ≤ now ≤ nextBottleAt + 15 min`, `lastBottleNotifiedFor ≠ nextBottleAt` et `computedAt < nextBottleAt` (un plan calculé à ou après son échéance, c'est-à-dire sans biberon enregistré ou avec un dernier biberon trop ancien, ne déclenche rien) : push « Biberon dans 10 min · env. {suggestedMl} ml » aux appareils avec `notifyBottleReminder`. `lastBottleNotifiedFor` n'est écrit que si au moins un push est parti ou si aucun appareil n'est abonné ; sinon le tick suivant réessaie, dans la limite de la fenêtre. Chaque foyer est traité dans son propre `try/catch`. |
+| `morningDigest` | `onSchedule('every 60 minutes')` | Pour chaque appareil dont `morningDigestHour` correspond à l'heure Europe/Paris la plus proche de l'exécution, `notifyMorningDigest` est vrai et `lastDigestSentOn` ≠ la date du jour (Paris) : calcule les soins attendus non faits ce jour, sur les événements de `[minuit, minuit + 1 j)` Paris (même règle que §6.2, réimplémentée en TypeScript avec ses tests) et envoie « Aujourd'hui pour {prénom} : Adrigyl, soin des yeux, bain », puis écrit `lastDigestSentOn`. Rien n'est envoyé si tout est déjà fait ou si le foyer n'a pas de profil bébé. Chaque foyer est traité dans son propre `try/catch`. |
 
 Le tap sur une notification ouvre le dashboard (événement, digest) ou le formulaire biberon prérempli (rappel).
 
-Côté client (feature `notifications`) : récupération et rafraîchissement du token FCM, écriture dans `devices/{deviceId}`, gestion du tap sur notification via `go_router`. Les tokens invalides renvoyés par FCM sont supprimés par les fonctions.
+Côté client (feature `notifications`) : récupération et rafraîchissement du token FCM, écriture dans `devices/{deviceId}`, gestion du tap sur notification via `go_router`. Les tokens invalides renvoyés par FCM sont supprimés par les fonctions (échec ignoré si l'appareil a déjà quitté le foyer).
 
 Volume attendu : quelques dizaines de pushs par jour, 8 640 exécutions du cron biberon et 720 du digest par mois, très en dessous des quotas gratuits. Une alerte budget à 1 € est recommandée sur le projet.
 
