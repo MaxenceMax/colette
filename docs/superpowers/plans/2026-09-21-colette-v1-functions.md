@@ -163,9 +163,11 @@ service cloud.firestore {
 `functions/.gitignore` :
 
 ```gitignore
-node_modules/
-lib/
+/node_modules/
+/lib/
 ```
+
+(Motifs ancrés à la racine de `functions/` : un `lib/` non ancré ignorerait aussi `functions/src/lib/`.)
 
 `functions/src/index.ts` (exports ajoutés dans les tâches suivantes) :
 
