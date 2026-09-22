@@ -20,7 +20,10 @@ abstract final class CareSettingsDto {
     int fallback, {
     required int min,
     required int max,
-  }) => ((map[key] as num?)?.toInt() ?? fallback).clamp(min, max);
+  }) {
+    final raw = map[key];
+    return (raw is num ? raw.toInt() : fallback).clamp(min, max);
+  }
 
   /// Entier optionnel borné ; absent ou non numérique → `null`.
   static int? _readOptionalInt(

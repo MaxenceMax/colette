@@ -3,6 +3,13 @@ import 'package:colette/features/baby/domain/entities/care_settings.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 void main() {
+  test('CareSettingsDto.fromMap ignore une valeur non numérique', () {
+    expect(
+      CareSettingsDto.fromMap(const {'bathEveryDays': '5'}).bathEveryDays,
+      2,
+    );
+  });
+
   test('CareSettingsDto.fromMap applique les défauts sur une map vide', () {
     expect(CareSettingsDto.fromMap(const {}), const CareSettings());
   });
