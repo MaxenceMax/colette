@@ -3,6 +3,7 @@ import 'dart:developer' as developer;
 
 import 'package:colette/core/clock/app_clock.dart';
 import 'package:colette/core/firebase/firebase_providers.dart';
+import 'package:colette/core/result/no_retry.dart';
 import 'package:colette/core/result/failure.dart';
 import 'package:colette/features/household/data/firestore_device_repository.dart';
 import 'package:colette/features/household/data/firestore_household_repository.dart';
@@ -59,7 +60,7 @@ class CurrentHouseholdCode extends _$CurrentHouseholdCode {
 String deviceId(Ref ref) => ref.watch(householdLocalStoreProvider).deviceId;
 
 /// Document de cet iPhone dans le foyer courant.
-@riverpod
+@Riverpod(retry: noRetry)
 Stream<DeviceInfo?> currentDevice(Ref ref) {
   final code = ref.watch(currentHouseholdCodeProvider);
   if (code == null) return Stream.value(null);
