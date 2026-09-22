@@ -1,5 +1,6 @@
 import Flutter
 import UIKit
+import os.log
 
 /// Canal `colette/documents` : dispatch des appels Flutter vers le store, le lister et le presenter.
 final class DocumentsPlugin: NSObject {
@@ -13,6 +14,7 @@ final class DocumentsPlugin: NSObject {
 
   static func register(with registry: FlutterPluginRegistry) {
     guard let messenger = registry.registrar(forPlugin: "DocumentsPlugin")?.messenger() else {
+      os_log("DocumentsPlugin : registrar indisponible, canal non enregistré", type: .error)
       return
     }
     let channel = FlutterMethodChannel(name: channelName, binaryMessenger: messenger)
@@ -44,7 +46,8 @@ final class DocumentsPlugin: NSObject {
     }
   }
 
-  func argument(_ name: String, of call: FlutterMethodCall) throws -> String {
+  /// Argument `String` obligatoire d'un appel de méthode.
+  private func argument(_ name: String, of call: FlutterMethodCall) throws -> String {
     guard let args = call.arguments as? [String: Any], let value = args[name] as? String else {
       throw DocumentsError.io("Argument manquant : \(name)")
     }
@@ -83,6 +86,10 @@ final class DocumentsPlugin: NSObject {
   }
 
   private func preview(path: String, result: @escaping FlutterResult) throws {
+    guard activeRoot == nil else {
+      result(DocumentsError.cancelled.flutterError)
+      return
+    }
     let root = try store.openRoot()
     activeRoot = root
     let located: URL
@@ -100,10 +107,15 @@ final class DocumentsPlugin: NSObject {
         self?.activeRoot = nil
         result(error.flutterError)
       case .success(let url):
-        self?.presenter.preview(fileURL: url) {
+        self?.presenter.preview(fileURL: url) { previewOutcome in
           self?.activeRoot?.close()
           self?.activeRoot = nil
-          result(nil)
+          switch previewOutcome {
+          case .failure(let error):
+            result(error.flutterError)
+          case .success:
+            result(nil)
+          }
         }
       }
     }

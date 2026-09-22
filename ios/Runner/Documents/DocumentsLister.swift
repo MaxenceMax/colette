@@ -9,6 +9,8 @@ enum DocumentsLister {
 
   private static let placeholderSuffix = ".icloud"
 
+  private typealias Entry = (path: String, isPlaceholder: Bool, values: [String: Any])
+
   /// Entrées d'un dossier, au format attendu par `DocumentEntryDto`.
   static func list(folder: URL, relativePath: String) throws -> [[String: Any]] {
     let urls: [URL]
@@ -18,24 +20,44 @@ enum DocumentsLister {
     } catch {
       throw DocumentsError.io(error.localizedDescription)
     }
-    return urls.compactMap { url -> [String: Any]? in
+    let entries = urls.compactMap { url -> Entry? in
       let raw = url.lastPathComponent
       let isPlaceholder = raw.hasPrefix(".") && raw.hasSuffix(placeholderSuffix)
       if raw.hasPrefix(".") && !isPlaceholder { return nil }
       let values = try? url.resourceValues(forKeys: keys)
       let isDirectory = values?.isDirectory ?? false
       let name = isPlaceholder ? normalizedName(raw) : raw
+      let path = relativePath.isEmpty ? name : "\(relativePath)/\(name)"
       let modified = values?.contentModificationDate ?? Date(timeIntervalSince1970: 0)
-      return [
-        "name": name,
-        "path": relativePath.isEmpty ? name : "\(relativePath)/\(name)",
-        "isDirectory": isDirectory,
-        "size": isDirectory ? 0 : (values?.fileSize ?? 0),
-        "modifiedAt": Int(modified.timeIntervalSince1970 * 1000),
-        "downloadStatus": status(
-          isDirectory: isDirectory, isPlaceholder: isPlaceholder, values: values),
-      ]
+      return (
+        path, isPlaceholder,
+        [
+          "name": name,
+          "path": path,
+          "isDirectory": isDirectory,
+          "size": isDirectory ? 0 : (values?.fileSize ?? 0),
+          "modifiedAt": Int(modified.timeIntervalSince1970 * 1000),
+          "downloadStatus": status(
+            isDirectory: isDirectory, isPlaceholder: isPlaceholder, values: values),
+        ]
+      )
     }
+    return deduplicated(entries)
+  }
+
+  /// Une seule entrée par chemin : le fichier réel prime sur son placeholder `.x.ext.icloud`.
+  private static func deduplicated(_ entries: [Entry]) -> [[String: Any]] {
+    var indexByPath: [String: Int] = [:]
+    var kept: [Entry] = []
+    for entry in entries {
+      guard let index = indexByPath[entry.path] else {
+        indexByPath[entry.path] = kept.count
+        kept.append(entry)
+        continue
+      }
+      if kept[index].isPlaceholder && !entry.isPlaceholder { kept[index] = entry }
+    }
+    return kept.map(\.values)
   }
 
   private static func status(isDirectory: Bool, isPlaceholder: Bool, values: URLResourceValues?)

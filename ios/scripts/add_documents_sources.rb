@@ -5,13 +5,15 @@ require 'xcodeproj'
 project_path = File.expand_path('../Runner.xcodeproj', __dir__)
 project = Xcodeproj::Project.open(project_path)
 target = project.targets.find { |t| t.name == 'Runner' }
+raise 'cible Runner introuvable' if target.nil?
+
 runner_group = project.main_group['Runner']
 group = runner_group['Documents'] || runner_group.new_group('Documents', 'Documents')
 
 Dir[File.expand_path('../Runner/Documents/*.swift', __dir__)].sort.each do |file|
   name = File.basename(file)
-  next if group.files.any? { |f| f.path == name }
-  ref = group.new_file(name)
+  next if target.source_build_phase.files_references.any? { |r| r.path == name }
+  ref = group.files.find { |f| f.path == name } || group.new_file(name)
   target.add_file_references([ref])
   puts "ajouté : #{name}"
 end

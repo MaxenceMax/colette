@@ -7,6 +7,7 @@ final class ScopedRoot {
 
   init(url: URL) { self.url = url }
 
+  /// Ferme la portée sécurisée ; sans effet si elle est déjà fermée.
   func close() {
     guard open else { return }
     url.stopAccessingSecurityScopedResource()
@@ -39,6 +40,7 @@ final class DocumentsStore {
     return rootURL.lastPathComponent
   }
 
+  /// Oublie le dossier racine : le bookmark est supprimé.
   func forget() { defaults.removeObject(forKey: Self.bookmarkKey) }
 
   /// Résout le bookmark à chaque appel ; régénère un bookmark périmé.
@@ -51,7 +53,7 @@ final class DocumentsStore {
     do {
       url = try URL(resolvingBookmarkData: data, bookmarkDataIsStale: &stale)
     } catch {
-      throw DocumentsError.noFolder
+      throw DocumentsError.accessDenied
     }
     guard url.startAccessingSecurityScopedResource() else {
       throw DocumentsError.accessDenied

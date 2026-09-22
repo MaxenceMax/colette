@@ -6,15 +6,25 @@ import UniformTypeIdentifiers
 final class DocumentsPresenter: NSObject {
   private var pickerCompletion: ((Result<URL, DocumentsError>) -> Void)?
   private var previewURL: URL?
-  private var previewCompletion: (() -> Void)?
+  private var previewCompletion: ((Result<Void, DocumentsError>) -> Void)?
 
+  /// Contrôleur au sommet de la scène active, seul capable de présenter un écran système.
   private var host: UIViewController? {
-    UIApplication.shared.connectedScenes
-      .compactMap { ($0 as? UIWindowScene)?.keyWindow }
-      .first?.rootViewController
+    let scenes = UIApplication.shared.connectedScenes.compactMap { $0 as? UIWindowScene }
+    let window =
+      scenes.first { $0.activationState == .foregroundActive }?.keyWindow
+      ?? scenes.compactMap(\.keyWindow).first
+    var controller = window?.rootViewController
+    while let presented = controller?.presentedViewController { controller = presented }
+    return controller
   }
 
+  /// Sélecteur de dossier ; `cancelled` si un sélecteur est déjà ouvert.
   func pickFolder(completion: @escaping (Result<URL, DocumentsError>) -> Void) {
+    guard pickerCompletion == nil else {
+      completion(.failure(.cancelled))
+      return
+    }
     guard let host else {
       completion(.failure(.io("Aucune fenêtre")))
       return
@@ -26,9 +36,10 @@ final class DocumentsPresenter: NSObject {
     host.present(picker, animated: true)
   }
 
-  func preview(fileURL: URL, completion: @escaping () -> Void) {
+  /// Aperçu Quick Look ; échoue si aucune fenêtre ne peut présenter l'aperçu.
+  func preview(fileURL: URL, completion: @escaping (Result<Void, DocumentsError>) -> Void) {
     guard let host else {
-      completion()
+      completion(.failure(.io("Aucune fenêtre")))
       return
     }
     previewURL = fileURL
@@ -73,6 +84,6 @@ extension DocumentsPresenter: QLPreviewControllerDataSource, QLPreviewController
     let completion = previewCompletion
     previewCompletion = nil
     previewURL = nil
-    completion?()
+    completion?(.success(()))
   }
 }
