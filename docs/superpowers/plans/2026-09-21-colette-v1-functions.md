@@ -756,7 +756,12 @@ import { onDocumentCreated } from 'firebase-functions/v2/firestore';
 import { loadDevices } from './lib/firestore';
 import { sendToDevices } from './lib/push';
 import { summarizeEvent } from './lib/summary';
-import { toCareEvent, type EventDoc } from './lib/types';
+import { toCareEvent, type Device, type EventDoc } from './lib/types';
+
+/** Appareils à notifier : ni l'auteur, ni ceux ayant désactivé les notifications des autres événements. */
+export function selectRecipients(devices: Device[], createdByDeviceId: string | undefined): Device[] {
+  return devices.filter((d) => d.id !== createdByDeviceId && d.notifyOnOthersEvents !== false);
+}
 
 export const onEventCreated = onDocumentCreated('households/{code}/events/{eventId}', async (event) => {
   const snap = event.data;
@@ -766,9 +771,7 @@ export const onEventCreated = onDocumentCreated('households/{code}/events/{event
 
   const devices = await loadDevices(snap.ref.parent.parent!);
   const author = devices.find((d) => d.id === data.createdByDeviceId);
-  const targets = devices.filter(
-    (d) => d.id !== data.createdByDeviceId && d.notifyOnOthersEvents !== false,
-  );
+  const targets = selectRecipients(devices, data.createdByDeviceId);
   if (targets.length === 0) return;
 
   await sendToDevices(code, targets, {
@@ -785,6 +788,65 @@ Ajouter à la fin du fichier :
 
 ```ts
 export { onEventCreated } from './on-event-created';
+```
+
+- [ ] **Step 2 bis: Tester — `functions/src/on-event-created.test.ts`**
+
+Les helpers purs (`selectRecipients`) sont testés ; `firebase-functions/v2/firestore` est mocké, le câblage du trigger ne l'est pas.
+
+```ts
+import { describe, expect, it, vi } from 'vitest';
+import type { Device } from './lib/types';
+
+vi.mock('firebase-functions/v2/firestore', () => ({
+  onDocumentCreated: (_path: string, handler: unknown) => handler,
+}));
+
+const { selectRecipients } = await import('./on-event-created');
+
+describe('selectRecipients', () => {
+  it("exclut l'appareil auteur de l'événement", () => {
+    const devices: Device[] = [
+      { id: 'author', notifyOnOthersEvents: true },
+      { id: 'other', notifyOnOthersEvents: true },
+    ];
+
+    const recipients = selectRecipients(devices, 'author');
+
+    expect(recipients.map((d) => d.id)).toEqual(['other']);
+  });
+
+  it('exclut les appareils ayant désactivé les notifications des autres événements', () => {
+    const devices: Device[] = [
+      { id: 'other-1', notifyOnOthersEvents: false },
+      { id: 'other-2', notifyOnOthersEvents: true },
+      { id: 'other-3' },
+    ];
+
+    const recipients = selectRecipients(devices, 'author');
+
+    expect(recipients.map((d) => d.id).sort()).toEqual(['other-2', 'other-3']);
+  });
+
+  it("renvoie un tableau vide s'il n'y a aucun destinataire", () => {
+    const devices: Device[] = [{ id: 'author', notifyOnOthersEvents: true }];
+
+    const recipients = selectRecipients(devices, 'author');
+
+    expect(recipients).toEqual([]);
+  });
+
+  it('gère un événement sans auteur connu en ne notifiant que selon la préférence', () => {
+    const devices: Device[] = [
+      { id: 'd1', notifyOnOthersEvents: false },
+      { id: 'd2', notifyOnOthersEvents: true },
+    ];
+
+    const recipients = selectRecipients(devices, undefined);
+
+    expect(recipients.map((d) => d.id)).toEqual(['d2']);
+  });
+});
 ```
 
 - [ ] **Step 3: Compiler**
@@ -817,7 +879,12 @@ import { db, loadDevices } from './lib/firestore';
 import { formatHourMinute, ZONE } from './lib/paris-time';
 import { sendToDevices } from './lib/push';
 import { isReminderDue } from './lib/reminder';
-import type { FeedingPlanDoc } from './lib/types';
+import type { Device, FeedingPlanDoc } from './lib/types';
+
+/** Appareils à notifier : ceux n'ayant pas désactivé le rappel biberon. */
+export function selectBottleRecipients(devices: Device[]): Device[] {
+  return devices.filter((d) => d.notifyBottleReminder !== false);
+}
 
 export const bottleReminder = onSchedule({ schedule: 'every 5 minutes', timeZone: ZONE }, async () => {
   const now = new Date();
@@ -830,7 +897,7 @@ export const bottleReminder = onSchedule({ schedule: 'every 5 minutes', timeZone
     const lastNotifiedFor = (doc.get('lastBottleNotifiedFor') as Timestamp | undefined)?.toDate() ?? null;
     if (!isReminderDue({ nextBottleAt, lastNotifiedFor, now })) continue;
 
-    const devices = (await loadDevices(doc.ref)).filter((d) => d.notifyBottleReminder !== false);
+    const devices = selectBottleRecipients(await loadDevices(doc.ref));
     await sendToDevices(doc.id, devices, {
       title: 'Biberon dans 10 min',
       body: `Environ ${plan.suggestedMl} ml, prévu vers ${formatHourMinute(nextBottleAt)}`,
@@ -845,6 +912,51 @@ export const bottleReminder = onSchedule({ schedule: 'every 5 minutes', timeZone
 
 ```ts
 export { bottleReminder } from './bottle-reminder';
+```
+
+- [ ] **Step 2 bis: Tester — `functions/src/bottle-reminder.test.ts`**
+
+Les helpers purs (`selectBottleRecipients`) sont testés ; `firebase-functions/v2/scheduler` est mocké.
+
+```ts
+import { describe, expect, it, vi } from 'vitest';
+import type { Device } from './lib/types';
+
+vi.mock('firebase-functions/v2/scheduler', () => ({
+  onSchedule: (_options: unknown, handler: unknown) => handler,
+}));
+
+const { selectBottleRecipients } = await import('./bottle-reminder');
+
+describe('selectBottleRecipients', () => {
+  it('inclut les appareils sans préférence définie', () => {
+    const devices: Device[] = [{ id: 'd1' }];
+
+    expect(selectBottleRecipients(devices).map((d) => d.id)).toEqual(['d1']);
+  });
+
+  it('inclut les appareils ayant explicitement activé le rappel', () => {
+    const devices: Device[] = [{ id: 'd1', notifyBottleReminder: true }];
+
+    expect(selectBottleRecipients(devices).map((d) => d.id)).toEqual(['d1']);
+  });
+
+  it('exclut les appareils ayant désactivé le rappel biberon', () => {
+    const devices: Device[] = [
+      { id: 'd1', notifyBottleReminder: false },
+      { id: 'd2', notifyBottleReminder: true },
+      { id: 'd3' },
+    ];
+
+    expect(selectBottleRecipients(devices).map((d) => d.id).sort()).toEqual(['d2', 'd3']);
+  });
+
+  it('renvoie un tableau vide si tous les appareils ont désactivé le rappel', () => {
+    const devices: Device[] = [{ id: 'd1', notifyBottleReminder: false }];
+
+    expect(selectBottleRecipients(devices)).toEqual([]);
+  });
+});
 ```
 
 - [ ] **Step 3: Compiler**
@@ -877,7 +989,17 @@ import { pendingCares } from './lib/care-status';
 import { db, loadDevices } from './lib/firestore';
 import { hourInParis, startOfTodayInParis, ZONE } from './lib/paris-time';
 import { sendToDevices } from './lib/push';
-import { toCareEvent, withDefaults, type BabyDoc, type EventDoc } from './lib/types';
+import { toCareEvent, withDefaults, type BabyDoc, type Device, type EventDoc } from './lib/types';
+
+/** Appareils à notifier : digest activé et heure choisie égale à l'heure courante (8h par défaut). */
+export function selectMorningDigestRecipients(devices: Device[], hour: number): Device[] {
+  return devices.filter((d) => d.notifyMorningDigest !== false && (d.morningDigestHour ?? 8) === hour);
+}
+
+/** « Adrigyl, Soin des yeux, Bain » */
+export function buildDigestBody(pending: string[]): string {
+  return pending.join(', ');
+}
 
 export const morningDigest = onSchedule({ schedule: '0 * * * *', timeZone: ZONE }, async () => {
   const now = new Date();
@@ -885,9 +1007,7 @@ export const morningDigest = onSchedule({ schedule: '0 * * * *', timeZone: ZONE 
   const households = await db().collection('households').get();
 
   for (const doc of households.docs) {
-    const devices = (await loadDevices(doc.ref)).filter(
-      (d) => d.notifyMorningDigest !== false && (d.morningDigestHour ?? 8) === hour,
-    );
+    const devices = selectMorningDigestRecipients(await loadDevices(doc.ref), hour);
     if (devices.length === 0) continue;
     const baby = doc.get('baby') as BabyDoc | undefined;
     if (!baby) continue;
@@ -906,7 +1026,7 @@ export const morningDigest = onSchedule({ schedule: '0 * * * *', timeZone: ZONE 
 
     await sendToDevices(doc.id, devices, {
       title: `Aujourd'hui pour ${baby.name}`,
-      body: pending.join(', '),
+      body: buildDigestBody(pending),
       data: { route: '/today' },
     });
   }
@@ -931,6 +1051,75 @@ initializeApp();
 export { onEventCreated } from './on-event-created';
 export { bottleReminder } from './bottle-reminder';
 export { morningDigest } from './morning-digest';
+```
+
+- [ ] **Step 2 bis: Tester — `functions/src/morning-digest.test.ts`**
+
+Les helpers purs (`selectMorningDigestRecipients`, `buildDigestBody`) sont testés ; `firebase-functions/v2/scheduler` est mocké.
+
+```ts
+import { describe, expect, it, vi } from 'vitest';
+import type { Device } from './lib/types';
+
+vi.mock('firebase-functions/v2/scheduler', () => ({
+  onSchedule: (_options: unknown, handler: unknown) => handler,
+}));
+
+const { buildDigestBody, selectMorningDigestRecipients } = await import('./morning-digest');
+
+describe('selectMorningDigestRecipients', () => {
+  it("inclut un appareil sans préférence dont l'heure par défaut (8h) correspond", () => {
+    const devices: Device[] = [{ id: 'd1' }];
+
+    expect(selectMorningDigestRecipients(devices, 8).map((d) => d.id)).toEqual(['d1']);
+  });
+
+  it("exclut un appareil sans préférence si l'heure courante n'est pas 8h", () => {
+    const devices: Device[] = [{ id: 'd1' }];
+
+    expect(selectMorningDigestRecipients(devices, 9)).toEqual([]);
+  });
+
+  it('inclut un appareil ayant explicitement choisi cette heure', () => {
+    const devices: Device[] = [{ id: 'd1', morningDigestHour: 9 }];
+
+    expect(selectMorningDigestRecipients(devices, 9).map((d) => d.id)).toEqual(['d1']);
+  });
+
+  it('exclut les appareils ayant désactivé le digest matinal, même à leur heure', () => {
+    const devices: Device[] = [
+      { id: 'd1', notifyMorningDigest: false, morningDigestHour: 8 },
+      { id: 'd2', notifyMorningDigest: true, morningDigestHour: 8 },
+      { id: 'd3', morningDigestHour: 8 },
+    ];
+
+    expect(
+      selectMorningDigestRecipients(devices, 8)
+        .map((d) => d.id)
+        .sort(),
+    ).toEqual(['d2', 'd3']);
+  });
+
+  it("renvoie un tableau vide si aucun appareil n'est dû à cette heure", () => {
+    const devices: Device[] = [{ id: 'd1', morningDigestHour: 20 }];
+
+    expect(selectMorningDigestRecipients(devices, 8)).toEqual([]);
+  });
+});
+
+describe('buildDigestBody', () => {
+  it('joint les soins en attente avec une virgule', () => {
+    expect(buildDigestBody(['Adrigyl', 'Soin des yeux', 'Bain'])).toBe('Adrigyl, Soin des yeux, Bain');
+  });
+
+  it('renvoie une chaîne vide sans soin en attente', () => {
+    expect(buildDigestBody([])).toBe('');
+  });
+
+  it('renvoie le libellé seul pour un unique soin en attente', () => {
+    expect(buildDigestBody(['Bain'])).toBe('Bain');
+  });
+});
 ```
 
 - [ ] **Step 3: Compiler et tester**
@@ -977,9 +1166,11 @@ Expected: `Deploy complete!` avec `onEventCreated`, `bottleReminder`, `morningDi
 - [ ] **Step 5: Commit final**
 
 ```bash
-git add -A
+git add .firebaserc
 git commit -m "chore: déploiement Firebase vérifié"
 ```
+
+(Pas de `git add -A` : un `Makefile` non suivi et sans rapport traîne à la racine.)
 
 ---
 
