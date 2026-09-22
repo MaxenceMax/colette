@@ -8,12 +8,12 @@ part of 'diaper_stock_providers.dart';
 
 // GENERATED CODE - DO NOT MODIFY BY HAND
 // ignore_for_file: type=lint, type=warning
-/// Sans état : `keepAlive` comme les autres repositories.
+/// Sans état et partagé : `keepAlive`.
 
 @ProviderFor(diaperStockRepository)
 final diaperStockRepositoryProvider = DiaperStockRepositoryProvider._();
 
-/// Sans état : `keepAlive` comme les autres repositories.
+/// Sans état et partagé : `keepAlive`.
 
 final class DiaperStockRepositoryProvider
     extends
@@ -23,7 +23,7 @@ final class DiaperStockRepositoryProvider
           DiaperStockRepository
         >
     with $Provider<DiaperStockRepository> {
-  /// Sans état : `keepAlive` comme les autres repositories.
+  /// Sans état et partagé : `keepAlive`.
   DiaperStockRepositoryProvider._()
     : super(
         from: null,
@@ -105,22 +105,28 @@ final class DiaperStockProvider
 
 String _$diaperStockHash() => r'3326ac8b1c664000bd322368884d3ce41bf359ef';
 
-/// Restant et alerte ; `null` tant que le stock n'est pas renseigné.
+/// Restant et alerte. `AsyncData(null)` tant que le stock n'est pas renseigné ;
+/// `AsyncLoading` ou `AsyncError` tant que le stock ou le comptage des changes
+/// n'est pas disponible, pour ne jamais afficher ni écrire un restant faux.
 
 @ProviderFor(diaperStockStatus)
 final diaperStockStatusProvider = DiaperStockStatusProvider._();
 
-/// Restant et alerte ; `null` tant que le stock n'est pas renseigné.
+/// Restant et alerte. `AsyncData(null)` tant que le stock n'est pas renseigné ;
+/// `AsyncLoading` ou `AsyncError` tant que le stock ou le comptage des changes
+/// n'est pas disponible, pour ne jamais afficher ni écrire un restant faux.
 
 final class DiaperStockStatusProvider
     extends
         $FunctionalProvider<
-          DiaperStockStatus?,
-          DiaperStockStatus?,
-          DiaperStockStatus?
+          AsyncValue<DiaperStockStatus?>,
+          AsyncValue<DiaperStockStatus?>,
+          AsyncValue<DiaperStockStatus?>
         >
-    with $Provider<DiaperStockStatus?> {
-  /// Restant et alerte ; `null` tant que le stock n'est pas renseigné.
+    with $Provider<AsyncValue<DiaperStockStatus?>> {
+  /// Restant et alerte. `AsyncData(null)` tant que le stock n'est pas renseigné ;
+  /// `AsyncLoading` ou `AsyncError` tant que le stock ou le comptage des changes
+  /// n'est pas disponible, pour ne jamais afficher ni écrire un restant faux.
   DiaperStockStatusProvider._()
     : super(
         from: null,
@@ -137,22 +143,24 @@ final class DiaperStockStatusProvider
 
   @$internal
   @override
-  $ProviderElement<DiaperStockStatus?> $createElement(
+  $ProviderElement<AsyncValue<DiaperStockStatus?>> $createElement(
     $ProviderPointer pointer,
   ) => $ProviderElement(pointer);
 
   @override
-  DiaperStockStatus? create(Ref ref) {
+  AsyncValue<DiaperStockStatus?> create(Ref ref) {
     return diaperStockStatus(ref);
   }
 
   /// {@macro riverpod.override_with_value}
-  Override overrideWithValue(DiaperStockStatus? value) {
+  Override overrideWithValue(AsyncValue<DiaperStockStatus?> value) {
     return $ProviderOverride(
       origin: this,
-      providerOverride: $SyncValueProvider<DiaperStockStatus?>(value),
+      providerOverride: $SyncValueProvider<AsyncValue<DiaperStockStatus?>>(
+        value,
+      ),
     );
   }
 }
 
-String _$diaperStockStatusHash() => r'83d7d71f9e78defdbafb6ffdfcdcb76368527f78';
+String _$diaperStockStatusHash() => r'8b7641897e12d8f928a1c213a0c9918ac19f6a4b';

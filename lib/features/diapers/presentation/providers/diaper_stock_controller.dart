@@ -34,13 +34,16 @@ class DiaperStockController extends _$DiaperStockController {
     required int remaining,
     required int size,
   }) {
-    if (size < 1 || size > maxPackSize) return _reject();
-    if (remaining + size > maxCount) return _reject();
+    final next = remaining + size;
+    if (size < 1 || size > maxPackSize || next < 0 || next > maxCount) {
+      return _reject();
+    }
     final now = ref.read(clockProvider).now();
     final base = current ?? DiaperStock(count: 0, countedAt: now);
     return _save(base.addPack(size, remaining: remaining, now: now));
   }
 
+  /// Pose le seuil d'alerte ; `0` désactive l'alerte.
   Future<bool> setThreshold(DiaperStock current, int threshold) {
     if (threshold < 0 || threshold > maxThreshold) return _reject();
     return _save(current.copyWith(alertThreshold: threshold));

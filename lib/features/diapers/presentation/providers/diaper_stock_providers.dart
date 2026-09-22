@@ -1,3 +1,5 @@
+import 'dart:developer' as developer;
+
 import 'package:colette/core/firebase/firebase_providers.dart';
 import 'package:colette/features/diapers/data/repositories/firestore_diaper_stock_repository.dart';
 import 'package:colette/features/diapers/domain/entities/diaper_stock.dart';
@@ -10,7 +12,7 @@ import 'package:riverpod_annotation/riverpod_annotation.dart';
 
 part 'diaper_stock_providers.g.dart';
 
-/// Sans état : `keepAlive` comme les autres repositories.
+/// Sans état et partagé : `keepAlive`.
 @Riverpod(keepAlive: true)
 DiaperStockRepository diaperStockRepository(Ref ref) =>
     FirestoreDiaperStockRepository(ref.watch(firestoreProvider));
@@ -23,15 +25,37 @@ Stream<DiaperStock?> diaperStock(Ref ref) {
   return ref.watch(diaperStockRepositoryProvider).watchStock(code);
 }
 
-/// Restant et alerte ; `null` tant que le stock n'est pas renseigné.
+/// Restant et alerte. `AsyncData(null)` tant que le stock n'est pas renseigné ;
+/// `AsyncLoading` ou `AsyncError` tant que le stock ou le comptage des changes
+/// n'est pas disponible, pour ne jamais afficher ni écrire un restant faux.
 @riverpod
-DiaperStockStatus? diaperStockStatus(Ref ref) {
-  final stock = ref.watch(diaperStockProvider).value;
-  if (stock == null) return null;
-  final changes =
-      ref.watch(diaperChangesSinceProvider(stock.countedAt)).value ?? 0;
-  return const ComputeDiaperStockStatus()(
-    stock: stock,
-    changesSinceCount: changes,
+AsyncValue<DiaperStockStatus?> diaperStockStatus(Ref ref) => switch (ref.watch(
+  diaperStockProvider,
+)) {
+  AsyncError(:final error, :final stackTrace) => _logged(error, stackTrace),
+  AsyncData(value: null) => const AsyncData(null),
+  AsyncData(value: final stock?) => switch (ref.watch(
+    diaperChangesSinceProvider(stock.countedAt),
+  )) {
+    AsyncData(value: final changes) => AsyncData(
+      const ComputeDiaperStockStatus()(
+        stock: stock,
+        changesSinceCount: changes,
+      ),
+    ),
+    AsyncError(:final error, :final stackTrace) => _logged(error, stackTrace),
+    _ => const AsyncLoading(),
+  },
+  _ => const AsyncLoading(),
+};
+
+/// Journalise l'échec (un comptage en erreur rendrait le stock silencieusement faux).
+AsyncError<DiaperStockStatus?> _logged(Object error, StackTrace stackTrace) {
+  developer.log(
+    'Diaper stock status failed',
+    error: error,
+    stackTrace: stackTrace,
+    name: 'colette',
   );
+  return AsyncError(error, stackTrace);
 }

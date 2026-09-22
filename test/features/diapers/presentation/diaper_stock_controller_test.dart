@@ -102,6 +102,50 @@ void main() {
   test('addPack refuse une taille nulle', () async {
     expect(await controller().addPack(stock, remaining: 7, size: 0), isFalse);
     verifyNever(() => repo.saveStock(any(), any()));
+    expect(
+      container.read(diaperStockControllerProvider).error,
+      isA<ValidationFailure>().having(
+        (f) => f.reason,
+        'reason',
+        ValidationReason.invalidDiaperCount,
+      ),
+    );
+  });
+
+  test('addPack refuse un dépassement du stock maximal', () async {
+    expect(
+      await controller().addPack(stock, remaining: 9990, size: 20),
+      isFalse,
+    );
+    verifyNever(() => repo.saveStock(any(), any()));
+  });
+
+  test('setThreshold refuse une valeur hors bornes', () async {
+    expect(await controller().setThreshold(stock, 1000), isFalse);
+    verifyNever(() => repo.saveStock(any(), any()));
+  });
+
+  test('recount refuse une valeur négative', () async {
+    expect(await controller().recount(stock, -1), isFalse);
+    verifyNever(() => repo.saveStock(any(), any()));
+  });
+
+  test('sans code foyer, rien n\'est écrit', () async {
+    final noHouseholdContainer = ProviderContainer(
+      overrides: [
+        diaperStockRepositoryProvider.overrideWithValue(repo),
+        clockProvider.overrideWithValue(FixedClock(now)),
+        householdLocalStoreProvider.overrideWithValue(
+          InMemoryHouseholdLocalStore(),
+        ),
+      ],
+    );
+    addTearDown(noHouseholdContainer.dispose);
+    final noHouseholdController = noHouseholdContainer.read(
+      diaperStockControllerProvider.notifier,
+    );
+    expect(await noHouseholdController.recount(stock, 20), isFalse);
+    verifyNever(() => repo.saveStock(any(), any()));
   });
 
   test('un échec du repository est exposé dans l\'état', () async {

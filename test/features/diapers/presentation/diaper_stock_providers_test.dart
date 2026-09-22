@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:colette/features/diapers/domain/entities/diaper_stock.dart';
 import 'package:colette/features/diapers/domain/entities/diaper_stock_status.dart';
 import 'package:colette/features/diapers/domain/repositories/diaper_stock_repository.dart';
@@ -21,6 +23,7 @@ void main() {
   ProviderContainer containerWith({
     required DiaperStock? stock,
     required int changes,
+    Stream<int>? changesStream,
   }) {
     final stockRepo = MockDiaperStockRepository();
     final eventsRepo = MockEventsRepository();
@@ -31,7 +34,7 @@ void main() {
         any(),
         from: any(named: 'from'),
       ),
-    ).thenAnswer((_) => Stream.value(changes));
+    ).thenAnswer((_) => changesStream ?? Stream.value(changes));
     final container = ProviderContainer(
       overrides: [
         diaperStockRepositoryProvider.overrideWithValue(stockRepo),
@@ -50,7 +53,10 @@ void main() {
     final sub = container.listen(diaperStockStatusProvider, (_, _) {});
     addTearDown(sub.close);
     await container.read(diaperStockProvider.future);
-    expect(container.read(diaperStockStatusProvider), isNull);
+    expect(
+      container.read(diaperStockStatusProvider),
+      const AsyncData<DiaperStockStatus?>(null),
+    );
   });
 
   test(
@@ -66,8 +72,47 @@ void main() {
       await container.read(diaperChangesSinceProvider(countedAt).future);
       expect(
         container.read(diaperStockStatusProvider),
-        const DiaperStockStatus(remaining: 9, isLow: true),
+        const AsyncData<DiaperStockStatus?>(
+          DiaperStockStatus(remaining: 9, isLow: true),
+        ),
       );
     },
   );
+
+  test('diaperStockStatus reste en chargement tant que les changes ne sont pas comptés', () async {
+    final changesController = StreamController<int>();
+    addTearDown(changesController.close);
+    final container = containerWith(
+      stock: DiaperStock(count: 12, countedAt: countedAt),
+      changes: 0,
+      changesStream: changesController.stream,
+    );
+    final sub = container.listen(diaperStockStatusProvider, (_, _) {});
+    addTearDown(sub.close);
+    await container.read(diaperStockProvider.future);
+    expect(
+      container.read(diaperStockStatusProvider),
+      isA<AsyncLoading<DiaperStockStatus?>>(),
+    );
+  });
+
+  test('diaperStockStatus expose l\'erreur du comptage des changes', () async {
+    final container = containerWith(
+      stock: DiaperStock(count: 12, countedAt: countedAt),
+      changes: 0,
+      changesStream: Stream<int>.error(Exception('index')),
+    );
+    final sub = container.listen(diaperStockStatusProvider, (_, _) {});
+    addTearDown(sub.close);
+    await container.read(diaperStockProvider.future);
+    try {
+      await container.read(diaperChangesSinceProvider(countedAt).future);
+    } catch (_) {
+      // Le stream des changes échoue volontairement pour ce test.
+    }
+    expect(
+      container.read(diaperStockStatusProvider),
+      isA<AsyncError<DiaperStockStatus?>>(),
+    );
+  });
 }
