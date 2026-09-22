@@ -24,10 +24,10 @@ void main() {
     );
   });
 
-  test('io → message d\'écriture', () {
+  test('io → message d\'accès neutre', () {
     expect(
       failureMessage(const DocumentsFailure(DocumentsReason.io), s),
-      "Impossible d'enregistrer le document",
+      "Impossible d'accéder à ce document.",
     );
   });
 

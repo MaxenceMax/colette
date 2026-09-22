@@ -161,6 +161,61 @@ void main() {
     expect(find.widgetWithText(AppBar, 'Nouveau'), findsOneWidget);
   });
 
+  testWidgets('tirer pour rafraîchir : succès, nouvelle liste affichée', (
+    tester,
+  ) async {
+    var listCalls = 0;
+    when(() => repo.list('')).thenAnswer((_) async {
+      listCalls++;
+      return listCalls == 1
+          ? right([entry('a.pdf')])
+          : right([entry('a.pdf'), entry('b.pdf')]);
+    });
+    await pumpPage(tester);
+    expect(find.text('b.pdf'), findsNothing);
+    await tester.fling(find.byType(ListView), const Offset(0, 300), 1000);
+    await tester.pumpAndSettle();
+    expect(find.text('b.pdf'), findsOneWidget);
+    expect(listCalls, 2);
+  });
+
+  testWidgets('tirer pour rafraîchir : échec sans exception non gérée', (
+    tester,
+  ) async {
+    var listCalls = 0;
+    when(() => repo.list('')).thenAnswer((_) async {
+      listCalls++;
+      return listCalls == 1
+          ? right([entry('a.pdf')])
+          : left(const DocumentsFailure(DocumentsReason.accessDenied));
+    });
+    await pumpPage(tester);
+    await tester.fling(find.byType(ListView), const Offset(0, 300), 1000);
+    await tester.pumpAndSettle();
+    expect(find.text("Colette n'a plus accès au dossier"), findsOneWidget);
+    expect(tester.takeException(), isNull);
+  });
+
+  testWidgets('erreur d\'accès sur l\'aperçu invalide le dossier', (
+    tester,
+  ) async {
+    var listCalls = 0;
+    when(() => repo.list('')).thenAnswer((_) async {
+      listCalls++;
+      return listCalls == 1
+          ? right([entry('a.pdf')])
+          : left(const DocumentsFailure(DocumentsReason.noFolder));
+    });
+    when(() => repo.preview('a.pdf')).thenAnswer(
+      (_) async => left(const DocumentsFailure(DocumentsReason.accessDenied)),
+    );
+    await pumpPage(tester);
+    await tester.tap(find.text('a.pdf'));
+    await tester.pumpAndSettle();
+    expect(find.text("Colette n'a plus accès au dossier"), findsOneWidget);
+    expect(listCalls, 2);
+  });
+
   testWidgets('autre erreur : message générique', (tester) async {
     when(() => repo.list(''))
         .thenAnswer((_) async => left(UnknownFailure(Exception('x'))));

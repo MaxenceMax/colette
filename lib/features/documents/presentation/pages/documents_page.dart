@@ -60,7 +60,16 @@ class _EntriesList extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) => RefreshIndicator(
-    onRefresh: () => ref.refresh(documentsFolderProvider(folderPath).future),
+    onRefresh: () async {
+      // L'erreur est déjà affichée par le parent via ref.watch ; ne pas la
+      // laisser fuir.
+      try {
+        final refreshed = ref.refresh(
+          documentsFolderProvider(folderPath).future,
+        );
+        await refreshed;
+      } on Object catch (_) {}
+    },
     child: ListView.builder(
       physics: const AlwaysScrollableScrollPhysics(),
       itemCount: entries.length,

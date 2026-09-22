@@ -19,7 +19,7 @@ String failureMessage(Object failure, S s) => switch (failure) {
   DocumentsFailure(:final reason) => switch (reason) {
     DocumentsReason.noFolder ||
     DocumentsReason.accessDenied => s.documentsErrorAccess,
-    DocumentsReason.io => s.documentsErrorWrite,
+    DocumentsReason.io => s.documentsErrorIo,
     // Jamais affiché : l'UI ignore cancelled.
     DocumentsReason.cancelled => s.errorUnknown,
   },

@@ -5,10 +5,18 @@ import 'package:flutter/material.dart';
 
 /// État vide : icône et message centrés.
 class EmptyState extends StatelessWidget {
-  const EmptyState({super.key, required this.icon, required this.message});
+  const EmptyState({
+    super.key,
+    required this.icon,
+    required this.message,
+    this.action,
+  });
 
   final IconData icon;
   final String message;
+
+  /// Action optionnelle affichée sous le message.
+  final Widget? action;
 
   @override
   Widget build(BuildContext context) {
@@ -27,6 +35,10 @@ class EmptyState extends StatelessWidget {
               style: Theme.of(context).coletteTextStyles.body
                   .copyWith(color: secondary),
             ),
+            if (action case final action?) ...[
+              AppSpacing.md.verticalSpace,
+              action,
+            ],
           ],
         ),
       ),

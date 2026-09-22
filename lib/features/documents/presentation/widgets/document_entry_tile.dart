@@ -40,6 +40,7 @@ class DocumentEntryTile extends ConsumerWidget {
     final s = S.of(context);
     final messenger = ScaffoldMessenger.of(context);
     switch (error) {
+      // Défense en profondeur : le contrôleur mappe déjà cancelled sur AsyncData.
       case DocumentsFailure(reason: DocumentsReason.cancelled):
         return;
       case DocumentsFailure(reason: DocumentsReason.io):
