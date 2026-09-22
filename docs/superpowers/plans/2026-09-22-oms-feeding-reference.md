@@ -594,7 +594,7 @@ Co-Authored-By: Claude Fable 5.1 <noreply@anthropic.com>"
 - Modify: `lib/features/dashboard/presentation/providers/feeding_plan_sync.dart:55-62`
 - Test: `test/features/dashboard/presentation/feeding_plan_sync_test.dart`
 
-- [ ] **Étape 1 : test rouge**
+- [x] **Étape 1 : test rouge**
 
 Ajouter avant le test `'sync n\'échoue pas sans profil'` dans `test/features/dashboard/presentation/feeding_plan_sync_test.dart` :
 
@@ -641,12 +641,12 @@ Ajouter avant le test `'sync n\'échoue pas sans profil'` dans `test/features/da
 
 Ajouter l'import `package:colette/features/baby/domain/entities/care_settings.dart` en tête du fichier.
 
-- [ ] **Étape 2 : vérifier l'échec**
+- [x] **Étape 2 : vérifier l'échec**
 
 Run: `flutter test test/features/dashboard/presentation/feeding_plan_sync_test.dart`
 Expected: le nouveau test échoue, `suggestedMl` vaut 60.
 
-- [ ] **Étape 3 : `feeding_plan_sync.dart`**
+- [x] **Étape 3 : `feeding_plan_sync.dart`**
 
 Dans `FirestoreFeedingPlanSync.sync`, ajouter l'argument dans l'appel à `ComputeFeedingPlan` :
 
@@ -662,7 +662,7 @@ Dans `FirestoreFeedingPlanSync.sync`, ajouter l'argument dans l'appel à `Comput
       );
 ```
 
-- [ ] **Étape 4 : `dashboard_providers.dart`**
+- [x] **Étape 4 : `dashboard_providers.dart`**
 
 Ajouter les imports :
 
@@ -689,12 +689,12 @@ FeedingReference? feedingReference(Ref ref) {
 }
 ```
 
-- [ ] **Étape 5 : générer et vérifier le vert**
+- [x] **Étape 5 : générer et vérifier le vert**
 
 Run: `dart run build_runner build -d && flutter test test/features/dashboard/`
 Expected: tous verts.
 
-- [ ] **Étape 6 : commit**
+- [x] **Étape 6 : commit**
 
 ```bash
 git add lib/features/dashboard/presentation/providers/dashboard_providers.dart lib/features/dashboard/presentation/providers/dashboard_providers.g.dart lib/features/dashboard/presentation/providers/feeding_plan_sync.dart test/features/dashboard/presentation/feeding_plan_sync_test.dart
