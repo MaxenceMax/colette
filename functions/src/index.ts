@@ -5,3 +5,4 @@ setGlobalOptions({ region: 'europe-west1', maxInstances: 5 });
 initializeApp();
 
 export { onEventCreated } from './on-event-created';
+export { bottleReminder } from './bottle-reminder';
