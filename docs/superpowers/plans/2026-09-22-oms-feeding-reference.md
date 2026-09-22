@@ -146,7 +146,7 @@ Co-Authored-By: Claude Fable 5.1 <noreply@anthropic.com>"
 - Modify: `lib/features/dashboard/domain/use_cases/compute_feeding_plan.dart`
 - Test: `test/features/dashboard/domain/compute_feeding_plan_test.dart`
 
-- [ ] **Étape 1 : tests rouges**
+- [x] **Étape 1 : tests rouges**
 
 Ajouter à la fin de `main()` dans `test/features/dashboard/domain/compute_feeding_plan_test.dart` :
 
@@ -208,12 +208,12 @@ Ajouter à la fin de `main()` dans `test/features/dashboard/domain/compute_feedi
   });
 ```
 
-- [ ] **Étape 2 : vérifier l'échec**
+- [x] **Étape 2 : vérifier l'échec**
 
 Run: `flutter test test/features/dashboard/domain/compute_feeding_plan_test.dart`
 Expected: échec de compilation, paramètre `dailyTargetMlOverride` inconnu.
 
-- [ ] **Étape 3 : `CareSettings`**
+- [x] **Étape 3 : `CareSettings`**
 
 Remplacer le contenu de `lib/features/baby/domain/entities/care_settings.dart` :
 
@@ -245,7 +245,7 @@ abstract class CareSettings with _$CareSettings {
 }
 ```
 
-- [ ] **Étape 4 : `FeedingPlan`**
+- [x] **Étape 4 : `FeedingPlan`**
 
 Dans `lib/features/dashboard/domain/entities/feeding_plan.dart`, remplacer la factory :
 
@@ -266,7 +266,7 @@ Dans `lib/features/dashboard/domain/entities/feeding_plan.dart`, remplacer la fa
   }) = _FeedingPlan;
 ```
 
-- [ ] **Étape 5 : `ComputeFeedingPlan`**
+- [x] **Étape 5 : `ComputeFeedingPlan`**
 
 Dans `lib/features/dashboard/domain/use_cases/compute_feeding_plan.dart`, remplacer la méthode `call` :
 
@@ -330,12 +330,12 @@ Mettre à jour aussi le commentaire de classe :
 /// `feedsPerDay` est borné à 1 minimum pour ne jamais diviser par zéro.
 ```
 
-- [ ] **Étape 6 : générer et vérifier le vert**
+- [x] **Étape 6 : générer et vérifier le vert**
 
 Run: `dart run build_runner build -d && flutter test test/features/dashboard/domain/ test/features/baby/`
 Expected: build sans erreur ; tous les tests verts.
 
-- [ ] **Étape 7 : commit**
+- [x] **Étape 7 : commit**
 
 ```bash
 git add lib/features/baby/domain/entities/care_settings.dart lib/features/baby/domain/entities/care_settings.freezed.dart lib/features/dashboard/domain/entities/feeding_plan.dart lib/features/dashboard/domain/entities/feeding_plan.freezed.dart lib/features/dashboard/domain/use_cases/compute_feeding_plan.dart test/features/dashboard/domain/compute_feeding_plan_test.dart
