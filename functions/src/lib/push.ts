@@ -29,9 +29,13 @@ export async function sendToDevices(code: string, devices: Device[], payload: Pu
 
   await Promise.all(
     stale.map((d) =>
-      db().collection('households').doc(code).collection('devices').doc(d.id).update({
-        fcmToken: FieldValue.delete(),
-      }),
+      db()
+        .collection('households')
+        .doc(code)
+        .collection('devices')
+        .doc(d.id)
+        .update({ fcmToken: FieldValue.delete() })
+        .catch((err) => logger.warn('Token mort non effacé', { code, deviceId: d.id, err })),
     ),
   );
 

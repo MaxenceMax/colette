@@ -21,5 +21,6 @@ export function summarizeEvent(event: CareEvent): string {
   for (const key of ORDER) {
     if (event[key]) parts.push(CARE_LABELS[key]);
   }
-  return `${parts.join(' · ')} à ${formatHourMinute(event.startAt)}`;
+  const label = parts.length === 0 ? 'Événement' : parts.join(' · ');
+  return `${label} à ${formatHourMinute(event.startAt)}`;
 }

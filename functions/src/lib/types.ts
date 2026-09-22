@@ -26,6 +26,7 @@ export type BabyDoc = {
 export type FeedingPlanDoc = {
   nextBottleAt: Timestamp;
   suggestedMl: number;
+  computedAt?: Timestamp;
 };
 
 export type DeviceDoc = {
@@ -35,6 +36,7 @@ export type DeviceDoc = {
   notifyBottleReminder?: boolean;
   notifyMorningDigest?: boolean;
   morningDigestHour?: number;
+  lastDigestSentOn?: string;
 };
 
 export type Device = DeviceDoc & { id: string };
@@ -60,6 +62,21 @@ export function toCareEvent(doc: EventDoc): CareEvent {
   return { ...doc, startAt: doc.startAt.toDate() };
 }
 
+/** Borne une valeur comme le client : un document modifié à la main ne doit jamais casser les calculs. */
+function clamped(value: unknown, min: number, max: number, fallback: number): number {
+  if (typeof value !== 'number' || !Number.isFinite(value)) return fallback;
+  return Math.min(max, Math.max(min, Math.trunc(value)));
+}
+
+/** Mêmes valeurs par défaut et mêmes bornes que `CareSettingsDto.fromMap` côté client. */
 export function withDefaults(settings: Partial<CareSettings> | undefined): CareSettings {
-  return { ...DEFAULT_CARE_SETTINGS, ...(settings ?? {}) };
+  const raw = settings ?? {};
+  return {
+    adrigylPerDay: clamped(raw.adrigylPerDay, 0, 10, DEFAULT_CARE_SETTINGS.adrigylPerDay),
+    eyeCarePerDay: clamped(raw.eyeCarePerDay, 0, 10, DEFAULT_CARE_SETTINGS.eyeCarePerDay),
+    noseCarePerDay: clamped(raw.noseCarePerDay, 0, 10, DEFAULT_CARE_SETTINGS.noseCarePerDay),
+    umbilicalCareEnabled: raw.umbilicalCareEnabled !== false,
+    bathEveryDays: clamped(raw.bathEveryDays, 1, 30, DEFAULT_CARE_SETTINGS.bathEveryDays),
+    feedsPerDay: clamped(raw.feedsPerDay, 1, 24, DEFAULT_CARE_SETTINGS.feedsPerDay),
+  };
 }

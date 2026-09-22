@@ -4,8 +4,12 @@ import { sendToDevices } from './lib/push';
 import { summarizeEvent } from './lib/summary';
 import { toCareEvent, type Device, type EventDoc } from './lib/types';
 
-/** Appareils à notifier : ni l'auteur, ni ceux ayant désactivé les notifications des autres événements. */
+/**
+ * Appareils à notifier : ni l'auteur, ni ceux ayant désactivé les notifications des autres événements.
+ * Sans auteur identifié, impossible de savoir qui prévenir : personne n'est notifié.
+ */
 export function selectRecipients(devices: Device[], createdByDeviceId: string | undefined): Device[] {
+  if (!createdByDeviceId) return [];
   return devices.filter((d) => d.id !== createdByDeviceId && d.notifyOnOthersEvents !== false);
 }
 

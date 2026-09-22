@@ -34,6 +34,27 @@ describe('pendingCares', () => {
     });
     expect(pending).toEqual(['Adrigyl', 'Soin des yeux', 'Soin du nez']);
   });
+  it('adrigylPerDay à 0 : Adrigyl jamais attendu', () => {
+    const pending = pendingCares({
+      settings: { ...DEFAULT_CARE_SETTINGS, adrigylPerDay: 0 },
+      todayEvents: [],
+      lastBathAt: null,
+      now,
+    });
+
+    expect(pending).not.toContain('Adrigyl');
+  });
+
+  it('adrigylPerDay à 2 avec une prise faite : encore en attente', () => {
+    const pending = pendingCares({
+      settings: { ...DEFAULT_CARE_SETTINGS, adrigylPerDay: 2 },
+      todayEvents: [{ startAt: new Date('2026-09-21T05:00:00Z'), adrigyl: true }],
+      lastBathAt: null,
+      now,
+    });
+
+    expect(pending).toContain('Adrigyl');
+  });
 });
 
 describe('isBathExpected', () => {

@@ -1,10 +1,12 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import type { Device } from './types';
 
-const { sendEachForMulticast, updateCalls, loggerInfo } = vi.hoisted(() => ({
+const { sendEachForMulticast, updateCalls, failingDeviceIds, loggerInfo, loggerWarn } = vi.hoisted(() => ({
   sendEachForMulticast: vi.fn(),
   updateCalls: [] as Array<{ code: string; deviceId: string; data: unknown }>,
+  failingDeviceIds: new Set<string>(),
   loggerInfo: vi.fn(),
+  loggerWarn: vi.fn(),
 }));
 
 vi.mock('firebase-admin/messaging', () => ({
@@ -12,7 +14,7 @@ vi.mock('firebase-admin/messaging', () => ({
 }));
 
 vi.mock('firebase-functions', () => ({
-  logger: { info: loggerInfo },
+  logger: { info: loggerInfo, warn: loggerWarn },
 }));
 
 vi.mock('./firestore', () => ({
@@ -27,7 +29,9 @@ vi.mock('./firestore', () => ({
               doc: (deviceId: string) => ({
                 update: (data: unknown) => {
                   updateCalls.push({ code, deviceId, data });
-                  return Promise.resolve();
+                  return failingDeviceIds.has(deviceId)
+                    ? Promise.reject(new Error('NOT_FOUND: document absent'))
+                    : Promise.resolve();
                 },
               }),
             };
@@ -44,7 +48,9 @@ describe('sendToDevices', () => {
   beforeEach(() => {
     sendEachForMulticast.mockReset();
     loggerInfo.mockReset();
+    loggerWarn.mockReset();
     updateCalls.length = 0;
+    failingDeviceIds.clear();
   });
 
   it("ne fait aucun appel FCM si aucun appareil n'a de token", async () => {
@@ -109,5 +115,29 @@ describe('sendToDevices', () => {
     for (const call of updateCalls) {
       expect(call.code).toBe('ABC123');
     }
+  });
+
+  it("n'échoue pas quand l'appareil a été supprimé entre-temps", async () => {
+    sendEachForMulticast.mockResolvedValue({
+      responses: [
+        { success: true },
+        { success: false, error: { code: 'messaging/registration-token-not-registered' } },
+        { success: false, error: { code: 'messaging/invalid-registration-token' } },
+      ],
+      successCount: 1,
+      failureCount: 2,
+    });
+    failingDeviceIds.add('parti');
+    const devices: Device[] = [
+      { id: 'ok', fcmToken: 'token-ok' },
+      { id: 'parti', fcmToken: 'token-parti' },
+      { id: 'stale', fcmToken: 'token-stale' },
+    ];
+
+    const count = await sendToDevices('ABC123', devices, { title: 'Titre', body: 'Corps' });
+
+    expect(count).toBe(1);
+    expect(updateCalls.map((c) => c.deviceId).sort()).toEqual(['parti', 'stale']);
+    expect(loggerWarn).toHaveBeenCalledTimes(1);
   });
 });

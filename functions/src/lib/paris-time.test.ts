@@ -1,5 +1,12 @@
 import { describe, expect, it } from 'vitest';
-import { formatHourMinute, hourInParis, startOfTodayInParis } from './paris-time';
+import {
+  formatHourMinute,
+  hourInParis,
+  nearestHourInParis,
+  startOfTodayInParis,
+  startOfTomorrowInParis,
+  todayKeyInParis,
+} from './paris-time';
 
 describe('paris-time', () => {
   it('formate en « 14h32 » heure de Paris', () => {
@@ -14,5 +21,43 @@ describe('paris-time', () => {
     expect(startOfTodayInParis(new Date('2026-09-21T12:32:00Z')).toISOString()).toBe(
       '2026-09-20T22:00:00.000Z',
     );
+  });
+
+  it('donne minuit de Paris en UTC en heure d\'hiver', () => {
+    expect(startOfTodayInParis(new Date('2026-01-15T12:00:00Z')).toISOString()).toBe(
+      '2026-01-14T23:00:00.000Z',
+    );
+  });
+});
+
+describe('startOfTomorrowInParis', () => {
+  it('donne minuit du lendemain (heure d\'été)', () => {
+    expect(startOfTomorrowInParis(new Date('2026-09-21T12:32:00Z')).toISOString()).toBe(
+      '2026-09-21T22:00:00.000Z',
+    );
+  });
+
+  it('donne minuit du lendemain (heure d\'hiver)', () => {
+    expect(startOfTomorrowInParis(new Date('2026-01-15T12:00:00Z')).toISOString()).toBe(
+      '2026-01-15T23:00:00.000Z',
+    );
+  });
+});
+
+describe('nearestHourInParis', () => {
+  it('arrondit à l\'heure la plus proche', () => {
+    expect(nearestHourInParis(new Date('2026-09-21T05:59:00Z'))).toBe(8);
+    expect(nearestHourInParis(new Date('2026-09-21T06:29:00Z'))).toBe(8);
+    expect(nearestHourInParis(new Date('2026-09-21T06:31:00Z'))).toBe(9);
+  });
+});
+
+describe('todayKeyInParis', () => {
+  it('donne la date du jour à Paris au format yyyy-LL-dd', () => {
+    expect(todayKeyInParis(new Date('2026-09-21T12:32:00Z'))).toBe('2026-09-21');
+  });
+
+  it('bascule au jour suivant dès minuit à Paris', () => {
+    expect(todayKeyInParis(new Date('2026-09-21T22:30:00Z'))).toBe('2026-09-22');
   });
 });

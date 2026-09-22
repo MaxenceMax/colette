@@ -13,4 +13,8 @@ describe('summarizeEvent', () => {
   it('gère un événement à un seul soin', () => {
     expect(summarizeEvent({ startAt: at, bath: true })).toBe('Bain à 14h32');
   });
+
+  it("sans biberon ni soin, décrit un événement simple", () => {
+    expect(summarizeEvent({ startAt: at })).toBe('Événement à 14h32');
+  });
 });
