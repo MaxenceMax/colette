@@ -34,6 +34,13 @@ class NextBottleCard extends ConsumerWidget {
     final now = ref.watch(currentMinuteProvider);
     final rolling = ref.watch(rollingIntakeProvider);
     return ColetteCardSurface(
+      // Haut réduit : l'IconButton du titre apporte déjà son propre padding.
+      padding: AppSpacing.only(
+        left: AppSpacing.md,
+        right: AppSpacing.md,
+        top: AppSpacing.xs,
+        bottom: AppSpacing.md,
+      ),
       onTap: () =>
           showEventFormSheet(context, suggestedBottleMl: plan.suggestedMl),
       child: Column(
@@ -55,7 +62,6 @@ class NextBottleCard extends ConsumerWidget {
                 icon: const Icon(Icons.info_outline),
                 color: context.appColor(AppColors.textSecondary),
                 tooltip: s.feedingReferenceTooltip,
-                visualDensity: VisualDensity.compact,
               ),
             ],
           ),

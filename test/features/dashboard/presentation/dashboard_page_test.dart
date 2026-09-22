@@ -10,6 +10,7 @@ import 'package:colette/features/dashboard/presentation/providers/feeding_plan_s
 import 'package:colette/features/events/domain/entities/care_event.dart';
 import 'package:colette/features/events/domain/repositories/events_repository.dart';
 import 'package:colette/features/events/presentation/providers/events_providers.dart';
+import 'package:colette/features/events/presentation/widgets/event_form_sheet.dart';
 import 'package:colette/features/household/presentation/providers/household_providers.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/misc.dart' show Override;
@@ -50,6 +51,7 @@ void main() {
     MockEventsRepository repo, {
     List<CareEvent>? recent,
     BabyProfile? baby,
+    List<WeightEntry>? weights,
   }) => [
     clockProvider.overrideWithValue(FixedClock(now)),
     minuteTickerProvider.overrideWith((ref) => const Stream.empty()),
@@ -58,9 +60,16 @@ void main() {
     ),
     babyProfileProvider.overrideWith((ref) => Stream.value(baby ?? profile)),
     weightsProvider.overrideWith(
-      (ref) => Stream.value([
-        WeightEntry(id: 'w', measuredAt: DateTime(2026, 9, 9), grams: 3600),
-      ]),
+      (ref) => Stream.value(
+        weights ??
+            [
+              WeightEntry(
+                id: 'w',
+                measuredAt: DateTime(2026, 9, 9),
+                grams: 3600,
+              ),
+            ],
+      ),
     ),
     todayEventsProvider.overrideWith((ref) => Stream.value([adrigyl, bottle])),
     recentEventsProvider.overrideWith(
@@ -174,5 +183,42 @@ void main() {
     await tester.pumpAndSettle();
     expect(find.text('Repères OMS'), findsOneWidget);
     expect(find.text('Repères par âge'), findsOneWidget);
+    expect(find.byType(EventFormSheet), findsNothing);
   });
+
+  testWidgets('taper la carte ouvre le formulaire biberon prérempli', (
+    tester,
+  ) async {
+    final repo = MockEventsRepository();
+    await pumpApp(tester, const DashboardPage(), overrides: overridesFor(repo));
+    await tester.tap(find.text('Prochain biberon'));
+    await tester.pumpAndSettle();
+    expect(find.byType(EventFormSheet), findsOneWidget);
+    expect(find.text('Repères OMS'), findsNothing);
+  });
+
+  testWidgets(
+    'cible ajustée sans pesée : mention d\'ajustement, pas d\'invitation à peser',
+    (tester) async {
+      final repo = MockEventsRepository();
+      await pumpApp(
+        tester,
+        const DashboardPage(),
+        overrides: overridesFor(
+          repo,
+          weights: const [],
+          baby: profile.copyWith(
+            careSettings: const CareSettings(dailyTargetMl: 600),
+          ),
+        ),
+      );
+      expect(find.textContaining('Cible ajustée à 600 ml'), findsOneWidget);
+      expect(
+        find.text(
+          'Repères par âge : ajoute une pesée pour un calcul au poids.',
+        ),
+        findsNothing,
+      );
+    },
+  );
 }
