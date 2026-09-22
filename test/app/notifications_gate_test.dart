@@ -1,21 +1,14 @@
 import 'package:colette/app/colette_app.dart';
-import 'package:colette/core/clock/now_providers.dart';
-import 'package:colette/core/connectivity/connectivity_provider.dart';
-import 'package:colette/core/firebase/firebase_providers.dart';
 import 'package:colette/core/firebase/firestore_paths.dart';
 import 'package:colette/features/events/presentation/pages/timeline_page.dart';
 import 'package:colette/features/events/presentation/widgets/event_form_sheet.dart';
 import 'package:colette/features/household/presentation/pages/onboarding_page.dart';
-import 'package:colette/features/household/presentation/providers/household_providers.dart';
-import 'package:colette/features/notifications/presentation/providers/notifications_providers.dart';
 import 'package:fake_cloud_firestore/fake_cloud_firestore.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:shared_preferences/shared_preferences.dart';
 
-import '../helpers/documents_repository_override.dart';
+import '../helpers/colette_app_overrides.dart';
 import '../helpers/fake_push_token_source.dart';
-import '../helpers/in_memory_household_local_store.dart';
 
 void main() {
   Future<void> pumpColetteApp(
@@ -24,23 +17,14 @@ void main() {
     FakeFirebaseFirestore? firestore,
     String? code = 'ABCDEFGH',
   }) async {
-    SharedPreferences.setMockInitialValues({});
-    final prefs = await SharedPreferences.getInstance();
     await tester.pumpWidget(
       ProviderScope(
-        overrides: [
-          documentsRepositoryOverride(),
-          sharedPreferencesProvider.overrideWithValue(prefs),
-          householdLocalStoreProvider.overrideWithValue(
-            InMemoryHouseholdLocalStore(householdCode: code, deviceId: 'dev-1'),
-          ),
-          isOnlineProvider.overrideWith((ref) => Stream.value(true)),
-          firestoreProvider.overrideWithValue(
-            firestore ?? FakeFirebaseFirestore(),
-          ),
-          minuteTickerProvider.overrideWith((ref) => const Stream.empty()),
-          pushTokenSourceProvider.overrideWithValue(pushSource),
-        ],
+        overrides: await coletteAppOverrides(
+          householdCode: code,
+          deviceId: 'dev-1',
+          firestore: firestore,
+          pushTokenSource: pushSource,
+        ),
         child: const ColetteApp(),
       ),
     );
