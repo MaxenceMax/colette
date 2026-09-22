@@ -6,3 +6,4 @@ initializeApp();
 
 export { onEventCreated } from './on-event-created';
 export { bottleReminder } from './bottle-reminder';
+export { morningDigest } from './morning-digest';
