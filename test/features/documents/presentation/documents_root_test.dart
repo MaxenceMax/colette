@@ -100,6 +100,18 @@ void main() {
     expect(container.read(documentsRootProvider).hasError, isTrue);
   });
 
+  test(
+    'forget pendant un build en vol ne fait rien : le build écraserait l\'état',
+    () async {
+      final completer = Completer<Either<Failure, DocumentRoot?>>();
+      when(() => repo.rootFolder()).thenAnswer((_) => completer.future);
+
+      await notifier().forget();
+
+      verifyNever(() => repo.forgetRootFolder());
+    },
+  );
+
   test('forget oublie le dossier', () async {
     when(() => repo.rootFolder()).thenAnswer((_) async => right(root));
     when(() => repo.forgetRootFolder()).thenAnswer((_) async => right(null));
@@ -120,9 +132,14 @@ void main() {
       () => repo.forgetRootFolder(),
     ).thenAnswer((_) async => left(const DocumentsFailure(DocumentsReason.io)));
     await container.read(documentsRootProvider.future);
+    container.listen(documentsFolderProvider(''), (_, _) {});
+    await container.read(documentsFolderProvider('').future);
 
     await notifier().forget();
 
     expect(container.read(documentsRootProvider).hasError, isTrue);
+    // L'échec ne doit pas invalider les listes déjà chargées.
+    await container.read(documentsFolderProvider('').future);
+    verify(() => repo.list('')).called(1);
   });
 }

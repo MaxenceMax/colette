@@ -3,8 +3,6 @@ import 'package:colette/core/clock/now_providers.dart';
 import 'package:colette/core/connectivity/connectivity_provider.dart';
 import 'package:colette/core/firebase/firebase_providers.dart';
 import 'package:colette/core/firebase/firestore_paths.dart';
-import 'package:colette/features/documents/domain/repositories/documents_repository.dart';
-import 'package:colette/features/documents/presentation/providers/documents_providers.dart';
 import 'package:colette/features/events/presentation/pages/timeline_page.dart';
 import 'package:colette/features/events/presentation/widgets/event_form_sheet.dart';
 import 'package:colette/features/household/presentation/pages/onboarding_page.dart';
@@ -13,22 +11,13 @@ import 'package:colette/features/notifications/presentation/providers/notificati
 import 'package:fake_cloud_firestore/fake_cloud_firestore.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:fpdart/fpdart.dart';
-import 'package:mocktail/mocktail.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
+import '../helpers/documents_repository_override.dart';
 import '../helpers/fake_push_token_source.dart';
 import '../helpers/in_memory_household_local_store.dart';
 
-class MockDocumentsRepository extends Mock implements DocumentsRepository {}
-
 void main() {
-  MockDocumentsRepository documentsRepo() {
-    final repo = MockDocumentsRepository();
-    when(() => repo.rootFolder()).thenAnswer((_) async => right(null));
-    return repo;
-  }
-
   Future<void> pumpColetteApp(
     WidgetTester tester, {
     required FakePushTokenSource pushSource,
@@ -40,7 +29,7 @@ void main() {
     await tester.pumpWidget(
       ProviderScope(
         overrides: [
-          documentsRepositoryProvider.overrideWithValue(documentsRepo()),
+          documentsRepositoryOverride(),
           sharedPreferencesProvider.overrideWithValue(prefs),
           householdLocalStoreProvider.overrideWithValue(
             InMemoryHouseholdLocalStore(householdCode: code, deviceId: 'dev-1'),

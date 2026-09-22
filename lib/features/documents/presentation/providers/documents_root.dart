@@ -41,6 +41,9 @@ class DocumentsRoot extends _$DocumentsRoot {
 
   /// Oublie le dossier : Colette ne l'affiche plus, rien n'est supprimé.
   Future<void> forget() async {
+    // Un `build` initial (ou un `pick`) encore en vol écraserait l'état posé
+    // ici avec son propre résultat une fois résolu.
+    if (state.isLoading) return;
     final result = await ref
         .read(documentsRepositoryProvider)
         .forgetRootFolder();

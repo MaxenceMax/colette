@@ -8,8 +8,6 @@ import 'package:colette/features/dashboard/presentation/pages/dashboard_page.dar
 import 'package:colette/features/dashboard/presentation/providers/feeding_plan_sync.dart';
 import 'package:colette/features/diapers/domain/entities/diaper_stock_status.dart';
 import 'package:colette/features/diapers/presentation/providers/diaper_stock_providers.dart';
-import 'package:colette/features/documents/domain/repositories/documents_repository.dart';
-import 'package:colette/features/documents/presentation/providers/documents_providers.dart';
 import 'package:colette/features/events/domain/entities/care_event.dart';
 import 'package:colette/features/events/domain/repositories/events_repository.dart';
 import 'package:colette/features/events/presentation/providers/events_providers.dart';
@@ -23,20 +21,13 @@ import 'package:fpdart/fpdart.dart';
 import 'package:mocktail/mocktail.dart';
 
 import '../../../helpers/care_event_factory.dart';
+import '../../../helpers/documents_repository_override.dart';
 import '../../../helpers/in_memory_household_local_store.dart';
 import '../../../helpers/pump_app.dart';
 
 class MockEventsRepository extends Mock implements EventsRepository {}
 
-class MockDocumentsRepository extends Mock implements DocumentsRepository {}
-
 void main() {
-  MockDocumentsRepository documentsRepo() {
-    final repo = MockDocumentsRepository();
-    when(() => repo.rootFolder()).thenAnswer((_) async => right(null));
-    return repo;
-  }
-
   final now = DateTime(2026, 9, 10, 12);
   final profile = BabyProfile(name: 'Colette', birthDate: DateTime(2026, 9, 1));
   final bottle = makeEvent(
@@ -64,7 +55,7 @@ void main() {
     List<CareEvent>? recent,
     AsyncValue<DiaperStockStatus?> diaperStatus = const AsyncData(null),
   }) => [
-    documentsRepositoryProvider.overrideWithValue(documentsRepo()),
+    documentsRepositoryOverride(),
     clockProvider.overrideWithValue(FixedClock(now)),
     minuteTickerProvider.overrideWith((ref) => const Stream.empty()),
     householdLocalStoreProvider.overrideWithValue(
