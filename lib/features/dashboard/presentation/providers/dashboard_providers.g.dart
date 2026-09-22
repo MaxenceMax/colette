@@ -54,6 +54,52 @@ final class FeedingPlanProvider
 
 String _$feedingPlanHash() => r'abc57d5aa8e84acdc5367099a655624b40df6dae';
 
+/// Biberons des dernières 24 h glissantes.
+
+@ProviderFor(rollingIntake)
+final rollingIntakeProvider = RollingIntakeProvider._();
+
+/// Biberons des dernières 24 h glissantes.
+
+final class RollingIntakeProvider
+    extends $FunctionalProvider<RollingIntake, RollingIntake, RollingIntake>
+    with $Provider<RollingIntake> {
+  /// Biberons des dernières 24 h glissantes.
+  RollingIntakeProvider._()
+    : super(
+        from: null,
+        argument: null,
+        retry: null,
+        name: r'rollingIntakeProvider',
+        isAutoDispose: true,
+        dependencies: null,
+        $allTransitiveDependencies: null,
+      );
+
+  @override
+  String debugGetCreateSourceHash() => _$rollingIntakeHash();
+
+  @$internal
+  @override
+  $ProviderElement<RollingIntake> $createElement($ProviderPointer pointer) =>
+      $ProviderElement(pointer);
+
+  @override
+  RollingIntake create(Ref ref) {
+    return rollingIntake(ref);
+  }
+
+  /// {@macro riverpod.override_with_value}
+  Override overrideWithValue(RollingIntake value) {
+    return $ProviderOverride(
+      origin: this,
+      providerOverride: $SyncValueProvider<RollingIntake>(value),
+    );
+  }
+}
+
+String _$rollingIntakeHash() => r'453011fddb9e4c69660eea2c6632a9e6ce83dd1f';
+
 /// Soins attendus aujourd'hui.
 
 @ProviderFor(dailyCareTasks)

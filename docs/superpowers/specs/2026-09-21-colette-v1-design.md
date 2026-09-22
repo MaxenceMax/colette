@@ -300,6 +300,8 @@ Sorties :
 - `givenMl = somme des ml du jour`, `remainingMl = max(0, dailyTargetMl − givenMl)`.
 - `suggestedMl = bottlesRemaining > 0 ? arrondi10(remainingMl / bottlesRemaining) : arrondi10(dailyTargetMl / feedsPerDay)`, borné entre 30 ml et 240 ml.
 
+La carte affiche en complément le nombre de biberons et les ml donnés sur les dernières 24 heures glissantes (« 7 biberons · 410 ml sur les dernières 24 h »), sans effet sur le plan ni sur les Cloud Functions. Le jour civil reste la seule règle de découpage ; voir `2026-09-22-rolling-intake-design.md`.
+
 À chaque création, modification ou suppression d'un événement contenant un biberon, et à chaque ajout ou suppression de pesée ou changement des réglages de soins, le client recalcule et écrit `feedingPlan` dans le document du foyer (même batch d'écriture), pour que la fonction de rappel n'ait pas à réimplémenter la règle.
 
 ### 6.4 Onglet « Journal » (feature `events`)

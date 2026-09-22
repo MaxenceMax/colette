@@ -1,5 +1,7 @@
 import 'package:colette/core/clock/app_clock.dart';
+import 'package:colette/core/theme/app_colors.dart';
 import 'package:colette/core/theme/design_tokens.dart';
+import 'package:colette/core/theme/text_styles.dart';
 import 'package:colette/features/events/domain/entities/care_event.dart';
 import 'package:colette/features/events/presentation/day_label.dart';
 import 'package:colette/features/events/presentation/providers/event_form_controller.dart';
@@ -104,6 +106,9 @@ class _TimelineList extends ConsumerWidget {
     ref.watch(eventFormControllerProvider);
     final groups = groupEventsByDay(events);
     final lastPageFull = events.length >= ref.watch(timelineLimitProvider);
+    final headerBackground = context.appColor(AppColors.pageBackground);
+    final headerStyle = Theme.of(context).coletteTextStyles.label
+        .copyWith(color: context.appColor(AppColors.textSecondary));
     return NotificationListener<ScrollNotification>(
       onNotification: (notification) => _onScroll(ref, notification),
       child: CustomScrollView(
@@ -115,6 +120,8 @@ class _TimelineList extends ConsumerWidget {
                   pinned: true,
                   delegate: DayHeaderDelegate(
                     dayLabel(group.day, now: now, s: s),
+                    background: headerBackground,
+                    textStyle: headerStyle,
                   ),
                 ),
                 SliverList.builder(
