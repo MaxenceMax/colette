@@ -230,5 +230,54 @@ void main() {
       expect(plan.isEstimatedFromAge, isTrue);
       expect(plan.isTargetOverridden, isTrue);
     });
+
+    test('override égal à la cible OMS : toujours signalé comme ajusté', () {
+      final plan = compute(
+        birthDate: birth,
+        latestWeightGrams: 4200,
+        feedsPerDay: 8,
+        todayBottles: const [],
+        lastBottle: null,
+        now: DateTime(2026, 9, 10, 12),
+        dailyTargetMlOverride: 630,
+      );
+      expect(plan.dailyTargetMl, plan.omsTargetMl);
+      expect(plan.isTargetOverridden, isTrue);
+    });
+
+    test(
+      'override inférieur aux ml déjà donnés : reste 0, suggestion plancher 30',
+      () {
+        final bottle = makeEvent(
+          id: 'a',
+          startAt: DateTime(2026, 9, 10, 9),
+          bottleMl: 200,
+        );
+        final plan = compute(
+          birthDate: birth,
+          latestWeightGrams: 4200,
+          feedsPerDay: 8,
+          todayBottles: [bottle],
+          lastBottle: bottle,
+          now: DateTime(2026, 9, 10, 12),
+          dailyTargetMlOverride: 100,
+        );
+        expect(plan.remainingMl, 0);
+        expect(plan.suggestedMl, ComputeFeedingPlan.minSuggestedMl);
+      },
+    );
+
+    test('override très haut : la suggestion reste plafonnée à 240', () {
+      final plan = compute(
+        birthDate: birth,
+        latestWeightGrams: 4200,
+        feedsPerDay: 4,
+        todayBottles: const [],
+        lastBottle: null,
+        now: DateTime(2026, 9, 10, 12),
+        dailyTargetMlOverride: 1500,
+      );
+      expect(plan.suggestedMl, ComputeFeedingPlan.maxSuggestedMl);
+    });
   });
 }

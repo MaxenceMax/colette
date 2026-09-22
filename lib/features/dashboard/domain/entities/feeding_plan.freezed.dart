@@ -17,7 +17,8 @@ mixin _$FeedingPlan {
 
 /// Cible effective : ajustée si renseignée, sinon OMS.
  int get dailyTargetMl;/// Cible calculée selon l'OMS, toujours disponible.
- int get omsTargetMl; bool get isTargetOverridden; int get feedsPerDay; DateTime get nextBottleAt; int get suggestedMl; int get bottlesGiven; int get givenMl; bool get isEstimatedFromAge;
+ int get omsTargetMl;/// Vrai dès qu'une cible ajustée est fournie, même égale à la cible OMS.
+ bool get isTargetOverridden; int get feedsPerDay; DateTime get nextBottleAt; int get suggestedMl; int get bottlesGiven; int get givenMl; bool get isEstimatedFromAge;
 /// Create a copy of FeedingPlan
 /// with the given fields replaced by the non-null parameter values.
 @JsonKey(includeFromJson: false, includeToJson: false)
@@ -229,6 +230,7 @@ class _FeedingPlan extends FeedingPlan {
 @override final  int dailyTargetMl;
 /// Cible calculée selon l'OMS, toujours disponible.
 @override final  int omsTargetMl;
+/// Vrai dès qu'une cible ajustée est fournie, même égale à la cible OMS.
 @override final  bool isTargetOverridden;
 @override final  int feedsPerDay;
 @override final  DateTime nextBottleAt;

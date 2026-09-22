@@ -15,6 +15,8 @@ abstract class FeedingPlan with _$FeedingPlan {
 
     /// Cible calculée selon l'OMS, toujours disponible.
     required int omsTargetMl,
+
+    /// Vrai dès qu'une cible ajustée est fournie, même égale à la cible OMS.
     required bool isTargetOverridden,
     required int feedsPerDay,
     required DateTime nextBottleAt,
