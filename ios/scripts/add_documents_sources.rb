@@ -8,6 +8,8 @@ target = project.targets.find { |t| t.name == 'Runner' }
 raise 'cible Runner introuvable' if target.nil?
 
 runner_group = project.main_group['Runner']
+raise 'groupe Runner introuvable' if runner_group.nil?
+
 group = runner_group['Documents'] || runner_group.new_group('Documents', 'Documents')
 
 Dir[File.expand_path('../Runner/Documents/*.swift', __dir__)].sort.each do |file|

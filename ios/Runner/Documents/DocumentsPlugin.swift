@@ -96,13 +96,14 @@ final class DocumentsPlugin: NSObject {
     let root = try store.openRoot()
     let folder = try resolve(path, under: root)
     presenter.scan { outcome in
-      defer { root.close() }
       switch outcome {
       case .failure(let error):
+        root.close()
         result(error.flutterError)
       case .success(let pages):
-        result(
-          Self.written { try DocumentsWriter.writePDF(pages: pages, named: fileName, in: folder) })
+        Self.writeOffMainThread(root: root, result: result) {
+          try DocumentsWriter.writePDF(pages: pages, named: fileName, in: folder)
+        }
       }
     }
   }
@@ -111,15 +112,28 @@ final class DocumentsPlugin: NSObject {
     let root = try store.openRoot()
     let folder = try resolve(path, under: root)
     presenter.pickFile { outcome in
-      defer { root.close() }
       switch outcome {
       case .failure(let error):
+        root.close()
         result(error.flutterError)
       case .success(let source):
-        result(
-          Self.written {
-            try DocumentsWriter.copy(source, named: source.lastPathComponent, in: folder)
-          })
+        Self.writeOffMainThread(root: root, result: result) {
+          defer { try? FileManager.default.removeItem(at: source) }
+          return try DocumentsWriter.copy(source, named: source.lastPathComponent, in: folder)
+        }
+      }
+    }
+  }
+
+  /// Écrit hors du thread principal, puis referme la portée et répond sur le thread principal.
+  private static func writeOffMainThread(
+    root: ScopedRoot, result: @escaping FlutterResult, _ write: @escaping () throws -> String
+  ) {
+    DispatchQueue.global(qos: .userInitiated).async {
+      let written = Self.written(write)
+      DispatchQueue.main.async {
+        root.close()
+        result(written)
       }
     }
   }

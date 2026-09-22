@@ -35,7 +35,7 @@ final class DocumentsPresenter: NSObject {
     let picker = UIDocumentPickerViewController(forOpeningContentTypes: [.folder])
     picker.allowsMultipleSelection = false
     picker.delegate = self
-    host.present(picker, animated: true)
+    present(picker, from: host) { [weak self] in self?.failPicker() }
   }
 
   /// Sélecteur de fichier (copie locale) ; `cancelled` si un sélecteur est déjà ouvert.
@@ -52,7 +52,7 @@ final class DocumentsPresenter: NSObject {
     let picker = UIDocumentPickerViewController(forOpeningContentTypes: [.item], asCopy: true)
     picker.allowsMultipleSelection = false
     picker.delegate = self
-    host.present(picker, animated: true)
+    present(picker, from: host) { [weak self] in self?.failPicker() }
   }
 
   /// Scanner VisionKit ; `cancelled` si un scan est déjà en cours.
@@ -61,18 +61,31 @@ final class DocumentsPresenter: NSObject {
       completion(.failure(.cancelled))
       return
     }
-    guard VNDocumentCameraViewController.isSupported, let host else {
+    guard let host else {
+      completion(.failure(.io("Aucune fenêtre")))
+      return
+    }
+    guard VNDocumentCameraViewController.isSupported else {
       completion(.failure(.io("Scanner indisponible")))
       return
     }
     scanCompletion = completion
     let scanner = VNDocumentCameraViewController()
     scanner.delegate = self
-    host.present(scanner, animated: true)
+    present(scanner, from: host) { [weak self] in
+      guard let self else { return }
+      let pending = scanCompletion
+      scanCompletion = nil
+      pending?(.failure(.io(Self.presentationFailure)))
+    }
   }
 
-  /// Aperçu Quick Look ; échoue si aucune fenêtre ne peut présenter l'aperçu.
+  /// Aperçu Quick Look ; `cancelled` si un aperçu est déjà ouvert.
   func preview(fileURL: URL, completion: @escaping (Result<Void, DocumentsError>) -> Void) {
+    guard previewCompletion == nil else {
+      completion(.failure(.cancelled))
+      return
+    }
     guard let host else {
       completion(.failure(.io("Aucune fenêtre")))
       return
@@ -82,8 +95,34 @@ final class DocumentsPresenter: NSObject {
     let controller = QLPreviewController()
     controller.dataSource = self
     controller.delegate = self
-    host.present(controller, animated: true)
+    present(controller, from: host) { [weak self] in
+      guard let self else { return }
+      let pending = previewCompletion
+      previewCompletion = nil
+      previewURL = nil
+      pending?(.failure(.io(Self.presentationFailure)))
+    }
   }
+
+  /// Présente l'écran et signale l'échec si la présentation n'a pas eu lieu.
+  private func present(
+    _ controller: UIViewController, from host: UIViewController,
+    onFailure: @escaping () -> Void
+  ) {
+    host.present(controller, animated: true) {
+      guard controller.presentingViewController == nil else { return }
+      onFailure()
+    }
+  }
+
+  /// Libère le sélecteur en attente après une présentation impossible.
+  private func failPicker() {
+    let pending = pickerCompletion
+    pickerCompletion = nil
+    pending?(.failure(.io(Self.presentationFailure)))
+  }
+
+  private static let presentationFailure = "Présentation impossible"
 }
 
 extension DocumentsPresenter: UIDocumentPickerDelegate {
