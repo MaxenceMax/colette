@@ -19,8 +19,10 @@ class FirestoreDiaperStockRepository implements DiaperStockRepository {
   @override
   Stream<DiaperStock?> watchStock(String householdCode) =>
       _household(householdCode).snapshots().map((snap) {
-        final data = snap.data()?['diaperStock'] as Map<String, dynamic>?;
-        return data == null ? null : DiaperStockDto.fromMap(data);
+        final data = snap.data()?['diaperStock'];
+        return data is Map<String, dynamic>
+            ? DiaperStockDto.fromMap(data)
+            : null;
       });
 
   @override
@@ -30,6 +32,16 @@ class FirestoreDiaperStockRepository implements DiaperStockRepository {
   ) => guard(
     () => _household(householdCode).set({
       'diaperStock': DiaperStockDto.toMap(stock),
+    }, SetOptions(merge: true)),
+  );
+
+  @override
+  Future<Either<Failure, void>> saveThreshold(
+    String householdCode,
+    int alertThreshold,
+  ) => guard(
+    () => _household(householdCode).set({
+      'diaperStock': {'alertThreshold': alertThreshold},
     }, SetOptions(merge: true)),
   );
 }

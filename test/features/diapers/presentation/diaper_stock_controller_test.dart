@@ -32,6 +32,8 @@ void main() {
     repo = MockDiaperStockRepository();
     when(() => repo.saveStock(any(), any()))
         .thenAnswer((_) async => right(null));
+    when(() => repo.saveThreshold(any(), any()))
+        .thenAnswer((_) async => right(null));
     container = ProviderContainer(
       overrides: [
         diaperStockRepositoryProvider.overrideWithValue(repo),
@@ -78,12 +80,10 @@ void main() {
     expect(captured().count, 44);
   });
 
-  test('setThreshold conserve count et countedAt', () async {
-    expect(await controller().setThreshold(stock, 5), isTrue);
-    final saved = captured();
-    expect(saved.alertThreshold, 5);
-    expect(saved.count, 44);
-    expect(saved.countedAt, countedAt);
+  test('setThreshold écrit uniquement le seuil', () async {
+    expect(await controller().setThreshold(5), isTrue);
+    verify(() => repo.saveThreshold('ABCDEFGH', 5));
+    verifyNever(() => repo.saveStock(any(), any()));
   });
 
   test('recount refuse une valeur hors bornes', () async {
@@ -121,8 +121,9 @@ void main() {
   });
 
   test('setThreshold refuse une valeur hors bornes', () async {
-    expect(await controller().setThreshold(stock, 1000), isFalse);
+    expect(await controller().setThreshold(1000), isFalse);
     verifyNever(() => repo.saveStock(any(), any()));
+    verifyNever(() => repo.saveThreshold(any(), any()));
   });
 
   test('recount refuse une valeur négative', () async {

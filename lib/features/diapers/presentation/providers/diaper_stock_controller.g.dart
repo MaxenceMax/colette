@@ -40,7 +40,7 @@ final class DiaperStockControllerProvider
 }
 
 String _$diaperStockControllerHash() =>
-    r'9702aa683312e84e179f1219c3d5d39bca95fc5e';
+    r'1706a02ccf889c3299dca963ce565119449c0d85';
 
 /// Recomptage, ajout de paquet et seuil d'alerte. L'état porte l'échec éventuel.
 /// Reçoit le stock courant en paramètre (`null` s'il n'est pas encore renseigné).

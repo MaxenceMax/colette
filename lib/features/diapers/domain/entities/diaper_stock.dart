@@ -8,11 +8,15 @@ abstract class DiaperStock with _$DiaperStock {
   const DiaperStock._();
 
   static const defaultPackSize = 44;
+  static const defaultAlertThreshold = 10;
+  static const maxCount = 9999;
+  static const maxPackSize = 999;
+  static const maxThreshold = 999;
 
   const factory DiaperStock({
     required int count,
     required DateTime countedAt,
-    @Default(10) int alertThreshold,
+    @Default(DiaperStock.defaultAlertThreshold) int alertThreshold,
     @Default(DiaperStock.defaultPackSize) int lastPackSize,
   }) = _DiaperStock;
 

@@ -41,6 +41,11 @@ void main() {
     expect(find.byType(ColetteCardSurface), findsNothing);
   });
 
+  testWidgets('rien pendant le chargement', (tester) async {
+    await pumpCard(tester, const AsyncLoading());
+    expect(find.byType(ColetteCardSurface), findsNothing);
+  });
+
   testWidgets('alerte sous le seuil', (tester) async {
     await pumpCard(
       tester,

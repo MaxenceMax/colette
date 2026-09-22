@@ -5,6 +5,7 @@ import 'package:colette/core/result/failure.dart';
 import 'package:colette/features/diapers/domain/entities/diaper_stock.dart';
 import 'package:colette/features/diapers/presentation/providers/diaper_stock_providers.dart';
 import 'package:colette/features/household/presentation/providers/household_providers.dart';
+import 'package:fpdart/fpdart.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
 part 'diaper_stock_controller.g.dart';
@@ -13,9 +14,9 @@ part 'diaper_stock_controller.g.dart';
 /// Reçoit le stock courant en paramètre (`null` s'il n'est pas encore renseigné).
 @riverpod
 class DiaperStockController extends _$DiaperStockController {
-  static const maxCount = 9999;
-  static const maxPackSize = 999;
-  static const maxThreshold = 999;
+  static const maxCount = DiaperStock.maxCount;
+  static const maxPackSize = DiaperStock.maxPackSize;
+  static const maxThreshold = DiaperStock.maxThreshold;
 
   @override
   FutureOr<void> build() {}
@@ -43,10 +44,15 @@ class DiaperStockController extends _$DiaperStockController {
     return _save(base.addPack(size, remaining: remaining, now: now));
   }
 
-  /// Pose le seuil d'alerte ; `0` désactive l'alerte.
-  Future<bool> setThreshold(DiaperStock current, int threshold) {
+  /// Pose le seuil d'alerte ; `0` désactive l'alerte. N'écrit que ce champ,
+  /// en fusion Firestore : un recomptage de l'autre parent n'est jamais écrasé.
+  Future<bool> setThreshold(int threshold) {
     if (threshold < 0 || threshold > maxThreshold) return _reject();
-    return _save(current.copyWith(alertThreshold: threshold));
+    return _run(
+      (code) => ref
+          .read(diaperStockRepositoryProvider)
+          .saveThreshold(code, threshold),
+    );
   }
 
   Future<bool> _reject() async {
@@ -57,13 +63,18 @@ class DiaperStockController extends _$DiaperStockController {
     return false;
   }
 
-  Future<bool> _save(DiaperStock stock) async {
+  /// Sauvegarde [stock] entier via `saveStock`.
+  Future<bool> _save(DiaperStock stock) => _run(
+    (code) => ref.read(diaperStockRepositoryProvider).saveStock(code, stock),
+  );
+
+  Future<bool> _run(
+    Future<Either<Failure, void>> Function(String code) action,
+  ) async {
     final code = ref.read(currentHouseholdCodeProvider);
     if (code == null) return false;
     state = const AsyncLoading();
-    final result = await ref
-        .read(diaperStockRepositoryProvider)
-        .saveStock(code, stock);
+    final result = await action(code);
     state = result.fold(
       (failure) => AsyncError(failure, StackTrace.current),
       (_) => const AsyncData(null),

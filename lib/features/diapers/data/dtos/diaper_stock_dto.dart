@@ -23,10 +23,22 @@ abstract final class DiaperStockDto {
     final countedAt = map['countedAt'];
     if (countedAt is! Timestamp) return null;
     return DiaperStock(
-      count: _readInt(map, 'count', 0, min: 0, max: 9999),
+      count: _readInt(map, 'count', 0, min: 0, max: DiaperStock.maxCount),
       countedAt: countedAt.toDate(),
-      alertThreshold: _readInt(map, 'alertThreshold', 10, min: 0, max: 999),
-      lastPackSize: _readInt(map, 'lastPackSize', 44, min: 1, max: 999),
+      alertThreshold: _readInt(
+        map,
+        'alertThreshold',
+        DiaperStock.defaultAlertThreshold,
+        min: 0,
+        max: DiaperStock.maxThreshold,
+      ),
+      lastPackSize: _readInt(
+        map,
+        'lastPackSize',
+        DiaperStock.defaultPackSize,
+        min: 1,
+        max: DiaperStock.maxPackSize,
+      ),
     );
   }
 }

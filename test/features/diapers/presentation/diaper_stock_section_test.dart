@@ -34,6 +34,8 @@ void main() {
     final repo = MockDiaperStockRepository();
     when(() => repo.saveStock(any(), any()))
         .thenAnswer((_) async => right(null));
+    when(() => repo.saveThreshold(any(), any()))
+        .thenAnswer((_) async => right(null));
     await pumpApp(
       tester,
       const Scaffold(body: SingleChildScrollView(child: DiaperStockSection())),
@@ -74,11 +76,8 @@ void main() {
     final repo = await pumpSection(tester, current: stock, changes: 0);
     await tester.tap(find.widgetWithIcon(IconButton, Icons.remove));
     await tester.pumpAndSettle();
-    final saved =
-        verify(() => repo.saveStock('ABCDEFGH', captureAny())).captured.single
-            as DiaperStock;
-    expect(saved.alertThreshold, 9);
-    expect(saved.count, 44);
+    verify(() => repo.saveThreshold('ABCDEFGH', 9)).called(1);
+    verifyNever(() => repo.saveStock(any(), any()));
     expect(find.text('9'), findsOneWidget);
   });
 

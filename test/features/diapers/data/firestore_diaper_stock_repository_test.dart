@@ -29,4 +29,24 @@ void main() {
     expect((data['baby'] as Map)['name'], 'Colette');
     expect((data['diaperStock'] as Map)['count'], 44);
   });
+
+  test(
+    'saveThreshold écrit uniquement le seuil, sans toucher au comptage',
+    () async {
+      final repo = FirestoreDiaperStockRepository(FakeFirebaseFirestore());
+      await repo.saveStock(code, stock);
+      await repo.saveThreshold(code, 5);
+      expect(
+        await repo.watchStock(code).first,
+        stock.copyWith(alertThreshold: 5),
+      );
+    },
+  );
+
+  test('watchStock renvoie null si diaperStock n\'est pas une map', () async {
+    final db = FakeFirebaseFirestore();
+    await db.collection('households').doc(code).set({'diaperStock': 5});
+    final repo = FirestoreDiaperStockRepository(db);
+    expect(await repo.watchStock(code).first, isNull);
+  });
 }

@@ -11,4 +11,10 @@ abstract interface class DiaperStockRepository {
     String householdCode,
     DiaperStock stock,
   );
+
+  /// Écrit uniquement le seuil, sans toucher au comptage ni à `countedAt`.
+  Future<Either<Failure, void>> saveThreshold(
+    String householdCode,
+    int alertThreshold,
+  );
 }

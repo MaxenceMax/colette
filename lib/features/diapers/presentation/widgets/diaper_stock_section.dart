@@ -121,12 +121,7 @@ class _ThresholdStepperState extends ConsumerState<_ThresholdStepper> {
 
   void _update(int next) {
     setState(() => _threshold = next);
-    // Base la copie sur le stock le plus frais : un recomptage tout juste écrit
-    // ne doit pas être écrasé par la copie encore ancienne du widget.
-    final current = ref.read(diaperStockProvider).value ?? widget.stock;
-    ref
-        .read(diaperStockControllerProvider.notifier)
-        .setThreshold(current, next);
+    ref.read(diaperStockControllerProvider.notifier).setThreshold(next);
   }
 
   @override
