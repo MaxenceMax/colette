@@ -78,10 +78,14 @@ Maxence remplace la valeur par l'identifiant de son projet, ou lance `firebase u
 rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
-    // Le document foyer est atteignable par son code, jamais énumérable.
+    // Le document foyer est atteignable par son code, jamais énumérable
+    // (aucun `read`/`list` accordé ici), et créé seulement avec un code au
+    // format généré par l'app (8 caractères, alphabet sans O/0 ni I/1).
     match /households/{code} {
-      allow get, write: if request.auth != null;
-      allow list: if false;
+      allow get: if request.auth != null;
+      allow create: if request.auth != null && code.matches('^[A-HJ-NP-Z2-9]{8}$');
+      allow update: if request.auth != null;
+      allow delete: if false;
     }
     // Sous-collections : events, weights, devices.
     match /households/{code}/{collection}/{docId} {
@@ -1248,7 +1252,7 @@ export function selectBottleRecipients(devices: Device[]): Device[] {
   return devices.filter((d) => d.notifyBottleReminder !== false);
 }
 
-export const bottleReminder = onSchedule({ schedule: 'every 5 minutes', timeZone: ZONE }, async () => {
+export const bottleReminder = onSchedule({ schedule: 'every 5 minutes', timeZone: ZONE, maxInstances: 1 }, async () => {
   const now = new Date();
   const households = await db().collection('households').get();
 
@@ -1545,7 +1549,7 @@ export function buildDigestBody(pending: string[]): string {
   return pending.join(', ');
 }
 
-export const morningDigest = onSchedule({ schedule: '0 * * * *', timeZone: ZONE }, async () => {
+export const morningDigest = onSchedule({ schedule: '0 * * * *', timeZone: ZONE, maxInstances: 1 }, async () => {
   const now = new Date();
   const hour = nearestHourInParis(now);
   const todayKey = todayKeyInParis(now);

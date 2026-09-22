@@ -215,11 +215,14 @@ Le `code` du foyer est une chaîne de 8 caractères alphanumériques majuscules 
 rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
-    // Le document foyer est atteignable par son code, jamais énumérable :
-    // `list` refusé, sinon un client anonyme pourrait récupérer tous les codes.
+    // Le document foyer est atteignable par son code, jamais énumérable
+    // (aucun `read`/`list` accordé ici), et créé seulement avec un code au
+    // format généré par l'app (8 caractères, alphabet sans O/0 ni I/1).
     match /households/{code} {
-      allow get, write: if request.auth != null;
-      allow list: if false;
+      allow get: if request.auth != null;
+      allow create: if request.auth != null && code.matches('^[A-HJ-NP-Z2-9]{8}$');
+      allow update: if request.auth != null;
+      allow delete: if false;
     }
     // Sous-collections : events, weights, devices.
     match /households/{code}/{collection}/{docId} {
@@ -229,7 +232,7 @@ service cloud.firestore {
 }
 ```
 
-L'auth anonyme est déclenchée silencieusement au démarrage. Le client ne liste jamais `households` (il accède toujours à `.doc(code)`), et les Cloud Functions passent par l'Admin SDK. La confidentialité repose sur le caractère non devinable du code (alphabet de 32 caractères sans O/0 ni I/1, soit 32^8 ≈ 1,1 × 10^12 combinaisons) et sur l'exigence d'une session Firebase signée.
+L'auth anonyme est déclenchée silencieusement au démarrage. Le client ne liste jamais `households` (il accède toujours à `.doc(code)`), et les Cloud Functions passent par l'Admin SDK. Les fonctions planifiées tournent avec `maxInstances: 1` pour qu'une double livraison Pub/Sub ne produise pas de double envoi. La confidentialité repose sur le caractère non devinable du code (alphabet de 32 caractères sans O/0 ni I/1, soit 32^8 ≈ 1,1 × 10^12 combinaisons) et sur l'exigence d'une session Firebase signée.
 
 ### 5.2 Hors ligne
 
