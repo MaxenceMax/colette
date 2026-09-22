@@ -1,5 +1,6 @@
 import 'package:colette/app/colette_app.dart';
 import 'package:colette/app/router/app_router.dart';
+import 'package:colette/core/clock/app_clock.dart';
 import 'package:colette/core/result/failure.dart';
 import 'package:colette/core/theme/theme_service.dart';
 import 'package:colette/features/documents/domain/entities/document_entry.dart';
@@ -58,7 +59,12 @@ void main() {
     addTearDown(router.dispose);
     await tester.pumpWidget(
       ProviderScope(
-        overrides: [documentsRepositoryProvider.overrideWithValue(repo)],
+        overrides: [
+          documentsRepositoryProvider.overrideWithValue(repo),
+          clockProvider.overrideWithValue(
+            FixedClock(DateTime(2026, 9, 22, 14, 32)),
+          ),
+        ],
         child: MaterialApp.router(
           routerConfig: router,
           theme: const ThemeService().light(),
@@ -272,5 +278,45 @@ void main() {
     expect(find.byType(NavigationBar), findsOneWidget);
     expect(find.widgetWithText(AppBar, '2026'), findsOneWidget);
     expect(find.text('a.pdf'), findsOneWidget);
+  });
+
+  testWidgets('« + » puis « Scanner » scanne dans le dossier courant', (
+    tester,
+  ) async {
+    when(() => repo.list('')).thenAnswer((_) async => right(const []));
+    when(() => repo.scan(folderPath: '', fileName: 'Scan 22-09-2026 14h32.pdf'))
+        .thenAnswer((_) async => right('Scan 22-09-2026 14h32.pdf'));
+    await pumpPage(tester);
+    await tester.tap(find.byType(FloatingActionButton));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Scanner un document'));
+    await tester.pumpAndSettle();
+    verify(
+      () => repo.scan(folderPath: '', fileName: 'Scan 22-09-2026 14h32.pdf'),
+    ).called(1);
+    verify(() => repo.list('')).called(2);
+  });
+
+  testWidgets('« + » puis « Importer » importe ; échec io → SnackBar', (
+    tester,
+  ) async {
+    when(() => repo.list('')).thenAnswer((_) async => right(const []));
+    when(
+      () => repo.importFile(folderPath: ''),
+    ).thenAnswer((_) async => left(const DocumentsFailure(DocumentsReason.io)));
+    await pumpPage(tester);
+    await tester.tap(find.byType(FloatingActionButton));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Importer un fichier'));
+    await tester.pumpAndSettle();
+    expect(find.text("Impossible d'enregistrer le document"), findsOneWidget);
+  });
+
+  testWidgets('pas de « + » quand l\'accès est perdu', (tester) async {
+    when(() => repo.list('')).thenAnswer(
+      (_) async => left(const DocumentsFailure(DocumentsReason.accessDenied)),
+    );
+    await pumpPage(tester);
+    expect(find.byType(FloatingActionButton), findsNothing);
   });
 }

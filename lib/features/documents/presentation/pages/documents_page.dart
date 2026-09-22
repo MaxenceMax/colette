@@ -5,7 +5,9 @@ import 'package:colette/core/ui/failure_message.dart';
 import 'package:colette/features/documents/domain/entities/document_entry.dart';
 import 'package:colette/features/documents/presentation/providers/documents_providers.dart';
 import 'package:colette/features/documents/presentation/providers/documents_root.dart';
+import 'package:colette/features/documents/presentation/providers/documents_write_controller.dart';
 import 'package:colette/features/documents/presentation/widgets/document_entry_tile.dart';
+import 'package:colette/features/documents/presentation/widgets/documents_add_menu.dart';
 import 'package:colette/features/documents/presentation/widgets/documents_lost_access_view.dart';
 import 'package:colette/l10n/generated/app_localizations.dart';
 import 'package:colette/shared/ui/widgets/empty_state.dart';
@@ -26,9 +28,32 @@ class DocumentsPage extends ConsumerWidget {
       '' => rootName ?? s.documentsCardTitle,
       _ => path.split('/').last,
     };
+    ref.listen(documentsWriteControllerProvider, (_, next) {
+      if (next case AsyncError(:final error)) {
+        switch (error) {
+          case DocumentsFailure(
+            reason: DocumentsReason.noFolder || DocumentsReason.accessDenied,
+          ):
+            ref.invalidate(documentsFolderProvider(path));
+          case DocumentsFailure(reason: DocumentsReason.cancelled):
+            break;
+          case DocumentsFailure(reason: DocumentsReason.io):
+            // failureMessage() mappe désormais `io` vers un message neutre
+            // (documentsErrorIo, utilisé pour la lecture) ; l'écriture a son
+            // propre message.
+            ScaffoldMessenger.of(context)
+                .showSnackBar(SnackBar(content: Text(s.documentsErrorWrite)));
+          default:
+            ScaffoldMessenger.of(
+              context,
+            ).showSnackBar(SnackBar(content: Text(failureMessage(error, s))));
+        }
+      }
+    });
+    final folder = ref.watch(documentsFolderProvider(path));
     return Scaffold(
       appBar: AppBar(title: Text(title)),
-      body: switch (ref.watch(documentsFolderProvider(path))) {
+      body: switch (folder) {
         AsyncData(value: final entries) when entries.isEmpty => EmptyState(
           icon: Icons.folder_open_outlined,
           message: s.documentsEmptyFolder,
@@ -48,6 +73,10 @@ class DocumentsPage extends ConsumerWidget {
           message: failureMessage(error, s),
         ),
         _ => const Center(child: CircularProgressIndicator()),
+      },
+      floatingActionButton: switch (folder) {
+        AsyncData() => DocumentsAddButton(folderPath: path),
+        _ => null,
       },
     );
   }
