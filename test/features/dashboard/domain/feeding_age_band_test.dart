@@ -35,4 +35,9 @@ void main() {
     expect(FeedingAgeBand.month4To6.dailyMl, 900);
     expect(FeedingAgeBand.month6Plus.dailyMl, 900);
   });
+
+  test('les valeurs sont déclarées par âge croissant', () {
+    expect(FeedingAgeBand.values.first, FeedingAgeBand.day1);
+    expect(FeedingAgeBand.values.last, FeedingAgeBand.month6Plus);
+  });
 }
