@@ -122,4 +122,20 @@ void main() {
       isTrue,
     );
   });
+
+  testWidgets('« + paquet » ajoute au restant, pas au comptage', (
+    tester,
+  ) async {
+    final repo = await pumpSection(tester, current: stock, changes: 4);
+    await tester.tap(find.text('+ paquet'));
+    await tester.pumpAndSettle();
+    await tester.enterText(find.byType(TextField), '10');
+    await tester.tap(find.text('Ajouter'));
+    await tester.pumpAndSettle();
+    final saved =
+        verify(() => repo.saveStock('ABCDEFGH', captureAny())).captured.single
+            as DiaperStock;
+    expect(saved.count, 50);
+    expect(saved.lastPackSize, 10);
+  });
 }

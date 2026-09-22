@@ -30,6 +30,7 @@ class DiaperStockSection extends ConsumerWidget {
     return ColetteCardSurface(
       padding: AppSpacing.sm.all,
       child: Column(
+        crossAxisAlignment: .start,
         children: [
           Padding(
             padding: AppSpacing.sm.all,
@@ -50,7 +51,12 @@ class DiaperStockSection extends ConsumerWidget {
                   color: context.appColor(AppColors.error),
                 ),
               ),
-              _ => const Center(child: CircularProgressIndicator()),
+              _ => Center(
+                child: SizedBox.square(
+                  dimension: AppSize.sm.value,
+                  child: const CircularProgressIndicator(),
+                ),
+              ),
             },
           ),
           Row(
@@ -115,9 +121,12 @@ class _ThresholdStepperState extends ConsumerState<_ThresholdStepper> {
 
   void _update(int next) {
     setState(() => _threshold = next);
+    // Base la copie sur le stock le plus frais : un recomptage tout juste écrit
+    // ne doit pas être écrasé par la copie encore ancienne du widget.
+    final current = ref.read(diaperStockProvider).value ?? widget.stock;
     ref
         .read(diaperStockControllerProvider.notifier)
-        .setThreshold(widget.stock, next);
+        .setThreshold(current, next);
   }
 
   @override

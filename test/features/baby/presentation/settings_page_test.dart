@@ -46,9 +46,10 @@ void main() {
     // La section Couches (et, plus bas, la section Foyer) est sous la ligne
     // de flottaison de la taille de test par défaut (800x600) : la ListView
     // ne construit pas ses slivers hors écran tant qu'on ne défile pas jusqu'à eux.
-    // Le finder de Scrollable est fixé explicitement : au fil du défilement,
-    // le SegmentedButton de la section Apparence expose lui aussi un
-    // Scrollable interne, ce qui rendrait `find.byType(Scrollable)` ambigu.
+    // Le finder de Scrollable est fixé explicitement : la section Foyer affiche
+    // le code dans un SelectableText, dont l'EditableText interne expose son
+    // propre Scrollable ; `find.byType(Scrollable)` deviendrait ambigu dès que
+    // cette section est construite.
     final scrollable = find.byType(Scrollable).first;
     await tester.scrollUntilVisible(
       find.text('Couches'),
