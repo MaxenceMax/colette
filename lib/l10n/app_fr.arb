@@ -31,6 +31,7 @@
   "errorNetwork": "Pas de connexion. Réessaie dans un instant.",
   "errorUnknown": "Une erreur est survenue.",
   "errorNotFound": "Introuvable : l'élément a peut-être été supprimé.",
+  "errorNotificationsDenied": "Notifications refusées. Autorise-les dans Réglages iOS › Colette.",
   "actionDecrease": "Diminuer",
   "actionIncrease": "Augmenter",
   "errorEmptyEvent": "Coche au moins un soin ou renseigne un biberon.",

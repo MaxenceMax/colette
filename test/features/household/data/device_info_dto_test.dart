@@ -8,17 +8,16 @@ void main() {
     expect(device, const DeviceInfo(id: 'dev-1', label: 'iPhone'));
   });
 
-  test('toMap omet fcmToken quand il est nul et l\'écrit sinon', () {
+  test('toMap n\'écrit jamais fcmToken : seul updateFcmToken le gère', () {
     expect(
       DeviceInfoDto.toMap(const DeviceInfo(id: 'd', label: 'x'))
           .containsKey('fcmToken'),
       isFalse,
     );
     expect(
-      DeviceInfoDto.toMap(
-        const DeviceInfo(id: 'd', label: 'x', fcmToken: 't'),
-      )['fcmToken'],
-      't',
+      DeviceInfoDto.toMap(const DeviceInfo(id: 'd', label: 'x', fcmToken: 't'))
+          .containsKey('fcmToken'),
+      isFalse,
     );
   });
 }

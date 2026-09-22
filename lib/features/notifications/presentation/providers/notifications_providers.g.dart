@@ -8,14 +8,18 @@ part of 'notifications_providers.dart';
 
 // GENERATED CODE - DO NOT MODIFY BY HAND
 // ignore_for_file: type=lint, type=warning
+/// Source de push utilisée par l'app ; Firebase Cloud Messaging en production.
 
 @ProviderFor(pushTokenSource)
 final pushTokenSourceProvider = PushTokenSourceProvider._();
+
+/// Source de push utilisée par l'app ; Firebase Cloud Messaging en production.
 
 final class PushTokenSourceProvider
     extends
         $FunctionalProvider<PushTokenSource, PushTokenSource, PushTokenSource>
     with $Provider<PushTokenSource> {
+  /// Source de push utilisée par l'app ; Firebase Cloud Messaging en production.
   PushTokenSourceProvider._()
     : super(
         from: null,
@@ -79,7 +83,7 @@ final class PushRegistrationProvider
   PushRegistration create() => PushRegistration();
 }
 
-String _$pushRegistrationHash() => r'31a4ce0a87e71af1cd97d166ddfb2344d67ee49c';
+String _$pushRegistrationHash() => r'ef2102c01eda7544fed0fd340e24e22948bf4ef2';
 
 /// Enregistre le token FCM de cet iPhone dans le foyer et suit ses renouvellements.
 

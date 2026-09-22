@@ -2,14 +2,18 @@ import 'dart:async';
 import 'dart:developer' as developer;
 
 import 'package:colette/core/firebase/firebase_providers.dart';
+import 'package:colette/core/result/failure.dart';
+import 'package:colette/core/result/failure_mapper.dart';
 import 'package:colette/features/household/domain/entities/device_info.dart';
 import 'package:colette/features/household/presentation/providers/household_providers.dart';
 import 'package:colette/features/notifications/data/firebase_push_token_source.dart';
 import 'package:colette/features/notifications/domain/push_token_source.dart';
+import 'package:fpdart/fpdart.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
 part 'notifications_providers.g.dart';
 
+/// Source de push utilisée par l'app ; Firebase Cloud Messaging en production.
 @Riverpod(keepAlive: true)
 PushTokenSource pushTokenSource(Ref ref) =>
     FirebasePushTokenSource(ref.watch(firebaseMessagingProvider));
@@ -18,26 +22,49 @@ PushTokenSource pushTokenSource(Ref ref) =>
 @Riverpod(keepAlive: true)
 class PushRegistration extends _$PushRegistration {
   StreamSubscription<String>? _refreshSubscription;
+  Future<void>? _inFlight;
 
   @override
   FutureOr<void> build() {
     ref.onDispose(() => _refreshSubscription?.cancel());
   }
 
-  Future<void> register() async {
+  /// Un appel pendant qu'un autre est en cours partage la même Future.
+  Future<void> register() =>
+      _inFlight ??= _register().whenComplete(() => _inFlight = null);
+
+  Future<void> _register() async {
     final code = ref.read(currentHouseholdCodeProvider);
     if (code == null) return;
     final source = ref.read(pushTokenSourceProvider);
-    if (!await source.requestPermission()) return;
-    final token = await source.getToken();
-    if (token != null) await _saveToken(code, token);
-    await _refreshSubscription?.cancel();
-    _refreshSubscription = source.onTokenRefresh.listen(
-      (newToken) => _saveToken(code, newToken),
-    );
+    state = const AsyncLoading();
+    final result = await guard(() async {
+      if (!await source.requestPermission()) {
+        return left<Failure, void>(
+          const ValidationFailure(ValidationReason.notificationsDenied),
+        );
+      }
+      _listenRefresh(source);
+      final token = await source.getToken();
+      if (token == null) return right<Failure, void>(null);
+      return _saveToken(code, token);
+    });
+    state = result
+        .flatMap((inner) => inner)
+        .fold(
+          (f) => AsyncError(f, StackTrace.current),
+          (_) => const AsyncData(null),
+        );
   }
 
-  Future<void> _saveToken(String code, String token) async {
+  void _listenRefresh(PushTokenSource source) {
+    _refreshSubscription ??= source.onTokenRefresh.listen((token) {
+      final current = ref.read(currentHouseholdCodeProvider);
+      if (current != null) _saveToken(current, token);
+    });
+  }
+
+  Future<Either<Failure, void>> _saveToken(String code, String token) async {
     final result = await ref
         .read(deviceRepositoryProvider)
         .updateFcmToken(code, ref.read(deviceIdProvider), token);
@@ -46,6 +73,7 @@ class PushRegistration extends _$PushRegistration {
           developer.log('Token FCM non enregistré : $failure', name: 'colette'),
       (_) {},
     );
+    return result;
   }
 }
 

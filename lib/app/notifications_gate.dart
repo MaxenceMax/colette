@@ -27,7 +27,13 @@ class _NotificationsGateState extends ConsumerState<NotificationsGate> {
       _,
       code,
     ) {
-      if (code != null) ref.read(pushRegistrationProvider.notifier).register();
+      if (code == null) return;
+      // PushRegistration pose `state` dès l'appel : différer après la
+      // frame en cours, sinon `fireImmediately` depuis `initState` modifie
+      // le provider pendant la construction de l'arbre de widgets.
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (mounted) ref.read(pushRegistrationProvider.notifier).register();
+      });
     });
     final source = ref.read(pushTokenSourceProvider);
     _openedSubscription = source.onMessageOpened.listen(_navigate);
@@ -44,6 +50,7 @@ class _NotificationsGateState extends ConsumerState<NotificationsGate> {
   };
 
   void _navigate(Map<String, String> data) {
+    if (ref.read(currentHouseholdCodeProvider) == null) return;
     final route = data['route'];
     if (route == null) return;
     final uri = Uri.tryParse(route);

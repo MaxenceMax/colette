@@ -13,6 +13,7 @@ String failureMessage(Object failure, S s) => switch (failure) {
     ValidationReason.invalidWeight => s.errorInvalidWeight,
     ValidationReason.emptyName => s.errorEmptyName,
     ValidationReason.unknownHouseholdCode => s.errorUnknownCode,
+    ValidationReason.notificationsDenied => s.errorNotificationsDenied,
   },
   _ => s.errorUnknown,
 };

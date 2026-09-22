@@ -5,6 +5,7 @@ import 'package:colette/core/firebase/firebase_providers.dart';
 import 'package:colette/core/firebase/firestore_paths.dart';
 import 'package:colette/features/events/presentation/pages/timeline_page.dart';
 import 'package:colette/features/events/presentation/widgets/event_form_sheet.dart';
+import 'package:colette/features/household/presentation/pages/onboarding_page.dart';
 import 'package:colette/features/household/presentation/providers/household_providers.dart';
 import 'package:colette/features/notifications/presentation/providers/notifications_providers.dart';
 import 'package:fake_cloud_firestore/fake_cloud_firestore.dart';
@@ -19,15 +20,13 @@ void main() {
     WidgetTester tester, {
     required FakePushTokenSource pushSource,
     FakeFirebaseFirestore? firestore,
+    String? code = 'ABCDEFGH',
   }) async {
     await tester.pumpWidget(
       ProviderScope(
         overrides: [
           householdLocalStoreProvider.overrideWithValue(
-            InMemoryHouseholdLocalStore(
-              householdCode: 'ABCDEFGH',
-              deviceId: 'dev-1',
-            ),
+            InMemoryHouseholdLocalStore(householdCode: code, deviceId: 'dev-1'),
           ),
           isOnlineProvider.overrideWith((ref) => Stream.value(true)),
           firestoreProvider.overrideWithValue(
@@ -133,4 +132,13 @@ void main() {
       expect(find.byType(TimelinePage), findsOneWidget);
     },
   );
+
+  testWidgets('sans foyer, une notification est ignorée', (tester) async {
+    final source = FakePushTokenSource(granted: true, token: 'tok');
+    await pumpColetteApp(tester, pushSource: source, code: null);
+    source.emitOpened({'route': '/today?bottle=1'});
+    await tester.pumpAndSettle();
+    expect(find.byType(OnboardingPage), findsOneWidget);
+    expect(find.byType(EventFormSheet), findsNothing);
+  });
 }

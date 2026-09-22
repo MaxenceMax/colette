@@ -7,6 +7,7 @@ enum ValidationReason {
   invalidWeight,
   emptyName,
   unknownHouseholdCode,
+  notificationsDenied,
 }
 
 /// Erreur remontée par les repositories et les use cases via `Either`.

@@ -1,5 +1,6 @@
 import 'package:colette/core/theme/design_tokens.dart';
 import 'package:colette/core/theme/text_styles.dart';
+import 'package:colette/core/ui/failure_message.dart';
 import 'package:colette/features/household/domain/entities/device_info.dart';
 import 'package:colette/features/notifications/presentation/providers/notifications_providers.dart';
 import 'package:colette/l10n/generated/app_localizations.dart';
@@ -15,8 +16,8 @@ class NotificationsSection extends ConsumerStatefulWidget {
 
   final DeviceInfo device;
 
-  static const minHour = 5;
-  static const maxHour = 12;
+  static const _minHour = 5;
+  static const _maxHour = 12;
 
   @override
   ConsumerState<NotificationsSection> createState() =>
@@ -40,8 +41,12 @@ class _NotificationsSectionState extends ConsumerState<NotificationsSection> {
     final ok = await ref
         .read(notificationSettingsControllerProvider.notifier)
         .save(next);
-    if (!ok && mounted) setState(() => _device = widget.device);
-    if (ok && enabling) ref.read(pushRegistrationProvider.notifier).register();
+    if (!mounted) return;
+    if (!ok) {
+      setState(() => _device = widget.device);
+      return;
+    }
+    if (enabling) ref.read(pushRegistrationProvider.notifier).register();
   }
 
   @override
@@ -49,6 +54,12 @@ class _NotificationsSectionState extends ConsumerState<NotificationsSection> {
     // Garde le contrôleur autoDispose vivant pendant l'await de save.
     ref.watch(notificationSettingsControllerProvider);
     final s = S.of(context);
+    ref.listen(pushRegistrationProvider, (_, next) {
+      if (next case AsyncError(:final error)) {
+        ScaffoldMessenger.of(context)
+            .showSnackBar(SnackBar(content: Text(failureMessage(error, s))));
+      }
+    });
     final body = Theme.of(context).coletteTextStyles.body;
     return ColetteCardSurface(
       padding: AppSpacing.sm.all,
@@ -79,8 +90,8 @@ class _NotificationsSectionState extends ConsumerState<NotificationsSection> {
             IntStepperRow(
               label: s.settingsMorningHour,
               value: _device.morningDigestHour,
-              min: NotificationsSection.minHour,
-              max: NotificationsSection.maxHour,
+              min: NotificationsSection._minHour,
+              max: NotificationsSection._maxHour,
               suffix: s.unitHour,
               onChanged: (v) => _update(_device.copyWith(morningDigestHour: v)),
             ),

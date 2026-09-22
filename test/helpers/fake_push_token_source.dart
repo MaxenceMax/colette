@@ -8,16 +8,21 @@ class FakePushTokenSource implements PushTokenSource {
     this.granted = false,
     this.token,
     this.initialMessageData,
+    this.permissionError,
   });
 
   final bool granted;
   final String? token;
   final Map<String, String>? initialMessageData;
+  final Object? permissionError;
   final _refresh = StreamController<String>.broadcast();
   final _opened = StreamController<Map<String, String>>.broadcast();
 
   @override
-  Future<bool> requestPermission() async => granted;
+  Future<bool> requestPermission() async {
+    if (permissionError != null) throw permissionError!;
+    return granted;
+  }
 
   @override
   Future<String?> getToken() async => token;

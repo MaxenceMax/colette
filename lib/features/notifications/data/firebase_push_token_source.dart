@@ -13,15 +13,18 @@ final class FirebasePushTokenSource implements PushTokenSource {
   @override
   Future<bool> requestPermission() async {
     final settings = await _messaging.requestPermission();
-    await _messaging.setForegroundNotificationPresentationOptions(
-      alert: true,
-      badge: true,
-      sound: true,
-    );
-    return switch (settings.authorizationStatus) {
+    final granted = switch (settings.authorizationStatus) {
       AuthorizationStatus.authorized || AuthorizationStatus.provisional => true,
       _ => false,
     };
+    if (granted) {
+      await _messaging.setForegroundNotificationPresentationOptions(
+        alert: true,
+        badge: true,
+        sound: true,
+      );
+    }
+    return granted;
   }
 
   @override

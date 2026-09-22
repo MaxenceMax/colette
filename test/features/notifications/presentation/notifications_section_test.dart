@@ -28,13 +28,13 @@ void main() {
         .thenAnswer((_) async => right(null));
   });
 
-  List<Override> overrides() => [
+  List<Override> overrides({bool granted = true}) => [
     deviceRepositoryProvider.overrideWithValue(devices),
     householdLocalStoreProvider.overrideWithValue(
       InMemoryHouseholdLocalStore(householdCode: 'ABCDEFGH'),
     ),
     pushTokenSourceProvider.overrideWithValue(
-      FakePushTokenSource(granted: true, token: 'tok'),
+      FakePushTokenSource(granted: granted, token: 'tok'),
     ),
   ];
 
@@ -89,8 +89,13 @@ void main() {
   testWidgets('un échec d\'enregistrement remet le switch en arrière', (
     tester,
   ) async {
-    when(() => devices.saveDevice(any(), any()))
-        .thenAnswer((_) async => left(const NetworkFailure()));
+    when(() => devices.saveDevice(any(), any())).thenAnswer((_) async {
+      // Délai réel (Timer), pas seulement un microtask : sinon la chaîne
+      // save → setState de retour en arrière se résout avant même le
+      // premier `pump()`, et l'état optimiste ne serait jamais observable.
+      await Future<void>.delayed(Duration.zero);
+      return left(const NetworkFailure());
+    });
     await pumpApp(
       tester,
       NotificationsSection(
@@ -99,10 +104,48 @@ void main() {
       overrides: overrides(),
     );
     await tester.tap(find.widgetWithText(SwitchListTile, 'Rappel biberon'));
-    await tester.pumpAndSettle();
-    final tile = tester.widget<SwitchListTile>(
-      find.widgetWithText(SwitchListTile, 'Rappel biberon'),
+    await tester.pump();
+    expect(
+      tester
+          .widget<SwitchListTile>(
+            find.widgetWithText(SwitchListTile, 'Rappel biberon'),
+          )
+          .value,
+      isTrue,
     );
-    expect(tile.value, isFalse);
+    await tester.pumpAndSettle();
+    expect(
+      tester
+          .widget<SwitchListTile>(
+            find.widgetWithText(SwitchListTile, 'Rappel biberon'),
+          )
+          .value,
+      isFalse,
+    );
+    verify(() => devices.saveDevice('ABCDEFGH', any())).called(1);
+  });
+
+  testWidgets('activer un switch sans permission affiche un message', (
+    tester,
+  ) async {
+    when(() => devices.saveDevice(any(), any()))
+        .thenAnswer((_) async => right(null));
+    await pumpApp(
+      tester,
+      Scaffold(
+        body: NotificationsSection(
+          device: device.copyWith(notifyBottleReminder: false),
+        ),
+      ),
+      overrides: overrides(granted: false),
+    );
+    await tester.tap(find.widgetWithText(SwitchListTile, 'Rappel biberon'));
+    await tester.pumpAndSettle();
+    expect(
+      find.text(
+        'Notifications refusées. Autorise-les dans Réglages iOS › Colette.',
+      ),
+      findsOneWidget,
+    );
   });
 }
