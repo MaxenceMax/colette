@@ -296,6 +296,8 @@ Sorties :
 
 La carte affiche en complément le nombre de biberons et les ml donnés sur les dernières 24 heures glissantes (« 7 biberons · 410 ml sur les dernières 24 h »), sans effet sur le plan ni sur les Cloud Functions. Le jour civil reste la seule règle de découpage ; voir `2026-09-22-rolling-intake-design.md`.
 
+La table par âge est portée par l'enum `FeedingAgeBand`, source unique. Une cible journalière ajustée (`careSettings.dailyTargetMl`, `null` = OMS, bornée 100 à 1500 ml) remplace la cible OMS dans le calcul ; la carte affiche alors « Cible ajustée à X ml · OMS : Y ml ». Une feuille « Repères OMS », ouverte par une icône info sur la carte, montre la table par âge, la règle ml/kg, la ligne du jour et permet d'ajuster la cible. Le snapshot `feedingPlan` garde la même forme ; voir `2026-09-22-oms-feeding-reference-design.md`.
+
 À chaque création, modification ou suppression d'un événement contenant un biberon, et à chaque ajout ou suppression de pesée ou changement des réglages de soins, le client recalcule et écrit `feedingPlan` dans le document du foyer (même batch d'écriture), pour que la fonction de rappel n'ait pas à réimplémenter la règle.
 
 ### 6.4 Onglet « Journal » (feature `events`)
