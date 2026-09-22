@@ -56,7 +56,7 @@ Cloud Functions :
 - `functions/src/lib/care-status.ts` : `count('umbilicalCare') < settings.umbilicalCarePerDay`.
 - Tests : `types.test.ts`, `care-status.test.ts`.
 
-Documentation : spec v1 (sections 5, 6.2 et 6.6) et plans mis à jour pour refléter le nouveau champ.
+Documentation : spec v1 (sections 5, 6.2 et 6.6) mise à jour. Les plans v1 sont historiques et ne sont pas modifiés.
 
 ## 6. Tests
 

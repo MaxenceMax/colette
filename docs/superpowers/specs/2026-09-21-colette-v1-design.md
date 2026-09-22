@@ -166,7 +166,7 @@ households/{code}
       adrigylPerDay: 1
       eyeCarePerDay: 1
       noseCarePerDay: 1
-      umbilicalCareEnabled: true      passe à false automatiquement quand cordFallenAt est renseigné
+      umbilicalCarePerDay: 3          passe à 0 quand cordFallenAt est renseigné, revient à 3 quand elle est effacée
       bathEveryDays: 2
       feedsPerDay: 8
   feedingPlan:                        écrit par le client à chaque sauvegarde d'événement biberon
@@ -260,7 +260,7 @@ Soins attendus (depuis `careSettings`) :
 | Adrigyl | `adrigylPerDay` fois par jour civil |
 | Soin des yeux | `eyeCarePerDay` fois par jour civil |
 | Soin du nez | `noseCarePerDay` fois par jour civil |
-| Soin du nombril | 1 fois par jour civil, uniquement si `umbilicalCareEnabled` |
+| Soin du nombril | `umbilicalCarePerDay` fois par jour civil ; jamais attendu si 0 |
 | Bain | attendu si aucun bain n'est enregistré, ou si le jour civil du dernier bain est antérieur ou égal à aujourd'hui − `bathEveryDays` (bain lundi, `bathEveryDays` = 2 : attendu mercredi) |
 
 Le jour civil va de 00:00 à 23:59 heure locale de l'appareil.
@@ -309,7 +309,7 @@ Actions : tap sur une ligne → formulaire en édition ; glisser vers la gauche 
 Présenté en bottom sheet modale (`showModalBottomSheet`, hauteur au contenu, `isScrollControlled`, insets clavier gérés). Champs :
 
 - Heure de début et heure de fin : préremplies à `now` à l'ouverture, modifiables par `CupertinoDatePicker` (date + heure). Validation : fin ≥ début, début ≤ maintenant + 5 min.
-- Puces `CareChip` : pipi, caca, changement de couche, Adrigyl, bain, soin des yeux, soin du nez, soin du nombril (masquée si `umbilicalCareEnabled` est faux).
+- Puces `CareChip` : pipi, caca, changement de couche, Adrigyl, bain, soin des yeux, soin du nez, soin du nombril (masquée si `umbilicalCarePerDay` vaut 0).
 - Biberon : interrupteur « Biberon » qui révèle un stepper ml (pas de 10, bornes 10 – 300) et des raccourcis 60 / 90 / 120 / 150 / 180 / 210. Prérempli avec `suggestedMl` quand ouvert depuis la carte biberon.
 - Note libre, une ligne extensible.
 - Bouton « Enregistrer ». Désactivé tant qu'aucune puce n'est cochée et qu'aucun biberon n'est renseigné.
@@ -322,7 +322,7 @@ Sections :
 
 - Bébé : prénom, date de naissance, date de chute du cordon (renseigner cette date désactive le soin du nombril).
 - Pesées : liste des pesées, ajout (date + grammes), suppression. La plus récente sert au calcul.
-- Soins attendus : Adrigyl / jour, yeux / jour, nez / jour, bain tous les N jours, nombril activé, prises de biberon / jour.
+- Soins attendus : Adrigyl / jour, yeux / jour, nez / jour, bain tous les N jours, nombril / jour, prises de biberon / jour.
 - Notifications de cet appareil : événements ajoutés par l'autre, rappel biberon, digest du matin avec son heure. Demande de permission iOS au premier passage à « activé ».
 - Foyer : code affiché en grand avec bouton copier, nom de l'appareil, bouton « Quitter ce foyer » (avec confirmation : supprime `devices/{deviceId}` du foyer, avec un délai maximal de 5 s, puis efface le code local ; le foyer est quitté même si la suppression échoue, l'écriture restant en file Firestore).
 
