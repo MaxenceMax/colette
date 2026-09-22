@@ -4,7 +4,9 @@ import 'package:colette/features/baby/domain/entities/baby_profile.dart';
 import 'package:colette/features/baby/domain/entities/weight_entry.dart';
 import 'package:colette/features/baby/presentation/pages/settings_page.dart';
 import 'package:colette/features/baby/presentation/providers/baby_providers.dart';
+import 'package:colette/features/diapers/presentation/providers/diaper_stock_providers.dart';
 import 'package:colette/features/household/presentation/providers/household_providers.dart';
+import 'package:flutter/widgets.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
@@ -34,16 +36,37 @@ void main() {
           ]),
         ),
         currentDeviceProvider.overrideWith((ref) => Stream.value(null)),
+        diaperStockProvider.overrideWith((ref) => Stream.value(null)),
         sharedPreferencesProvider.overrideWithValue(prefs),
       ],
     );
     expect(find.text('Colette'), findsOneWidget);
     expect(find.text('3600 g'), findsOneWidget);
     expect(find.text('Soins attendus'), findsOneWidget);
-    // La section Foyer est sous la ligne de flottaison de la taille de test
-    // par défaut (800x600) : la ListView ne construit pas ses slivers hors
-    // écran tant qu'on ne défile pas jusqu'à eux.
-    await tester.scrollUntilVisible(find.text('ABCDEFGH'), 300);
+    // La section Couches (et, plus bas, la section Foyer) est sous la ligne
+    // de flottaison de la taille de test par défaut (800x600) : la ListView
+    // ne construit pas ses slivers hors écran tant qu'on ne défile pas jusqu'à eux.
+    // Le finder de Scrollable est fixé explicitement : au fil du défilement,
+    // le SegmentedButton de la section Apparence expose lui aussi un
+    // Scrollable interne, ce qui rendrait `find.byType(Scrollable)` ambigu.
+    final scrollable = find.byType(Scrollable).first;
+    await tester.scrollUntilVisible(
+      find.text('Couches'),
+      300,
+      scrollable: scrollable,
+    );
+    expect(find.text('Couches'), findsOneWidget);
+    await tester.scrollUntilVisible(
+      find.text('Stock non renseigné'),
+      300,
+      scrollable: scrollable,
+    );
+    expect(find.text('Stock non renseigné'), findsOneWidget);
+    await tester.scrollUntilVisible(
+      find.text('ABCDEFGH'),
+      300,
+      scrollable: scrollable,
+    );
     expect(find.text('ABCDEFGH'), findsOneWidget);
     expect(find.text('Apparence'), findsOneWidget);
   });
