@@ -168,4 +168,24 @@ void main() {
       expect(await repo.watchDiaperChangeCountSince(code, from: from).first, 2);
     },
   );
+
+  test(
+    'watchDiaperChangeCountSince se met à jour à l\'ajout et à la suppression',
+    () async {
+      final repo = FirestoreEventsRepository(FakeFirebaseFirestore());
+      final from = day.add(const Duration(hours: 10));
+      final stream = repo.watchDiaperChangeCountSince(code, from: from);
+      final expectation = expectLater(stream, emitsInOrder([0, 1, 0]));
+      await repo.save(
+        code,
+        makeEvent(
+          id: 'c1',
+          startAt: day.add(const Duration(hours: 12)),
+          diaperChange: true,
+        ),
+      );
+      await repo.delete(code, 'c1');
+      await expectation;
+    },
+  );
 }

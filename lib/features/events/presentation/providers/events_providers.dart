@@ -45,6 +45,8 @@ Stream<CareEvent?> latestBottle(Ref ref) {
 }
 
 /// Nombre de changes enregistrés depuis [from] ; `0` sans foyer.
+/// [from] doit être une valeur stable (`stock.countedAt`), jamais `DateTime.now()` :
+/// chaque valeur distincte ouvre un listener Firestore séparé.
 @riverpod
 Stream<int> diaperChangesSince(Ref ref, DateTime from) {
   final code = ref.watch(currentHouseholdCodeProvider);
