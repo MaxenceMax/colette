@@ -42,8 +42,8 @@ class DocumentsRootSection extends ConsumerWidget {
         ],
       ),
     );
-    if (!context.mounted) return;
     if (confirmed != true) return;
+    if (!context.mounted) return;
     final result = await ref.read(documentsRootProvider.notifier).forget();
     if (!context.mounted) return;
     if (result case Left(:final value)) {

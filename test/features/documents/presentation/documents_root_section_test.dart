@@ -99,6 +99,25 @@ void main() {
     },
   );
 
+  testWidgets('oublier en échec : SnackBar et le dossier reste affiché', (
+    tester,
+  ) async {
+    when(() => repo.rootFolder())
+        .thenAnswer((_) async => right(const DocumentRoot(name: 'Colette')));
+    when(
+      () => repo.forgetRootFolder(),
+    ).thenAnswer((_) async => left(const DocumentsFailure(DocumentsReason.io)));
+    await pumpSection(tester);
+    await tester.tap(find.text('Oublier le dossier'));
+    await tester.pumpAndSettle();
+    await tester.tap(
+      find.widgetWithText(TextButton, 'Oublier le dossier').last,
+    );
+    await tester.pumpAndSettle();
+    expect(find.text("Impossible d'accéder à ce document"), findsOneWidget);
+    expect(find.text('Colette'), findsOneWidget);
+  });
+
   testWidgets('annuler la confirmation ne fait rien', (tester) async {
     when(() => repo.rootFolder())
         .thenAnswer((_) async => right(const DocumentRoot(name: 'Colette')));

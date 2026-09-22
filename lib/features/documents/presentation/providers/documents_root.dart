@@ -49,6 +49,7 @@ class DocumentsRoot extends _$DocumentsRoot {
     // ici avec son propre résultat une fois résolu.
     if (state.isLoading) return right(null);
     final previous = state;
+    state = const AsyncLoading();
     final result = await ref
         .read(documentsRepositoryProvider)
         .forgetRootFolder();

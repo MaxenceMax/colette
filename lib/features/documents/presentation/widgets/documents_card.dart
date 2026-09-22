@@ -1,15 +1,15 @@
-import 'dart:async';
-
 import 'package:colette/app/router/app_router.dart';
 import 'package:colette/core/theme/app_colors.dart';
 import 'package:colette/core/theme/design_tokens.dart';
 import 'package:colette/core/theme/text_styles.dart';
+import 'package:colette/core/ui/failure_message.dart';
 import 'package:colette/features/documents/domain/entities/document_root.dart';
 import 'package:colette/features/documents/presentation/providers/documents_root.dart';
 import 'package:colette/l10n/generated/app_localizations.dart';
 import 'package:colette/shared/ui/widgets/colette_card_surface.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:fpdart/fpdart.dart';
 import 'package:go_router/go_router.dart';
 
 /// Carte « Documents » sur Aujourd'hui : choix du dossier iCloud ou accès à la liste.
@@ -70,6 +70,16 @@ class _RootCard extends StatelessWidget {
 class _PickCard extends ConsumerWidget {
   const _PickCard();
 
+  Future<void> _pick(BuildContext context, WidgetRef ref) async {
+    final s = S.of(context);
+    final result = await ref.read(documentsRootProvider.notifier).pick();
+    if (!context.mounted) return;
+    if (result case Left(:final value)) {
+      ScaffoldMessenger.of(context)
+          .showSnackBar(SnackBar(content: Text(failureMessage(value, s))));
+    }
+  }
+
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final s = S.of(context);
@@ -97,8 +107,7 @@ class _PickCard extends ConsumerWidget {
             ],
           ),
           TextButton.icon(
-            onPressed: () =>
-                unawaited(ref.read(documentsRootProvider.notifier).pick()),
+            onPressed: () => _pick(context, ref),
             icon: const Icon(Icons.folder_open_outlined),
             label: Text(s.documentsCardPick),
           ),

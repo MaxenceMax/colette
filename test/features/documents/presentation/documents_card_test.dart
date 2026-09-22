@@ -58,6 +58,20 @@ void main() {
     expect(find.text('Colette'), findsOneWidget);
   });
 
+  testWidgets('« Choisir » en échec : SnackBar et carte de choix conservée', (
+    tester,
+  ) async {
+    when(() => repo.rootFolder()).thenAnswer((_) async => right(null));
+    when(
+      () => repo.pickRootFolder(),
+    ).thenAnswer((_) async => left(const DocumentsFailure(DocumentsReason.io)));
+    await pumpCard(tester);
+    await tester.tap(find.text('Choisir le dossier partagé'));
+    await tester.pumpAndSettle();
+    expect(find.text("Impossible d'accéder à ce document"), findsOneWidget);
+    expect(find.text('Choisir le dossier partagé'), findsOneWidget);
+  });
+
   testWidgets('avec dossier : un tap ouvre la page Documents', (tester) async {
     when(() => repo.rootFolder())
         .thenAnswer((_) async => right(const DocumentRoot(name: 'Colette')));

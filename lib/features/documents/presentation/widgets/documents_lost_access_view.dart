@@ -16,14 +16,14 @@ class DocumentsLostAccessView extends ConsumerWidget {
     final s = S.of(context);
     final result = await ref.read(documentsRootProvider.notifier).pick();
     if (!context.mounted) return;
-    final picked = result.getOrElse((_) => false);
-    if (picked) {
-      context.go(AppRoutes.todayDocuments);
-      return;
-    }
-    if (result case Left(:final value)) {
-      ScaffoldMessenger.of(context)
-          .showSnackBar(SnackBar(content: Text(failureMessage(value, s))));
+    switch (result) {
+      case Right(value: true):
+        context.go(AppRoutes.todayDocuments);
+      case Left(:final value):
+        ScaffoldMessenger.of(context)
+            .showSnackBar(SnackBar(content: Text(failureMessage(value, s))));
+      case _:
+        break;
     }
   }
 

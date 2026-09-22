@@ -161,6 +161,24 @@ void main() {
     expect(find.widgetWithText(AppBar, 'Nouveau'), findsOneWidget);
   });
 
+  testWidgets(
+    'accès perdu : re-choix en échec io → SnackBar, vue dédiée conservée',
+    (tester) async {
+      when(() => repo.list('')).thenAnswer(
+        (_) async => left(const DocumentsFailure(DocumentsReason.accessDenied)),
+      );
+      when(() => repo.pickRootFolder()).thenAnswer(
+        (_) async => left(const DocumentsFailure(DocumentsReason.io)),
+      );
+      await pumpPage(tester);
+      expect(find.text("Colette n'a plus accès au dossier"), findsOneWidget);
+      await tester.tap(find.text('Choisir le dossier partagé'));
+      await tester.pumpAndSettle();
+      expect(find.text("Impossible d'accéder à ce document"), findsOneWidget);
+      expect(find.text("Colette n'a plus accès au dossier"), findsOneWidget);
+    },
+  );
+
   testWidgets('tirer pour rafraîchir : succès, nouvelle liste affichée', (
     tester,
   ) async {
@@ -193,9 +211,9 @@ void main() {
     await tester.fling(find.byType(ListView), const Offset(0, 300), 1000);
     await tester.pumpAndSettle();
     expect(find.text("Colette n'a plus accès au dossier"), findsOneWidget);
-    // Pas d'assertion sur takeException() ici : une erreur asynchrone non
-    // gérée ferait déjà échouer le test via la zone de test, l'assertion
-    // serait donc redondante (et un no-op si elle était mal placée).
+    // Pas d'assertion sur takeException() ici : la zone de test attrape déjà
+    // toute erreur asynchrone non gérée. Un assert de mise en page se
+    // vérifie mieux explicitement (voir le test de section équivalent).
   });
 
   testWidgets('erreur d\'accès sur l\'aperçu invalide le dossier', (

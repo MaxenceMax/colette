@@ -10,8 +10,9 @@ import 'package:flutter_test/flutter_test.dart';
 /// et un `ProviderScope` surchargeable.
 ///
 /// [viewSize], si renseigné, fixe la taille de la vue de test (utile pour
-/// reproduire une largeur d'iPhone précise) ; la taille est restaurée après
-/// le test.
+/// reproduire une largeur d'iPhone précise) et force `devicePixelRatio` à 1
+/// (la taille est alors exprimée en points logiques) ; la taille est
+/// restaurée après le test.
 Future<void> pumpApp(
   WidgetTester tester,
   Widget child, {
