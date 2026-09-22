@@ -21,7 +21,22 @@ void main() {
     expect(entry.isDirectory, isFalse);
     expect(entry.size, 1234);
     expect(entry.modifiedAt.toUtc(), modifiedAt);
+    expect(entry.modifiedAt.isUtc, isFalse);
     expect(entry.downloadStatus, DownloadStatus.downloaded);
+  });
+
+  test('fromMap accepte modifiedAt et size en double', () {
+    final map = {
+      'name': 'ordonnance.pdf',
+      'path': 'Ordonnances/ordonnance.pdf',
+      'isDirectory': false,
+      'size': 1000.0,
+      'modifiedAt': 1000.0,
+      'downloadStatus': 'downloaded',
+    };
+    final entry = DocumentEntryDto.fromMap(map);
+    expect(entry.size, 1000);
+    expect(entry.modifiedAt, DateTime.fromMillisecondsSinceEpoch(1000));
   });
 
   test('fromMap lit les trois statuts', () {

@@ -2,6 +2,7 @@ import 'package:colette/features/documents/domain/entities/document_entry.dart';
 import 'package:colette/features/documents/domain/entities/download_status.dart';
 
 /// Mapper des maps renvoyées par le canal `colette/documents` vers [DocumentEntry].
+/// `modifiedAt` est renvoyé en heure locale.
 abstract final class DocumentEntryDto {
   static DocumentEntry fromMap(Map<Object?, Object?> map) => DocumentEntry(
     name: map['name'] as String,

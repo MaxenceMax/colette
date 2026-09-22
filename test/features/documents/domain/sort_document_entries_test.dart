@@ -20,7 +20,12 @@ void main() {
   test('dossiers d\'abord, triés par nom sans tenir compte de la casse', () {
     final sorted = sortDocumentEntries([
       entry('zed.pdf'),
-      entry('ordonnances', isDirectory: true),
+      entry('aaa.pdf'),
+      entry(
+        'ordonnances',
+        isDirectory: true,
+        modifiedAt: DateTime(2026, 9, 30),
+      ),
       entry('Administratif', isDirectory: true),
       entry('carnet', isDirectory: true),
     ]);
@@ -28,8 +33,13 @@ void main() {
       'Administratif',
       'carnet',
       'ordonnances',
+      'aaa.pdf',
       'zed.pdf',
     ]);
+  });
+
+  test('liste vide', () {
+    expect(sortDocumentEntries([]), isEmpty);
   });
 
   test('fichiers par date décroissante, puis nom croissant', () {
@@ -50,6 +60,6 @@ void main() {
   test('ne modifie pas la liste d\'entrée', () {
     final input = [entry('b.pdf'), entry('a', isDirectory: true)];
     sortDocumentEntries(input);
-    expect(input.first.name, 'b.pdf');
+    expect(input.map((e) => e.name).toList(), ['b.pdf', 'a']);
   });
 }

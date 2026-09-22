@@ -12,6 +12,7 @@ abstract interface class DocumentsRepository {
   /// Ouvre le sélecteur iOS ; `DocumentsReason.cancelled` si l'utilisateur annule.
   Future<Either<Failure, DocumentRoot>> pickRootFolder();
 
+  /// Oublie le dossier : Colette ne l'affiche plus, rien n'est supprimé.
   Future<Either<Failure, void>> forgetRootFolder();
 
   /// Contenu brut (non trié) d'un dossier.
