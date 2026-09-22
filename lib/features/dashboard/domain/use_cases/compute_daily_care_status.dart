@@ -39,7 +39,8 @@ class ComputeDailyCareStatus {
         task(CareType.eyeCare, settings.eyeCarePerDay),
       if (settings.noseCarePerDay > 0)
         task(CareType.noseCare, settings.noseCarePerDay),
-      if (settings.umbilicalCareEnabled) task(CareType.umbilicalCare, 1),
+      if (settings.umbilicalCarePerDay > 0)
+        task(CareType.umbilicalCare, settings.umbilicalCarePerDay),
       if (bathExpected || bathToday) task(CareType.bath, 1),
     ];
   }

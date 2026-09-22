@@ -118,13 +118,12 @@ class _EventFormSheetState extends ConsumerState<EventFormSheet> {
       }
     });
     final isLoading = ref.watch(eventFormControllerProvider) is AsyncLoading;
-    final umbilicalEnabled =
-        ref
-            .watch(babyProfileProvider)
-            .value
-            ?.careSettings
-            .umbilicalCareEnabled ??
-        true;
+    final umbilicalPerDay = ref
+        .watch(babyProfileProvider)
+        .value
+        ?.careSettings
+        .umbilicalCarePerDay;
+    final umbilicalEnabled = umbilicalPerDay == null || umbilicalPerDay > 0;
     final visibleCares = CareType.values
         .where(
           (type) =>

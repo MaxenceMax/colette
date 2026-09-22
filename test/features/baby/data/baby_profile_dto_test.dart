@@ -17,4 +17,51 @@ void main() {
     expect(settings.bathEveryDays, 1);
     expect(settings.adrigylPerDay, 10);
   });
+
+  test('CareSettingsDto.fromMap lit umbilicalCarePerDay borné', () {
+    expect(
+      CareSettingsDto.fromMap(const {'umbilicalCarePerDay': 2})
+          .umbilicalCarePerDay,
+      2,
+    );
+    expect(
+      CareSettingsDto.fromMap(const {'umbilicalCarePerDay': 42})
+          .umbilicalCarePerDay,
+      10,
+    );
+  });
+
+  test(
+    'CareSettingsDto.fromMap replie sur l\'ancien booléen umbilicalCareEnabled',
+    () {
+      expect(
+        CareSettingsDto.fromMap(const {'umbilicalCareEnabled': false})
+            .umbilicalCarePerDay,
+        0,
+      );
+      expect(
+        CareSettingsDto.fromMap(const {'umbilicalCareEnabled': true})
+            .umbilicalCarePerDay,
+        3,
+      );
+      expect(
+        CareSettingsDto.fromMap(const {
+          'umbilicalCarePerDay': 0,
+          'umbilicalCareEnabled': true,
+        }).umbilicalCarePerDay,
+        0,
+      );
+    },
+  );
+
+  test(
+    'CareSettingsDto.toMap écrit umbilicalCarePerDay et plus le booléen',
+    () {
+      final map = CareSettingsDto.toMap(
+        const CareSettings(umbilicalCarePerDay: 2),
+      );
+      expect(map['umbilicalCarePerDay'], 2);
+      expect(map.containsKey('umbilicalCareEnabled'), isFalse);
+    },
+  );
 }

@@ -29,13 +29,15 @@ class BabySettingsController extends _$BabySettingsController {
   Future<bool> updateCareSettings(BabyProfile profile, CareSettings settings) =>
       saveProfile(profile.copyWith(careSettings: settings));
 
-  /// Renseigner la date désactive le soin du nombril ; l'effacer le réactive.
+  /// Renseigner la date désactive le soin du nombril ; l'effacer le remet à la valeur par défaut.
   Future<bool> setCordFallenAt(BabyProfile profile, DateTime? date) =>
       saveProfile(
         profile.copyWith(
           cordFallenAt: date,
           careSettings: profile.careSettings.copyWith(
-            umbilicalCareEnabled: date == null,
+            umbilicalCarePerDay: date == null
+                ? const CareSettings().umbilicalCarePerDay
+                : 0,
           ),
         ),
       );

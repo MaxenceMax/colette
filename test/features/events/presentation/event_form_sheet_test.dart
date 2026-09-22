@@ -116,7 +116,7 @@ void main() {
     final profile = BabyProfile(
       name: 'Colette',
       birthDate: DateTime(2026, 9, 1),
-      careSettings: const CareSettings(umbilicalCareEnabled: false),
+      careSettings: const CareSettings(umbilicalCarePerDay: 0),
     );
     await pumpSheet(tester, profile: profile);
     expect(find.text('Soin du nombril'), findsNothing);

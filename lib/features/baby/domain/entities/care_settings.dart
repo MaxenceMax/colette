@@ -9,7 +9,7 @@ abstract class CareSettings with _$CareSettings {
     @Default(1) int adrigylPerDay,
     @Default(1) int eyeCarePerDay,
     @Default(1) int noseCarePerDay,
-    @Default(true) bool umbilicalCareEnabled,
+    @Default(3) int umbilicalCarePerDay,
     @Default(2) int bathEveryDays,
     @Default(8) int feedsPerDay,
   }) = _CareSettings;

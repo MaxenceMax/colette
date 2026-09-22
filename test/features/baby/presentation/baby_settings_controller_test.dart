@@ -95,7 +95,23 @@ void main() {
         verify(() => repo.saveProfile('ABCDEFGH', captureAny())).captured.single
             as BabyProfile;
     expect(saved.cordFallenAt, DateTime(2026, 9, 12));
-    expect(saved.careSettings.umbilicalCareEnabled, isFalse);
+    expect(saved.careSettings.umbilicalCarePerDay, 0);
+  });
+
+  test('setCordFallenAt null remet le soin du nombril à 3', () async {
+    when(() => repo.saveProfile(any(), any()))
+        .thenAnswer((_) async => right(null));
+    final disabled = profile.copyWith(
+      cordFallenAt: DateTime(2026, 9, 12),
+      careSettings: const CareSettings(umbilicalCarePerDay: 0),
+    );
+    final ok = await controller().setCordFallenAt(disabled, null);
+    expect(ok, isTrue);
+    final saved =
+        verify(() => repo.saveProfile('ABCDEFGH', captureAny())).captured.single
+            as BabyProfile;
+    expect(saved.cordFallenAt, isNull);
+    expect(saved.careSettings.umbilicalCarePerDay, 3);
   });
 
   test('updateCareSettings enregistre et synchronise', () async {

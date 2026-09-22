@@ -53,14 +53,39 @@ void main() {
     expect(adrigyl.isDone, isFalse);
   });
 
-  test('nombril désactivé : pas de tâche nombril', () {
+  test('nombril à 0 : pas de tâche nombril', () {
     final tasks = compute(
-      settings: const CareSettings(umbilicalCareEnabled: false),
+      settings: const CareSettings(umbilicalCarePerDay: 0),
       todayEvents: const [],
       lastBath: null,
       now: now,
     );
     expect(tasks.any((t) => t.type == CareType.umbilicalCare), isFalse);
+  });
+
+  test('nombril 3 par jour par défaut : deux soins faits, reste à faire', () {
+    final tasks = compute(
+      settings: const CareSettings(),
+      todayEvents: [
+        makeEvent(
+          id: 'u1',
+          startAt: DateTime(2026, 9, 21, 8),
+          umbilicalCare: true,
+        ),
+        makeEvent(
+          id: 'u2',
+          startAt: DateTime(2026, 9, 21, 12),
+          umbilicalCare: true,
+        ),
+      ],
+      lastBath: null,
+      now: now,
+    );
+    final umbilical = tasks.firstWhere((t) => t.type == CareType.umbilicalCare);
+    expect(umbilical.target, 3);
+    expect(umbilical.done, 2);
+    expect(umbilical.isDone, isFalse);
+    expect(umbilical.lastDoneAt, DateTime(2026, 9, 21, 12));
   });
 
   test('bain hier avec bathEveryDays 2 : pas attendu aujourd\'hui', () {

@@ -8,7 +8,7 @@ abstract final class CareSettingsDto {
     'adrigylPerDay': settings.adrigylPerDay,
     'eyeCarePerDay': settings.eyeCarePerDay,
     'noseCarePerDay': settings.noseCarePerDay,
-    'umbilicalCareEnabled': settings.umbilicalCareEnabled,
+    'umbilicalCarePerDay': settings.umbilicalCarePerDay,
     'bathEveryDays': settings.bathEveryDays,
     'feedsPerDay': settings.feedsPerDay,
   };
@@ -21,12 +21,21 @@ abstract final class CareSettingsDto {
     required int max,
   }) => ((map[key] as num?)?.toInt() ?? fallback).clamp(min, max);
 
+  /// Documents antérieurs : seul le booléen `umbilicalCareEnabled` existe.
+  static int _readUmbilicalCarePerDay(Map<String, dynamic> map) {
+    final fallback = const CareSettings().umbilicalCarePerDay;
+    if (map['umbilicalCarePerDay'] is num) {
+      return _readInt(map, 'umbilicalCarePerDay', fallback, min: 0, max: 10);
+    }
+    return map['umbilicalCareEnabled'] == false ? 0 : fallback;
+  }
+
   /// Borne chaque valeur à une plage sûre : un document modifié à la main ne doit jamais casser les calculs.
   static CareSettings fromMap(Map<String, dynamic> map) => CareSettings(
     adrigylPerDay: _readInt(map, 'adrigylPerDay', 1, min: 0, max: 10),
     eyeCarePerDay: _readInt(map, 'eyeCarePerDay', 1, min: 0, max: 10),
     noseCarePerDay: _readInt(map, 'noseCarePerDay', 1, min: 0, max: 10),
-    umbilicalCareEnabled: map['umbilicalCareEnabled'] as bool? ?? true,
+    umbilicalCarePerDay: _readUmbilicalCarePerDay(map),
     bathEveryDays: _readInt(map, 'bathEveryDays', 2, min: 1, max: 30),
     feedsPerDay: _readInt(map, 'feedsPerDay', 8, min: 1, max: 24),
   );

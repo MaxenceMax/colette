@@ -1,5 +1,4 @@
 import 'package:colette/core/theme/design_tokens.dart';
-import 'package:colette/core/theme/text_styles.dart';
 import 'package:colette/features/baby/domain/entities/baby_profile.dart';
 import 'package:colette/features/baby/domain/entities/care_settings.dart';
 import 'package:colette/features/baby/presentation/providers/baby_settings_controller.dart';
@@ -72,6 +71,14 @@ class _CareSettingsSectionState extends ConsumerState<CareSettingsSection> {
             onChanged: (v) => _update(_settings.copyWith(noseCarePerDay: v)),
           ),
           IntStepperRow(
+            label: s.settingsUmbilicalCarePerDay,
+            value: _settings.umbilicalCarePerDay,
+            min: 0,
+            max: 4,
+            onChanged: (v) =>
+                _update(_settings.copyWith(umbilicalCarePerDay: v)),
+          ),
+          IntStepperRow(
             label: s.settingsBathEveryDays,
             value: _settings.bathEveryDays,
             min: 1,
@@ -84,16 +91,6 @@ class _CareSettingsSectionState extends ConsumerState<CareSettingsSection> {
             min: 4,
             max: 12,
             onChanged: (v) => _update(_settings.copyWith(feedsPerDay: v)),
-          ),
-          SwitchListTile(
-            contentPadding: AppSpacing.sm.horizontal,
-            title: Text(
-              s.settingsUmbilicalEnabled,
-              style: Theme.of(context).coletteTextStyles.body,
-            ),
-            value: _settings.umbilicalCareEnabled,
-            onChanged: (v) =>
-                _update(_settings.copyWith(umbilicalCareEnabled: v)),
           ),
         ],
       ),
