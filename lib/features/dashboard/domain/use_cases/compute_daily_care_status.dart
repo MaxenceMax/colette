@@ -51,7 +51,7 @@ class ComputeDailyCareStatus {
     required DateTime now,
   }) {
     if (lastBath == null) return true;
-    final daysSince = now.dateOnly.difference(lastBath.startAt.dateOnly).inDays;
+    final daysSince = calendarDaysBetween(lastBath.startAt, now);
     return daysSince >= bathEveryDays;
   }
 }

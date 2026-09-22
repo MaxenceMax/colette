@@ -8,7 +8,8 @@ import 'package:riverpod_annotation/riverpod_annotation.dart';
 
 part 'baby_providers.g.dart';
 
-@riverpod
+/// Sans état : `keepAlive` car consommé par `feedingPlanSyncProvider` (keepAlive).
+@Riverpod(keepAlive: true)
 BabyRepository babyRepository(Ref ref) =>
     FirestoreBabyRepository(ref.watch(firestoreProvider));
 

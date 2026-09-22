@@ -12,7 +12,8 @@ part 'events_providers.g.dart';
 /// Taille d'une page du journal.
 const timelinePageSize = 30;
 
-@riverpod
+/// Sans état : `keepAlive` car consommé par `feedingPlanSyncProvider` (keepAlive).
+@Riverpod(keepAlive: true)
 EventsRepository eventsRepository(Ref ref) =>
     FirestoreEventsRepository(ref.watch(firestoreProvider));
 

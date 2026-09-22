@@ -34,4 +34,10 @@ void main() {
         .thenThrow(FirebaseAuthException(code: 'network-request-failed'));
     await expectLater(ensureAnonymousSession(auth), completes);
   });
+
+  test('avale toute autre exception du plugin sans la propager', () async {
+    when(() => auth.currentUser).thenReturn(null);
+    when(() => auth.signInAnonymously()).thenThrow(Exception('boom'));
+    await expectLater(ensureAnonymousSession(auth), completes);
+  });
 }

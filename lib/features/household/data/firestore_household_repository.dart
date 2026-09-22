@@ -28,15 +28,33 @@ class FirestoreHouseholdRepository implements HouseholdRepository {
   @override
   Future<Either<Failure, Household>> join(String code) async {
     final snapshot = await guard(() => _doc(code).get());
-    return snapshot.flatMap<Household>((snap) {
-      final data = snap.data();
-      if (data == null) return left(const NotFoundFailure());
-      return right(
-        Household(
-          code: code,
-          createdAt: (data['createdAt'] as Timestamp).toDate(),
-        ),
+    return snapshot.flatMap<Household>(
+      (snap) => mapJoinSnapshot(code, snap, _clock),
+    );
+  }
+
+  /// Traduit l'instantané Firestore en résultat métier. Séparée de [join]
+  /// pour être testable sans dépendre du comportement `isFromCache` de
+  /// `fake_cloud_firestore` (qui ne le simule pas via un simple `.get()`).
+  ///
+  /// Hors ligne sans document en cache local : le document existe peut-être
+  /// réellement, donc `NetworkFailure` plutôt que `NotFoundFailure`.
+  /// `createdAt` absent ou invalide : horloge courante plutôt qu'une
+  /// exception qui échapperait à l'`Either`.
+  static Either<Failure, Household> mapJoinSnapshot(
+    String code,
+    DocumentSnapshot<Map<String, dynamic>> snap,
+    AppClock clock,
+  ) {
+    if (!snap.exists) {
+      return left(
+        snap.metadata.isFromCache
+            ? const NetworkFailure()
+            : const NotFoundFailure(),
       );
-    });
+    }
+    final createdAt =
+        (snap.data()?['createdAt'] as Timestamp?)?.toDate() ?? clock.now();
+    return right(Household(code: code, createdAt: createdAt));
   }
 }

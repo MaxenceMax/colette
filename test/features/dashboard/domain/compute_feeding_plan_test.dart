@@ -17,6 +17,27 @@ void main() {
       expect(ComputeFeedingPlan.dayOfLife(birth, DateTime(2026, 8, 31)), 1);
     });
 
+    test(
+      'jour de vie : jours civils, insensible au changement d\'heure (DST)',
+      () {
+        // Passage à l'heure d'été le 29 mars 2026 entre les deux dates.
+        expect(
+          ComputeFeedingPlan.dayOfLife(
+            DateTime(2026, 3, 20),
+            DateTime(2026, 3, 30, 12),
+          ),
+          11,
+        );
+        expect(
+          ComputeFeedingPlan.dayOfLife(
+            DateTime(2026, 3, 20),
+            DateTime(2026, 10, 26),
+          ),
+          221,
+        );
+      },
+    );
+
     test('ml par kg : 60 le jour 1, +20 par jour, plafonné à 150', () {
       expect(ComputeFeedingPlan.mlPerKg(1), 60);
       expect(ComputeFeedingPlan.mlPerKg(3), 100);

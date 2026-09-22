@@ -38,9 +38,3 @@ class ColetteCardSurface extends StatelessWidget {
     );
   }
 }
-
-/// Enveloppe n'importe quel widget dans une [ColetteCardSurface].
-extension ColetteCardSurfaceX on Widget {
-  Widget withCardSurface({EdgeInsetsGeometry? padding, VoidCallback? onTap}) =>
-      ColetteCardSurface(padding: padding, onTap: onTap, child: this);
-}

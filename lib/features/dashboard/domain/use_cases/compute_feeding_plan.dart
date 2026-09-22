@@ -53,7 +53,7 @@ class ComputeFeedingPlan {
 
   /// Jour de vie en jours civils ; 1 le jour de la naissance, jamais moins.
   static int dayOfLife(DateTime birthDate, DateTime now) =>
-      max(1, now.dateOnly.difference(birthDate.dateOnly).inDays + 1);
+      max(1, calendarDaysBetween(birthDate, now) + 1);
 
   /// 60 ml/kg le jour 1, +20 ml/kg par jour, plafonné à 150 ml/kg.
   static int mlPerKg(int dayOfLife) => min(150, 60 + 20 * (dayOfLife - 1));

@@ -8,9 +8,12 @@ part of 'events_providers.dart';
 
 // GENERATED CODE - DO NOT MODIFY BY HAND
 // ignore_for_file: type=lint, type=warning
+/// Sans état : `keepAlive` car consommé par `feedingPlanSyncProvider` (keepAlive).
 
 @ProviderFor(eventsRepository)
 final eventsRepositoryProvider = EventsRepositoryProvider._();
+
+/// Sans état : `keepAlive` car consommé par `feedingPlanSyncProvider` (keepAlive).
 
 final class EventsRepositoryProvider
     extends
@@ -20,13 +23,14 @@ final class EventsRepositoryProvider
           EventsRepository
         >
     with $Provider<EventsRepository> {
+  /// Sans état : `keepAlive` car consommé par `feedingPlanSyncProvider` (keepAlive).
   EventsRepositoryProvider._()
     : super(
         from: null,
         argument: null,
         retry: null,
         name: r'eventsRepositoryProvider',
-        isAutoDispose: true,
+        isAutoDispose: false,
         dependencies: null,
         $allTransitiveDependencies: null,
       );
@@ -53,7 +57,7 @@ final class EventsRepositoryProvider
   }
 }
 
-String _$eventsRepositoryHash() => r'3b1b29b6dee0c197e91e4fe29949e8b2051bc018';
+String _$eventsRepositoryHash() => r'bfba188f8d2e0c011dc6fab96e60d689a69bc71f';
 
 /// Événements du jour civil courant, du plus récent au plus ancien.
 

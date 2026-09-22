@@ -22,7 +22,6 @@
   "actionCancel": "Annuler",
   "actionUndo": "Annuler",
   "actionDelete": "Supprimer",
-  "actionRetry": "Réessayer",
   "actionCopy": "Copier",
   "actionAdd": "Ajouter",
   "actionChoose": "Choisir",
@@ -120,7 +119,5 @@
   "settingsLeaveHousehold": "Quitter ce foyer",
   "leaveHouseholdTitle": "Quitter ce foyer ?",
   "leaveHouseholdBody": "Les données restent sur le cloud. Tu pourras rejoindre à nouveau avec le code.",
-  "copied": "Code copié",
-  "hourLabel": "{hour}h",
-  "@hourLabel": { "placeholders": { "hour": { "type": "int" } } }
+  "copied": "Code copié"
 }

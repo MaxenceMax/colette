@@ -25,7 +25,10 @@ enum AppColors {
 
   // Texte
   onSurface(light: Color(0xFF2E2320), dark: Color(0xFFF1E6E0)),
-  textSecondary(light: Color(0xFF7B655E), dark: Color(0xFFB8A39B)),
+
+  /// Assombri (0x7B655E → 0x756059) : contraste WCAG sur `primaryContainer.light`
+  /// passait de 4,32 (< 4,5) à 4,67.
+  textSecondary(light: Color(0xFF756059), dark: Color(0xFFB8A39B)),
   border(light: Color(0xFFEAD9CF), dark: Color(0xFF4A3A34)),
 
   // Sémantique

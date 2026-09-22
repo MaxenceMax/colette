@@ -8,20 +8,24 @@ part of 'baby_providers.dart';
 
 // GENERATED CODE - DO NOT MODIFY BY HAND
 // ignore_for_file: type=lint, type=warning
+/// Sans état : `keepAlive` car consommé par `feedingPlanSyncProvider` (keepAlive).
 
 @ProviderFor(babyRepository)
 final babyRepositoryProvider = BabyRepositoryProvider._();
 
+/// Sans état : `keepAlive` car consommé par `feedingPlanSyncProvider` (keepAlive).
+
 final class BabyRepositoryProvider
     extends $FunctionalProvider<BabyRepository, BabyRepository, BabyRepository>
     with $Provider<BabyRepository> {
+  /// Sans état : `keepAlive` car consommé par `feedingPlanSyncProvider` (keepAlive).
   BabyRepositoryProvider._()
     : super(
         from: null,
         argument: null,
         retry: null,
         name: r'babyRepositoryProvider',
-        isAutoDispose: true,
+        isAutoDispose: false,
         dependencies: null,
         $allTransitiveDependencies: null,
       );
@@ -48,7 +52,7 @@ final class BabyRepositoryProvider
   }
 }
 
-String _$babyRepositoryHash() => r'67eea466c376d7328c98039cb9c1f49c9f598f91';
+String _$babyRepositoryHash() => r'b9dbbd5bd63907f9746fbd7f58070938a73afc5f';
 
 /// Profil du bébé du foyer courant.
 

@@ -10,3 +10,10 @@ extension DateOnlyX on DateTime {
   bool isSameDay(DateTime other) =>
       year == other.year && month == other.month && day == other.day;
 }
+
+/// Nombre de jours civils entre deux dates locales, insensible aux changements d'heure.
+int calendarDaysBetween(DateTime from, DateTime to) => DateTime.utc(
+  to.year,
+  to.month,
+  to.day,
+).difference(DateTime.utc(from.year, from.month, from.day)).inDays;

@@ -25,5 +25,12 @@ Future<void> ensureAnonymousSession(
       stackTrace: stackTrace,
       name: 'colette',
     );
+  } catch (e, stackTrace) {
+    developer.log(
+      'Anonymous sign-in failed unexpectedly',
+      error: e,
+      stackTrace: stackTrace,
+      name: 'colette',
+    );
   }
 }

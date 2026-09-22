@@ -50,6 +50,7 @@ class HouseholdSection extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     // Garde le contrôleur autoDispose vivant pendant l'await de leave().
     final leaving = ref.watch(leaveHouseholdControllerProvider).isLoading;
+    final deviceLabel = ref.watch(currentDeviceProvider).value?.label;
     final s = S.of(context);
     final styles = Theme.of(context).coletteTextStyles;
     return ColetteCardSurface(
@@ -81,6 +82,13 @@ class HouseholdSection extends ConsumerWidget {
               ),
             ],
           ),
+          if (deviceLabel != null)
+            Text(
+              '${s.deviceLabelDefault} : $deviceLabel',
+              style: styles.body.copyWith(
+                color: context.appColor(AppColors.textSecondary),
+              ),
+            ),
           const Divider(),
           TextButton.icon(
             onPressed: leaving ? null : () => _leave(context, ref),

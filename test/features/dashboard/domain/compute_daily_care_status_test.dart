@@ -85,6 +85,21 @@ void main() {
     expect(tasks.any((t) => t.type == CareType.bath && !t.isDone), isTrue);
   });
 
+  test(
+    'DST : bain de 2 jours civils reste attendu malgré le changement d\'heure',
+    () {
+      // Passage à l'heure d'été le 29 mars 2026 entre le bain et maintenant.
+      final bath = makeEvent(startAt: DateTime(2026, 3, 28, 20), bath: true);
+      final tasks = compute(
+        settings: const CareSettings(),
+        todayEvents: const [],
+        lastBath: bath,
+        now: DateTime(2026, 3, 30, 8),
+      );
+      expect(tasks.any((t) => t.type == CareType.bath && !t.isDone), isTrue);
+    },
+  );
+
   test('bain aujourd\'hui : listé et fait', () {
     final bath = makeEvent(startAt: DateTime(2026, 9, 21, 9), bath: true);
     final tasks = compute(

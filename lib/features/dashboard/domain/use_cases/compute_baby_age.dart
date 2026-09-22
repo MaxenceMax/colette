@@ -8,7 +8,7 @@ class ComputeBabyAge {
   const ComputeBabyAge();
 
   BabyAge call({required DateTime birthDate, required DateTime now}) {
-    final days = max(0, now.dateOnly.difference(birthDate.dateOnly).inDays);
+    final days = max(0, calendarDaysBetween(birthDate, now));
     if (days < 14) return BabyAge(unit: BabyAgeUnit.days, count: days);
     if (days < 61) return BabyAge(unit: BabyAgeUnit.weeks, count: days ~/ 7);
     return BabyAge(

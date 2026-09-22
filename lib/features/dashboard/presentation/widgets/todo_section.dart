@@ -3,6 +3,7 @@ import 'package:colette/core/ids/id_generator.dart';
 import 'package:colette/core/theme/app_colors.dart';
 import 'package:colette/core/theme/design_tokens.dart';
 import 'package:colette/core/theme/text_styles.dart';
+import 'package:colette/core/ui/failure_message.dart';
 import 'package:colette/features/dashboard/presentation/providers/dashboard_providers.dart';
 import 'package:colette/features/dashboard/presentation/widgets/care_task_row.dart';
 import 'package:colette/features/events/domain/use_cases/new_event_draft.dart';
@@ -32,7 +33,14 @@ class TodoSection extends ConsumerWidget {
     final saved = await ref
         .read(eventFormControllerProvider.notifier)
         .submit(draft);
-    if (saved == null || !context.mounted) return;
+    if (!context.mounted) return;
+    if (saved == null) {
+      if (ref.read(eventFormControllerProvider) case AsyncError(:final error)) {
+        ScaffoldMessenger.of(context)
+            .showSnackBar(SnackBar(content: Text(failureMessage(error, s))));
+      }
+      return;
+    }
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
         content: Text(s.saved),
