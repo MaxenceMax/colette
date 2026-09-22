@@ -56,6 +56,9 @@ void main() {
     expect(find.text('Hier'), findsOneWidget);
     expect(find.text('09h05'), findsOneWidget);
     expect(find.text('120 ml'), findsOneWidget);
+    expect(find.text('Couche'), findsOneWidget);
+    expect(find.text('Bain'), findsOneWidget);
+    expect(find.byIcon(Icons.local_drink_outlined), findsOneWidget);
   });
 
   testWidgets('affiche l\'état vide sans événement', (tester) async {

@@ -8,7 +8,7 @@ import 'package:colette/shared/ui/care_type_ui.dart';
 import 'package:colette/shared/ui/widgets/colette_card_surface.dart';
 import 'package:flutter/material.dart';
 
-/// Ligne du journal : heure, icônes des soins, biberon, note. Glisser pour supprimer.
+/// Ligne du journal : heure, puces des soins et du biberon, note. Glisser pour supprimer.
 class EventTile extends StatelessWidget {
   const EventTile({
     super.key,
@@ -81,12 +81,17 @@ class EventTile extends StatelessWidget {
                       crossAxisAlignment: .center,
                       children: [
                         for (final type in event.checkedCares)
-                          _CareDot(
+                          _CareChip(
                             icon: type.icon,
+                            label: type.label(s),
                             color: context.appColor(type.color),
                           ),
                         if (event.bottleMl case final ml?)
-                          _BottleBadge(label: s.bottleMl(ml)),
+                          _CareChip(
+                            icon: Icons.local_drink_outlined,
+                            label: s.bottleMl(ml),
+                            color: context.appColor(AppColors.categoryFeeding),
+                          ),
                       ],
                     ),
                     if (event.note case final note?)
@@ -107,30 +112,17 @@ class EventTile extends StatelessWidget {
   }
 }
 
-class _CareDot extends StatelessWidget {
-  const _CareDot({required this.icon, required this.color});
+/// Puce icône + libellé d'un soin, teintée par sa catégorie.
+class _CareChip extends StatelessWidget {
+  const _CareChip({
+    required this.icon,
+    required this.label,
+    required this.color,
+  });
 
   final IconData icon;
-  final Color color;
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      width: AppSize.md.value,
-      height: AppSize.md.value,
-      decoration: BoxDecoration(
-        color: AppOpacity.light.applyTo(color),
-        borderRadius: AppRadius.round.circular,
-      ),
-      child: Icon(icon, size: AppSize.xs.value, color: color),
-    );
-  }
-}
-
-class _BottleBadge extends StatelessWidget {
-  const _BottleBadge({required this.label});
-
   final String label;
+  final Color color;
 
   @override
   Widget build(BuildContext context) {
@@ -140,13 +132,20 @@ class _BottleBadge extends StatelessWidget {
         vertical: AppSpacing.xxs,
       ),
       decoration: BoxDecoration(
-        color: context.appColor(AppColors.categoryFeeding),
+        color: AppOpacity.light.applyTo(color),
         borderRadius: AppRadius.round.circular,
       ),
-      child: Text(
-        label,
-        style: Theme.of(context).coletteTextStyles.label
-            .copyWith(color: context.appColor(AppColors.onPrimary)),
+      child: Row(
+        mainAxisSize: .min,
+        spacing: AppSpacing.xs.value,
+        children: [
+          Icon(icon, size: AppSize.xs.value, color: color),
+          Text(
+            label,
+            style: Theme.of(context).coletteTextStyles.label
+                .copyWith(color: color),
+          ),
+        ],
       ),
     );
   }
