@@ -131,4 +131,61 @@ void main() {
     latest = await repo.watchLatest(code, limit: 10).first;
     expect(latest, isEmpty);
   });
+
+  test(
+    'watchDiaperChangeCountSince ne compte que les changes à partir de from',
+    () async {
+      final repo = FirestoreEventsRepository(FakeFirebaseFirestore());
+      final from = day.add(const Duration(hours: 10));
+      await repo.save(
+        code,
+        makeEvent(
+          id: 'avant',
+          startAt: day.add(const Duration(hours: 8)),
+          diaperChange: true,
+        ),
+      );
+      await repo.save(
+        code,
+        makeEvent(id: 'pile', startAt: from, diaperChange: true),
+      );
+      await repo.save(
+        code,
+        makeEvent(
+          id: 'apres',
+          startAt: day.add(const Duration(hours: 14)),
+          diaperChange: true,
+        ),
+      );
+      await repo.save(
+        code,
+        makeEvent(
+          id: 'pipi',
+          startAt: day.add(const Duration(hours: 15)),
+          pee: true,
+        ),
+      );
+      expect(await repo.watchDiaperChangeCountSince(code, from: from).first, 2);
+    },
+  );
+
+  test(
+    'watchDiaperChangeCountSince se met à jour à l\'ajout et à la suppression',
+    () async {
+      final repo = FirestoreEventsRepository(FakeFirebaseFirestore());
+      final from = day.add(const Duration(hours: 10));
+      final stream = repo.watchDiaperChangeCountSince(code, from: from);
+      final expectation = expectLater(stream, emitsInOrder([0, 1, 0]));
+      await repo.save(
+        code,
+        makeEvent(
+          id: 'c1',
+          startAt: day.add(const Duration(hours: 12)),
+          diaperChange: true,
+        ),
+      );
+      await repo.delete(code, 'c1');
+      await expectation;
+    },
+  );
 }

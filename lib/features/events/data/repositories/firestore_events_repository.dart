@@ -82,6 +82,17 @@ class FirestoreEventsRepository implements EventsRepository {
       );
 
   @override
+  Stream<int> watchDiaperChangeCountSince(
+    String householdCode, {
+    required DateTime from,
+  }) =>
+      _events(householdCode)
+          .where('diaperChange', isEqualTo: true)
+          .where('startAt', isGreaterThanOrEqualTo: Timestamp.fromDate(from))
+          .snapshots()
+          .map((snap) => snap.docs.length);
+
+  @override
   Future<Either<Failure, void>> save(String householdCode, CareEvent event) =>
       guard(
         () =>

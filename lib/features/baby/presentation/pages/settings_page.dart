@@ -5,6 +5,8 @@ import 'package:colette/features/baby/presentation/providers/baby_settings_contr
 import 'package:colette/features/baby/presentation/widgets/baby_section.dart';
 import 'package:colette/features/baby/presentation/widgets/care_settings_section.dart';
 import 'package:colette/features/baby/presentation/widgets/weights_section.dart';
+import 'package:colette/features/diapers/presentation/providers/diaper_stock_controller.dart';
+import 'package:colette/features/diapers/presentation/widgets/diaper_stock_section.dart';
 import 'package:colette/features/household/presentation/providers/household_providers.dart';
 import 'package:colette/features/household/presentation/widgets/household_section.dart';
 import 'package:colette/features/notifications/presentation/providers/notifications_providers.dart';
@@ -34,6 +36,12 @@ class SettingsPage extends ConsumerWidget {
             .showSnackBar(SnackBar(content: Text(failureMessage(error, s))));
       }
     });
+    ref.listen(diaperStockControllerProvider, (_, next) {
+      if (next case AsyncError(:final error)) {
+        ScaffoldMessenger.of(context)
+            .showSnackBar(SnackBar(content: Text(failureMessage(error, s))));
+      }
+    });
     final profile = ref.watch(babyProfileProvider).value;
     final code = ref.watch(currentHouseholdCodeProvider);
     final device = ref.watch(currentDeviceProvider).value;
@@ -54,6 +62,8 @@ class SettingsPage extends ConsumerWidget {
               padding: EdgeInsets.zero,
               child: Center(child: CircularProgressIndicator()),
             ),
+          SectionHeader(title: s.settingsDiapersSection),
+          const DiaperStockSection(),
           if (device != null) ...[
             SectionHeader(title: s.settingsNotificationsSection),
             NotificationsSection(device: device),

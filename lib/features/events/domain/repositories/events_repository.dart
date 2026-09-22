@@ -29,6 +29,12 @@ abstract interface class EventsRepository {
 
   Future<Either<Failure, CareEvent?>> getLatestBottle(String householdCode);
 
+  /// Nombre d'événements « change » dont `startAt` est ≥ [from].
+  Stream<int> watchDiaperChangeCountSince(
+    String householdCode, {
+    required DateTime from,
+  });
+
   /// Crée ou remplace l'événement (clé : `event.id`).
   Future<Either<Failure, void>> save(String householdCode, CareEvent event);
 
