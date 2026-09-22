@@ -225,6 +225,7 @@ nullable-getter: false
   "errorNetwork": "Pas de connexion. Réessaie dans un instant.",
   "errorUnknown": "Une erreur est survenue.",
   "errorNotFound": "Introuvable : l'élément a peut-être été supprimé.",
+  "errorNotificationsDenied": "Notifications refusées. Autorise-les dans Réglages iOS › Colette.",
   "actionDecrease": "Diminuer",
   "actionIncrease": "Augmenter",
   "errorEmptyEvent": "Coche au moins un soin ou renseigne un biberon.",
@@ -560,6 +561,7 @@ enum ValidationReason {
   invalidWeight,
   emptyName,
   unknownHouseholdCode,
+  notificationsDenied,
 }
 
 /// Erreur remontée par les repositories et les use cases via `Either`.
@@ -1914,6 +1916,7 @@ String failureMessage(Object failure, S s) => switch (failure) {
     ValidationReason.invalidWeight => s.errorInvalidWeight,
     ValidationReason.emptyName => s.errorEmptyName,
     ValidationReason.unknownHouseholdCode => s.errorUnknownCode,
+    ValidationReason.notificationsDenied => s.errorNotificationsDenied,
   },
   _ => s.errorUnknown,
 };
@@ -2516,9 +2519,9 @@ import 'package:colette/features/household/domain/entities/device_info.dart';
 
 /// Conversion `DeviceInfo` ↔ document Firestore `devices/{id}`.
 abstract final class DeviceInfoDto {
+  /// N'écrit jamais `fcmToken` : seul `updateFcmToken` gère le token.
   static Map<String, dynamic> toMap(DeviceInfo device) => {
     'label': device.label,
-    'fcmToken': device.fcmToken,
     'notifyOnOthersEvents': device.notifyOnOthersEvents,
     'notifyBottleReminder': device.notifyBottleReminder,
     'notifyMorningDigest': device.notifyMorningDigest,
@@ -7575,15 +7578,25 @@ import 'package:colette/features/notifications/domain/push_token_source.dart';
 
 /// Source de token FCM contrôlable pour les tests.
 class FakePushTokenSource implements PushTokenSource {
-  FakePushTokenSource({this.granted = false, this.token});
+  FakePushTokenSource({
+    this.granted = false,
+    this.token,
+    this.initialMessageData,
+    this.permissionError,
+  });
 
   final bool granted;
   final String? token;
+  final Map<String, String>? initialMessageData;
+  final Object? permissionError;
   final _refresh = StreamController<String>.broadcast();
   final _opened = StreamController<Map<String, String>>.broadcast();
 
   @override
-  Future<bool> requestPermission() async => granted;
+  Future<bool> requestPermission() async {
+    if (permissionError != null) throw permissionError!;
+    return granted;
+  }
 
   @override
   Future<String?> getToken() async => token;
@@ -7592,7 +7605,8 @@ class FakePushTokenSource implements PushTokenSource {
   Stream<String> get onTokenRefresh => _refresh.stream;
 
   @override
-  Future<Map<String, String>?> getInitialMessageData() async => null;
+  Future<Map<String, String>?> getInitialMessageData() async =>
+      initialMessageData;
 
   @override
   Stream<Map<String, String>> get onMessageOpened => _opened.stream;
@@ -7608,6 +7622,7 @@ class FakePushTokenSource implements PushTokenSource {
 `test/features/notifications/presentation/push_registration_test.dart` :
 
 ```dart
+import 'package:colette/core/result/failure.dart';
 import 'package:colette/features/household/domain/repositories/device_repository.dart';
 import 'package:colette/features/household/presentation/providers/household_providers.dart';
 import 'package:colette/features/notifications/presentation/providers/notifications_providers.dart';
@@ -7630,7 +7645,10 @@ void main() {
         pushTokenSourceProvider.overrideWithValue(source),
         deviceRepositoryProvider.overrideWithValue(devices),
         householdLocalStoreProvider.overrideWithValue(
-          InMemoryHouseholdLocalStore(householdCode: 'ABCDEFGH', deviceId: 'dev-1'),
+          InMemoryHouseholdLocalStore(
+            householdCode: 'ABCDEFGH',
+            deviceId: 'dev-1',
+          ),
         ),
       ],
     );
@@ -7640,23 +7658,84 @@ void main() {
 
   setUp(() {
     devices = MockDeviceRepository();
-    when(() => devices.updateFcmToken(any(), any(), any())).thenAnswer((_) async => right(null));
+    when(() => devices.updateFcmToken(any(), any(), any()))
+        .thenAnswer((_) async => right(null));
   });
 
   test('register écrit le token puis suit les renouvellements', () async {
     final source = FakePushTokenSource(granted: true, token: 'tok-1');
     final container = makeContainer(source);
     await container.read(pushRegistrationProvider.notifier).register();
-    verify(() => devices.updateFcmToken('ABCDEFGH', 'dev-1', 'tok-1')).called(1);
+    verify(() => devices.updateFcmToken('ABCDEFGH', 'dev-1', 'tok-1'))
+        .called(1);
 
     source.emitRefresh('tok-2');
-    await Future<void>.delayed(Duration.zero);
-    verify(() => devices.updateFcmToken('ABCDEFGH', 'dev-1', 'tok-2')).called(1);
+    await pumpEventQueue();
+    verify(() => devices.updateFcmToken('ABCDEFGH', 'dev-1', 'tok-2'))
+        .called(1);
   });
 
-  test('sans permission, aucun token n\'est écrit', () async {
-    final container = makeContainer(FakePushTokenSource(granted: false, token: 'tok-1'));
+  test(
+    'deux register() concurrents partagent un seul enregistrement',
+    () async {
+      final source = FakePushTokenSource(granted: true, token: 'tok-1');
+      final container = makeContainer(source);
+      final notifier = container.read(pushRegistrationProvider.notifier);
+      await Future.wait([notifier.register(), notifier.register()]);
+      verify(() => devices.updateFcmToken('ABCDEFGH', 'dev-1', 'tok-1'))
+          .called(1);
+
+      source.emitRefresh('tok-2');
+      await pumpEventQueue();
+      verify(() => devices.updateFcmToken('ABCDEFGH', 'dev-1', 'tok-2'))
+          .called(1);
+    },
+  );
+
+  test(
+    'un renouvellement après changement de foyer écrit dans le nouveau foyer',
+    () async {
+      final source = FakePushTokenSource(granted: true, token: 'tok-1');
+      final container = makeContainer(source);
+      await container.read(pushRegistrationProvider.notifier).register();
+      verify(() => devices.updateFcmToken('ABCDEFGH', 'dev-1', 'tok-1'))
+          .called(1);
+
+      await container.read(currentHouseholdCodeProvider.notifier).clear();
+      await container
+          .read(currentHouseholdCodeProvider.notifier)
+          .set('IJKLMNOP');
+
+      source.emitRefresh('tok-2');
+      await pumpEventQueue();
+      verify(() => devices.updateFcmToken('IJKLMNOP', 'dev-1', 'tok-2'))
+          .called(1);
+      verifyNever(() => devices.updateFcmToken('ABCDEFGH', 'dev-1', 'tok-2'));
+    },
+  );
+
+  test('une exception du plugin met le provider en erreur', () async {
+    final source = FakePushTokenSource(
+      granted: true,
+      permissionError: Exception('apns'),
+    );
+    final container = makeContainer(source);
     await container.read(pushRegistrationProvider.notifier).register();
+    final state = container.read(pushRegistrationProvider);
+    expect(state, isA<AsyncError<void>>());
+    expect((state as AsyncError<void>).error, isA<UnknownFailure>());
+    verifyNever(() => devices.updateFcmToken(any(), any(), any()));
+  });
+
+  test('permission refusée → ValidationFailure(notificationsDenied)', () async {
+    final container = makeContainer(FakePushTokenSource(granted: false));
+    await container.read(pushRegistrationProvider.notifier).register();
+    final state = container.read(pushRegistrationProvider);
+    expect(state, isA<AsyncError<void>>());
+    expect(
+      (state as AsyncError<void>).error,
+      const ValidationFailure(ValidationReason.notificationsDenied),
+    );
     verifyNever(() => devices.updateFcmToken(any(), any(), any()));
   });
 }
@@ -7707,15 +7786,18 @@ final class FirebasePushTokenSource implements PushTokenSource {
   @override
   Future<bool> requestPermission() async {
     final settings = await _messaging.requestPermission();
-    await _messaging.setForegroundNotificationPresentationOptions(
-      alert: true,
-      badge: true,
-      sound: true,
-    );
-    return switch (settings.authorizationStatus) {
+    final granted = switch (settings.authorizationStatus) {
       AuthorizationStatus.authorized || AuthorizationStatus.provisional => true,
       _ => false,
     };
+    if (granted) {
+      await _messaging.setForegroundNotificationPresentationOptions(
+        alert: true,
+        badge: true,
+        sound: true,
+      );
+    }
+    return granted;
   }
 
   @override
@@ -7743,14 +7825,18 @@ import 'dart:async';
 import 'dart:developer' as developer;
 
 import 'package:colette/core/firebase/firebase_providers.dart';
+import 'package:colette/core/result/failure.dart';
+import 'package:colette/core/result/failure_mapper.dart';
 import 'package:colette/features/household/domain/entities/device_info.dart';
 import 'package:colette/features/household/presentation/providers/household_providers.dart';
 import 'package:colette/features/notifications/data/firebase_push_token_source.dart';
 import 'package:colette/features/notifications/domain/push_token_source.dart';
+import 'package:fpdart/fpdart.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
 part 'notifications_providers.g.dart';
 
+/// Source de push utilisée par l'app ; Firebase Cloud Messaging en production.
 @Riverpod(keepAlive: true)
 PushTokenSource pushTokenSource(Ref ref) =>
     FirebasePushTokenSource(ref.watch(firebaseMessagingProvider));
@@ -7759,26 +7845,49 @@ PushTokenSource pushTokenSource(Ref ref) =>
 @Riverpod(keepAlive: true)
 class PushRegistration extends _$PushRegistration {
   StreamSubscription<String>? _refreshSubscription;
+  Future<void>? _inFlight;
 
   @override
   FutureOr<void> build() {
     ref.onDispose(() => _refreshSubscription?.cancel());
   }
 
-  Future<void> register() async {
+  /// Un appel pendant qu'un autre est en cours partage la même Future.
+  Future<void> register() =>
+      _inFlight ??= _register().whenComplete(() => _inFlight = null);
+
+  Future<void> _register() async {
     final code = ref.read(currentHouseholdCodeProvider);
     if (code == null) return;
     final source = ref.read(pushTokenSourceProvider);
-    if (!await source.requestPermission()) return;
-    final token = await source.getToken();
-    if (token != null) await _saveToken(code, token);
-    await _refreshSubscription?.cancel();
-    _refreshSubscription = source.onTokenRefresh.listen(
-      (newToken) => _saveToken(code, newToken),
-    );
+    state = const AsyncLoading();
+    final result = await guard(() async {
+      if (!await source.requestPermission()) {
+        return left<Failure, void>(
+          const ValidationFailure(ValidationReason.notificationsDenied),
+        );
+      }
+      _listenRefresh(source);
+      final token = await source.getToken();
+      if (token == null) return right<Failure, void>(null);
+      return _saveToken(code, token);
+    });
+    state = result
+        .flatMap((inner) => inner)
+        .fold(
+          (f) => AsyncError(f, StackTrace.current),
+          (_) => const AsyncData(null),
+        );
   }
 
-  Future<void> _saveToken(String code, String token) async {
+  void _listenRefresh(PushTokenSource source) {
+    _refreshSubscription ??= source.onTokenRefresh.listen((token) {
+      final current = ref.read(currentHouseholdCodeProvider);
+      if (current != null) _saveToken(current, token);
+    });
+  }
+
+  Future<Either<Failure, void>> _saveToken(String code, String token) async {
     final result = await ref
         .read(deviceRepositoryProvider)
         .updateFcmToken(code, ref.read(deviceIdProvider), token);
@@ -7787,6 +7896,7 @@ class PushRegistration extends _$PushRegistration {
           developer.log('Token FCM non enregistré : $failure', name: 'colette'),
       (_) {},
     );
+    return result;
   }
 }
 
@@ -7817,6 +7927,7 @@ class NotificationSettingsController extends _$NotificationSettingsController {
 ```dart
 import 'package:colette/core/theme/design_tokens.dart';
 import 'package:colette/core/theme/text_styles.dart';
+import 'package:colette/core/ui/failure_message.dart';
 import 'package:colette/features/household/domain/entities/device_info.dart';
 import 'package:colette/features/notifications/presentation/providers/notifications_providers.dart';
 import 'package:colette/l10n/generated/app_localizations.dart';
@@ -7832,8 +7943,8 @@ class NotificationsSection extends ConsumerStatefulWidget {
 
   final DeviceInfo device;
 
-  static const minHour = 5;
-  static const maxHour = 12;
+  static const _minHour = 5;
+  static const _maxHour = 12;
 
   @override
   ConsumerState<NotificationsSection> createState() =>
@@ -7857,8 +7968,12 @@ class _NotificationsSectionState extends ConsumerState<NotificationsSection> {
     final ok = await ref
         .read(notificationSettingsControllerProvider.notifier)
         .save(next);
-    if (!ok && mounted) setState(() => _device = widget.device);
-    if (ok && enabling) ref.read(pushRegistrationProvider.notifier).register();
+    if (!mounted) return;
+    if (!ok) {
+      setState(() => _device = widget.device);
+      return;
+    }
+    if (enabling) ref.read(pushRegistrationProvider.notifier).register();
   }
 
   @override
@@ -7866,6 +7981,12 @@ class _NotificationsSectionState extends ConsumerState<NotificationsSection> {
     // Garde le contrôleur autoDispose vivant pendant l'await de save.
     ref.watch(notificationSettingsControllerProvider);
     final s = S.of(context);
+    ref.listen(pushRegistrationProvider, (_, next) {
+      if (next case AsyncError(:final error)) {
+        ScaffoldMessenger.of(context)
+            .showSnackBar(SnackBar(content: Text(failureMessage(error, s))));
+      }
+    });
     final body = Theme.of(context).coletteTextStyles.body;
     return ColetteCardSurface(
       padding: AppSpacing.sm.all,
@@ -7896,8 +8017,8 @@ class _NotificationsSectionState extends ConsumerState<NotificationsSection> {
             IntStepperRow(
               label: s.settingsMorningHour,
               value: _device.morningDigestHour,
-              min: NotificationsSection.minHour,
-              max: NotificationsSection.maxHour,
+              min: NotificationsSection._minHour,
+              max: NotificationsSection._maxHour,
               suffix: s.unitHour,
               onChanged: (v) => _update(_device.copyWith(morningDigestHour: v)),
             ),
@@ -7940,7 +8061,13 @@ class _NotificationsGateState extends ConsumerState<NotificationsGate> {
       _,
       code,
     ) {
-      if (code != null) ref.read(pushRegistrationProvider.notifier).register();
+      if (code == null) return;
+      // PushRegistration pose `state` dès l'appel : différer après la
+      // frame en cours, sinon `fireImmediately` depuis `initState` modifie
+      // le provider pendant la construction de l'arbre de widgets.
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (mounted) ref.read(pushRegistrationProvider.notifier).register();
+      });
     });
     final source = ref.read(pushTokenSourceProvider);
     _openedSubscription = source.onMessageOpened.listen(_navigate);
@@ -7957,6 +8084,7 @@ class _NotificationsGateState extends ConsumerState<NotificationsGate> {
   };
 
   void _navigate(Map<String, String> data) {
+    if (ref.read(currentHouseholdCodeProvider) == null) return;
     final route = data['route'];
     if (route == null) return;
     final uri = Uri.tryParse(route);
@@ -8045,13 +8173,13 @@ void main() {
         .thenAnswer((_) async => right(null));
   });
 
-  List<Override> overrides() => [
+  List<Override> overrides({bool granted = true}) => [
     deviceRepositoryProvider.overrideWithValue(devices),
     householdLocalStoreProvider.overrideWithValue(
       InMemoryHouseholdLocalStore(householdCode: 'ABCDEFGH'),
     ),
     pushTokenSourceProvider.overrideWithValue(
-      FakePushTokenSource(granted: true, token: 'tok'),
+      FakePushTokenSource(granted: granted, token: 'tok'),
     ),
   ];
 
@@ -8106,8 +8234,13 @@ void main() {
   testWidgets('un échec d\'enregistrement remet le switch en arrière', (
     tester,
   ) async {
-    when(() => devices.saveDevice(any(), any()))
-        .thenAnswer((_) async => left(const NetworkFailure()));
+    when(() => devices.saveDevice(any(), any())).thenAnswer((_) async {
+      // Délai réel (Timer), pas seulement un microtask : sinon la chaîne
+      // save → setState de retour en arrière se résout avant même le
+      // premier `pump()`, et l'état optimiste ne serait jamais observable.
+      await Future<void>.delayed(Duration.zero);
+      return left(const NetworkFailure());
+    });
     await pumpApp(
       tester,
       NotificationsSection(
@@ -8116,11 +8249,49 @@ void main() {
       overrides: overrides(),
     );
     await tester.tap(find.widgetWithText(SwitchListTile, 'Rappel biberon'));
-    await tester.pumpAndSettle();
-    final tile = tester.widget<SwitchListTile>(
-      find.widgetWithText(SwitchListTile, 'Rappel biberon'),
+    await tester.pump();
+    expect(
+      tester
+          .widget<SwitchListTile>(
+            find.widgetWithText(SwitchListTile, 'Rappel biberon'),
+          )
+          .value,
+      isTrue,
     );
-    expect(tile.value, isFalse);
+    await tester.pumpAndSettle();
+    expect(
+      tester
+          .widget<SwitchListTile>(
+            find.widgetWithText(SwitchListTile, 'Rappel biberon'),
+          )
+          .value,
+      isFalse,
+    );
+    verify(() => devices.saveDevice('ABCDEFGH', any())).called(1);
+  });
+
+  testWidgets('activer un switch sans permission affiche un message', (
+    tester,
+  ) async {
+    when(() => devices.saveDevice(any(), any()))
+        .thenAnswer((_) async => right(null));
+    await pumpApp(
+      tester,
+      Scaffold(
+        body: NotificationsSection(
+          device: device.copyWith(notifyBottleReminder: false),
+        ),
+      ),
+      overrides: overrides(granted: false),
+    );
+    await tester.tap(find.widgetWithText(SwitchListTile, 'Rappel biberon'));
+    await tester.pumpAndSettle();
+    expect(
+      find.text(
+        'Notifications refusées. Autorise-les dans Réglages iOS › Colette.',
+      ),
+      findsOneWidget,
+    );
   });
 }
 ```
@@ -8152,6 +8323,7 @@ import 'package:colette/core/firebase/firebase_providers.dart';
 import 'package:colette/core/firebase/firestore_paths.dart';
 import 'package:colette/features/events/presentation/pages/timeline_page.dart';
 import 'package:colette/features/events/presentation/widgets/event_form_sheet.dart';
+import 'package:colette/features/household/presentation/pages/onboarding_page.dart';
 import 'package:colette/features/household/presentation/providers/household_providers.dart';
 import 'package:colette/features/notifications/presentation/providers/notifications_providers.dart';
 import 'package:fake_cloud_firestore/fake_cloud_firestore.dart';
@@ -8166,15 +8338,13 @@ void main() {
     WidgetTester tester, {
     required FakePushTokenSource pushSource,
     FakeFirebaseFirestore? firestore,
+    String? code = 'ABCDEFGH',
   }) async {
     await tester.pumpWidget(
       ProviderScope(
         overrides: [
           householdLocalStoreProvider.overrideWithValue(
-            InMemoryHouseholdLocalStore(
-              householdCode: 'ABCDEFGH',
-              deviceId: 'dev-1',
-            ),
+            InMemoryHouseholdLocalStore(householdCode: code, deviceId: 'dev-1'),
           ),
           isOnlineProvider.overrideWith((ref) => Stream.value(true)),
           firestoreProvider.overrideWithValue(
@@ -8280,6 +8450,15 @@ void main() {
       expect(find.byType(TimelinePage), findsOneWidget);
     },
   );
+
+  testWidgets('sans foyer, une notification est ignorée', (tester) async {
+    final source = FakePushTokenSource(granted: true, token: 'tok');
+    await pumpColetteApp(tester, pushSource: source, code: null);
+    source.emitOpened({'route': '/today?bottle=1'});
+    await tester.pumpAndSettle();
+    expect(find.byType(OnboardingPage), findsOneWidget);
+    expect(find.byType(EventFormSheet), findsNothing);
+  });
 }
 ```
 
