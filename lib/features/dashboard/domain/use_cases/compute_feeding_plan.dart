@@ -64,6 +64,9 @@ class ComputeFeedingPlan {
   /// 60 ml/kg le jour 1, +20 ml/kg par jour, plafonné à 150 ml/kg.
   static int mlPerKg(int dayOfLife) => min(150, 60 + 20 * (dayOfLife - 1));
 
+  /// Jour de vie à partir duquel `mlPerKg` atteint son plafond de 150.
+  static const mlPerKgPlateauDay = 6;
+
   /// Cible journalière indicative quand aucune pesée n'est connue.
   static int dailyTargetFromAge(int dayOfLife) =>
       FeedingAgeBand.forDayOfLife(dayOfLife).dailyMl;

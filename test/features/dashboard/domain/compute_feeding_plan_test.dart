@@ -45,6 +45,19 @@ void main() {
       expect(ComputeFeedingPlan.mlPerKg(40), 150);
     });
 
+    test('mlPerKgPlateauDay est le jour où le plafond de 150 est atteint', () {
+      expect(
+        ComputeFeedingPlan.mlPerKg(ComputeFeedingPlan.mlPerKgPlateauDay - 1),
+        lessThan(
+          ComputeFeedingPlan.mlPerKg(ComputeFeedingPlan.mlPerKgPlateauDay),
+        ),
+      );
+      expect(
+        ComputeFeedingPlan.mlPerKg(ComputeFeedingPlan.mlPerKgPlateauDay),
+        ComputeFeedingPlan.mlPerKg(ComputeFeedingPlan.mlPerKgPlateauDay + 1),
+      );
+    });
+
     test('repères par âge sans pesée', () {
       expect(ComputeFeedingPlan.dailyTargetFromAge(1), 240);
       expect(ComputeFeedingPlan.dailyTargetFromAge(5), 480);

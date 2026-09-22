@@ -98,9 +98,6 @@ class _AgeTableSection extends StatelessWidget {
 class _WeightRuleSection extends StatelessWidget {
   const _WeightRuleSection({required this.reference});
 
-  /// Jour de vie à partir duquel le plafond de 150 ml/kg s'applique.
-  static const plateauDay = 6;
-
   static final _kgFormat = NumberFormat('0.0', 'fr');
 
   final FeedingReference reference;
@@ -116,7 +113,7 @@ class _WeightRuleSection extends StatelessWidget {
       spacing: AppSpacing.xs.value,
       children: [
         _SectionTitle(s.feedingReferenceWeightTitle),
-        for (var day = 1; day < plateauDay; day++)
+        for (var day = 1; day < ComputeFeedingPlan.mlPerKgPlateauDay; day++)
           _ReferenceRow(
             label: s.feedingDayOfLife(day),
             value: s.feedingMlPerKg(ComputeFeedingPlan.mlPerKg(day)),
@@ -124,8 +121,11 @@ class _WeightRuleSection extends StatelessWidget {
           ),
         _ReferenceRow(
           label: s.feedingWeightRuleDay6Plus,
-          value: s.feedingMlPerKg(ComputeFeedingPlan.mlPerKg(plateauDay)),
-          highlighted: reference.dayOfLife >= plateauDay,
+          value: s.feedingMlPerKg(
+            ComputeFeedingPlan.mlPerKg(ComputeFeedingPlan.mlPerKgPlateauDay),
+          ),
+          highlighted:
+              reference.dayOfLife >= ComputeFeedingPlan.mlPerKgPlateauDay,
         ),
         Text(
           grams == null || weightTargetMl == null
