@@ -45,7 +45,7 @@ void main() {
     when(
       () => repo.list(''),
     ).thenAnswer((_) async => left(const DocumentsFailure(DocumentsReason.io)));
-    expect(
+    await expectLater(
       container.read(documentsFolderProvider('').future),
       throwsA(const DocumentsFailure(DocumentsReason.io)),
     );

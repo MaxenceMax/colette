@@ -21,7 +21,7 @@ final class DocumentsRootProvider
     : super(
         from: null,
         argument: null,
-        retry: _noRetry,
+        retry: noRetry,
         name: r'documentsRootProvider',
         isAutoDispose: false,
         dependencies: null,
@@ -36,7 +36,7 @@ final class DocumentsRootProvider
   DocumentsRoot create() => DocumentsRoot();
 }
 
-String _$documentsRootHash() => r'b4a41496e0854f0bfe762446adc64a5223aa6ffa';
+String _$documentsRootHash() => r'41facbe60865fd576f0e50b2d6e2b90c8ec88d3a';
 
 /// Dossier racine choisi sur cet iPhone ; `null` tant qu'aucun n'est choisi.
 

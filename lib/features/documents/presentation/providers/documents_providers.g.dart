@@ -8,12 +8,12 @@ part of 'documents_providers.dart';
 
 // GENERATED CODE - DO NOT MODIFY BY HAND
 // ignore_for_file: type=lint, type=warning
-/// Sans état : `keepAlive` car consommé par [DocumentsRoot] (keepAlive).
+/// Sans état : `keepAlive` car consommé par `DocumentsRoot` (keepAlive).
 
 @ProviderFor(documentsRepository)
 final documentsRepositoryProvider = DocumentsRepositoryProvider._();
 
-/// Sans état : `keepAlive` car consommé par [DocumentsRoot] (keepAlive).
+/// Sans état : `keepAlive` car consommé par `DocumentsRoot` (keepAlive).
 
 final class DocumentsRepositoryProvider
     extends
@@ -23,7 +23,7 @@ final class DocumentsRepositoryProvider
           DocumentsRepository
         >
     with $Provider<DocumentsRepository> {
-  /// Sans état : `keepAlive` car consommé par [DocumentsRoot] (keepAlive).
+  /// Sans état : `keepAlive` car consommé par `DocumentsRoot` (keepAlive).
   DocumentsRepositoryProvider._()
     : super(
         from: null,
@@ -62,14 +62,14 @@ String _$documentsRepositoryHash() =>
     r'85ff530253486b5adf67353cf5ebf7c84fa8b82c';
 
 /// Contenu trié d'un dossier, [path] relatif à la racine (`''` = racine).
-/// `retry` désactivé : une [DocumentsFailure] doit remonter immédiatement,
+/// `retry` désactivé : une `DocumentsFailure` doit remonter immédiatement,
 /// pas déclencher des tentatives silencieuses en arrière-plan.
 
 @ProviderFor(documentsFolder)
 final documentsFolderProvider = DocumentsFolderFamily._();
 
 /// Contenu trié d'un dossier, [path] relatif à la racine (`''` = racine).
-/// `retry` désactivé : une [DocumentsFailure] doit remonter immédiatement,
+/// `retry` désactivé : une `DocumentsFailure` doit remonter immédiatement,
 /// pas déclencher des tentatives silencieuses en arrière-plan.
 
 final class DocumentsFolderProvider
@@ -83,13 +83,13 @@ final class DocumentsFolderProvider
         $FutureModifier<List<DocumentEntry>>,
         $FutureProvider<List<DocumentEntry>> {
   /// Contenu trié d'un dossier, [path] relatif à la racine (`''` = racine).
-  /// `retry` désactivé : une [DocumentsFailure] doit remonter immédiatement,
+  /// `retry` désactivé : une `DocumentsFailure` doit remonter immédiatement,
   /// pas déclencher des tentatives silencieuses en arrière-plan.
   DocumentsFolderProvider._({
     required DocumentsFolderFamily super.from,
     required String super.argument,
   }) : super(
-         retry: _noRetry,
+         retry: noRetry,
          name: r'documentsFolderProvider',
          isAutoDispose: true,
          dependencies: null,
@@ -129,17 +129,17 @@ final class DocumentsFolderProvider
   }
 }
 
-String _$documentsFolderHash() => r'13c7cf1b013d41464451323404a267c5bb457eb2';
+String _$documentsFolderHash() => r'559164c456403a9cb558bf6d220708eefce6af42';
 
 /// Contenu trié d'un dossier, [path] relatif à la racine (`''` = racine).
-/// `retry` désactivé : une [DocumentsFailure] doit remonter immédiatement,
+/// `retry` désactivé : une `DocumentsFailure` doit remonter immédiatement,
 /// pas déclencher des tentatives silencieuses en arrière-plan.
 
 final class DocumentsFolderFamily extends $Family
     with $FunctionalFamilyOverride<FutureOr<List<DocumentEntry>>, String> {
   DocumentsFolderFamily._()
     : super(
-        retry: _noRetry,
+        retry: noRetry,
         name: r'documentsFolderProvider',
         dependencies: null,
         $allTransitiveDependencies: null,
@@ -147,7 +147,7 @@ final class DocumentsFolderFamily extends $Family
       );
 
   /// Contenu trié d'un dossier, [path] relatif à la racine (`''` = racine).
-  /// `retry` désactivé : une [DocumentsFailure] doit remonter immédiatement,
+  /// `retry` désactivé : une `DocumentsFailure` doit remonter immédiatement,
   /// pas déclencher des tentatives silencieuses en arrière-plan.
 
   DocumentsFolderProvider call(String path) =>

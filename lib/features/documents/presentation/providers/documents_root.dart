@@ -1,16 +1,13 @@
 import 'package:colette/core/result/failure.dart';
+import 'package:colette/core/result/no_retry.dart';
 import 'package:colette/features/documents/domain/entities/document_root.dart';
 import 'package:colette/features/documents/presentation/providers/documents_providers.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
 part 'documents_root.g.dart';
 
-/// Désactive les tentatives automatiques de Riverpod : une [DocumentsFailure]
-/// doit remonter immédiatement, pas déclencher des relances silencieuses.
-Duration? _noRetry(int retryCount, Object error) => null;
-
 /// Dossier racine choisi sur cet iPhone ; `null` tant qu'aucun n'est choisi.
-@Riverpod(keepAlive: true, retry: _noRetry)
+@Riverpod(keepAlive: true, retry: noRetry)
 class DocumentsRoot extends _$DocumentsRoot {
   @override
   Future<DocumentRoot?> build() async {
@@ -20,6 +17,9 @@ class DocumentsRoot extends _$DocumentsRoot {
 
   /// Ouvre le sélecteur iOS. Renvoie `true` si un dossier a été choisi.
   Future<bool> pick() async {
+    // Un `build` initial (ou un `pick` précédent) encore en vol écraserait
+    // l'état posé ici avec son propre résultat une fois résolu.
+    if (state.isLoading) return false;
     final previous = state;
     state = const AsyncLoading();
     final result = await ref.read(documentsRepositoryProvider).pickRootFolder();
@@ -44,10 +44,11 @@ class DocumentsRoot extends _$DocumentsRoot {
     final result = await ref
         .read(documentsRepositoryProvider)
         .forgetRootFolder();
-    state = result.fold(
-      (failure) => AsyncError(failure, StackTrace.current),
-      (_) => const AsyncData(null),
-    );
-    ref.invalidate(documentsFolderProvider);
+    state = result.fold((failure) => AsyncError(failure, StackTrace.current), (
+      _,
+    ) {
+      ref.invalidate(documentsFolderProvider);
+      return const AsyncData(null);
+    });
   }
 }

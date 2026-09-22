@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:colette/core/result/failure.dart';
 import 'package:colette/features/documents/domain/entities/document_root.dart';
 import 'package:colette/features/documents/domain/repositories/documents_repository.dart';
@@ -30,6 +32,32 @@ void main() {
     when(() => repo.rootFolder()).thenAnswer((_) async => right(root));
     expect(await container.read(documentsRootProvider.future), root);
   });
+
+  test('build en échec passe en erreur immédiatement', () async {
+    when(() => repo.rootFolder()).thenAnswer(
+      (_) async => left(const DocumentsFailure(DocumentsReason.accessDenied)),
+    );
+    await expectLater(
+      container.read(documentsRootProvider.future),
+      throwsA(const DocumentsFailure(DocumentsReason.accessDenied)),
+    );
+    expect(
+      container.read(documentsRootProvider).error,
+      const DocumentsFailure(DocumentsReason.accessDenied),
+    );
+  });
+
+  test(
+    'pick pendant un build en vol ne fait rien : le build écraserait l\'état',
+    () async {
+      final completer = Completer<Either<Failure, DocumentRoot?>>();
+      when(() => repo.rootFolder()).thenAnswer((_) => completer.future);
+
+      expect(await notifier().pick(), isFalse);
+
+      verifyNever(() => repo.pickRootFolder());
+    },
+  );
 
   test('pick choisit le dossier et invalide les listes', () async {
     when(() => repo.rootFolder()).thenAnswer((_) async => right(null));
@@ -84,5 +112,17 @@ void main() {
       const AsyncData<DocumentRoot?>(null),
     );
     verify(() => repo.forgetRootFolder()).called(1);
+  });
+
+  test('forget en échec passe en erreur', () async {
+    when(() => repo.rootFolder()).thenAnswer((_) async => right(root));
+    when(
+      () => repo.forgetRootFolder(),
+    ).thenAnswer((_) async => left(const DocumentsFailure(DocumentsReason.io)));
+    await container.read(documentsRootProvider.future);
+
+    await notifier().forget();
+
+    expect(container.read(documentsRootProvider).hasError, isTrue);
   });
 }

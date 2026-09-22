@@ -12,6 +12,7 @@ class DocumentsPreviewController extends _$DocumentsPreviewController {
   @override
   FutureOr<void> build(String path) {}
 
+  /// Ouvre l'aperçu Quick Look du fichier ; une annulation n'est pas une erreur.
   Future<void> preview() async {
     state = const AsyncLoading();
     final result = await ref.read(documentsRepositoryProvider).preview(path);
