@@ -7,6 +7,7 @@ import 'package:colette/features/baby/presentation/widgets/care_settings_section
 import 'package:colette/features/baby/presentation/widgets/weights_section.dart';
 import 'package:colette/features/household/presentation/providers/household_providers.dart';
 import 'package:colette/features/household/presentation/widgets/household_section.dart';
+import 'package:colette/features/notifications/presentation/providers/notifications_providers.dart';
 import 'package:colette/features/notifications/presentation/widgets/notifications_section.dart';
 import 'package:colette/l10n/generated/app_localizations.dart';
 import 'package:colette/shared/ui/widgets/section_header.dart';
@@ -26,8 +27,15 @@ class SettingsPage extends ConsumerWidget {
             .showSnackBar(SnackBar(content: Text(failureMessage(error, s))));
       }
     });
+    ref.listen(notificationSettingsControllerProvider, (_, next) {
+      if (next case AsyncError(:final error)) {
+        ScaffoldMessenger.of(context)
+            .showSnackBar(SnackBar(content: Text(failureMessage(error, s))));
+      }
+    });
     final profile = ref.watch(babyProfileProvider).value;
     final code = ref.watch(currentHouseholdCodeProvider);
+    final device = ref.watch(currentDeviceProvider).value;
     return Scaffold(
       appBar: AppBar(title: Text(s.settingsTitle)),
       body: ListView(
@@ -45,8 +53,10 @@ class SettingsPage extends ConsumerWidget {
               padding: EdgeInsets.zero,
               child: Center(child: CircularProgressIndicator()),
             ),
-          SectionHeader(title: s.settingsNotificationsSection),
-          const NotificationsSection(),
+          if (device != null) ...[
+            SectionHeader(title: s.settingsNotificationsSection),
+            NotificationsSection(device: device),
+          ],
           if (code != null) ...[
             SectionHeader(title: s.settingsHouseholdSection),
             HouseholdSection(code: code),

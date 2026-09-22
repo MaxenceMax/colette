@@ -31,7 +31,8 @@ class _NotificationsGateState extends ConsumerState<NotificationsGate> {
     final source = ref.read(pushTokenSourceProvider);
     _openedSubscription = source.onMessageOpened.listen(_navigate);
     source.getInitialMessageData().then((data) {
-      if (data != null) _navigate(data);
+      if (!mounted || data == null) return;
+      _navigate(data);
     });
   }
 

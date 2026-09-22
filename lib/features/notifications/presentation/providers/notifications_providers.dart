@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:developer' as developer;
 
 import 'package:colette/core/firebase/firebase_providers.dart';
 import 'package:colette/features/household/domain/entities/device_info.dart';
@@ -36,9 +37,16 @@ class PushRegistration extends _$PushRegistration {
     );
   }
 
-  Future<void> _saveToken(String code, String token) => ref
-      .read(deviceRepositoryProvider)
-      .updateFcmToken(code, ref.read(deviceIdProvider), token);
+  Future<void> _saveToken(String code, String token) async {
+    final result = await ref
+        .read(deviceRepositoryProvider)
+        .updateFcmToken(code, ref.read(deviceIdProvider), token);
+    result.fold(
+      (failure) =>
+          developer.log('Token FCM non enregistré : $failure', name: 'colette'),
+      (_) {},
+    );
+  }
 }
 
 /// Enregistre les préférences de notification de cet iPhone.

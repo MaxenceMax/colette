@@ -79,7 +79,7 @@ final class PushRegistrationProvider
   PushRegistration create() => PushRegistration();
 }
 
-String _$pushRegistrationHash() => r'cd771206110cf0b81ca231f0b927acffbd0185fc';
+String _$pushRegistrationHash() => r'31a4ce0a87e71af1cd97d166ddfb2344d67ee49c';
 
 /// Enregistre le token FCM de cet iPhone dans le foyer et suit ses renouvellements.
 
