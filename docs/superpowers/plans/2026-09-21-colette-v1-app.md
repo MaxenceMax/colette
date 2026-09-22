@@ -2445,12 +2445,20 @@ import 'package:fpdart/fpdart.dart';
 abstract interface class DeviceRepository {
   Stream<DeviceInfo?> watchDevice(String householdCode, String deviceId);
 
-  Future<Either<Failure, void>> saveDevice(String householdCode, DeviceInfo device);
+  Future<Either<Failure, void>> saveDevice(
+    String householdCode,
+    DeviceInfo device,
+  );
 
   Future<Either<Failure, void>> updateFcmToken(
     String householdCode,
     String deviceId,
     String token,
+  );
+
+  Future<Either<Failure, void>> deleteDevice(
+    String householdCode,
+    String deviceId,
   );
 }
 ```
@@ -2602,11 +2610,12 @@ class FirestoreDeviceRepository implements DeviceRepository {
 
   final FirebaseFirestore _db;
 
-  DocumentReference<Map<String, dynamic>> _doc(String code, String deviceId) => _db
-      .collection(FirestorePaths.households)
-      .doc(code)
-      .collection(FirestorePaths.devices)
-      .doc(deviceId);
+  DocumentReference<Map<String, dynamic>> _doc(String code, String deviceId) =>
+      _db
+          .collection(FirestorePaths.households)
+          .doc(code)
+          .collection(FirestorePaths.devices)
+          .doc(deviceId);
 
   @override
   Stream<DeviceInfo?> watchDevice(String householdCode, String deviceId) =>
@@ -2616,13 +2625,15 @@ class FirestoreDeviceRepository implements DeviceRepository {
       });
 
   @override
-  Future<Either<Failure, void>> saveDevice(String householdCode, DeviceInfo device) =>
-      guard(
-        () => _doc(householdCode, device.id).set(
-          DeviceInfoDto.toMap(device),
-          SetOptions(merge: true),
-        ),
-      );
+  Future<Either<Failure, void>> saveDevice(
+    String householdCode,
+    DeviceInfo device,
+  ) => guard(
+    () => _doc(
+      householdCode,
+      device.id,
+    ).set(DeviceInfoDto.toMap(device), SetOptions(merge: true)),
+  );
 
   @override
   Future<Either<Failure, void>> updateFcmToken(
@@ -2630,19 +2641,29 @@ class FirestoreDeviceRepository implements DeviceRepository {
     String deviceId,
     String token,
   ) => guard(
-    () => _doc(householdCode, deviceId).set(
-      {'fcmToken': token, 'updatedAt': FieldValue.serverTimestamp()},
-      SetOptions(merge: true),
-    ),
+    () => _doc(householdCode, deviceId).set({
+      'fcmToken': token,
+      'updatedAt': FieldValue.serverTimestamp(),
+    }, SetOptions(merge: true)),
   );
+
+  @override
+  Future<Either<Failure, void>> deleteDevice(
+    String householdCode,
+    String deviceId,
+  ) => guard(() => _doc(householdCode, deviceId).delete());
 }
 ```
 
 - [ ] **Step 6: Créer `lib/features/household/presentation/providers/household_providers.dart`**
 
 ```dart
+import 'dart:async';
+import 'dart:developer' as developer;
+
 import 'package:colette/core/clock/app_clock.dart';
 import 'package:colette/core/firebase/firebase_providers.dart';
+import 'package:colette/core/result/failure.dart';
 import 'package:colette/features/household/data/firestore_device_repository.dart';
 import 'package:colette/features/household/data/firestore_household_repository.dart';
 import 'package:colette/features/household/data/prefs_household_local_store.dart';
@@ -2651,6 +2672,7 @@ import 'package:colette/features/household/domain/household_code_generator.dart'
 import 'package:colette/features/household/domain/repositories/device_repository.dart';
 import 'package:colette/features/household/domain/repositories/household_local_store.dart';
 import 'package:colette/features/household/domain/repositories/household_repository.dart';
+import 'package:fpdart/fpdart.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
 part 'household_providers.g.dart';
@@ -2661,7 +2683,10 @@ HouseholdLocalStore householdLocalStore(Ref ref) =>
 
 @riverpod
 HouseholdRepository householdRepository(Ref ref) =>
-    FirestoreHouseholdRepository(ref.watch(firestoreProvider), ref.watch(clockProvider));
+    FirestoreHouseholdRepository(
+      ref.watch(firestoreProvider),
+      ref.watch(clockProvider),
+    );
 
 /// Sans état : `keepAlive` car consommé par l'enregistrement push (keepAlive).
 @Riverpod(keepAlive: true)
@@ -2669,7 +2694,8 @@ DeviceRepository deviceRepository(Ref ref) =>
     FirestoreDeviceRepository(ref.watch(firestoreProvider));
 
 @riverpod
-HouseholdCodeGenerator householdCodeGenerator(Ref ref) => HouseholdCodeGenerator();
+HouseholdCodeGenerator householdCodeGenerator(Ref ref) =>
+    HouseholdCodeGenerator();
 
 /// Code du foyer courant ; `null` tant que l'onboarding n'est pas terminé.
 @Riverpod(keepAlive: true)
@@ -2697,7 +2723,38 @@ String deviceId(Ref ref) => ref.watch(householdLocalStoreProvider).deviceId;
 Stream<DeviceInfo?> currentDevice(Ref ref) {
   final code = ref.watch(currentHouseholdCodeProvider);
   if (code == null) return Stream.value(null);
-  return ref.watch(deviceRepositoryProvider).watchDevice(code, ref.watch(deviceIdProvider));
+  return ref
+      .watch(deviceRepositoryProvider)
+      .watchDevice(code, ref.watch(deviceIdProvider));
+}
+
+/// Retire cet iPhone du foyer puis oublie le code foyer.
+@riverpod
+class LeaveHouseholdController extends _$LeaveHouseholdController {
+  @override
+  FutureOr<void> build() {}
+
+  Future<void> leave() async {
+    final code = ref.read(currentHouseholdCodeProvider);
+    if (code == null) return;
+    state = const AsyncLoading();
+    final result = await ref
+        .read(deviceRepositoryProvider)
+        .deleteDevice(code, ref.read(deviceIdProvider))
+        .timeout(
+          const Duration(seconds: 5),
+          onTimeout: () => left(const NetworkFailure()),
+        );
+    result.fold(
+      (failure) => developer.log(
+        'Appareil non retiré du foyer : $failure',
+        name: 'colette',
+      ),
+      (_) {},
+    );
+    state = const AsyncData(null);
+    await ref.read(currentHouseholdCodeProvider.notifier).clear();
+  }
 }
 ```
 
@@ -7399,7 +7456,8 @@ class HouseholdSection extends ConsumerWidget {
     final s = S.of(context);
     await Clipboard.setData(ClipboardData(text: code));
     if (!context.mounted) return;
-    ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(s.copied)));
+    ScaffoldMessenger.of(context)
+        .showSnackBar(SnackBar(content: Text(s.copied)));
   }
 
   Future<void> _leave(BuildContext context, WidgetRef ref) async {
@@ -7421,11 +7479,15 @@ class HouseholdSection extends ConsumerWidget {
         ],
       ),
     );
-    if (confirmed == true) await ref.read(currentHouseholdCodeProvider.notifier).clear();
+    if (confirmed == true) {
+      await ref.read(leaveHouseholdControllerProvider.notifier).leave();
+    }
   }
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    // Garde le contrôleur autoDispose vivant pendant l'await de leave().
+    final leaving = ref.watch(leaveHouseholdControllerProvider).isLoading;
     final s = S.of(context);
     final styles = Theme.of(context).coletteTextStyles;
     return ColetteCardSurface(
@@ -7435,7 +7497,9 @@ class HouseholdSection extends ConsumerWidget {
         children: [
           Text(
             s.settingsHouseholdCode,
-            style: styles.label.copyWith(color: context.appColor(AppColors.textSecondary)),
+            style: styles.label.copyWith(
+              color: context.appColor(AppColors.textSecondary),
+            ),
           ),
           Row(
             children: [
@@ -7457,11 +7521,13 @@ class HouseholdSection extends ConsumerWidget {
           ),
           const Divider(),
           TextButton.icon(
-            onPressed: () => _leave(context, ref),
+            onPressed: leaving ? null : () => _leave(context, ref),
             icon: Icon(Icons.logout, color: context.appColor(AppColors.error)),
             label: Text(
               s.settingsLeaveHousehold,
-              style: styles.bodyMedium.copyWith(color: context.appColor(AppColors.error)),
+              style: styles.bodyMedium.copyWith(
+                color: context.appColor(AppColors.error),
+              ),
             ),
           ),
         ],

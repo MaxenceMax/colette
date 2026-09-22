@@ -313,7 +313,7 @@ Sections :
 - Pesées : liste des pesées, ajout (date + grammes), suppression. La plus récente sert au calcul.
 - Soins attendus : Adrigyl / jour, yeux / jour, nez / jour, bain tous les N jours, nombril activé, prises de biberon / jour.
 - Notifications de cet appareil : événements ajoutés par l'autre, rappel biberon, digest du matin avec son heure. Demande de permission iOS au premier passage à « activé ».
-- Foyer : code affiché en grand avec bouton copier, nom de l'appareil, bouton « Quitter ce foyer » (efface le code local uniquement, avec confirmation).
+- Foyer : code affiché en grand avec bouton copier, nom de l'appareil, bouton « Quitter ce foyer » (avec confirmation : supprime `devices/{deviceId}` du foyer, avec un délai maximal de 5 s, puis efface le code local ; le foyer est quitté même si la suppression échoue, l'écriture restant en file Firestore).
 
 ## 7. Notifications push (Cloud Functions)
 
