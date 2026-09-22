@@ -25,6 +25,10 @@ Spec : `docs/superpowers/specs/2026-09-22-icloud-documents-design.md`.
 2. Tests de présentation avec `mocktail` (`MockDocumentsRepository`), comme le reste du projet, plutôt qu'un `FakeDocumentsRepository` dédié.
 3. Le mapping `PlatformException → DocumentsFailure` est fait dans le repository (méthode privée `_call`), pas dans `guard()` de `core`, pour ne pas coupler `core` aux codes du canal.
 4. Les fichiers Swift sont enregistrés dans `Runner.xcodeproj` avec le gem `xcodeproj` (livré avec CocoaPods, version 1.27 vérifiée), pas à la main.
+5. `retry: noRetry` désactivé sur `documentsFolderProvider` et `DocumentsRoot` (`lib/core/result/no_retry.dart`) : Riverpod 3 relance sinon jusqu'à dix fois un `build` qui lève, en gardant `AsyncLoading` affiché, ce qui masquerait une `DocumentsFailure` derrière un spinner au lieu de la remonter immédiatement.
+6. `pick()` et `forget()` de `DocumentsRoot` renvoient un `Either<Failure, bool>` / `Either<Failure, void>` plutôt que de se contenter de changer l'état du provider : les widgets appelants affichent eux-mêmes la `SnackBar` d'échec, en capturant `ScaffoldMessenger` avant l'`await`.
+7. `DocumentsWriteController` est une famille indexée par `folderPath` (comme `DocumentsPreviewController` par chemin de fichier), pas un contrôleur unique : la page racine et une sous-page poussée observent chacune leur propre instance.
+8. La disposition de la section Réglages sans dossier a été changée par rapport à la tâche 10 étape 3 : le bouton prévu en `trailing` d'un `ListTile` débordait à la largeur d'un iPhone standard (375 pt) ; il est passé sous le `ListTile`, dans une `Column`.
 
 ---
 
@@ -38,7 +42,7 @@ Spec : `docs/superpowers/specs/2026-09-22-icloud-documents-design.md`.
 - Modify: `lib/l10n/app_fr.arb`
 - Test: `test/core/ui/failure_message_documents_test.dart`
 
-- [ ] **Step 1 : Écrire le test rouge**
+- [x] **Step 1 : Écrire le test rouge**
 
 `test/core/ui/failure_message_documents_test.dart` :
 
@@ -85,12 +89,12 @@ void main() {
 
 Ajouter `import 'dart:ui' show Locale;` en tête si `Locale` n'est pas résolu.
 
-- [ ] **Step 2 : Vérifier l'échec**
+- [x] **Step 2 : Vérifier l'échec**
 
 Run: `flutter test test/core/ui/failure_message_documents_test.dart`
 Expected: échec de compilation, `DocumentsFailure` inconnu.
 
-- [ ] **Step 3 : Ajouter la failure**
+- [x] **Step 3 : Ajouter la failure**
 
 À la fin de `lib/core/result/failure.dart` :
 
@@ -106,7 +110,7 @@ final class DocumentsFailure extends Failure {
 }
 ```
 
-- [ ] **Step 4 : Ajouter les clés l10n**
+- [x] **Step 4 : Ajouter les clés l10n**
 
 Dans `lib/l10n/app_fr.arb`, avant la clé `"copied"` :
 
@@ -130,7 +134,7 @@ Dans `lib/l10n/app_fr.arb`, avant la clé `"copied"` :
 
 Puis `flutter gen-l10n` (ou `flutter pub get`, qui régénère `lib/l10n/generated/`).
 
-- [ ] **Step 5 : Traduire la failure**
+- [x] **Step 5 : Traduire la failure**
 
 Dans `lib/core/ui/failure_message.dart`, ajouter un cas avant `_ => s.errorUnknown` :
 
@@ -143,12 +147,12 @@ Dans `lib/core/ui/failure_message.dart`, ajouter un cas avant `_ => s.errorUnkno
   },
 ```
 
-- [ ] **Step 6 : Vérifier le succès**
+- [x] **Step 6 : Vérifier le succès**
 
 Run: `flutter test test/core/ui/failure_message_documents_test.dart`
 Expected: 3 tests verts.
 
-- [ ] **Step 7 : Commit**
+- [x] **Step 7 : Commit**
 
 ```bash
 dart format lib test && dart analyze
@@ -168,7 +172,7 @@ git commit -m "feat: DocumentsFailure et clés l10n des documents"
 - Create: `lib/features/documents/domain/use_cases/sort_document_entries.dart`
 - Test: `test/features/documents/domain/sort_document_entries_test.dart`
 
-- [ ] **Step 1 : Écrire le test rouge**
+- [x] **Step 1 : Écrire le test rouge**
 
 `test/features/documents/domain/sort_document_entries_test.dart` :
 
@@ -230,12 +234,12 @@ void main() {
 }
 ```
 
-- [ ] **Step 2 : Vérifier l'échec**
+- [x] **Step 2 : Vérifier l'échec**
 
 Run: `flutter test test/features/documents/domain/sort_document_entries_test.dart`
 Expected: échec de compilation.
 
-- [ ] **Step 3 : Écrire les entités**
+- [x] **Step 3 : Écrire les entités**
 
 `lib/features/documents/domain/entities/document_root.dart` :
 
@@ -280,7 +284,7 @@ abstract class DocumentEntry with _$DocumentEntry {
 }
 ```
 
-- [ ] **Step 4 : Écrire l'interface du repository**
+- [x] **Step 4 : Écrire l'interface du repository**
 
 `lib/features/documents/domain/repositories/documents_repository.dart` :
 
@@ -318,7 +322,7 @@ abstract interface class DocumentsRepository {
 }
 ```
 
-- [ ] **Step 5 : Écrire le tri**
+- [x] **Step 5 : Écrire le tri**
 
 `lib/features/documents/domain/use_cases/sort_document_entries.dart` :
 
@@ -343,12 +347,12 @@ List<DocumentEntry> sortDocumentEntries(List<DocumentEntry> entries) {
 }
 ```
 
-- [ ] **Step 6 : Générer et vérifier**
+- [x] **Step 6 : Générer et vérifier**
 
 Run: `dart run build_runner build -d && flutter test test/features/documents/domain/sort_document_entries_test.dart`
 Expected: 3 tests verts.
 
-- [ ] **Step 7 : Commit**
+- [x] **Step 7 : Commit**
 
 ```bash
 dart format lib test && dart analyze
@@ -364,7 +368,7 @@ git commit -m "feat: domaine documents, entités, repository et tri"
 - Create: `lib/features/documents/data/dtos/document_entry_dto.dart`
 - Test: `test/features/documents/data/document_entry_dto_test.dart`
 
-- [ ] **Step 1 : Écrire le test rouge**
+- [x] **Step 1 : Écrire le test rouge**
 
 `test/features/documents/data/document_entry_dto_test.dart` :
 
@@ -424,12 +428,12 @@ void main() {
 }
 ```
 
-- [ ] **Step 2 : Vérifier l'échec**
+- [x] **Step 2 : Vérifier l'échec**
 
 Run: `flutter test test/features/documents/data/document_entry_dto_test.dart`
 Expected: échec de compilation.
 
-- [ ] **Step 3 : Écrire le DTO**
+- [x] **Step 3 : Écrire le DTO**
 
 `lib/features/documents/data/dtos/document_entry_dto.dart` :
 
@@ -457,12 +461,12 @@ abstract final class DocumentEntryDto {
 }
 ```
 
-- [ ] **Step 4 : Vérifier le succès**
+- [x] **Step 4 : Vérifier le succès**
 
 Run: `flutter test test/features/documents/data/document_entry_dto_test.dart`
 Expected: 3 tests verts.
 
-- [ ] **Step 5 : Commit**
+- [x] **Step 5 : Commit**
 
 ```bash
 dart format lib test && dart analyze
@@ -478,7 +482,7 @@ git commit -m "feat: DocumentEntryDto depuis les maps du canal natif"
 - Create: `lib/features/documents/data/native_documents_repository.dart`
 - Test: `test/features/documents/data/native_documents_repository_test.dart`
 
-- [ ] **Step 1 : Écrire le test rouge**
+- [x] **Step 1 : Écrire le test rouge**
 
 `test/features/documents/data/native_documents_repository_test.dart` :
 
@@ -628,12 +632,12 @@ Ce test compare des `DocumentsFailure` par valeur : ajouter dans `lib/core/resul
   int get hashCode => reason.hashCode;
 ```
 
-- [ ] **Step 2 : Vérifier l'échec**
+- [x] **Step 2 : Vérifier l'échec**
 
 Run: `flutter test test/features/documents/data/native_documents_repository_test.dart`
 Expected: échec de compilation.
 
-- [ ] **Step 3 : Écrire le repository**
+- [x] **Step 3 : Écrire le repository**
 
 `lib/features/documents/data/native_documents_repository.dart` :
 
@@ -749,12 +753,12 @@ class NativeDocumentsRepository implements DocumentsRepository {
 }
 ```
 
-- [ ] **Step 4 : Vérifier le succès**
+- [x] **Step 4 : Vérifier le succès**
 
 Run: `flutter test test/features/documents/data/native_documents_repository_test.dart`
 Expected: 14 tests verts.
 
-- [ ] **Step 5 : Commit**
+- [x] **Step 5 : Commit**
 
 ```bash
 dart format lib test && dart analyze
@@ -772,7 +776,7 @@ git commit -m "feat: NativeDocumentsRepository sur le canal colette/documents"
 - Test: `test/features/documents/presentation/documents_providers_test.dart`
 - Test: `test/features/documents/presentation/documents_root_test.dart`
 
-- [ ] **Step 1 : Écrire les tests rouges**
+- [x] **Step 1 : Écrire les tests rouges**
 
 `test/features/documents/presentation/documents_providers_test.dart` :
 
@@ -919,12 +923,12 @@ void main() {
 }
 ```
 
-- [ ] **Step 2 : Vérifier l'échec**
+- [x] **Step 2 : Vérifier l'échec**
 
 Run: `flutter test test/features/documents/presentation/`
 Expected: échec de compilation.
 
-- [ ] **Step 3 : Écrire les providers**
+- [x] **Step 3 : Écrire les providers**
 
 `lib/features/documents/presentation/providers/documents_providers.dart` :
 
@@ -1006,12 +1010,12 @@ class DocumentsRoot extends _$DocumentsRoot {
 }
 ```
 
-- [ ] **Step 4 : Générer et vérifier**
+- [x] **Step 4 : Générer et vérifier**
 
 Run: `dart run build_runner build -d && flutter test test/features/documents/presentation/`
 Expected: 7 tests verts.
 
-- [ ] **Step 5 : Commit**
+- [x] **Step 5 : Commit**
 
 ```bash
 dart format lib test && dart analyze
@@ -1027,7 +1031,7 @@ git commit -m "feat: providers documents, racine et contenu de dossier"
 - Create: `lib/features/documents/presentation/providers/documents_preview_controller.dart`
 - Test: `test/features/documents/presentation/documents_preview_controller_test.dart`
 
-- [ ] **Step 1 : Écrire le test rouge**
+- [x] **Step 1 : Écrire le test rouge**
 
 ```dart
 import 'package:colette/core/result/failure.dart';
@@ -1092,12 +1096,12 @@ void main() {
 }
 ```
 
-- [ ] **Step 2 : Vérifier l'échec**
+- [x] **Step 2 : Vérifier l'échec**
 
 Run: `flutter test test/features/documents/presentation/documents_preview_controller_test.dart`
 Expected: échec de compilation.
 
-- [ ] **Step 3 : Écrire le contrôleur**
+- [x] **Step 3 : Écrire le contrôleur**
 
 `lib/features/documents/presentation/providers/documents_preview_controller.dart` :
 
@@ -1131,12 +1135,12 @@ class DocumentsPreviewController extends _$DocumentsPreviewController {
 }
 ```
 
-- [ ] **Step 4 : Générer et vérifier**
+- [x] **Step 4 : Générer et vérifier**
 
 Run: `dart run build_runner build -d && flutter test test/features/documents/presentation/documents_preview_controller_test.dart`
 Expected: 3 tests verts.
 
-- [ ] **Step 5 : Commit**
+- [x] **Step 5 : Commit**
 
 ```bash
 dart format lib test && dart analyze
@@ -1154,7 +1158,7 @@ git commit -m "feat: DocumentsPreviewController par chemin de fichier"
 - Test: `test/app/documents_location_test.dart`
 - Test: `test/core/dates/time_format_test.dart` (créer)
 
-- [ ] **Step 1 : Écrire les tests rouges**
+- [x] **Step 1 : Écrire les tests rouges**
 
 `test/app/documents_location_test.dart` :
 
@@ -1192,12 +1196,12 @@ void main() {
 }
 ```
 
-- [ ] **Step 2 : Vérifier l'échec**
+- [x] **Step 2 : Vérifier l'échec**
 
 Run: `flutter test test/app/documents_location_test.dart test/core/dates/time_format_test.dart`
 Expected: échec de compilation.
 
-- [ ] **Step 3 : Ajouter la route**
+- [x] **Step 3 : Ajouter la route**
 
 Dans `lib/app/router/app_router.dart`, dans `AppRoutes` après `openBottleParam` :
 
@@ -1253,7 +1257,7 @@ class DocumentsPage extends StatelessWidget {
 }
 ```
 
-- [ ] **Step 4 : Ajouter le format de date**
+- [x] **Step 4 : Ajouter le format de date**
 
 À la fin de `lib/core/dates/time_format.dart` :
 
@@ -1263,12 +1267,12 @@ String formatShortDate(DateTime day) =>
     DateFormat('d MMM yyyy', 'fr').format(day);
 ```
 
-- [ ] **Step 5 : Vérifier le succès**
+- [x] **Step 5 : Vérifier le succès**
 
 Run: `flutter test test/app/ test/core/dates/`
 Expected: tous verts, y compris `app_router_test.dart` et `notifications_gate_test.dart` existants.
 
-- [ ] **Step 6 : Commit**
+- [x] **Step 6 : Commit**
 
 ```bash
 dart format lib test && dart analyze
@@ -1286,7 +1290,7 @@ git commit -m "feat: route /today/documents et formatShortDate"
 - Modify: `test/features/dashboard/presentation/dashboard_page_test.dart`
 - Test: `test/features/documents/presentation/documents_card_test.dart`
 
-- [ ] **Step 1 : Écrire le test rouge**
+- [x] **Step 1 : Écrire le test rouge**
 
 `test/features/documents/presentation/documents_card_test.dart` :
 
@@ -1389,12 +1393,12 @@ void main() {
 }
 ```
 
-- [ ] **Step 2 : Vérifier l'échec**
+- [x] **Step 2 : Vérifier l'échec**
 
 Run: `flutter test test/features/documents/presentation/documents_card_test.dart`
 Expected: échec de compilation.
 
-- [ ] **Step 3 : Écrire la carte**
+- [x] **Step 3 : Écrire la carte**
 
 `lib/features/documents/presentation/widgets/documents_card.dart` :
 
@@ -1525,7 +1529,7 @@ class _LoadingCard extends StatelessWidget {
 }
 ```
 
-- [ ] **Step 4 : Poser la carte sur Aujourd'hui**
+- [x] **Step 4 : Poser la carte sur Aujourd'hui**
 
 Dans `lib/features/dashboard/presentation/pages/dashboard_page.dart`, importer `package:colette/features/documents/presentation/widgets/documents_card.dart` et remplacer la fin de la `ListView` :
 
@@ -1536,7 +1540,7 @@ Dans `lib/features/dashboard/presentation/pages/dashboard_page.dart`, importer `
             AppSpacing.xl.verticalSpace,
 ```
 
-- [ ] **Step 5 : Isoler le test de la page Aujourd'hui du canal natif**
+- [x] **Step 5 : Isoler le test de la page Aujourd'hui du canal natif**
 
 Dans `test/features/dashboard/presentation/dashboard_page_test.dart` :
 
@@ -1558,12 +1562,12 @@ Dans `test/features/dashboard/presentation/dashboard_page_test.dart` :
     documentsRepositoryProvider.overrideWithValue(documentsRepo()),
 ```
 
-- [ ] **Step 6 : Vérifier le succès**
+- [x] **Step 6 : Vérifier le succès**
 
 Run: `flutter test test/features/documents/presentation/documents_card_test.dart test/features/dashboard/`
 Expected: tous verts.
 
-- [ ] **Step 7 : Commit**
+- [x] **Step 7 : Commit**
 
 ```bash
 dart format lib test && dart analyze
@@ -1581,7 +1585,7 @@ git commit -m "feat: carte Documents sur l'écran Aujourd'hui"
 - Create: `lib/features/documents/presentation/widgets/documents_lost_access_view.dart`
 - Test: `test/features/documents/presentation/documents_page_test.dart`
 
-- [ ] **Step 1 : Écrire le test rouge**
+- [x] **Step 1 : Écrire le test rouge**
 
 `test/features/documents/presentation/documents_page_test.dart` :
 
@@ -1759,12 +1763,12 @@ void main() {
 }
 ```
 
-- [ ] **Step 2 : Vérifier l'échec**
+- [x] **Step 2 : Vérifier l'échec**
 
 Run: `flutter test test/features/documents/presentation/documents_page_test.dart`
 Expected: échecs (squelette vide).
 
-- [ ] **Step 3 : Écrire la tuile**
+- [x] **Step 3 : Écrire la tuile**
 
 `lib/features/documents/presentation/widgets/document_entry_tile.dart` :
 
@@ -1872,7 +1876,7 @@ class DocumentEntryTile extends ConsumerWidget {
 }
 ```
 
-- [ ] **Step 4 : Écrire la vue « accès perdu »**
+- [x] **Step 4 : Écrire la vue « accès perdu »**
 
 `lib/features/documents/presentation/widgets/documents_lost_access_view.dart` :
 
@@ -1928,7 +1932,7 @@ class DocumentsLostAccessView extends ConsumerWidget {
 }
 ```
 
-- [ ] **Step 5 : Écrire la page**
+- [x] **Step 5 : Écrire la page**
 
 Remplacer `lib/features/documents/presentation/pages/documents_page.dart` :
 
@@ -2006,12 +2010,12 @@ class _EntriesList extends ConsumerWidget {
 }
 ```
 
-- [ ] **Step 6 : Vérifier le succès**
+- [x] **Step 6 : Vérifier le succès**
 
 Run: `flutter test test/features/documents/`
 Expected: tous verts (8 tests de page).
 
-- [ ] **Step 7 : Commit**
+- [x] **Step 7 : Commit**
 
 ```bash
 dart format lib test && dart analyze
@@ -2029,7 +2033,7 @@ git commit -m "feat: page Documents, navigation dans les sous-dossiers et aperç
 - Modify: `test/features/household/presentation/household_section_test.dart`
 - Test: `test/features/documents/presentation/documents_root_section_test.dart`
 
-- [ ] **Step 1 : Écrire le test rouge**
+- [x] **Step 1 : Écrire le test rouge**
 
 `test/features/documents/presentation/documents_root_section_test.dart` :
 
@@ -2126,12 +2130,12 @@ void main() {
 }
 ```
 
-- [ ] **Step 2 : Vérifier l'échec**
+- [x] **Step 2 : Vérifier l'échec**
 
 Run: `flutter test test/features/documents/presentation/documents_root_section_test.dart`
 Expected: échec de compilation.
 
-- [ ] **Step 3 : Écrire la section**
+- [x] **Step 3 : Écrire la section**
 
 `lib/features/documents/presentation/widgets/documents_root_section.dart` :
 
@@ -2247,7 +2251,7 @@ class _RootRow extends StatelessWidget {
 }
 ```
 
-- [ ] **Step 4 : Insérer la section dans le foyer**
+- [x] **Step 4 : Insérer la section dans le foyer**
 
 Dans `lib/features/household/presentation/widgets/household_section.dart`, importer `package:colette/features/documents/presentation/widgets/documents_root_section.dart` et, dans la `Column`, juste avant `const Divider(),` :
 
@@ -2258,7 +2262,7 @@ Dans `lib/features/household/presentation/widgets/household_section.dart`, impor
 
 (Il y a alors deux `Divider` : un avant la section documents, un avant « Quitter ce foyer ».)
 
-- [ ] **Step 5 : Isoler le test de `HouseholdSection` du canal natif**
+- [x] **Step 5 : Isoler le test de `HouseholdSection` du canal natif**
 
 Dans `test/features/household/presentation/household_section_test.dart`, ajouter les imports `package:colette/features/documents/domain/repositories/documents_repository.dart`, `package:colette/features/documents/presentation/providers/documents_providers.dart`, `package:fpdart/fpdart.dart`, `package:mocktail/mocktail.dart` (si absents), la classe `MockDocumentsRepository`, une fonction utilitaire au niveau de `main` :
 
@@ -2276,12 +2280,12 @@ et dans chaque liste d'overrides :
         documentsRepositoryProvider.overrideWithValue(documentsRepo()),
 ```
 
-- [ ] **Step 6 : Vérifier le succès**
+- [x] **Step 6 : Vérifier le succès**
 
 Run: `flutter test test/features/documents/ test/features/household/ test/features/baby/`
 Expected: tous verts.
 
-- [ ] **Step 7 : Commit**
+- [x] **Step 7 : Commit**
 
 ```bash
 dart format lib test && dart analyze
@@ -2304,7 +2308,7 @@ git commit -m "feat: réglage du dossier documents dans la section Foyer"
 
 Pas de test automatisé : vérification par compilation puis liste de contrôle manuelle (tâche 18).
 
-- [ ] **Step 1 : Erreurs**
+- [x] **Step 1 : Erreurs**
 
 `ios/Runner/Documents/DocumentsError.swift` :
 
@@ -2338,7 +2342,7 @@ enum DocumentsError: Error {
 }
 ```
 
-- [ ] **Step 2 : Bookmark et portée sécurisée**
+- [x] **Step 2 : Bookmark et portée sécurisée**
 
 `ios/Runner/Documents/DocumentsStore.swift` :
 
@@ -2426,7 +2430,7 @@ final class DocumentsStore {
 }
 ```
 
-- [ ] **Step 3 : Listage et téléchargement**
+- [x] **Step 3 : Listage et téléchargement**
 
 `ios/Runner/Documents/DocumentsLister.swift` :
 
@@ -2545,7 +2549,7 @@ enum DocumentsLister {
 }
 ```
 
-- [ ] **Step 4 : Sélecteur de dossier et Quick Look**
+- [x] **Step 4 : Sélecteur de dossier et Quick Look**
 
 `ios/Runner/Documents/DocumentsPresenter.swift` :
 
@@ -2628,7 +2632,7 @@ extension DocumentsPresenter: QLPreviewControllerDataSource, QLPreviewController
 }
 ```
 
-- [ ] **Step 5 : Plugin et canal**
+- [x] **Step 5 : Plugin et canal**
 
 `ios/Runner/Documents/DocumentsPlugin.swift` :
 
@@ -2737,7 +2741,7 @@ final class DocumentsPlugin: NSObject {
 }
 ```
 
-- [ ] **Step 6 : Enregistrer dans l'AppDelegate**
+- [x] **Step 6 : Enregistrer dans l'AppDelegate**
 
 Dans `ios/Runner/AppDelegate.swift`, remplacer `didInitializeImplicitFlutterEngine` :
 
@@ -2748,7 +2752,7 @@ Dans `ios/Runner/AppDelegate.swift`, remplacer `didInitializeImplicitFlutterEngi
   }
 ```
 
-- [ ] **Step 7 : Référencer les fichiers dans le projet Xcode**
+- [x] **Step 7 : Référencer les fichiers dans le projet Xcode**
 
 Créer `ios/scripts/add_documents_sources.rb` :
 
@@ -2779,12 +2783,12 @@ Expected : cinq lignes `ajouté : …`. Relancer une seconde fois : aucune ligne
 
 Solution de repli si le gem manque : ouvrir `ios/Runner.xcworkspace` dans Xcode, clic droit sur le groupe `Runner`, « Add Files to "Runner"… », sélectionner le dossier `Documents` avec « Create groups » et la cible `Runner` cochée.
 
-- [ ] **Step 8 : Compiler**
+- [x] **Step 8 : Compiler**
 
 Run: `flutter build ios --simulator 2>&1 | tail -5`
 Expected: `✓ Built build/ios/iphonesimulator/Runner.app`. Corriger toute erreur Swift avant de continuer.
 
-- [ ] **Step 9 : Commit**
+- [x] **Step 9 : Commit**
 
 ```bash
 git add ios/Runner/Documents ios/Runner/AppDelegate.swift ios/Runner.xcodeproj/project.pbxproj ios/scripts/add_documents_sources.rb
@@ -2801,7 +2805,7 @@ git commit -m "feat: pont Swift documents, bookmark, listage et aperçu Quick Lo
 - Create: `lib/features/documents/domain/use_cases/build_scan_file_name.dart`
 - Test: `test/features/documents/domain/build_scan_file_name_test.dart`
 
-- [ ] **Step 1 : Écrire le test rouge**
+- [x] **Step 1 : Écrire le test rouge**
 
 ```dart
 import 'package:colette/features/documents/domain/use_cases/build_scan_file_name.dart';
@@ -2824,12 +2828,12 @@ void main() {
 }
 ```
 
-- [ ] **Step 2 : Vérifier l'échec**
+- [x] **Step 2 : Vérifier l'échec**
 
 Run: `flutter test test/features/documents/domain/build_scan_file_name_test.dart`
 Expected: échec de compilation.
 
-- [ ] **Step 3 : Écrire le use case**
+- [x] **Step 3 : Écrire le use case**
 
 `lib/features/documents/domain/use_cases/build_scan_file_name.dart` :
 
@@ -2843,12 +2847,12 @@ String buildScanFileName(DateTime now) =>
     '${_two(now.hour)}h${_two(now.minute)}.pdf';
 ```
 
-- [ ] **Step 4 : Vérifier le succès**
+- [x] **Step 4 : Vérifier le succès**
 
 Run: `flutter test test/features/documents/domain/build_scan_file_name_test.dart`
 Expected: 2 tests verts.
 
-- [ ] **Step 5 : Commit**
+- [x] **Step 5 : Commit**
 
 ```bash
 dart format lib test && dart analyze
@@ -2864,7 +2868,7 @@ git commit -m "feat: use case buildScanFileName"
 - Create: `lib/features/documents/presentation/providers/documents_write_controller.dart`
 - Test: `test/features/documents/presentation/documents_write_controller_test.dart`
 
-- [ ] **Step 1 : Écrire le test rouge**
+- [x] **Step 1 : Écrire le test rouge**
 
 ```dart
 import 'package:colette/core/clock/app_clock.dart';
@@ -2951,12 +2955,12 @@ void main() {
 }
 ```
 
-- [ ] **Step 2 : Vérifier l'échec**
+- [x] **Step 2 : Vérifier l'échec**
 
 Run: `flutter test test/features/documents/presentation/documents_write_controller_test.dart`
 Expected: échec de compilation.
 
-- [ ] **Step 3 : Écrire le contrôleur**
+- [x] **Step 3 : Écrire le contrôleur**
 
 `lib/features/documents/presentation/providers/documents_write_controller.dart` :
 
@@ -3009,12 +3013,12 @@ class DocumentsWriteController extends _$DocumentsWriteController {
 
 Ajouter l'import `package:colette/features/documents/domain/repositories/documents_repository.dart`.
 
-- [ ] **Step 4 : Générer et vérifier**
+- [x] **Step 4 : Générer et vérifier**
 
 Run: `dart run build_runner build -d && flutter test test/features/documents/presentation/documents_write_controller_test.dart`
 Expected: 4 tests verts.
 
-- [ ] **Step 5 : Commit**
+- [x] **Step 5 : Commit**
 
 ```bash
 dart format lib test && dart analyze
@@ -3031,7 +3035,7 @@ git commit -m "feat: DocumentsWriteController, scan et import"
 - Modify: `lib/features/documents/presentation/pages/documents_page.dart`
 - Modify: `test/features/documents/presentation/documents_page_test.dart`
 
-- [ ] **Step 1 : Écrire les tests rouges**
+- [x] **Step 1 : Écrire les tests rouges**
 
 Ajouter à `test/features/documents/presentation/documents_page_test.dart` (l'import `package:colette/core/clock/app_clock.dart` et l'override `clockProvider.overrideWithValue(FixedClock(DateTime(2026, 9, 22, 14, 32)))` dans `pumpPage`) :
 
@@ -3078,12 +3082,12 @@ Ajouter à `test/features/documents/presentation/documents_page_test.dart` (l'im
   });
 ```
 
-- [ ] **Step 2 : Vérifier l'échec**
+- [x] **Step 2 : Vérifier l'échec**
 
 Run: `flutter test test/features/documents/presentation/documents_page_test.dart`
 Expected: les 3 nouveaux tests échouent (pas de `FloatingActionButton`).
 
-- [ ] **Step 3 : Écrire le menu**
+- [x] **Step 3 : Écrire le menu**
 
 `lib/features/documents/presentation/widgets/documents_add_menu.dart` :
 
@@ -3158,7 +3162,7 @@ class DocumentsAddButton extends ConsumerWidget {
 enum _AddAction { scan, importFile }
 ```
 
-- [ ] **Step 4 : Brancher sur la page**
+- [x] **Step 4 : Brancher sur la page**
 
 Dans `lib/features/documents/presentation/pages/documents_page.dart` :
 
@@ -3195,12 +3199,12 @@ Dans `lib/features/documents/presentation/pages/documents_page.dart` :
       },
 ```
 
-- [ ] **Step 5 : Vérifier le succès**
+- [x] **Step 5 : Vérifier le succès**
 
 Run: `flutter test test/features/documents/`
 Expected: tous verts.
 
-- [ ] **Step 6 : Commit**
+- [x] **Step 6 : Commit**
 
 ```bash
 dart format lib test && dart analyze
@@ -3219,7 +3223,7 @@ git commit -m "feat: bouton d'ajout, scan et import depuis la page Documents"
 - Modify: `ios/Runner/Info.plist`
 - Modify: `ios/Runner.xcodeproj/project.pbxproj` (via le script)
 
-- [ ] **Step 1 : Écriture et collision de nom**
+- [x] **Step 1 : Écriture et collision de nom**
 
 `ios/Runner/Documents/DocumentsWriter.swift` :
 
@@ -3282,7 +3286,7 @@ enum DocumentsWriter {
 }
 ```
 
-- [ ] **Step 2 : Scanner et sélecteur de fichier dans le presenter**
+- [x] **Step 2 : Scanner et sélecteur de fichier dans le presenter**
 
 Dans `ios/Runner/Documents/DocumentsPresenter.swift` :
 
@@ -3344,7 +3348,7 @@ extension DocumentsPresenter: VNDocumentCameraViewControllerDelegate {
 }
 ```
 
-- [ ] **Step 3 : Handlers dans le plugin**
+- [x] **Step 3 : Handlers dans le plugin**
 
 Dans `ios/Runner/Documents/DocumentsPlugin.swift`, ajouter au `switch` de `handle` :
 
@@ -3399,7 +3403,7 @@ et les méthodes :
   }
 ```
 
-- [ ] **Step 4 : Autorisation caméra**
+- [x] **Step 4 : Autorisation caméra**
 
 Dans `ios/Runner/Info.plist`, dans le `<dict>` principal :
 
@@ -3408,12 +3412,12 @@ Dans `ios/Runner/Info.plist`, dans le `<dict>` principal :
 	<string>Colette utilise l'appareil photo pour scanner vos documents.</string>
 ```
 
-- [ ] **Step 5 : Référencer le nouveau fichier et compiler**
+- [x] **Step 5 : Référencer le nouveau fichier et compiler**
 
 Run: `ruby ios/scripts/add_documents_sources.rb && flutter build ios --simulator 2>&1 | tail -5`
 Expected: `ajouté : DocumentsWriter.swift` puis `✓ Built …Runner.app`.
 
-- [ ] **Step 6 : Commit**
+- [x] **Step 6 : Commit**
 
 ```bash
 git add ios/Runner/Documents ios/Runner/Info.plist ios/Runner.xcodeproj/project.pbxproj
@@ -3426,21 +3430,21 @@ git commit -m "feat: scan VisionKit et import de fichier dans le dossier iCloud"
 
 ### Task 16 : Vérification complète
 
-- [ ] **Step 1 : Format, analyse, tests**
+- [x] **Step 1 : Format, analyse, tests**
 
 Run: `dart format lib test && dart analyze && flutter test 2>&1 | tail -3`
 Expected: `No issues found!` puis `All tests passed!`.
 
-- [ ] **Step 2 : Build simulateur**
+- [x] **Step 2 : Build simulateur**
 
 Run: `flutter build ios --simulator 2>&1 | tail -3`
 Expected: `✓ Built`.
 
-- [ ] **Step 3 : Lancer sur simulateur et vérifier la carte**
+- [x] **Step 3 : Lancer sur simulateur et vérifier la carte**
 
 Lancer l'app sur un simulateur iPhone (skill `run` ou `flutter run`). Vérifier : la carte « Documents » apparaît en bas de l'écran Aujourd'hui avec « Choisir le dossier partagé » ; le tap ouvre le sélecteur Fichiers du simulateur ; choisir « On My iPhone » ou un dossier iCloud du simulateur ; la page liste le dossier ; les Réglages montrent le dossier dans la section Foyer, en clair et en sombre.
 
-- [ ] **Step 4 : Commit des éventuelles corrections**
+- [x] **Step 4 : Commit des éventuelles corrections**
 
 ```bash
 git add -A lib test ios
@@ -3457,7 +3461,7 @@ git commit -m "fix: corrections après vérification sur simulateur"
 - Modify: `docs/superpowers/specs/2026-09-22-icloud-documents-design.md`
 - Modify: `README.md`
 
-- [ ] **Step 1 : Spec**
+- [x] **Step 1 : Spec**
 
 Dans la section 6 « Architecture Flutter », remplacer la ligne `providers/documents_controller.dart` par :
 
@@ -3475,7 +3479,7 @@ Dans « Providers », remplacer le paragraphe `DocumentsController` par :
 
 Dans la section 8 « Tests », remplacer `FakeDocumentsRepository dans test/helpers/` par `MockDocumentsRepository (mocktail)`. Dans « Repository », préciser que le mapping `PlatformException → DocumentsFailure` est fait par une méthode privée du repository et non par `guard()`.
 
-- [ ] **Step 2 : README**
+- [x] **Step 2 : README**
 
 Ajouter dans la liste des fonctionnalités du `README.md` une ligne :
 
@@ -3485,7 +3489,7 @@ Ajouter dans la liste des fonctionnalités du `README.md` une ligne :
 
 et, dans la section iOS ou installation, une note : « Les sources Swift de `ios/Runner/Documents/` sont référencées dans le projet Xcode par `ruby ios/scripts/add_documents_sources.rb` (gem `xcodeproj`, livré avec CocoaPods). »
 
-- [ ] **Step 3 : Commit**
+- [x] **Step 3 : Commit**
 
 ```bash
 git add docs/superpowers/specs/2026-09-22-icloud-documents-design.md README.md
