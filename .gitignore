@@ -52,3 +52,6 @@ lib/l10n/generated/
 # Node (Cloud Functions)
 functions/node_modules/
 functions/lib/
+
+# Worktrees Claude Code
+.claude/worktrees/
