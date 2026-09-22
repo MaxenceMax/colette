@@ -328,7 +328,7 @@ final class CurrentDeviceProvider
     : super(
         from: null,
         argument: null,
-        retry: null,
+        retry: noRetry,
         name: r'currentDeviceProvider',
         isAutoDispose: true,
         dependencies: null,
@@ -350,7 +350,7 @@ final class CurrentDeviceProvider
   }
 }
 
-String _$currentDeviceHash() => r'524f034f9a9eac79fa1474a35b58668b6de666aa';
+String _$currentDeviceHash() => r'ebaeaee4918b4ee964be50a086eb53c96e753b31';
 
 /// Retire cet iPhone du foyer puis oublie le code foyer.
 

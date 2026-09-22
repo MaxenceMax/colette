@@ -79,7 +79,7 @@ final class TodayEventsProvider
     : super(
         from: null,
         argument: null,
-        retry: null,
+        retry: noRetry,
         name: r'todayEventsProvider',
         isAutoDispose: true,
         dependencies: null,
@@ -101,7 +101,7 @@ final class TodayEventsProvider
   }
 }
 
-String _$todayEventsHash() => r'7bd8bf5d9e73e49f0dae5c32b7d71e7877e98d6c';
+String _$todayEventsHash() => r'f359f0ca324ebdeff433c4f843d1195b7a6ca4cf';
 
 /// Événements d'hier et d'aujourd'hui (couvre toujours les 24 h glissantes).
 
@@ -123,7 +123,7 @@ final class RecentEventsProvider
     : super(
         from: null,
         argument: null,
-        retry: null,
+        retry: noRetry,
         name: r'recentEventsProvider',
         isAutoDispose: true,
         dependencies: null,
@@ -145,7 +145,7 @@ final class RecentEventsProvider
   }
 }
 
-String _$recentEventsHash() => r'6d6122759ca6e80d70987deebfa233792be97f22';
+String _$recentEventsHash() => r'5bdafd61775f31d407098848cfbe93fb1810e9fc';
 
 /// Dernier bain enregistré, toutes dates confondues.
 
@@ -167,7 +167,7 @@ final class LatestBathProvider
     : super(
         from: null,
         argument: null,
-        retry: null,
+        retry: noRetry,
         name: r'latestBathProvider',
         isAutoDispose: true,
         dependencies: null,
@@ -188,7 +188,7 @@ final class LatestBathProvider
   }
 }
 
-String _$latestBathHash() => r'3a16d359dc82fb99ad9ec0103b43d8561cff38e7';
+String _$latestBathHash() => r'13d034d23273b5ca69f33c0d6a08c032697c07ca';
 
 /// Dernier biberon enregistré, toutes dates confondues.
 
@@ -210,7 +210,7 @@ final class LatestBottleProvider
     : super(
         from: null,
         argument: null,
-        retry: null,
+        retry: noRetry,
         name: r'latestBottleProvider',
         isAutoDispose: true,
         dependencies: null,
@@ -231,7 +231,7 @@ final class LatestBottleProvider
   }
 }
 
-String _$latestBottleHash() => r'd0fc1f02cfc5b64cba03d7ec7888fc263f67c7b5';
+String _$latestBottleHash() => r'ee913ae507f3a582d397351c51232361d01c9fcd';
 
 /// Nombre de changes enregistrés depuis [from] ; `0` sans foyer.
 /// [from] doit être une valeur stable (`stock.countedAt`), jamais `DateTime.now()` :
@@ -254,7 +254,7 @@ final class DiaperChangesSinceProvider
     required DiaperChangesSinceFamily super.from,
     required DateTime super.argument,
   }) : super(
-         retry: null,
+         retry: noRetry,
          name: r'diaperChangesSinceProvider',
          isAutoDispose: true,
          dependencies: null,
@@ -294,7 +294,7 @@ final class DiaperChangesSinceProvider
 }
 
 String _$diaperChangesSinceHash() =>
-    r'b347b8ecabfb9c554341fcefd707045ee8021b75';
+    r'0c7de1c0b4894a6529307922ba84c5186c76108b';
 
 /// Nombre de changes enregistrés depuis [from] ; `0` sans foyer.
 /// [from] doit être une valeur stable (`stock.countedAt`), jamais `DateTime.now()` :
@@ -304,7 +304,7 @@ final class DiaperChangesSinceFamily extends $Family
     with $FunctionalFamilyOverride<Stream<int>, DateTime> {
   DiaperChangesSinceFamily._()
     : super(
-        retry: null,
+        retry: noRetry,
         name: r'diaperChangesSinceProvider',
         dependencies: null,
         $allTransitiveDependencies: null,
@@ -400,7 +400,7 @@ final class TimelineEventsProvider
     : super(
         from: null,
         argument: null,
-        retry: null,
+        retry: noRetry,
         name: r'timelineEventsProvider',
         isAutoDispose: true,
         dependencies: null,
@@ -422,4 +422,4 @@ final class TimelineEventsProvider
   }
 }
 
-String _$timelineEventsHash() => r'77b315c3d84ada1aaa5d2c231a7f089cee15fe8f';
+String _$timelineEventsHash() => r'fd3a923bca4e0a9a54eae8fa66cb4ed03135337b';

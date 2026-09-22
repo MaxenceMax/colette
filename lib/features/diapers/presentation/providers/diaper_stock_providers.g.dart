@@ -81,7 +81,7 @@ final class DiaperStockProvider
     : super(
         from: null,
         argument: null,
-        retry: null,
+        retry: noRetry,
         name: r'diaperStockProvider',
         isAutoDispose: true,
         dependencies: null,
@@ -103,7 +103,7 @@ final class DiaperStockProvider
   }
 }
 
-String _$diaperStockHash() => r'3326ac8b1c664000bd322368884d3ce41bf359ef';
+String _$diaperStockHash() => r'3bf0bed99e16ad0406dccbe3cb7e37b2eb318b47';
 
 /// Restant et alerte. `AsyncData(null)` tant que le stock n'est pas renseigné ;
 /// `AsyncLoading` ou `AsyncError` tant que le stock ou le comptage des changes
