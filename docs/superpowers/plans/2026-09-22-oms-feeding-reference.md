@@ -488,7 +488,7 @@ Co-Authored-By: Claude Fable 5.1 <noreply@anthropic.com>"
 - Modify: `lib/features/baby/data/dtos/baby_profile_dto.dart:5-45`
 - Test: `test/features/baby/data/baby_profile_dto_test.dart`
 
-- [ ] **Étape 1 : tests rouges**
+- [x] **Étape 1 : tests rouges**
 
 Ajouter à la fin de `main()` dans `test/features/baby/data/baby_profile_dto_test.dart` :
 
@@ -532,12 +532,12 @@ Ajouter à la fin de `main()` dans `test/features/baby/data/baby_profile_dto_tes
   });
 ```
 
-- [ ] **Étape 2 : vérifier l'échec**
+- [x] **Étape 2 : vérifier l'échec**
 
 Run: `flutter test test/features/baby/data/baby_profile_dto_test.dart`
 Expected: les tests `aller-retour` et `borné` échouent (le champ n'est ni écrit ni lu).
 
-- [ ] **Étape 3 : implémentation**
+- [x] **Étape 3 : implémentation**
 
 Dans `lib/features/baby/data/dtos/baby_profile_dto.dart`, dans `CareSettingsDto.toMap`, ajouter après `'feedsPerDay': settings.feedsPerDay,` :
 
@@ -571,12 +571,12 @@ Et dans `fromMap`, ajouter après `feedsPerDay: ...,` :
     ),
 ```
 
-- [ ] **Étape 4 : vérifier le vert**
+- [x] **Étape 4 : vérifier le vert**
 
 Run: `flutter test test/features/baby/`
 Expected: tous verts.
 
-- [ ] **Étape 5 : commit**
+- [x] **Étape 5 : commit**
 
 ```bash
 git add lib/features/baby/data/dtos/baby_profile_dto.dart test/features/baby/data/baby_profile_dto_test.dart
