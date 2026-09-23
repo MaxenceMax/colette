@@ -62,7 +62,12 @@ export const morningDigest = onSchedule({ schedule: '0 * * * *', timeZone: ZONE,
         lastBathAt: lastBathSnap.empty ? null : (lastBathSnap.docs[0].data() as EventDoc).startAt.toDate(),
         now,
       });
-      const medical = medicalLines(doc.get('medicalReminder') as MedicalReminderDoc | undefined, now);
+      let medical: string[] = [];
+      try {
+        medical = medicalLines(doc.get('medicalReminder') as MedicalReminderDoc | undefined, now);
+      } catch (err) {
+        logger.warn('Rappels santé ignorés pour un foyer', { household: doc.id, err });
+      }
       if (pending.length === 0 && medical.length === 0) continue;
 
       const sent = await sendToDevices(doc.id, devices, {

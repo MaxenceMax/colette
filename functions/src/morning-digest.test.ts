@@ -334,7 +334,29 @@ describe('morningDigest', () => {
     await handler();
 
     expect(sendToDevices).toHaveBeenCalledTimes(1);
-    expect(sendToDevices.mock.calls[0][2].body).toBe('RDV à prendre : examen et vaccins des 2 mois');
+    expect(sendToDevices.mock.calls[0][2]).toEqual({
+      title: "Aujourd'hui pour Colette",
+      body: 'RDV à prendre : examen et vaccins des 2 mois',
+      data: { route: '/today' },
+    });
+    expect(deviceUpdates).toEqual([{ household: 'ABC123', deviceId: 'd1', data: { lastDigestSentOn: TODAY_KEY } }]);
+  });
+
+  it("digest des soins conservé malgré un `medicalReminder` corrompu", async () => {
+    households.push({
+      id: 'ABC123',
+      baby: { name: 'Colette' },
+      devices: [{ id: 'd1' }],
+      events: [{ startAt: at('2026-09-21T05:00:00Z'), adrigyl: true }],
+      medicalReminder: { stages: {} } as unknown as MedicalReminderDoc,
+    });
+
+    await handler();
+
+    expect(sendToDevices).toHaveBeenCalledTimes(1);
+    expect(sendToDevices.mock.calls[0][2].body).toBe(
+      buildDigestBody(['Soin des yeux', 'Soin du nez', 'Soin du nombril', 'Bain']),
+    );
   });
 
   it('concatène soins et lignes santé', async () => {
