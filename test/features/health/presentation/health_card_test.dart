@@ -104,6 +104,58 @@ void main() {
     expect(find.text('RDV le mar. 3 nov., 10h00 · Dr Martin'), findsOneWidget);
   });
 
+  testWidgets('étape à venir dans 31 jours civils, à 23h59 : ligne discrète', (
+    tester,
+  ) async {
+    final router = GoRouter(
+      initialLocation: AppRoutes.today,
+      routes: [
+        GoRoute(
+          path: AppRoutes.today,
+          builder: (_, _) => const Scaffold(body: HealthCard()),
+        ),
+      ],
+    );
+    addTearDown(router.dispose);
+    await tester.pumpWidget(
+      ProviderScope(
+        overrides: [
+          isOnlineProvider.overrideWith((ref) => Stream.value(true)),
+          clockProvider.overrideWithValue(
+            FixedClock(DateTime(2026, 10, 20, 23, 59)),
+          ),
+          minuteTickerProvider.overrideWith((ref) => const Stream.empty()),
+          medicalTimelineProvider.overrideWithValue(
+            MedicalTimeline(
+              entries: [
+                MedicalTimelineEntry(
+                  stage: stageById(MedicalStageId.m2),
+                  dueFrom: DateTime(2026, 11, 20),
+                  dueUntil: DateTime(2026, 12, 20),
+                  status: MedicalStageStatus.upcoming,
+                ),
+              ],
+            ),
+          ),
+        ],
+        child: MaterialApp.router(
+          theme: const ThemeService().light(),
+          locale: const Locale('fr'),
+          localizationsDelegates: S.localizationsDelegates,
+          supportedLocales: S.supportedLocales,
+          routerConfig: router,
+        ),
+      ),
+    );
+    await tester.pumpAndSettle();
+    expect(
+      find.text(
+        'Prochaine étape : Examen et vaccins des 2 mois, à partir du 20 nov. 2026',
+      ),
+      findsOneWidget,
+    );
+  });
+
   testWidgets('en retard', (tester) async {
     await pumpCard(
       tester,

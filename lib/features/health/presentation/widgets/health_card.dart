@@ -1,5 +1,6 @@
 import 'package:colette/app/router/app_router.dart';
 import 'package:colette/core/clock/now_providers.dart';
+import 'package:colette/core/dates/date_extensions.dart';
 import 'package:colette/core/dates/time_format.dart';
 import 'package:colette/core/theme/app_colors.dart';
 import 'package:colette/core/theme/design_tokens.dart';
@@ -30,7 +31,7 @@ class HealthCard extends ConsumerWidget {
     final styles = Theme.of(context).coletteTextStyles;
     final secondary = context.appColor(AppColors.textSecondary);
     final next = timeline.next;
-    final now = ref.watch(currentMinuteProvider);
+    final today = ref.watch(todayProvider);
     return ColetteCardSurface(
       onTap: () => context.push(AppRoutes.health),
       child: Row(
@@ -46,7 +47,7 @@ class HealthCard extends ConsumerWidget {
               spacing: AppSpacing.xxs.value,
               children: [
                 Text(s.healthTitle, style: styles.bodyMedium),
-                ..._lines(context, s, next, now),
+                ..._lines(context, s, next, today),
               ],
             ),
           ),
@@ -60,7 +61,7 @@ class HealthCard extends ConsumerWidget {
     BuildContext context,
     S s,
     MedicalTimelineEntry? next,
-    DateTime now,
+    DateTime today,
   ) {
     final styles = Theme.of(context).coletteTextStyles;
     final secondary = styles.small.copyWith(
@@ -70,7 +71,7 @@ class HealthCard extends ConsumerWidget {
     final label = HealthLabels.stage(s, next.stage.id);
     final far =
         next.status == MedicalStageStatus.upcoming &&
-        next.dueFrom.difference(now).inDays > farDays;
+        calendarDaysBetween(today, next.dueFrom) > farDays;
     if (far) {
       return [
         Text(
