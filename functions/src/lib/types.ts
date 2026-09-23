@@ -47,6 +47,19 @@ export type DeviceDoc = {
 
 export type Device = DeviceDoc & { id: string };
 
+export type MedicalReminderStageDoc = {
+  stageId: string;
+  dueFrom: Timestamp;
+  dueUntil: Timestamp;
+  hasAppointment: boolean;
+};
+
+/** Snapshot écrit par l'app : prochaines étapes non faites du suivi médical. */
+export type MedicalReminderDoc = {
+  stages?: MedicalReminderStageDoc[];
+  computedAt?: Timestamp;
+};
+
 export type EventDoc = {
   startAt: Timestamp;
   pee?: boolean;

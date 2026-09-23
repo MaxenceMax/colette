@@ -3,6 +3,7 @@ import { logger } from 'firebase-functions';
 import { onSchedule } from 'firebase-functions/v2/scheduler';
 import { pendingCares } from './lib/care-status';
 import { db, loadDevices } from './lib/firestore';
+import { medicalLines } from './lib/medical-reminder';
 import {
   nearestHourInParis,
   startOfTodayInParis,
@@ -11,7 +12,14 @@ import {
   ZONE,
 } from './lib/paris-time';
 import { sendToDevices } from './lib/push';
-import { toCareEvent, withDefaults, type BabyDoc, type Device, type EventDoc } from './lib/types';
+import {
+  toCareEvent,
+  withDefaults,
+  type BabyDoc,
+  type Device,
+  type EventDoc,
+  type MedicalReminderDoc,
+} from './lib/types';
 
 /**
  * Appareils à notifier : digest activé, heure choisie égale à l'heure courante (8h par défaut),
@@ -23,9 +31,9 @@ export function selectMorningDigestRecipients(devices: Device[], hour: number, t
   );
 }
 
-/** « Adrigyl, Soin des yeux, Bain » */
-export function buildDigestBody(pending: string[]): string {
-  return pending.join(', ');
+/** Soins en attente (« Adrigyl, Soin des yeux ») puis une ligne par rappel santé. */
+export function buildDigestBody(pending: string[], medical: string[] = []): string {
+  return [pending.join(', '), ...medical].filter((line) => line.length > 0).join('\n');
 }
 
 export const morningDigest = onSchedule({ schedule: '0 * * * *', timeZone: ZONE, maxInstances: 1 }, async () => {
@@ -54,11 +62,12 @@ export const morningDigest = onSchedule({ schedule: '0 * * * *', timeZone: ZONE,
         lastBathAt: lastBathSnap.empty ? null : (lastBathSnap.docs[0].data() as EventDoc).startAt.toDate(),
         now,
       });
-      if (pending.length === 0) continue;
+      const medical = medicalLines(doc.get('medicalReminder') as MedicalReminderDoc | undefined, now);
+      if (pending.length === 0 && medical.length === 0) continue;
 
       const sent = await sendToDevices(doc.id, devices, {
         title: baby.name ? `Aujourd'hui pour ${baby.name}` : "Aujourd'hui pour bébé",
-        body: buildDigestBody(pending),
+        body: buildDigestBody(pending, medical),
         data: { route: '/today' },
       });
       if (sent === 0) continue;
