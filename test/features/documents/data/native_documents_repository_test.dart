@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:colette/core/result/failure.dart';
 import 'package:colette/features/documents/data/native_documents_repository.dart';
 import 'package:colette/features/documents/domain/entities/document_root.dart';
@@ -25,23 +27,21 @@ void main() {
     repo = const NativeDocumentsRepository(channel);
   });
 
-  tearDown(() {
-    TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
-        .setMockMethodCallHandler(channel, null);
-  });
-
   const folderChannel = EventChannel('colette/documents/folder/test');
 
+  tearDown(() {
+    TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
+      ..setMockMethodCallHandler(channel, null)
+      ..setMockStreamHandler(folderChannel, null);
+  });
+
   /// Mock `openFolderStream` → canal de test, et le handler du flux.
-  void mockFolderStream(
-    MockStreamHandler handler, {
-    Object? Function(MethodCall call)? methods,
-  }) {
+  void mockFolderStream(MockStreamHandler handler) {
     mock((call) {
       if (call.method == 'openFolderStream') {
         return {'channel': folderChannel.name};
       }
-      return methods?.call(call);
+      return null;
     });
     TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
         .setMockStreamHandler(folderChannel, handler);
@@ -115,6 +115,34 @@ void main() {
     // `first` annule l'abonnement dès le premier événement.
     await Future<void>.delayed(Duration.zero);
     expect(cancelled, isTrue);
+  });
+
+  test('désabonnement pendant openFolderStream : listen puis cancel', () async {
+    final opening = Completer<Map<String, Object?>>();
+    var listened = false;
+    final cancelled = Completer<void>();
+    TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
+        .setMockMethodCallHandler(channel, (call) {
+          calls.add(call);
+          return opening.future;
+        });
+    TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
+        .setMockStreamHandler(
+          folderChannel,
+          MockStreamHandler.inline(
+            onListen: (_, events) {
+              listened = true;
+              events.success(const []);
+            },
+            onCancel: (_) => cancelled.complete(),
+          ),
+        );
+    final subscription = repo.watch('Ordonnances').listen((_) {});
+    await Future<void>.delayed(Duration.zero);
+    unawaited(subscription.cancel());
+    opening.complete({'channel': folderChannel.name});
+    await cancelled.future.timeout(const Duration(seconds: 2));
+    expect(listened, isTrue);
   });
 
   test('watch : entrée malformée → Left UnknownFailure', () async {
