@@ -1,7 +1,7 @@
 import 'package:colette/app/router/app_router.dart';
 import 'package:colette/core/connectivity/connectivity_provider.dart';
 import 'package:colette/core/theme/theme_service.dart';
-import 'package:colette/features/baby/domain/entities/weight_entry.dart';
+import 'package:colette/features/baby/domain/entities/growth_measurement.dart';
 import 'package:colette/features/baby/presentation/providers/baby_providers.dart';
 import 'package:colette/features/dashboard/presentation/widgets/weight_card.dart';
 import 'package:colette/l10n/generated/app_localizations.dart';
@@ -12,7 +12,10 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:go_router/go_router.dart';
 
 void main() {
-  Future<void> pumpCard(WidgetTester tester, List<WeightEntry> weights) async {
+  Future<void> pumpCard(
+    WidgetTester tester,
+    List<GrowthMeasurement> measurements,
+  ) async {
     final router = GoRouter(
       initialLocation: AppRoutes.today,
       routes: [
@@ -21,8 +24,8 @@ void main() {
           builder: (_, _) => const Scaffold(body: WeightCard()),
           routes: [
             GoRoute(
-              path: 'weights',
-              builder: (_, _) => const Scaffold(body: Text('page courbe')),
+              path: 'growth',
+              builder: (_, _) => const Scaffold(body: Text('page croissance')),
             ),
           ],
         ),
@@ -33,7 +36,9 @@ void main() {
       ProviderScope(
         overrides: [
           isOnlineProvider.overrideWith((ref) => Stream.value(true)),
-          weightsProvider.overrideWith((ref) => Stream.value(weights)),
+          measurementsProvider.overrideWith(
+            (ref) => Stream.value(measurements),
+          ),
         ],
         child: MaterialApp.router(
           theme: const ThemeService().light(),
@@ -48,8 +53,8 @@ void main() {
   }
 
   final weights = [
-    WeightEntry(id: 'a', measuredAt: DateTime(2026, 9, 10), grams: 3470),
-    WeightEntry(id: 'b', measuredAt: DateTime(2026, 9, 14), grams: 3650),
+    GrowthMeasurement(id: 'a', measuredAt: DateTime(2026, 9, 10), grams: 3470),
+    GrowthMeasurement(id: 'b', measuredAt: DateTime(2026, 9, 14), grams: 3650),
   ];
 
   testWidgets('sans pesée : invite à ajouter la première', (tester) async {
@@ -82,10 +87,25 @@ void main() {
     expect(find.byType(LineChart), findsOneWidget);
   });
 
-  testWidgets('taper la carte ouvre la courbe de poids', (tester) async {
+  testWidgets('taper la carte ouvre la page de croissance', (tester) async {
     await pumpCard(tester, weights);
     await tester.tap(find.byType(WeightCard));
     await tester.pumpAndSettle();
-    expect(find.text('page courbe'), findsOneWidget);
+    expect(find.text('page croissance'), findsOneWidget);
+  });
+
+  testWidgets('une mesure de taille seule ne remplace pas le poids', (
+    tester,
+  ) async {
+    await pumpCard(tester, [
+      ...weights,
+      GrowthMeasurement(
+        id: 'l',
+        measuredAt: DateTime(2026, 9, 15),
+        lengthMm: 530,
+      ),
+    ]);
+    expect(find.text('3650 g'), findsOneWidget);
+    expect(find.text('Pesée du 14 sept. 2026'), findsOneWidget);
   });
 }

@@ -5,7 +5,7 @@ import 'package:colette/core/clock/now_providers.dart';
 import 'package:colette/core/result/failure.dart';
 import 'package:colette/features/baby/domain/entities/baby_profile.dart';
 import 'package:colette/features/baby/domain/entities/care_settings.dart';
-import 'package:colette/features/baby/domain/entities/weight_entry.dart';
+import 'package:colette/features/baby/domain/entities/growth_measurement.dart';
 import 'package:colette/features/baby/domain/repositories/baby_repository.dart';
 import 'package:colette/features/baby/presentation/providers/baby_providers.dart';
 import 'package:colette/features/baby/presentation/providers/baby_settings_controller.dart';
@@ -43,10 +43,10 @@ void main() {
     ),
     babyRepositoryProvider.overrideWithValue(repo),
     babyProfileProvider.overrideWith((ref) => Stream.value(baby ?? profile)),
-    weightsProvider.overrideWith(
+    measurementsProvider.overrideWith(
       (ref) => Stream.value([
         if (weightGrams != null)
-          WeightEntry(
+          GrowthMeasurement(
             id: 'w',
             measuredAt: DateTime(2026, 9, 9),
             grams: weightGrams,
@@ -177,7 +177,7 @@ void main() {
     tester,
   ) async {
     final repo = MockBabyRepository();
-    when(() => repo.deleteWeight(any(), any()))
+    when(() => repo.deleteMeasurement(any(), any()))
         .thenAnswer((_) async => left(const NetworkFailure()));
     await pumpSheet(
       tester,
@@ -189,7 +189,7 @@ void main() {
               builder: (_, ref, _) => TextButton(
                 onPressed: () => ref
                     .read(babySettingsControllerProvider.notifier)
-                    .deleteWeight('w'),
+                    .deleteMeasurement('w'),
                 child: const Text('boom'),
               ),
             ),
@@ -221,9 +221,13 @@ void main() {
       ),
       babyRepositoryProvider.overrideWithValue(repo),
       babyProfileProvider.overrideWith((ref) => profileController.stream),
-      weightsProvider.overrideWith(
+      measurementsProvider.overrideWith(
         (ref) => Stream.value([
-          WeightEntry(id: 'w', measuredAt: DateTime(2026, 9, 9), grams: 4200),
+          GrowthMeasurement(
+            id: 'w',
+            measuredAt: DateTime(2026, 9, 9),
+            grams: 4200,
+          ),
         ]),
       ),
       todayEventsProvider.overrideWith((ref) => Stream.value(const [])),

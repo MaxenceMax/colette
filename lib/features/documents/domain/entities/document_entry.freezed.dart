@@ -15,7 +15,8 @@ T _$identity<T>(T value) => value;
 /// @nodoc
 mixin _$DocumentEntry {
 
- String get name; String get path; bool get isDirectory; int get size; DateTime get modifiedAt; DownloadStatus get downloadStatus;
+ String get name; String get path; bool get isDirectory; int get size; DateTime get modifiedAt; DownloadStatus get downloadStatus;/// Progression du téléchargement iCloud (0 à 1), `null` hors téléchargement.
+ double? get downloadProgress;
 /// Create a copy of DocumentEntry
 /// with the given fields replaced by the non-null parameter values.
 @JsonKey(includeFromJson: false, includeToJson: false)
@@ -27,20 +28,20 @@ $DocumentEntryCopyWith<DocumentEntry> get copyWith => _$DocumentEntryCopyWithImp
 @override
 bool operator ==(Object other) {
   final _this = this as DocumentEntry;
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is DocumentEntry&&(identical(other.name, _this.name) || other.name == _this.name)&&(identical(other.path, _this.path) || other.path == _this.path)&&(identical(other.isDirectory, _this.isDirectory) || other.isDirectory == _this.isDirectory)&&(identical(other.size, _this.size) || other.size == _this.size)&&(identical(other.modifiedAt, _this.modifiedAt) || other.modifiedAt == _this.modifiedAt)&&(identical(other.downloadStatus, _this.downloadStatus) || other.downloadStatus == _this.downloadStatus));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is DocumentEntry&&(identical(other.name, _this.name) || other.name == _this.name)&&(identical(other.path, _this.path) || other.path == _this.path)&&(identical(other.isDirectory, _this.isDirectory) || other.isDirectory == _this.isDirectory)&&(identical(other.size, _this.size) || other.size == _this.size)&&(identical(other.modifiedAt, _this.modifiedAt) || other.modifiedAt == _this.modifiedAt)&&(identical(other.downloadStatus, _this.downloadStatus) || other.downloadStatus == _this.downloadStatus)&&(identical(other.downloadProgress, _this.downloadProgress) || other.downloadProgress == _this.downloadProgress));
 }
 
 
 @override
 int get hashCode {
   final _this = this as DocumentEntry;
-  return Object.hash(runtimeType,_this.name,_this.path,_this.isDirectory,_this.size,_this.modifiedAt,_this.downloadStatus);
+  return Object.hash(runtimeType,_this.name,_this.path,_this.isDirectory,_this.size,_this.modifiedAt,_this.downloadStatus,_this.downloadProgress);
 }
 
 @override
 String toString() {
   final _this = this as DocumentEntry;
-  return 'DocumentEntry(name: ${_this.name}, path: ${_this.path}, isDirectory: ${_this.isDirectory}, size: ${_this.size}, modifiedAt: ${_this.modifiedAt}, downloadStatus: ${_this.downloadStatus})';
+  return 'DocumentEntry(name: ${_this.name}, path: ${_this.path}, isDirectory: ${_this.isDirectory}, size: ${_this.size}, modifiedAt: ${_this.modifiedAt}, downloadStatus: ${_this.downloadStatus}, downloadProgress: ${_this.downloadProgress})';
 }
 
 
@@ -51,7 +52,7 @@ abstract mixin class $DocumentEntryCopyWith<$Res>  {
   factory $DocumentEntryCopyWith(DocumentEntry value, $Res Function(DocumentEntry) _then) = _$DocumentEntryCopyWithImpl;
 @useResult
 $Res call({
- String name, String path, bool isDirectory, int size, DateTime modifiedAt, DownloadStatus downloadStatus
+ String name, String path, bool isDirectory, int size, DateTime modifiedAt, DownloadStatus downloadStatus, double? downloadProgress
 });
 
 
@@ -68,7 +69,7 @@ class _$DocumentEntryCopyWithImpl<$Res>
 
 /// Create a copy of DocumentEntry
 /// with the given fields replaced by the non-null parameter values.
-@pragma('vm:prefer-inline') @override $Res call({Object? name = null,Object? path = null,Object? isDirectory = null,Object? size = null,Object? modifiedAt = null,Object? downloadStatus = null,}) {
+@pragma('vm:prefer-inline') @override $Res call({Object? name = null,Object? path = null,Object? isDirectory = null,Object? size = null,Object? modifiedAt = null,Object? downloadStatus = null,Object? downloadProgress = freezed,}) {
   return _then(DocumentEntry(
 name: null == name ? _self.name : name // ignore: cast_nullable_to_non_nullable
 as String,path: null == path ? _self.path : path // ignore: cast_nullable_to_non_nullable
@@ -76,7 +77,8 @@ as String,isDirectory: null == isDirectory ? _self.isDirectory : isDirectory // 
 as bool,size: null == size ? _self.size : size // ignore: cast_nullable_to_non_nullable
 as int,modifiedAt: null == modifiedAt ? _self.modifiedAt : modifiedAt // ignore: cast_nullable_to_non_nullable
 as DateTime,downloadStatus: null == downloadStatus ? _self.downloadStatus : downloadStatus // ignore: cast_nullable_to_non_nullable
-as DownloadStatus,
+as DownloadStatus,downloadProgress: freezed == downloadProgress ? _self.downloadProgress : downloadProgress // ignore: cast_nullable_to_non_nullable
+as double?,
   ));
 }
 
@@ -161,10 +163,10 @@ return $default(_that);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( String name,  String path,  bool isDirectory,  int size,  DateTime modifiedAt,  DownloadStatus downloadStatus)?  $default,{required TResult orElse(),}) {final _that = this;
+@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( String name,  String path,  bool isDirectory,  int size,  DateTime modifiedAt,  DownloadStatus downloadStatus,  double? downloadProgress)?  $default,{required TResult orElse(),}) {final _that = this;
 switch (_that) {
 case _DocumentEntry() when $default != null:
-return $default(_that.name,_that.path,_that.isDirectory,_that.size,_that.modifiedAt,_that.downloadStatus);case _:
+return $default(_that.name,_that.path,_that.isDirectory,_that.size,_that.modifiedAt,_that.downloadStatus,_that.downloadProgress);case _:
   return orElse();
 
 }
@@ -182,10 +184,10 @@ return $default(_that.name,_that.path,_that.isDirectory,_that.size,_that.modifie
 /// }
 /// ```
 
-@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( String name,  String path,  bool isDirectory,  int size,  DateTime modifiedAt,  DownloadStatus downloadStatus)  $default,) {final _that = this;
+@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( String name,  String path,  bool isDirectory,  int size,  DateTime modifiedAt,  DownloadStatus downloadStatus,  double? downloadProgress)  $default,) {final _that = this;
 switch (_that) {
 case _DocumentEntry():
-return $default(_that.name,_that.path,_that.isDirectory,_that.size,_that.modifiedAt,_that.downloadStatus);case _:
+return $default(_that.name,_that.path,_that.isDirectory,_that.size,_that.modifiedAt,_that.downloadStatus,_that.downloadProgress);case _:
   throw StateError('Unexpected subclass');
 
 }
@@ -202,10 +204,10 @@ return $default(_that.name,_that.path,_that.isDirectory,_that.size,_that.modifie
 /// }
 /// ```
 
-@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( String name,  String path,  bool isDirectory,  int size,  DateTime modifiedAt,  DownloadStatus downloadStatus)?  $default,) {final _that = this;
+@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( String name,  String path,  bool isDirectory,  int size,  DateTime modifiedAt,  DownloadStatus downloadStatus,  double? downloadProgress)?  $default,) {final _that = this;
 switch (_that) {
 case _DocumentEntry() when $default != null:
-return $default(_that.name,_that.path,_that.isDirectory,_that.size,_that.modifiedAt,_that.downloadStatus);case _:
+return $default(_that.name,_that.path,_that.isDirectory,_that.size,_that.modifiedAt,_that.downloadStatus,_that.downloadProgress);case _:
   return null;
 
 }
@@ -217,7 +219,7 @@ return $default(_that.name,_that.path,_that.isDirectory,_that.size,_that.modifie
 
 
 class _DocumentEntry implements DocumentEntry {
-  const _DocumentEntry({required this.name, required this.path, required this.isDirectory, required this.size, required this.modifiedAt, required this.downloadStatus});
+  const _DocumentEntry({required this.name, required this.path, required this.isDirectory, required this.size, required this.modifiedAt, required this.downloadStatus, this.downloadProgress});
   
 
 @override final  String name;
@@ -226,6 +228,8 @@ class _DocumentEntry implements DocumentEntry {
 @override final  int size;
 @override final  DateTime modifiedAt;
 @override final  DownloadStatus downloadStatus;
+/// Progression du téléchargement iCloud (0 à 1), `null` hors téléchargement.
+@override final  double? downloadProgress;
 
 /// Create a copy of DocumentEntry
 /// with the given fields replaced by the non-null parameter values.
@@ -237,18 +241,18 @@ _$DocumentEntryCopyWith<_DocumentEntry> get copyWith => __$DocumentEntryCopyWith
 
 @override
 bool operator ==(Object other) {
-    return identical(this, other) || (other.runtimeType == runtimeType&&other is _DocumentEntry&&(identical(other.name, name) || other.name == name)&&(identical(other.path, path) || other.path == path)&&(identical(other.isDirectory, isDirectory) || other.isDirectory == isDirectory)&&(identical(other.size, size) || other.size == size)&&(identical(other.modifiedAt, modifiedAt) || other.modifiedAt == modifiedAt)&&(identical(other.downloadStatus, downloadStatus) || other.downloadStatus == downloadStatus));
+    return identical(this, other) || (other.runtimeType == runtimeType&&other is _DocumentEntry&&(identical(other.name, name) || other.name == name)&&(identical(other.path, path) || other.path == path)&&(identical(other.isDirectory, isDirectory) || other.isDirectory == isDirectory)&&(identical(other.size, size) || other.size == size)&&(identical(other.modifiedAt, modifiedAt) || other.modifiedAt == modifiedAt)&&(identical(other.downloadStatus, downloadStatus) || other.downloadStatus == downloadStatus)&&(identical(other.downloadProgress, downloadProgress) || other.downloadProgress == downloadProgress));
 }
 
 
 @override
 int get hashCode {
-    return Object.hash(runtimeType,name,path,isDirectory,size,modifiedAt,downloadStatus);
+    return Object.hash(runtimeType,name,path,isDirectory,size,modifiedAt,downloadStatus,downloadProgress);
 }
 
 @override
 String toString() {
-    return 'DocumentEntry(name: $name, path: $path, isDirectory: $isDirectory, size: $size, modifiedAt: $modifiedAt, downloadStatus: $downloadStatus)';
+    return 'DocumentEntry(name: $name, path: $path, isDirectory: $isDirectory, size: $size, modifiedAt: $modifiedAt, downloadStatus: $downloadStatus, downloadProgress: $downloadProgress)';
 }
 
 
@@ -259,7 +263,7 @@ abstract mixin class _$DocumentEntryCopyWith<$Res> implements $DocumentEntryCopy
   factory _$DocumentEntryCopyWith(_DocumentEntry value, $Res Function(_DocumentEntry) _then) = __$DocumentEntryCopyWithImpl;
 @override @useResult
 $Res call({
- String name, String path, bool isDirectory, int size, DateTime modifiedAt, DownloadStatus downloadStatus
+ String name, String path, bool isDirectory, int size, DateTime modifiedAt, DownloadStatus downloadStatus, double? downloadProgress
 });
 
 
@@ -276,7 +280,7 @@ class __$DocumentEntryCopyWithImpl<$Res>
 
 /// Create a copy of DocumentEntry
 /// with the given fields replaced by the non-null parameter values.
-@override @pragma('vm:prefer-inline') $Res call({Object? name = null,Object? path = null,Object? isDirectory = null,Object? size = null,Object? modifiedAt = null,Object? downloadStatus = null,}) {
+@override @pragma('vm:prefer-inline') $Res call({Object? name = null,Object? path = null,Object? isDirectory = null,Object? size = null,Object? modifiedAt = null,Object? downloadStatus = null,Object? downloadProgress = freezed,}) {
   return _then(_DocumentEntry(
 name: null == name ? _self.name : name // ignore: cast_nullable_to_non_nullable
 as String,path: null == path ? _self.path : path // ignore: cast_nullable_to_non_nullable
@@ -284,7 +288,8 @@ as String,isDirectory: null == isDirectory ? _self.isDirectory : isDirectory // 
 as bool,size: null == size ? _self.size : size // ignore: cast_nullable_to_non_nullable
 as int,modifiedAt: null == modifiedAt ? _self.modifiedAt : modifiedAt // ignore: cast_nullable_to_non_nullable
 as DateTime,downloadStatus: null == downloadStatus ? _self.downloadStatus : downloadStatus // ignore: cast_nullable_to_non_nullable
-as DownloadStatus,
+as DownloadStatus,downloadProgress: freezed == downloadProgress ? _self.downloadProgress : downloadProgress // ignore: cast_nullable_to_non_nullable
+as double?,
   ));
 }
 

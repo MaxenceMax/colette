@@ -4,7 +4,7 @@ import 'package:colette/features/baby/presentation/providers/baby_providers.dart
 import 'package:colette/features/baby/presentation/providers/baby_settings_controller.dart';
 import 'package:colette/features/baby/presentation/widgets/baby_section.dart';
 import 'package:colette/features/baby/presentation/widgets/care_settings_section.dart';
-import 'package:colette/features/baby/presentation/widgets/weights_section.dart';
+import 'package:colette/features/baby/presentation/widgets/measurements_section.dart';
 import 'package:colette/features/diapers/presentation/providers/diaper_stock_controller.dart';
 import 'package:colette/features/diapers/presentation/widgets/diaper_stock_section.dart';
 import 'package:colette/features/household/presentation/providers/household_providers.dart';
@@ -18,7 +18,7 @@ import 'package:colette/shared/ui/widgets/theme_mode_section.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-/// Onglet Réglages : bébé, pesées, soins attendus, sommeil, notifications, apparence, foyer.
+/// Onglet Réglages : bébé, mesures, soins attendus, sommeil, notifications, apparence, foyer.
 class SettingsPage extends ConsumerWidget {
   const SettingsPage({super.key});
 
@@ -54,8 +54,8 @@ class SettingsPage extends ConsumerWidget {
           if (profile != null) ...[
             SectionHeader(title: s.settingsBabySection),
             BabySection(profile: profile),
-            SectionHeader(title: s.settingsWeightsSection),
-            const WeightsSection(),
+            SectionHeader(title: s.settingsMeasurementsSection),
+            const MeasurementsSection(),
             SectionHeader(title: s.settingsCareSection),
             CareSettingsSection(profile: profile),
             SectionHeader(title: s.settingsSleepSection),

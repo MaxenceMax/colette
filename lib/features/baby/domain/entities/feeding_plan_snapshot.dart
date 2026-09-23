@@ -7,6 +7,8 @@ part 'feeding_plan_snapshot.freezed.dart';
 abstract class FeedingPlanSnapshot with _$FeedingPlanSnapshot {
   const factory FeedingPlanSnapshot({
     required DateTime nextBottleAt,
+    required DateTime windowStartAt,
+    required DateTime windowEndAt,
     required int suggestedMl,
     required DateTime computedAt,
   }) = _FeedingPlanSnapshot;

@@ -1,6 +1,6 @@
 import Foundation
 
-/// Listage d'un dossier et téléchargement iCloud à la demande.
+/// Listage d'un dossier et état de téléchargement iCloud.
 enum DocumentsLister {
   private static let keys: Set<URLResourceKey> = [
     .isDirectoryKey, .fileSizeKey, .contentModificationDateKey, .isUbiquitousItemKey,
@@ -12,7 +12,11 @@ enum DocumentsLister {
   private typealias Entry = (path: String, isPlaceholder: Bool, values: [String: Any])
 
   /// Entrées d'un dossier, au format attendu par `DocumentEntryDto`.
-  static func list(folder: URL, relativePath: String) throws -> [[String: Any]] {
+  /// `progress` : clé `progressKey(canonicalFolder:name:)` du fichier réel → progression
+  /// (0 à 1) fournie par la requête de métadonnées ; un fichier qui y figure est `downloading`.
+  static func list(
+    folder: URL, relativePath: String, progress: [String: Double] = [:]
+  ) throws -> [[String: Any]] {
     let urls: [URL]
     do {
       urls = try FileManager.default.contentsOfDirectory(
@@ -20,6 +24,7 @@ enum DocumentsLister {
     } catch {
       throw DocumentsError.io(error.localizedDescription)
     }
+    let canonicalFolder = progress.isEmpty ? nil : canonical(folder)
     let entries = urls.compactMap { url -> Entry? in
       let raw = url.lastPathComponent
       let isPlaceholder = raw.hasPrefix(".") && raw.hasSuffix(placeholderSuffix)
@@ -29,20 +34,38 @@ enum DocumentsLister {
       let name = isPlaceholder ? normalizedName(raw) : raw
       let path = relativePath.isEmpty ? name : "\(relativePath)/\(name)"
       let modified = values?.contentModificationDate ?? Date(timeIntervalSince1970: 0)
-      return (
-        path, isPlaceholder,
-        [
-          "name": name,
-          "path": path,
-          "isDirectory": isDirectory,
-          "size": isDirectory ? 0 : (values?.fileSize ?? 0),
-          "modifiedAt": Int(modified.timeIntervalSince1970 * 1000),
-          "downloadStatus": status(
-            isDirectory: isDirectory, isPlaceholder: isPlaceholder, values: values),
-        ]
-      )
+      var status = self.status(
+        isDirectory: isDirectory, isPlaceholder: isPlaceholder, values: values)
+      var entry: [String: Any] = [
+        "name": name,
+        "path": path,
+        "isDirectory": isDirectory,
+        "size": isDirectory ? 0 : (values?.fileSize ?? 0),
+        "modifiedAt": Int(modified.timeIntervalSince1970 * 1000),
+      ]
+      if status != "downloaded", let canonicalFolder,
+        let percent = progress[progressKey(canonicalFolder: canonicalFolder, name: name)]
+      {
+        status = "downloading"
+        entry["downloadProgress"] = percent
+      }
+      entry["downloadStatus"] = status
+      return (path, isPlaceholder, entry)
     }
     return deduplicated(entries)
+  }
+
+  /// Dossier existant, liens symboliques résolus (`/private/var` et `/var` donnent le même
+  /// chemin) : base commune des clés de progression côté listage et côté requête.
+  static func canonical(_ folder: URL) -> URL {
+    folder.resolvingSymlinksInPath()
+  }
+
+  /// Clé de progression du fichier réel `name` dans un dossier déjà canonique.
+  /// Seul le dossier est canonisé : le fichier réel d'un placeholder n'existe pas encore,
+  /// et `resolvingSymlinksInPath` ne retire `/private` que d'un chemin existant.
+  static func progressKey(canonicalFolder: URL, name: String) -> String {
+    canonicalFolder.appendingPathComponent(name).path
   }
 
   /// Une seule entrée par chemin : le fichier réel prime sur son placeholder `.x.ext.icloud`.
@@ -94,7 +117,8 @@ enum DocumentsLister {
     throw DocumentsError.io("Fichier introuvable")
   }
 
-  private static func isAvailable(_ url: URL) -> Bool {
+  /// Vrai si le fichier réel existe et est lisible localement (téléchargé, ou hors iCloud).
+  static func isAvailable(_ url: URL) -> Bool {
     guard FileManager.default.fileExists(atPath: url.path) else { return false }
     let values = try? url.resourceValues(forKeys: [
       .isUbiquitousItemKey, .ubiquitousItemDownloadingStatusKey,
@@ -104,36 +128,14 @@ enum DocumentsLister {
     return status == .current || status == .downloaded
   }
 
-  /// Lance le téléchargement si besoin et attend (30 s max) que le fichier soit lisible.
-  static func ensureDownloaded(
-    _ located: URL, timeout: TimeInterval = 30,
-    completion: @escaping (Result<URL, DocumentsError>) -> Void
-  ) {
+  /// Lance le téléchargement iCloud du fichier réel s'il n'est pas déjà lisible.
+  static func startDownload(_ located: URL) throws {
     let real = realURL(for: located)
-    if isAvailable(real) {
-      completion(.success(real))
-      return
-    }
+    if isAvailable(real) { return }
     do {
       try FileManager.default.startDownloadingUbiquitousItem(at: real)
     } catch {
-      completion(.failure(.io(error.localizedDescription)))
-      return
-    }
-    poll(real, deadline: Date().addingTimeInterval(timeout), completion: completion)
-  }
-
-  private static func poll(
-    _ url: URL, deadline: Date, completion: @escaping (Result<URL, DocumentsError>) -> Void
-  ) {
-    DispatchQueue.global().asyncAfter(deadline: .now() + 0.5) {
-      if isAvailable(url) {
-        DispatchQueue.main.async { completion(.success(url)) }
-      } else if Date() > deadline {
-        DispatchQueue.main.async { completion(.failure(.io("Téléchargement trop long"))) }
-      } else {
-        poll(url, deadline: deadline, completion: completion)
-      }
+      throw DocumentsError.io(error.localizedDescription)
     }
   }
 }

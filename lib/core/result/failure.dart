@@ -12,6 +12,12 @@ enum ValidationReason {
   sleepInFuture,
   sleepTooLong,
   sleepBeforeBirth,
+  foodNameTooLong,
+  duplicateFoodName,
+  customFoodInUse,
+  emptyMeasurement,
+  invalidLength,
+  invalidHeadCircumference,
 }
 
 /// Erreur remontée par les repositories et les use cases via `Either`.

@@ -73,11 +73,35 @@ enum DocumentsWriter {
     return target.lastPathComponent
   }
 
-  private static func coordinatedWrite(to target: URL, _ body: (URL) throws -> Void) throws {
+  /// Supprime un fichier sous coordination iCloud, sur son URL logique (fichier réel).
+  /// `trashItem` est tenté d'abord pour que le fichier rejoigne « Récemment supprimés »
+  /// quand iOS le permet, `removeItem` sert de repli. Si seul le placeholder
+  /// `.nom.ext.icloud` existe, c'est lui qui est supprimé.
+  static func delete(_ url: URL) throws {
+    try coordinatedWrite(to: url, options: .forDeleting) { target in
+      let manager = FileManager.default
+      guard manager.fileExists(atPath: target.path) else {
+        try manager.removeItem(
+          at: target.deletingLastPathComponent()
+            .appendingPathComponent(".\(target.lastPathComponent).icloud"))
+        return
+      }
+      do {
+        try manager.trashItem(at: target, resultingItemURL: nil)
+      } catch {
+        try manager.removeItem(at: target)
+      }
+    }
+  }
+
+  private static func coordinatedWrite(
+    to target: URL, options: NSFileCoordinator.WritingOptions = [],
+    _ body: (URL) throws -> Void
+  ) throws {
     var coordinationError: NSError?
     var writeError: Error?
     NSFileCoordinator().coordinate(
-      writingItemAt: target, options: [], error: &coordinationError
+      writingItemAt: target, options: options, error: &coordinationError
     ) { url in
       do { try body(url) } catch { writeError = error }
     }

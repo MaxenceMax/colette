@@ -3,6 +3,7 @@ import 'dart:developer' as developer;
 import 'package:colette/core/clock/app_clock.dart';
 import 'package:colette/core/dates/date_extensions.dart';
 import 'package:colette/features/baby/domain/entities/feeding_plan_snapshot.dart';
+import 'package:colette/features/baby/domain/entities/growth_metric.dart';
 import 'package:colette/features/baby/presentation/providers/baby_providers.dart';
 import 'package:colette/features/dashboard/domain/use_cases/compute_feeding_plan.dart';
 import 'package:colette/features/events/presentation/providers/events_providers.dart';
@@ -40,7 +41,7 @@ final class FirestoreFeedingPlanSync implements FeedingPlanSync {
       final babyRepository = _ref.read(babyRepositoryProvider);
       final profile = await babyRepository.watchProfile(code).first;
       if (profile == null) return;
-      final weights = await babyRepository.watchWeights(code).first;
+      final measurements = await babyRepository.watchMeasurements(code).first;
       final now = _ref.read(clockProvider).now();
       final events = _ref.read(eventsRepositoryProvider);
       final today = (await events.getBetween(
@@ -52,7 +53,7 @@ final class FirestoreFeedingPlanSync implements FeedingPlanSync {
           .getOrElse((_) => null);
       final plan = const ComputeFeedingPlan()(
         birthDate: profile.birthDate,
-        latestWeightGrams: weights.isEmpty ? null : weights.first.grams,
+        latestWeightGrams: GrowthMetric.weight.latestOf(measurements)?.grams,
         feedsPerDay: profile.careSettings.feedsPerDay,
         todayBottles: today.where((e) => e.hasBottle).toList(),
         lastBottle: lastBottle,
@@ -63,6 +64,8 @@ final class FirestoreFeedingPlanSync implements FeedingPlanSync {
         code,
         FeedingPlanSnapshot(
           nextBottleAt: plan.nextBottleAt,
+          windowStartAt: plan.windowStart,
+          windowEndAt: plan.windowEnd,
           suggestedMl: plan.suggestedMl,
           computedAt: now,
         ),

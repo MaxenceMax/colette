@@ -1,10 +1,10 @@
 import 'package:colette/core/result/failure.dart';
 import 'package:colette/features/baby/domain/entities/baby_profile.dart';
 import 'package:colette/features/baby/domain/entities/feeding_plan_snapshot.dart';
-import 'package:colette/features/baby/domain/entities/weight_entry.dart';
+import 'package:colette/features/baby/domain/entities/growth_measurement.dart';
 import 'package:fpdart/fpdart.dart';
 
-/// Profil du bébé, pesées et résumé du plan biberons.
+/// Profil du bébé, mesures de croissance et résumé du plan biberons.
 abstract interface class BabyRepository {
   Stream<BabyProfile?> watchProfile(String householdCode);
 
@@ -13,17 +13,19 @@ abstract interface class BabyRepository {
     BabyProfile profile,
   );
 
-  /// Pesées triées de la plus récente à la plus ancienne.
-  Stream<List<WeightEntry>> watchWeights(String householdCode);
+  /// Mesures de croissance triées de la plus récente à la plus ancienne.
+  Stream<List<GrowthMeasurement>> watchMeasurements(String householdCode);
 
-  Future<Either<Failure, void>> addWeight(
+  /// Ajoute ou remplace entièrement la mesure [measurement].
+  Future<Either<Failure, void>> saveMeasurement(
     String householdCode,
-    WeightEntry entry,
+    GrowthMeasurement measurement,
   );
 
-  Future<Either<Failure, void>> deleteWeight(
+  /// Supprime la mesure [measurementId].
+  Future<Either<Failure, void>> deleteMeasurement(
     String householdCode,
-    String weightId,
+    String measurementId,
   );
 
   Future<Either<Failure, void>> saveFeedingPlan(

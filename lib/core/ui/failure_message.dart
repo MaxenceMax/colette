@@ -19,6 +19,13 @@ String failureMessage(Object failure, S s) => switch (failure) {
     ValidationReason.sleepInFuture => s.errorSleepInFuture,
     ValidationReason.sleepTooLong => s.errorSleepTooLong,
     ValidationReason.sleepBeforeBirth => s.errorSleepBeforeBirth,
+    ValidationReason.foodNameTooLong => s.errorFoodNameTooLong,
+    ValidationReason.duplicateFoodName => s.errorDuplicateFoodName,
+    ValidationReason.customFoodInUse => s.errorCustomFoodInUse,
+    ValidationReason.emptyMeasurement => s.errorEmptyMeasurement,
+    ValidationReason.invalidLength => s.errorInvalidLength,
+    ValidationReason.invalidHeadCircumference =>
+      s.errorInvalidHeadCircumference,
   },
   SleepOverlapFailure(:final startAt, :final endAt) => switch (endAt) {
     null => s.errorSleepOverlapOngoing(formatHourMinute(startAt)),

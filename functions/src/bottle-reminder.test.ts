@@ -1,5 +1,6 @@
 import { Timestamp } from 'firebase-admin/firestore';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
+import { formatHourMinute } from './lib/paris-time';
 import type { Device, DeviceDoc, FeedingPlanDoc } from './lib/types';
 
 const { sendToDevices, loggerError, households, updates } = vi.hoisted(() => ({
@@ -125,6 +126,52 @@ describe('bottleReminder', () => {
     expect(payload.data).toEqual({ route: '/today?bottle=1' });
     expect(payload.body).toContain('120 ml');
     expect(updates).toEqual([{ household: 'ABC123', data: { lastBottleNotifiedFor: plan.nextBottleAt } }]);
+  });
+
+  it('sans fourchette (ancienne app) : ancienne formulation', async () => {
+    households.push({ id: 'ABC123', fields: { feedingPlan: duePlan() }, devices: [{ id: 'd1' }] });
+
+    await handler();
+
+    const [, , payload] = sendToDevices.mock.calls[0];
+    expect(payload.title).toBe('Biberon dans 10 min');
+  });
+
+  it('avec fourchette : notifie à son ouverture avec la borne de fin', async () => {
+    const start = new Date(Date.now() - 60 * 1000);
+    const end = new Date(start.getTime() + 50 * 60 * 1000);
+    const plan: FeedingPlanDoc = {
+      nextBottleAt: Timestamp.fromDate(new Date(start.getTime() + 25 * 60 * 1000)),
+      windowStartAt: Timestamp.fromDate(start),
+      windowEndAt: Timestamp.fromDate(end),
+      suggestedMl: 120,
+      computedAt: Timestamp.fromDate(new Date(start.getTime() - 3 * 60 * 60 * 1000)),
+    };
+    households.push({ id: 'ABC123', fields: { feedingPlan: plan }, devices: [{ id: 'd1' }] });
+
+    await handler();
+
+    const [, , payload] = sendToDevices.mock.calls[0];
+    expect(payload.title).toBe('Biberon possible dès maintenant');
+    expect(payload.body).toBe(`Environ 120 ml, d'ici ${formatHourMinute(end)}`);
+    expect(updates).toEqual([{ household: 'ABC123', data: { lastBottleNotifiedFor: plan.nextBottleAt } }]);
+  });
+
+  it('avec fourchette pas encore ouverte : rien', async () => {
+    const start = new Date(Date.now() + 5 * 60 * 1000);
+    const plan: FeedingPlanDoc = {
+      nextBottleAt: Timestamp.fromDate(new Date(start.getTime() + 25 * 60 * 1000)),
+      windowStartAt: Timestamp.fromDate(start),
+      windowEndAt: Timestamp.fromDate(new Date(start.getTime() + 50 * 60 * 1000)),
+      suggestedMl: 120,
+      computedAt: Timestamp.fromDate(new Date(start.getTime() - 3 * 60 * 60 * 1000)),
+    };
+    households.push({ id: 'ABC123', fields: { feedingPlan: plan }, devices: [{ id: 'd1' }] });
+
+    await handler();
+
+    expect(sendToDevices).not.toHaveBeenCalled();
+    expect(updates).toEqual([]);
   });
 
   it("ne renotifie pas une échéance déjà notifiée", async () => {

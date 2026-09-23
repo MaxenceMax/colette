@@ -1,7 +1,9 @@
 import 'package:colette/app/main_shell.dart';
+import 'package:colette/features/baby/presentation/pages/growth_page.dart';
 import 'package:colette/features/baby/presentation/pages/settings_page.dart';
-import 'package:colette/features/baby/presentation/pages/weight_curve_page.dart';
 import 'package:colette/features/dashboard/presentation/pages/dashboard_page.dart';
+import 'package:colette/features/diversification/presentation/pages/food_detail_page.dart';
+import 'package:colette/features/diversification/presentation/pages/plate_page.dart';
 import 'package:colette/features/documents/presentation/pages/documents_page.dart';
 import 'package:colette/features/events/presentation/pages/timeline_page.dart';
 import 'package:colette/features/household/presentation/pages/create_household_page.dart';
@@ -21,8 +23,8 @@ abstract final class AppRoutes {
   static const onboardingJoin = '/onboarding/join';
   static const today = '/today';
 
-  /// Courbe de poids, imbriquée sous Aujourd'hui pour garder la barre d'onglets.
-  static const weights = '/today/weights';
+  /// Page Croissance, imbriquée sous Aujourd'hui pour garder la barre d'onglets.
+  static const growth = '/today/growth';
 
   /// Page Sommeil, imbriquée sous Aujourd'hui pour garder la barre d'onglets.
   static const sleep = '/today/sleep';
@@ -45,9 +47,14 @@ abstract final class AppRoutes {
           path: todayDocuments,
           queryParameters: {documentsPathParam: path},
         ).toString();
+
+  static const plate = '/plate';
+
+  /// Fiche d'un aliment de l'onglet Assiette.
+  static String plateFood(String foodId) => '$plate/food/$foodId';
 }
 
-/// Routeur : onboarding tant qu'aucun foyer, sinon shell à trois onglets.
+/// Routeur : onboarding tant qu'aucun foyer, sinon shell à quatre onglets.
 @riverpod
 GoRouter appRouter(Ref ref) {
   final hasHousehold = ref.watch(currentHouseholdCodeProvider) != null;
@@ -83,8 +90,8 @@ GoRouter appRouter(Ref ref) {
                 builder: (_, _) => const DashboardPage(),
                 routes: [
                   GoRoute(
-                    path: 'weights',
-                    builder: (_, _) => const WeightCurvePage(),
+                    path: 'growth',
+                    builder: (_, _) => const GrowthPage(),
                   ),
                   GoRoute(path: 'sleep', builder: (_, _) => const SleepPage()),
                   GoRoute(
@@ -105,6 +112,21 @@ GoRouter appRouter(Ref ref) {
               GoRoute(
                 path: AppRoutes.journal,
                 builder: (_, _) => const TimelinePage(),
+              ),
+            ],
+          ),
+          StatefulShellBranch(
+            routes: [
+              GoRoute(
+                path: AppRoutes.plate,
+                builder: (_, _) => const PlatePage(),
+                routes: [
+                  GoRoute(
+                    path: 'food/:foodId',
+                    builder: (_, state) =>
+                        FoodDetailPage(foodId: state.pathParameters['foodId']!),
+                  ),
+                ],
               ),
             ],
           ),

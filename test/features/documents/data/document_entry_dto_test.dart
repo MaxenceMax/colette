@@ -65,4 +65,32 @@ void main() {
     expect(entry.modifiedAt.millisecondsSinceEpoch, 0);
     expect(entry.downloadStatus, DownloadStatus.downloaded);
   });
+
+  test('fromMap lit downloadProgress, borné entre 0 et 1', () {
+    expect(
+      DocumentEntryDto.fromMap({
+        ...map(status: 'downloading'),
+        'downloadProgress': 0.42,
+      }).downloadProgress,
+      0.42,
+    );
+    expect(
+      DocumentEntryDto.fromMap({
+        ...map(status: 'downloading'),
+        'downloadProgress': 1.7,
+      }).downloadProgress,
+      1.0,
+    );
+    expect(
+      DocumentEntryDto.fromMap({
+        ...map(status: 'downloading'),
+        'downloadProgress': -3,
+      }).downloadProgress,
+      0.0,
+    );
+  });
+
+  test('fromMap laisse downloadProgress null quand absent', () {
+    expect(DocumentEntryDto.fromMap(map()).downloadProgress, isNull);
+  });
 }

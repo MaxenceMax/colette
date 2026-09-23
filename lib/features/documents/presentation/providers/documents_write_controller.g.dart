@@ -64,7 +64,7 @@ final class DocumentsWriteControllerProvider
 }
 
 String _$documentsWriteControllerHash() =>
-    r'15ecf7dae382d0ac5c1ffe7306255aceb9a5b248';
+    r'1ebbc4d905be21a7a5d518fd023108813af8234f';
 
 /// Ajout d'un document (scan ou import) dans [folderPath].
 ///
