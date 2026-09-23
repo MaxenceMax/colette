@@ -41,6 +41,10 @@ abstract class FeedingPlan with _$FeedingPlan {
   /// Vrai si la fourchette a une largeur (au moins un biberon enregistré).
   bool get hasWindow => windowStart.isBefore(windowEnd);
 
+  /// Vrai quand `now` est dans la fourchette : un biberon peut être donné.
+  bool isOpen(DateTime now) =>
+      hasWindow && !now.isBefore(windowStart) && !now.isAfter(windowEnd);
+
   /// Retard compté depuis la fin de la fourchette, ou zéro.
   Duration lateBy(DateTime now) =>
       now.isAfter(windowEnd) ? now.difference(windowEnd) : Duration.zero;

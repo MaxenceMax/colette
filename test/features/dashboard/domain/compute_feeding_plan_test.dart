@@ -1,3 +1,4 @@
+import 'package:colette/features/dashboard/domain/entities/feeding_plan.dart';
 import 'package:colette/features/dashboard/domain/use_cases/compute_feeding_plan.dart';
 import 'package:flutter_test/flutter_test.dart';
 
@@ -140,28 +141,16 @@ void main() {
       now: DateTime(2026, 9, 10, 10),
     );
     expect(plan.nextBottleAt, DateTime(2026, 9, 10, 9));
-    expect(plan.windowEnd, DateTime(2026, 9, 10, 9, 25));
+    expect(plan.windowEnd, DateTime(2026, 9, 10, 11));
     expect(plan.hasWindow, isTrue);
-    expect(plan.lateBy(DateTime(2026, 9, 10, 9, 20)), Duration.zero);
-    expect(plan.lateBy(DateTime(2026, 9, 10, 10)), const Duration(minutes: 35));
+    expect(plan.lateBy(DateTime(2026, 9, 10, 10)), Duration.zero);
+    expect(
+      plan.lateBy(DateTime(2026, 9, 10, 11, 35)),
+      const Duration(minutes: 35),
+    );
   });
 
   group('fourchette', () {
-    test('arrondi aux 5 min, secondes ignorées', () {
-      expect(
-        ComputeFeedingPlan.roundTo5Minutes(DateTime(2026, 9, 10, 7, 43)),
-        DateTime(2026, 9, 10, 7, 45),
-      );
-      expect(
-        ComputeFeedingPlan.roundTo5Minutes(DateTime(2026, 9, 10, 7, 42, 50)),
-        DateTime(2026, 9, 10, 7, 40),
-      );
-      expect(
-        ComputeFeedingPlan.roundTo5Minutes(DateTime(2026, 9, 10, 8, 37)),
-        DateTime(2026, 9, 10, 8, 35),
-      );
-    });
-
     (DateTime, DateTime) windowFor(int feeds, DateTime last) {
       final bottle = makeEvent(id: 'a', startAt: last, bottleMl: 60);
       final plan = compute(
@@ -175,25 +164,47 @@ void main() {
       return (plan.windowStart, plan.windowEnd);
     }
 
-    test('8 prises : ±27 min autour de dernier + 3 h', () {
+    test('de 2 h 30 à 5 h après le dernier, quel que soit le rythme', () {
       expect(windowFor(8, DateTime(2026, 9, 10, 5, 10)), (
-        DateTime(2026, 9, 10, 7, 45),
-        DateTime(2026, 9, 10, 8, 35),
-      ));
-    });
-
-    test('6 prises : ±36 min autour de dernier + 4 h', () {
-      expect(windowFor(6, DateTime(2026, 9, 10, 6)), (
-        DateTime(2026, 9, 10, 9, 25),
-        DateTime(2026, 9, 10, 10, 35),
-      ));
-    });
-
-    test('12 prises : ±18 min autour de dernier + 2 h', () {
-      expect(windowFor(12, DateTime(2026, 9, 10, 6)), (
         DateTime(2026, 9, 10, 7, 40),
-        DateTime(2026, 9, 10, 8, 20),
+        DateTime(2026, 9, 10, 10, 10),
       ));
+      expect(windowFor(6, DateTime(2026, 9, 10, 6)), (
+        DateTime(2026, 9, 10, 8, 30),
+        DateTime(2026, 9, 10, 11),
+      ));
+    });
+
+    test('ouverte dès 2 h 30 après le dernier biberon', () {
+      final last = makeEvent(
+        id: 'a',
+        startAt: DateTime(2026, 9, 10, 6),
+        bottleMl: 60,
+      );
+      FeedingPlan at(DateTime now) => compute(
+        birthDate: birth,
+        latestWeightGrams: 3600,
+        feedsPerDay: 8,
+        todayBottles: [last],
+        lastBottle: last,
+        now: now,
+      );
+      expect(
+        at(DateTime(2026, 9, 10, 8, 29)).isOpen(DateTime(2026, 9, 10, 8, 29)),
+        isFalse,
+      );
+      expect(
+        at(DateTime(2026, 9, 10, 8, 30)).isOpen(DateTime(2026, 9, 10, 8, 30)),
+        isTrue,
+      );
+      expect(
+        at(DateTime(2026, 9, 10, 11)).isOpen(DateTime(2026, 9, 10, 11)),
+        isTrue,
+      );
+      expect(
+        at(DateTime(2026, 9, 10, 11, 1)).isOpen(DateTime(2026, 9, 10, 11, 1)),
+        isFalse,
+      );
     });
 
     test('sans biberon : fourchette réduite à maintenant', () {
@@ -209,6 +220,7 @@ void main() {
       expect(plan.windowStart, now);
       expect(plan.windowEnd, now);
       expect(plan.hasWindow, isFalse);
+      expect(plan.isOpen(now), isFalse);
     });
   });
 

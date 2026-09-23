@@ -50,10 +50,10 @@ void main() {
         DateTime(2026, 9, 11, 9),
       ],
     );
-    expect(bottles.first.windowStart, DateTime(2026, 9, 10, 11, 35));
-    expect(bottles.first.windowEnd, DateTime(2026, 9, 10, 12, 25));
-    expect(bottles[1].windowStart, DateTime(2026, 9, 10, 14, 35));
-    expect(bottles[1].windowEnd, DateTime(2026, 9, 10, 15, 25));
+    expect(bottles.first.windowStart, DateTime(2026, 9, 10, 11, 30));
+    expect(bottles.first.windowEnd, DateTime(2026, 9, 10, 14));
+    expect(bottles[1].windowStart, DateTime(2026, 9, 10, 14, 30));
+    expect(bottles[1].windowEnd, DateTime(2026, 9, 10, 17));
     // Aujourd'hui : (360 − 60) / 7 = 42,9 → 40. Demain : 430 / 8 = 53,8 → 50.
     expect(bottles.take(4).map((b) => b.suggestedMl), everyElement(40));
     expect(bottles.skip(4).map((b) => b.suggestedMl), everyElement(50));

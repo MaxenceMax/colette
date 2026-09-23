@@ -8,7 +8,7 @@ import 'package:colette/features/events/domain/entities/care_event.dart';
 /// Plan biberons selon l'OMS : 150 ml/kg/jour (montée progressive la 1re semaine),
 /// réparti sur `feedsPerDay` prises ; repères par âge sans pesée.
 /// Une cible ajustée (`dailyTargetMlOverride`) remplace la cible OMS.
-/// Le prochain biberon est une fourchette à ±15 % de l'intervalle.
+/// Le prochain biberon est possible de 2 h 30 à 5 h après le dernier.
 ///
 /// `feedsPerDay` est borné à 1 minimum pour ne jamais diviser par zéro.
 class ComputeFeedingPlan {
@@ -39,7 +39,7 @@ class ComputeFeedingPlan {
         : lastBottle.startAt.add(interval);
     final (windowStart, windowEnd) = lastBottle == null
         ? (now, now)
-        : windowAround(nextBottleAt, interval);
+        : windowAfter(lastBottle.startAt);
     final givenMl = todayBottles.fold(0, (sum, e) => sum + (e.bottleMl ?? 0));
     final bottlesGiven = todayBottles.length;
     final bottlesRemaining = max(0, safeFeedsPerDay - bottlesGiven);
@@ -63,34 +63,19 @@ class ComputeFeedingPlan {
     );
   }
 
-  /// Demi-largeur de la fourchette, en fraction de l'intervalle.
-  static const windowHalfWidthRatio = 0.15;
-
   /// Intervalle entre deux prises ; `feedsPerDay` borné à 1 minimum.
   static Duration intervalFor(int feedsPerDay) =>
       Duration(minutes: (24 * 60 / max(1, feedsPerDay)).round());
 
-  /// Fourchette à ±15 % de l'intervalle autour de `center`, arrondie aux 5 min.
-  static (DateTime, DateTime) windowAround(DateTime center, Duration interval) {
-    final half = Duration(
-      minutes: (interval.inMinutes * windowHalfWidthRatio).round(),
-    );
-    return (
-      roundTo5Minutes(center.subtract(half)),
-      roundTo5Minutes(center.add(half)),
-    );
-  }
+  /// Délai minimal entre deux biberons : début de la fenêtre de tir.
+  static const minGap = Duration(hours: 2, minutes: 30);
 
-  /// Arrondi aux 5 minutes les plus proches, secondes ignorées.
-  static DateTime roundTo5Minutes(DateTime time) {
-    final minutes =
-        time.microsecondsSinceEpoch ~/ Duration.microsecondsPerMinute;
-    final rounded = (minutes / 5).round() * 5;
-    return DateTime.fromMicrosecondsSinceEpoch(
-      rounded * Duration.microsecondsPerMinute,
-      isUtc: time.isUtc,
-    );
-  }
+  /// Délai maximal entre deux biberons : fin de la fenêtre de tir.
+  static const maxGap = Duration(hours: 5);
+
+  /// Fenêtre de tir après un biberon donné à `lastBottleAt`.
+  static (DateTime, DateTime) windowAfter(DateTime lastBottleAt) =>
+      (lastBottleAt.add(minGap), lastBottleAt.add(maxGap));
 
   /// Cible OMS : au poids si une pesée est connue, sinon repères par âge.
   static int dailyTargetFor({

@@ -55,11 +55,11 @@ void main() {
       );
       expect(
         (plan['windowStartAt'] as Timestamp).toDate(),
-        DateTime(2026, 9, 10, 11, 35),
+        DateTime(2026, 9, 10, 11, 30),
       );
       expect(
         (plan['windowEndAt'] as Timestamp).toDate(),
-        DateTime(2026, 9, 10, 12, 25),
+        DateTime(2026, 9, 10, 14),
       );
       expect(plan['suggestedMl'], 60);
     },
