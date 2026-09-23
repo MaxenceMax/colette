@@ -33,7 +33,7 @@ Un bouton horloge (`Icons.schedule`, infobulle « Prochaines 24 h ») s'ajoute �
 
 Bottom sheet (`showModalBottomSheet`, même gabarit que la feuille OMS) :
 
-- Titre « Prochaines 24 h », rappel « Prévisions indicatives : suivez aussi les signes de faim. »
+- Titre « Prochaines 24 h », rappel « Prévisions indicatives : suis aussi ses signes de faim. »
 - Une ligne par biberon prévu : fourchette « 7h45 – 8h35 » et quantité « 120 ml ».
 - En-têtes de jour « Aujourd'hui » / « Demain », selon le jour civil de `max(heure centrale, now)`.
 - Première ligne = le prochain biberon du plan (même fourchette, même quantité que la carte). S'il est en cours ou en retard, la ligne porte la mention de la carte (« maintenant » en `primary`, « en retard de N min » en `warning`).
@@ -60,7 +60,7 @@ Bottom sheet (`showModalBottomSheet`, même gabarit que la feuille OMS) :
   - `NextBottleCard` : `_WhenText` réécrit, bouton timeline.
   - Nouveau `bottle_schedule_sheet.dart` : `showBottleScheduleSheet`, `BottleScheduleSheet`, `ListView.builder` sur des entrées aplaties (en-têtes + lignes).
 - `functions/src` : `FeedingPlanDoc` (champs optionnels), `isReminderDue` (branche fourchette + repli), `bottle-reminder.ts` (texte selon la branche).
-- l10n : `nextBottleWindow`, `nextBottleNowUntil`, `bottleScheduleTooltip`, `bottleScheduleTitle`, `bottleScheduleHint`, `bottleScheduleToday`, `bottleScheduleTomorrow`, `bottleScheduleRange` ; `nextBottleAt` supprimée si plus utilisée.
+- l10n : `nextBottleWindow`, `nextBottleNowUntil`, `bottleScheduleTooltip`, `bottleScheduleTitle`, `bottleScheduleHint`, `bottleScheduleRange`, `dayTomorrow` (à côté de `dayToday` existante) ; `nextBottleAt` supprimée.
 
 ## Tests
 
