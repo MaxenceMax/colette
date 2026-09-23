@@ -8,6 +8,7 @@ import 'package:colette/features/documents/domain/entities/document_entry.dart';
 import 'package:colette/features/documents/domain/entities/download_status.dart';
 import 'package:colette/features/documents/presentation/providers/documents_preview_controller.dart';
 import 'package:colette/features/documents/presentation/providers/documents_providers.dart';
+import 'package:colette/features/documents/presentation/widgets/document_delete_dismissible.dart';
 import 'package:colette/l10n/generated/app_localizations.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -89,7 +90,7 @@ class DocumentEntryTile extends ConsumerWidget {
         _onPreviewError(context, ref, error);
       }
     });
-    return ListTile(
+    final tile = ListTile(
       leading: Icon(_icon, color: context.appColor(AppColors.primary)),
       title: Text(entry.name, maxLines: 1, overflow: .ellipsis),
       subtitle: entry.isDirectory
@@ -101,6 +102,12 @@ class DocumentEntryTile extends ConsumerWidget {
         false when previewing => null,
         false => () => ref.read(controller.notifier).open(entry),
       },
+    );
+    if (entry.isDirectory) return tile;
+    return DocumentDeleteDismissible(
+      entry: entry,
+      folderPath: folderPath,
+      child: tile,
     );
   }
 }

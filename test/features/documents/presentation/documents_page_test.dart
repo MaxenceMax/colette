@@ -85,6 +85,64 @@ void main() {
     }
   }
 
+  Future<void> swipeLeft(WidgetTester tester, String name) async {
+    await tester.drag(find.text(name), const Offset(-400, 0));
+    await tester.pumpAndSettle();
+  }
+
+  testWidgets('glisser puis annuler : ligne conservée, rien supprimé', (
+    tester,
+  ) async {
+    when(() => repo.watch(''))
+        .thenAnswer((_) => Stream.value(right([entry('a.pdf')])));
+    await pumpPage(tester);
+    await swipeLeft(tester, 'a.pdf');
+    expect(find.text('Supprimer ce document ?'), findsOneWidget);
+    expect(
+      find.text(
+        "a.pdf restera trente jours dans « Récemment supprimés » de l'app Fichiers.",
+      ),
+      findsOneWidget,
+    );
+    await tester.tap(find.text('Annuler'));
+    await tester.pumpAndSettle();
+    expect(find.text('a.pdf'), findsOneWidget);
+    verifyNever(() => repo.delete(any()));
+  });
+
+  testWidgets('glisser puis confirmer : delete appelé', (tester) async {
+    when(() => repo.watch(''))
+        .thenAnswer((_) => Stream.value(right([entry('a.pdf')])));
+    when(() => repo.delete('a.pdf')).thenAnswer((_) async => right(null));
+    await pumpPage(tester);
+    await swipeLeft(tester, 'a.pdf');
+    await tester.tap(find.text('Supprimer'));
+    await tester.pumpAndSettle();
+    verify(() => repo.delete('a.pdf')).called(1);
+    expect(find.byType(SnackBar), findsNothing);
+  });
+
+  testWidgets('suppression en échec io → SnackBar', (tester) async {
+    when(() => repo.watch(''))
+        .thenAnswer((_) => Stream.value(right([entry('a.pdf')])));
+    when(
+      () => repo.delete('a.pdf'),
+    ).thenAnswer((_) async => left(const DocumentsFailure(DocumentsReason.io)));
+    await pumpPage(tester);
+    await swipeLeft(tester, 'a.pdf');
+    await tester.tap(find.text('Supprimer'));
+    await tester.pumpAndSettle();
+    expect(find.text('Impossible de supprimer ce document'), findsOneWidget);
+  });
+
+  testWidgets('un dossier ne se glisse pas', (tester) async {
+    when(() => repo.watch('')).thenAnswer(
+      (_) => Stream.value(right([entry('Ordonnances', isDirectory: true)])),
+    );
+    await pumpPage(tester);
+    expect(find.byType(Dismissible), findsNothing);
+  });
+
   testWidgets('liste triée avec le nom de la racine en titre', (tester) async {
     when(() => repo.watch('')).thenAnswer(
       (_) => Stream.value(

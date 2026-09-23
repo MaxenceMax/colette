@@ -155,5 +155,9 @@
   "settingsDocumentsChange": "Changer de dossier",
   "settingsDocumentsForget": "Oublier le dossier",
   "settingsDocumentsForgetConfirm": "Colette n'affichera plus ce dossier. Vos fichiers ne sont pas supprimés.",
+  "documentsDeleteTitle": "Supprimer ce document ?",
+  "documentsDeleteBody": "{name} restera trente jours dans « Récemment supprimés » de l'app Fichiers.",
+  "@documentsDeleteBody": { "placeholders": { "name": { "type": "String" } } },
+  "documentsErrorDelete": "Impossible de supprimer ce document",
   "copied": "Code copié"
 }
