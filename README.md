@@ -2,6 +2,10 @@
 
 App iOS privée pour suivre les soins quotidiens de notre nouveau-né, à deux.
 
+## Fonctionnalités
+
+- Documents : consultation du dossier iCloud Drive partagé (choisi une fois par iPhone), aperçu Quick Look, scan et import dans le dossier.
+
 ## Prérequis
 
 - Flutter 3.47 (stable), Xcode, CocoaPods.
@@ -19,6 +23,8 @@ La création du projet Firebase et la configuration Apple sont détaillées pas 
 4. Dans la console Firebase → Cloud Messaging : déposer la clé APNs (.p8).
 5. `dart run build_runner build -d`
 6. `flutter run`
+
+Les sources Swift de `ios/Runner/Documents/` sont référencées dans le projet Xcode par `ruby ios/scripts/add_documents_sources.rb` (gem `xcodeproj`, livré avec CocoaPods).
 
 ## Backend (Cloud Functions, règles, index)
 

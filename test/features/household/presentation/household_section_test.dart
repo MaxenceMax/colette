@@ -3,6 +3,7 @@ import 'package:colette/features/household/presentation/providers/household_prov
 import 'package:colette/features/household/presentation/widgets/household_section.dart';
 import 'package:flutter_test/flutter_test.dart';
 
+import '../../../helpers/documents_repository_override.dart';
 import '../../../helpers/pump_app.dart';
 
 void main() {
@@ -16,6 +17,7 @@ void main() {
             const DeviceInfo(id: 'dev-1', label: 'iPhone de Maxence'),
           ),
         ),
+        documentsRepositoryOverride(),
       ],
     );
     expect(find.textContaining('iPhone de Maxence'), findsOneWidget);
@@ -29,6 +31,7 @@ void main() {
       const HouseholdSection(code: 'ABCDEFGH'),
       overrides: [
         currentDeviceProvider.overrideWith((ref) => Stream.value(null)),
+        documentsRepositoryOverride(),
       ],
     );
     expect(find.textContaining('iPhone'), findsNothing);

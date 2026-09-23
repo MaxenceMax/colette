@@ -13,3 +13,7 @@ String formatLongDate(DateTime day) {
   final text = DateFormat('EEEE d MMMM', 'fr').format(day);
   return '${text[0].toUpperCase()}${text.substring(1)}';
 }
+
+/// « 22 sept. 2026 ».
+String formatShortDate(DateTime day) =>
+    DateFormat('d MMM yyyy', 'fr').format(day);

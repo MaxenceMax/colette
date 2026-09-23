@@ -40,3 +40,20 @@ final class UnknownFailure extends Failure {
   final Object error;
   final StackTrace? stackTrace;
 }
+
+/// Raison d'une [DocumentsFailure].
+enum DocumentsReason { noFolder, accessDenied, cancelled, io }
+
+/// Erreur du pont natif documents (dossier iCloud).
+final class DocumentsFailure extends Failure {
+  const DocumentsFailure(this.reason);
+
+  final DocumentsReason reason;
+
+  @override
+  bool operator ==(Object other) =>
+      other is DocumentsFailure && other.reason == reason;
+
+  @override
+  int get hashCode => reason.hashCode;
+}

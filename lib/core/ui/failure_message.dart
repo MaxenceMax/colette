@@ -16,5 +16,12 @@ String failureMessage(Object failure, S s) => switch (failure) {
     ValidationReason.notificationsDenied => s.errorNotificationsDenied,
     ValidationReason.invalidDiaperCount => s.errorInvalidDiaperCount,
   },
+  DocumentsFailure(:final reason) => switch (reason) {
+    DocumentsReason.noFolder ||
+    DocumentsReason.accessDenied => s.documentsErrorAccess,
+    DocumentsReason.io => s.documentsErrorIo,
+    // Jamais affiché : l'UI ignore cancelled.
+    DocumentsReason.cancelled => s.errorUnknown,
+  },
   _ => s.errorUnknown,
 };

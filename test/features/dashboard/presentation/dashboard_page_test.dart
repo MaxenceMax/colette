@@ -23,6 +23,7 @@ import 'package:fpdart/fpdart.dart';
 import 'package:mocktail/mocktail.dart';
 
 import '../../../helpers/care_event_factory.dart';
+import '../../../helpers/documents_repository_override.dart';
 import '../../../helpers/in_memory_household_local_store.dart';
 import '../../../helpers/pump_app.dart';
 
@@ -58,6 +59,7 @@ void main() {
     BabyProfile? baby,
     List<WeightEntry>? weights,
   }) => [
+    documentsRepositoryOverride(),
     clockProvider.overrideWithValue(FixedClock(now)),
     minuteTickerProvider.overrideWith((ref) => const Stream.empty()),
     householdLocalStoreProvider.overrideWithValue(
