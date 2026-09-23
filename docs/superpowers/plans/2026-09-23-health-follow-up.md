@@ -176,15 +176,16 @@ void main() {
     );
   });
 
-  test('certificats à 8 jours, 9 mois et 24 mois ; pas d\'examen à 11 mois', () {
+  test('certificats à 8 jours, 8 mois et 23-24 mois ; 6 mois sans examen', () {
     expect(
       [
         for (final stage in medicalSchedule)
           if (stage.hasCertificate) stage.id,
       ],
-      [MedicalStageId.day8, MedicalStageId.m9, MedicalStageId.m24],
+      [MedicalStageId.day8, MedicalStageId.m8, MedicalStageId.m23],
     );
-    expect(stageById(MedicalStageId.m11).hasExam, isFalse);
+    expect(stageById(MedicalStageId.m6).hasExam, isFalse);
+    expect(stageById(MedicalStageId.m11).hasExam, isTrue);
   });
 
   test('fenêtres de quelques étapes', () {
@@ -271,7 +272,23 @@ import 'package:colette/features/health/domain/entities/age_offset.dart';
 import 'package:colette/features/health/domain/entities/vaccine_code.dart';
 
 /// Identifiant stable d'une étape ; `name` sert d'identifiant Firestore.
-enum MedicalStageId { day8, week2, m2, m3, m4, m5, m6, m9, m11, m12, m13, m16, m24, y3 }
+enum MedicalStageId {
+  day8,
+  week2,
+  m1,
+  m2,
+  m3,
+  m4,
+  m5,
+  m6,
+  m8,
+  m11,
+  m12,
+  m16,
+  m23,
+  y2,
+  y3,
+}
 
 /// Vaccin attendu à une étape ; [recommended] : recommandé, non obligatoire.
 final class ScheduledVaccine {
@@ -306,10 +323,10 @@ final class MedicalStage {
 
 ```dart
 // lib/features/health/domain/reference/medical_schedule.dart
-// Examens : arrêté en vigueur depuis le 1er janvier 2025 (ameli.fr, « 20 examens
-// de suivi médical de l'enfant et de l'adolescent » ; service-public.gouv.fr F35490).
-// Vaccins : « Calendrier des vaccinations et recommandations vaccinales 2026 »
-// (ministère de la Santé, juillet 2026). « À N mois » = fenêtre [N mois, N+1 mois).
+// Examens : service-public.gouv.fr F35490 (vérifié le 29 juillet 2026) et ameli.fr
+// « 20 examens de suivi médical de l'enfant et de l'adolescent » (11 août 2025).
+// Vaccins : ameli.fr « Les vaccins obligatoires chez le nourrisson » (21 mai 2026),
+// calendrier des vaccinations 2026. « À N mois » = fenêtre [N mois, N+1 mois).
 
 import 'package:colette/features/health/domain/entities/age_offset.dart';
 import 'package:colette/features/health/domain/entities/medical_stage.dart';
@@ -327,6 +344,11 @@ const medicalSchedule = <MedicalStage>[
     id: MedicalStageId.week2,
     from: AgeOffset.days(8),
     until: AgeOffset.days(15),
+  ),
+  MedicalStage(
+    id: MedicalStageId.m1,
+    from: AgeOffset.months(1),
+    until: AgeOffset.months(2),
   ),
   MedicalStage(
     id: MedicalStageId.m2,
@@ -367,19 +389,19 @@ const medicalSchedule = <MedicalStage>[
     id: MedicalStageId.m6,
     from: AgeOffset.months(6),
     until: AgeOffset.months(7),
+    hasExam: false,
     vaccines: [ScheduledVaccine(VaccineCode.menACWY)],
   ),
   MedicalStage(
-    id: MedicalStageId.m9,
-    from: AgeOffset.months(9),
-    until: AgeOffset.months(10),
+    id: MedicalStageId.m8,
+    from: AgeOffset.months(8),
+    until: AgeOffset.months(9),
     hasCertificate: true,
   ),
   MedicalStage(
     id: MedicalStageId.m11,
     from: AgeOffset.months(11),
     until: AgeOffset.months(12),
-    hasExam: false,
     vaccines: [
       ScheduledVaccine(VaccineCode.hexavalent),
       ScheduledVaccine(VaccineCode.pneumococcal),
@@ -396,21 +418,21 @@ const medicalSchedule = <MedicalStage>[
     ],
   ),
   MedicalStage(
-    id: MedicalStageId.m13,
-    from: AgeOffset.months(13),
-    until: AgeOffset.months(14),
-  ),
-  MedicalStage(
     id: MedicalStageId.m16,
     from: AgeOffset.months(16),
     until: AgeOffset.months(19),
     vaccines: [ScheduledVaccine(VaccineCode.mmr)],
   ),
   MedicalStage(
-    id: MedicalStageId.m24,
-    from: AgeOffset.months(24),
-    until: AgeOffset.months(26),
+    id: MedicalStageId.m23,
+    from: AgeOffset.months(23),
+    until: AgeOffset.months(25),
     hasCertificate: true,
+  ),
+  MedicalStage(
+    id: MedicalStageId.y2,
+    from: AgeOffset.months(25),
+    until: AgeOffset.months(36),
   ),
   MedicalStage(
     id: MedicalStageId.y3,
@@ -423,9 +445,14 @@ const medicalSchedule = <MedicalStage>[
 MedicalStage stageById(MedicalStageId id) => medicalSchedule[id.index];
 ```
 
-- [ ] **Step 4: Vérifier la table contre les textes officiels**
+- [ ] **Step 4: Sources vérifiées**
 
-Ouvrir (WebFetch) le PDF `https://sante.gouv.fr/IMG/pdf/2026_07_calendrier_vaccinal-2026_a4_93p_v11.pdf` (tableau « calendrier simplifié » du nourrisson) et `https://www.service-public.gouv.fr/particuliers/vosdroits/F35490/0`. Comparer chaque ligne de `medicalSchedule` (âges des vaccins, examens, certificats, formulation « au cours de la 3e année »). Si un écart existe : ne rien modifier seul, arrêter et remonter l'écart au contrôleur (statut NEEDS_CONTEXT) avec la citation exacte.
+Vérification faite par le contrôleur dans un navigateur, le 2026-09-23 :
+- service-public.gouv.fr F35490 (« vérifié le 29 juillet 2026 ») : 8 jours (1er certificat), 2e semaine, 5 examens entre 1 et 5 mois, 8 mois (2e certificat), 11 mois, 12 mois, 16-18 mois, 23-24 mois (3e certificat), puis 1 par an de 2 à 5 ans ;
+- ameli.fr, examens (11 août 2025) : « à 1 mois, 2 mois, 3 mois, 4 mois, 5 mois, 8 mois, 11 mois, 12 mois, entre le 16e et le 18e mois, entre le 23e et le 24e mois, à 2 ans, 3 ans » ;
+- ameli.fr, vaccins (21 mai 2026) : hexavalent et pneumocoque à 2, 4 et 11 mois ; méningocoque B à 3, 5 et 12 mois ; ACWY à 6 et 12 mois ; ROR à 12 mois et entre 16 et 18 mois.
+
+Rien à refaire à cette étape.
 
 - [ ] **Step 5: Run tests to verify they pass**
 
@@ -584,8 +611,8 @@ void main() {
       ],
       now: DateTime(2026, 9, 20),
     );
-    expect(timeline.next!.stage.id, MedicalStageId.m2);
-    expect(timeline.next!.status, MedicalStageStatus.upcoming);
+    expect(timeline.next!.stage.id, MedicalStageId.m1);
+    expect(timeline.next!.status, MedicalStageStatus.due);
   });
 
   test('next : null quand tout est fait', () {
@@ -929,14 +956,14 @@ void main() {
     );
     expect(snapshot.computedAt, now);
     expect(snapshot.stages.map((s) => s.stageId), [
+      MedicalStageId.m1,
       MedicalStageId.m2,
       MedicalStageId.m3,
-      MedicalStageId.m4,
     ]);
-    expect(snapshot.stages.first.hasAppointment, isTrue);
-    expect(snapshot.stages[1].hasAppointment, isFalse);
-    expect(snapshot.stages[1].dueFrom, DateTime(2026, 12, 1));
-    expect(snapshot.stages[1].dueUntil, DateTime(2027, 1, 1));
+    expect(snapshot.stages[0].hasAppointment, isFalse);
+    expect(snapshot.stages[1].hasAppointment, isTrue);
+    expect(snapshot.stages[2].dueFrom, DateTime(2026, 12, 1));
+    expect(snapshot.stages[2].dueUntil, DateTime(2027, 1, 1));
   });
 }
 ```
@@ -2380,17 +2407,18 @@ Dans `app_fr.arb` (avant l'accolade finale) :
   "healthTitle": "Santé",
   "healthStageDay8": "Examen des 8 jours",
   "healthStageWeek2": "Examen de la 2e semaine",
+  "healthStageM1": "Examen du 1er mois",
   "healthStageM2": "Examen et vaccins des 2 mois",
   "healthStageM3": "Examen et vaccins des 3 mois",
   "healthStageM4": "Examen et vaccins des 4 mois",
   "healthStageM5": "Examen et vaccins des 5 mois",
-  "healthStageM6": "Examen et vaccins des 6 mois",
-  "healthStageM9": "Examen des 9 mois",
-  "healthStageM11": "Vaccins des 11 mois",
+  "healthStageM6": "Vaccin des 6 mois",
+  "healthStageM8": "Examen des 8 mois",
+  "healthStageM11": "Examen et vaccins des 11 mois",
   "healthStageM12": "Examen et vaccins des 12 mois",
-  "healthStageM13": "Examen des 13 mois",
   "healthStageM16": "Examen et vaccin des 16-18 mois",
-  "healthStageM24": "Examen des 24-25 mois",
+  "healthStageM23": "Examen des 23-24 mois",
+  "healthStageY2": "Examen des 2 ans",
   "healthStageY3": "Examen des 3 ans",
   "healthEventTitle": "{stage} · {name}",
   "@healthEventTitle": { "placeholders": { "stage": { "type": "String" }, "name": { "type": "String" } } },
@@ -2413,17 +2441,18 @@ abstract final class HealthLabels {
   static String stage(S s, MedicalStageId id) => switch (id) {
     MedicalStageId.day8 => s.healthStageDay8,
     MedicalStageId.week2 => s.healthStageWeek2,
+    MedicalStageId.m1 => s.healthStageM1,
     MedicalStageId.m2 => s.healthStageM2,
     MedicalStageId.m3 => s.healthStageM3,
     MedicalStageId.m4 => s.healthStageM4,
     MedicalStageId.m5 => s.healthStageM5,
     MedicalStageId.m6 => s.healthStageM6,
-    MedicalStageId.m9 => s.healthStageM9,
+    MedicalStageId.m8 => s.healthStageM8,
     MedicalStageId.m11 => s.healthStageM11,
     MedicalStageId.m12 => s.healthStageM12,
-    MedicalStageId.m13 => s.healthStageM13,
     MedicalStageId.m16 => s.healthStageM16,
-    MedicalStageId.m24 => s.healthStageM24,
+    MedicalStageId.m23 => s.healthStageM23,
+    MedicalStageId.y2 => s.healthStageY2,
     MedicalStageId.y3 => s.healthStageY3,
   };
 
@@ -4877,10 +4906,10 @@ Dans `functions/src/morning-digest.test.ts` :
 
 ```ts
   it('ajoute une ligne par rappel santé après les soins', () => {
-    expect(buildDigestBody(['Bain'], ['RDV à prendre : examen des 9 mois'])).toBe(
-      'Bain\nRDV à prendre : examen des 9 mois',
+    expect(buildDigestBody(['Bain'], ['RDV à prendre : examen des 8 mois'])).toBe(
+      'Bain\nRDV à prendre : examen des 8 mois',
     );
-    expect(buildDigestBody([], ['En retard : examen des 9 mois'])).toBe('En retard : examen des 9 mois');
+    expect(buildDigestBody([], ['En retard : examen des 8 mois'])).toBe('En retard : examen des 8 mois');
   });
 ```
 
@@ -4982,17 +5011,18 @@ Expected: FAIL (modules introuvables).
 export const MEDICAL_STAGE_LABELS: Record<string, string> = {
   day8: 'examen des 8 jours',
   week2: 'examen de la 2e semaine',
+  m1: 'examen du 1er mois',
   m2: 'examen et vaccins des 2 mois',
   m3: 'examen et vaccins des 3 mois',
   m4: 'examen et vaccins des 4 mois',
   m5: 'examen et vaccins des 5 mois',
-  m6: 'examen et vaccins des 6 mois',
-  m9: 'examen des 9 mois',
-  m11: 'vaccins des 11 mois',
+  m6: 'vaccin des 6 mois',
+  m8: 'examen des 8 mois',
+  m11: 'examen et vaccins des 11 mois',
   m12: 'examen et vaccins des 12 mois',
-  m13: 'examen des 13 mois',
   m16: 'examen et vaccin des 16-18 mois',
-  m24: 'examen des 24-25 mois',
+  m23: 'examen des 23-24 mois',
+  y2: 'examen des 2 ans',
   y3: 'examen des 3 ans',
 };
 ```

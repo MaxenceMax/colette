@@ -13,10 +13,10 @@ Le carnet de santé fixe un calendrier d'examens obligatoires et de vaccins. Les
 
 ## 2. Calendrier de référence
 
-Sources, à reprendre lors de l'implémentation et à citer en tête du fichier de données :
+Sources (vérifiées le 2026-09-23 dans un navigateur) :
 
-- examens : arrêté en vigueur depuis le 1er janvier 2025 (20 examens de 0 à 16 ans, suppression de l'examen « 1 mois »), [ameli.fr](https://www.ameli.fr/assure/sante/themes/suivi-medical-de-l-enfant-et-de-l-adolescent/enfant-et-adolescent-20-examens-de-suivi-medical), [service-public.gouv.fr](https://www.service-public.gouv.fr/particuliers/vosdroits/F35490/0) ;
-- vaccins : [Calendrier des vaccinations et recommandations vaccinales 2026](https://sante.gouv.fr/IMG/pdf/2026_07_calendrier_vaccinal-2026_a4_93p_v11.pdf) (juillet 2026), 13 vaccinations obligatoires dont méningocoques B et ACWY.
+- examens : [service-public.gouv.fr F35490](https://www.service-public.gouv.fr/particuliers/vosdroits/F35490/0) (vérifié le 29 juillet 2026) et [ameli.fr, 20 examens](https://www.ameli.fr/assure/sante/themes/suivi-medical-de-l-enfant-et-de-l-adolescent/enfant-et-adolescent-20-examens-de-suivi-medical) (11 août 2025) : 8 jours (1er certificat), 2e semaine, 1, 2, 3, 4 et 5 mois, 8 mois (2e certificat), 11 mois, 12 mois, 16-18 mois, 23-24 mois (3e certificat), puis un examen par an de 2 à 5 ans ;
+- vaccins : [ameli.fr, vaccins obligatoires](https://www.ameli.fr/assure/sante/themes/vaccination/vaccins-obligatoires) (21 mai 2026) et calendrier des vaccinations 2026 : hexavalent et pneumocoque à 2, 4 et 11 mois ; méningocoque B à 3, 5 et 12 mois ; méningocoques ACWY à 6 et 12 mois ; ROR à 12 mois et entre 16 et 18 mois ; rotavirus recommandé.
 
 Le calendrier est une **table de données embarquée** (`lib/features/health/domain/reference/medical_schedule.dart`), comme les tables OMS : pas de donnée de référence dans Firestore. Une étape = une visite rattachée à un âge. Fenêtre `[début, fin)` en âge ; retenue ici : « à N mois » = `[N mois, N+1 mois)`.
 
@@ -24,20 +24,21 @@ Le calendrier est une **table de données embarquée** (`lib/features/health/dom
 | --- | --- | --- | --- | --- |
 | `day8` | Examen des 8 jours | `[0 j, 8 j)` | ✓, certificat | — |
 | `week2` | Examen de la 2e semaine | `[8 j, 15 j)` | ✓ | — |
+| `m1` | Examen du 1er mois | `[1 m, 2 m)` | ✓ | — |
 | `m2` | Examen et vaccins des 2 mois | `[2 m, 3 m)` | ✓ | hexavalent, pneumocoque, rotavirus ★ |
 | `m3` | Examen et vaccins des 3 mois | `[3 m, 4 m)` | ✓ | méningocoque B, rotavirus ★ |
 | `m4` | Examen et vaccins des 4 mois | `[4 m, 5 m)` | ✓ | hexavalent, pneumocoque, rotavirus ★ (selon le vaccin) |
 | `m5` | Examen et vaccins des 5 mois | `[5 m, 6 m)` | ✓ | méningocoque B |
-| `m6` | Examen et vaccins des 6 mois | `[6 m, 7 m)` | ✓ | méningocoques ACWY |
-| `m9` | Examen des 9 mois | `[9 m, 10 m)` | ✓, certificat | — |
-| `m11` | Vaccins des 11 mois | `[11 m, 12 m)` | — | hexavalent, pneumocoque |
+| `m6` | Vaccin des 6 mois | `[6 m, 7 m)` | — | méningocoques ACWY |
+| `m8` | Examen des 8 mois | `[8 m, 9 m)` | ✓, certificat | — |
+| `m11` | Examen et vaccins des 11 mois | `[11 m, 12 m)` | ✓ | hexavalent, pneumocoque |
 | `m12` | Examen et vaccins des 12 mois | `[12 m, 13 m)` | ✓ | ROR, méningocoques ACWY, méningocoque B |
-| `m13` | Examen des 13 mois | `[13 m, 14 m)` | ✓ | — |
 | `m16` | Examen et vaccin des 16-18 mois | `[16 m, 19 m)` | ✓ | ROR (2e dose) |
-| `m24` | Examen des 24-25 mois | `[24 m, 26 m)` | ✓, certificat | — |
+| `m23` | Examen des 23-24 mois | `[23 m, 25 m)` | ✓, certificat | — |
+| `y2` | Examen des 2 ans | `[25 m, 36 m)` | ✓ | — |
 | `y3` | Examen des 3 ans | `[36 m, 48 m)` | ✓ | — |
 
-Les fenêtres et le contenu de chaque ligne sont vérifiés contre les textes officiels à l'implémentation ; tout écart est reporté ici et signalé à Maxence avant commit. La protection contre le VRS (nirsévimab, souvent donnée à la maternité) et les étapes après 3 ans sont hors périmètre.
+Première version de cette spec corrigée le 2026-09-23 : elle suivait l'ancien calendrier (certificats à 9 et 24 mois, examens à 6, 9 et 13 mois, pas d'examen à 1 et 11 mois). La protection contre le VRS (nirsévimab, souvent donnée à la maternité) et les étapes après 3 ans sont hors périmètre.
 
 Codes de vaccins (`VaccineCode`) : `hexavalent` (DTCaP-Hib-HépB), `pneumococcal`, `menB`, `menACWY`, `mmr` (ROR), `rotavirus`. Chaque vaccin attendu d'une étape porte `recommended: bool`.
 
