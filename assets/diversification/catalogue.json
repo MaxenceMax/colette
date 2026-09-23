@@ -1,0 +1,1542 @@
+{
+  "version": 1,
+  "reviewedAt": "2026-09-23",
+  "sources": {
+    "oms": {
+      "label": "OMS, ligne directrice sur l'alimentation complémentaire (2023)",
+      "url": "https://www.who.int/publications/i/item/9789240081864"
+    },
+    "anses": {
+      "label": "Anses, repères alimentaires 0–3 ans (2019)",
+      "url": "https://www.anses.fr/fr/system/files/NUT2017SA0145.pdf"
+    },
+    "spf": {
+      "label": "Santé publique France, « Pas à pas, votre enfant mange comme un grand » (2021)",
+      "url": "https://www.mangerbouger.fr/content/show/1500/file/Brochure-SPF-Mangerbougerfr.pdf"
+    },
+    "espghan": {
+      "label": "ESPGHAN, position sur la diversification (2017)",
+      "url": "https://www.espghan.org/dam/jcr:3d960daa-e2f3-499f-9df9-2da682976cec/2017%20Complementary_Feeding__A_Position_Paper_by_the.21.pdf"
+    },
+    "agriculture": {
+      "label": "Ministère de l'Agriculture, fromages au lait cru",
+      "url": "https://agriculture.gouv.fr/consommation-de-fromages-base-de-lait-cru-rappel-des-precautions-prendre"
+    },
+    "efsa": {
+      "label": "EFSA, nitrates dans les légumes (2010)",
+      "url": "https://efsa.onlinelibrary.wiley.com/doi/10.2903/j.efsa.2010.1935"
+    }
+  },
+  "guide": {
+    "phases": {
+      "preparation": {
+        "mealsSummary": "Lait uniquement",
+        "items": [
+          {
+            "text": "L'OMS recommande le lait seul jusqu'à 6 mois, puis des aliments en complément du lait.",
+            "sources": [
+              "oms"
+            ]
+          },
+          {
+            "text": "En France, la diversification peut commencer entre 4 et 6 mois révolus, jamais avant 4 mois.",
+            "sources": [
+              "anses",
+              "spf"
+            ]
+          },
+          {
+            "text": "Prématuré : demander l'avis du pédiatre pour le bon moment.",
+            "sources": [
+              "spf"
+            ]
+          }
+        ]
+      },
+      "months6To8": {
+        "mealsSummary": "2 à 3 repas",
+        "items": [
+          {
+            "text": "2 à 3 repas par jour en plus du lait, et 1 à 2 collations selon l'appétit.",
+            "sources": [
+              "oms"
+            ]
+          },
+          {
+            "text": "Textures : bouillie épaisse, aliments bien écrasés, puis plats familiaux écrasés.",
+            "sources": [
+              "oms"
+            ]
+          },
+          {
+            "text": "Commencer par 2 à 3 cuillères, jusqu'à un demi-bol de 250 ml.",
+            "sources": [
+              "oms"
+            ]
+          },
+          {
+            "text": "Vers 8 mois : aliments hachés ou écrasés grossièrement, morceaux très fondants.",
+            "sources": [
+              "spf"
+            ]
+          },
+          {
+            "text": "Au moins 500 ml de lait maternel ou infantile par jour jusqu'à 1 an.",
+            "sources": [
+              "anses"
+            ]
+          },
+          {
+            "text": "Viande, poisson ou œuf : environ 10 g par jour.",
+            "sources": [
+              "anses"
+            ]
+          },
+          {
+            "text": "Ajouter une cuillère à café d'huile (colza, noix, olive en alternance) ou une noisette de beurre.",
+            "sources": [
+              "anses",
+              "spf"
+            ]
+          }
+        ]
+      },
+      "months9To11": {
+        "mealsSummary": "3 à 4 repas",
+        "items": [
+          {
+            "text": "3 à 4 repas par jour et 1 à 2 collations.",
+            "sources": [
+              "oms"
+            ]
+          },
+          {
+            "text": "Textures : haché fin, écrasé, aliments à prendre avec les doigts.",
+            "sources": [
+              "oms"
+            ]
+          },
+          {
+            "text": "Un demi-bol de 250 ml par repas.",
+            "sources": [
+              "oms"
+            ]
+          },
+          {
+            "text": "Des morceaux à croquer et à mâcher dès 10 mois ; ne pas dépasser 10 mois pour les textures non lisses.",
+            "sources": [
+              "spf",
+              "anses"
+            ]
+          }
+        ]
+      },
+      "months12To23": {
+        "mealsSummary": "3 à 4 repas",
+        "items": [
+          {
+            "text": "3 à 4 repas par jour et 1 à 2 collations.",
+            "sources": [
+              "oms"
+            ]
+          },
+          {
+            "text": "Plats familiaux, hachés ou écrasés si besoin.",
+            "sources": [
+              "oms"
+            ]
+          },
+          {
+            "text": "Trois quarts à un bol de 250 ml par repas.",
+            "sources": [
+              "oms"
+            ]
+          },
+          {
+            "text": "Dès 1 an : 3 repas et un goûter.",
+            "sources": [
+              "spf"
+            ]
+          },
+          {
+            "text": "Viande, poisson ou œuf : environ 20 g par jour.",
+            "sources": [
+              "anses"
+            ]
+          },
+          {
+            "text": "Lait : environ 500 ml par jour, pas plus de 800 ml.",
+            "sources": [
+              "spf",
+              "anses"
+            ]
+          }
+        ]
+      }
+    },
+    "readinessSigns": [
+      {
+        "text": "Tient sa tête et son dos bien droits.",
+        "sources": [
+          "spf"
+        ]
+      },
+      {
+        "text": "Avale bien les purées lisses.",
+        "sources": [
+          "spf"
+        ]
+      },
+      {
+        "text": "Attrape les aliments et les porte à sa bouche.",
+        "sources": [
+          "spf"
+        ]
+      },
+      {
+        "text": "Fait des mouvements de mâchonnement.",
+        "sources": [
+          "spf"
+        ]
+      }
+    ],
+    "hungerSigns": [
+      {
+        "text": "Pleure ou s'agite.",
+        "sources": [
+          "spf"
+        ]
+      },
+      {
+        "text": "Ouvre la bouche à l'approche de la cuillère.",
+        "sources": [
+          "spf"
+        ]
+      }
+    ],
+    "satietySigns": [
+      {
+        "text": "Ralentit, tourne la tête, regarde ailleurs.",
+        "sources": [
+          "spf"
+        ]
+      },
+      {
+        "text": "Ferme la bouche ou repousse la cuillère.",
+        "sources": [
+          "spf"
+        ]
+      }
+    ],
+    "safety": [
+      {
+        "text": "Proposer sans jamais forcer, ne pas obliger à finir.",
+        "sources": [
+          "oms",
+          "spf"
+        ]
+      },
+      {
+        "text": "Toujours assis et surveillé pendant tout le repas.",
+        "sources": [
+          "spf"
+        ]
+      },
+      {
+        "text": "Pas d'écran pendant le repas, pas d'aliment en récompense.",
+        "sources": [
+          "spf"
+        ]
+      },
+      {
+        "text": "Aliments petits, durs et ronds (fruits à coque entiers, cacahuètes) : jamais avant 5 ans.",
+        "sources": [
+          "spf"
+        ]
+      },
+      {
+        "text": "Couper en deux ou en quatre les aliments ronds et mous (raisin, tomate cerise), retirer pépins et noyaux.",
+        "sources": [
+          "spf"
+        ]
+      },
+      {
+        "text": "Présenter un nouvel aliment seul, pour qu'elle en découvre le goût. Un refus n'est pas une allergie : reproposer jusqu'à 8 à 10 fois.",
+        "sources": [
+          "spf",
+          "anses"
+        ]
+      },
+      {
+        "text": "Ne pas retarder l'œuf, l'arachide, le gluten et le lait, même en cas de terrain allergique.",
+        "sources": [
+          "anses",
+          "espghan"
+        ]
+      }
+    ]
+  },
+  "foods": [
+    {
+      "id": "pates",
+      "name": "Pâtes",
+      "group": "grainsRootsTubers",
+      "allergens": [
+        "gluten"
+      ],
+      "rules": [
+        {
+          "kind": "info",
+          "sources": [
+            "anses",
+            "spf"
+          ],
+          "text": "Allergène à ne pas retarder : à proposer dès le début de la diversification."
+        }
+      ]
+    },
+    {
+      "id": "semoule",
+      "name": "Semoule de blé",
+      "group": "grainsRootsTubers",
+      "allergens": [
+        "gluten"
+      ]
+    },
+    {
+      "id": "pain",
+      "name": "Pain",
+      "group": "grainsRootsTubers",
+      "allergens": [
+        "gluten"
+      ],
+      "rules": [
+        {
+          "kind": "info",
+          "sources": [
+            "spf"
+          ],
+          "text": "Proposer en morceaux mous ; retirer un quignon trop imbibé de salive."
+        }
+      ]
+    },
+    {
+      "id": "riz",
+      "name": "Riz",
+      "group": "grainsRootsTubers"
+    },
+    {
+      "id": "pomme-de-terre",
+      "name": "Pomme de terre",
+      "group": "grainsRootsTubers"
+    },
+    {
+      "id": "quinoa",
+      "name": "Quinoa",
+      "group": "grainsRootsTubers"
+    },
+    {
+      "id": "avoine",
+      "name": "Flocons d'avoine",
+      "group": "grainsRootsTubers",
+      "allergens": [
+        "gluten"
+      ]
+    },
+    {
+      "id": "polenta",
+      "name": "Polenta (maïs)",
+      "group": "grainsRootsTubers"
+    },
+    {
+      "id": "boulgour",
+      "name": "Boulgour",
+      "group": "grainsRootsTubers",
+      "allergens": [
+        "gluten"
+      ]
+    },
+    {
+      "id": "sarrasin",
+      "name": "Sarrasin",
+      "group": "grainsRootsTubers"
+    },
+    {
+      "id": "millet",
+      "name": "Millet",
+      "group": "grainsRootsTubers"
+    },
+    {
+      "id": "cereales-infantiles",
+      "name": "Céréales infantiles",
+      "group": "grainsRootsTubers",
+      "allergens": [
+        "gluten"
+      ],
+      "rules": [
+        {
+          "kind": "info",
+          "sources": [
+            "oms",
+            "spf"
+          ],
+          "text": "Choisir sans sucre ajouté."
+        }
+      ]
+    },
+    {
+      "id": "lentilles",
+      "name": "Lentilles",
+      "group": "legumesNutsSeeds"
+    },
+    {
+      "id": "pois-chiches",
+      "name": "Pois chiches",
+      "group": "legumesNutsSeeds"
+    },
+    {
+      "id": "haricots-rouges",
+      "name": "Haricots rouges",
+      "group": "legumesNutsSeeds"
+    },
+    {
+      "id": "pois-casses",
+      "name": "Pois cassés",
+      "group": "legumesNutsSeeds"
+    },
+    {
+      "id": "houmous",
+      "name": "Houmous",
+      "group": "legumesNutsSeeds",
+      "allergens": [
+        "sesame"
+      ],
+      "rules": [
+        {
+          "kind": "info",
+          "sources": [
+            "oms",
+            "spf"
+          ],
+          "text": "Maison sans sel ajouté."
+        }
+      ]
+    },
+    {
+      "id": "arachide",
+      "name": "Arachide (poudre, pâte)",
+      "group": "legumesNutsSeeds",
+      "allergens": [
+        "peanut"
+      ],
+      "rules": [
+        {
+          "kind": "prepare",
+          "untilMonths": 60,
+          "sources": [
+            "spf"
+          ],
+          "text": "Jamais entier avant 5 ans : en poudre ou en purée lisse, mélangé à une purée."
+        },
+        {
+          "kind": "info",
+          "sources": [
+            "anses",
+            "spf"
+          ],
+          "text": "Allergène à ne pas retarder : à proposer dès le début de la diversification."
+        }
+      ]
+    },
+    {
+      "id": "amande",
+      "name": "Amande (poudre, purée)",
+      "group": "legumesNutsSeeds",
+      "allergens": [
+        "treeNuts"
+      ],
+      "rules": [
+        {
+          "kind": "prepare",
+          "untilMonths": 60,
+          "sources": [
+            "spf"
+          ],
+          "text": "Jamais entier avant 5 ans : en poudre ou en purée lisse, mélangé à une purée."
+        },
+        {
+          "kind": "info",
+          "sources": [
+            "anses",
+            "spf"
+          ],
+          "text": "Allergène à ne pas retarder : à proposer dès le début de la diversification."
+        }
+      ]
+    },
+    {
+      "id": "noisette",
+      "name": "Noisette (poudre, purée)",
+      "group": "legumesNutsSeeds",
+      "allergens": [
+        "treeNuts"
+      ],
+      "rules": [
+        {
+          "kind": "prepare",
+          "untilMonths": 60,
+          "sources": [
+            "spf"
+          ],
+          "text": "Jamais entier avant 5 ans : en poudre ou en purée lisse, mélangé à une purée."
+        }
+      ]
+    },
+    {
+      "id": "noix",
+      "name": "Noix (poudre)",
+      "group": "legumesNutsSeeds",
+      "allergens": [
+        "treeNuts"
+      ],
+      "rules": [
+        {
+          "kind": "prepare",
+          "untilMonths": 60,
+          "sources": [
+            "spf"
+          ],
+          "text": "Jamais entier avant 5 ans : en poudre ou en purée lisse, mélangé à une purée."
+        }
+      ]
+    },
+    {
+      "id": "cajou",
+      "name": "Noix de cajou (purée)",
+      "group": "legumesNutsSeeds",
+      "allergens": [
+        "treeNuts"
+      ],
+      "rules": [
+        {
+          "kind": "prepare",
+          "untilMonths": 60,
+          "sources": [
+            "spf"
+          ],
+          "text": "Jamais entier avant 5 ans : en poudre ou en purée lisse, mélangé à une purée."
+        }
+      ]
+    },
+    {
+      "id": "sesame",
+      "name": "Sésame (purée, tahini)",
+      "group": "legumesNutsSeeds",
+      "allergens": [
+        "sesame"
+      ],
+      "rules": [
+        {
+          "kind": "info",
+          "sources": [
+            "anses",
+            "spf"
+          ],
+          "text": "Allergène à ne pas retarder : à proposer dès le début de la diversification."
+        }
+      ]
+    },
+    {
+      "id": "fruits-a-coque-entiers",
+      "name": "Fruits à coque et cacahuètes entiers",
+      "group": "legumesNutsSeeds",
+      "allergens": [
+        "peanut",
+        "treeNuts"
+      ],
+      "rules": [
+        {
+          "kind": "avoid",
+          "untilMonths": 60,
+          "sources": [
+            "spf"
+          ],
+          "text": "Risque d'étouffement : jamais entiers avant 5 ans."
+        },
+        {
+          "kind": "avoid",
+          "untilMonths": 36,
+          "sources": [
+            "anses"
+          ],
+          "text": "Déconseillés entiers avant 3 ans (étouffement)."
+        }
+      ]
+    },
+    {
+      "id": "tofu",
+      "name": "Tofu",
+      "group": "legumesNutsSeeds",
+      "allergens": [
+        "soy"
+      ],
+      "rules": [
+        {
+          "kind": "avoid",
+          "untilMonths": 36,
+          "sources": [
+            "anses",
+            "spf"
+          ],
+          "text": "Produits au soja déconseillés avant 3 ans (phyto-œstrogènes)."
+        }
+      ]
+    },
+    {
+      "id": "yaourt",
+      "name": "Yaourt nature au lait entier",
+      "group": "dairy",
+      "allergens": [
+        "milk"
+      ],
+      "rules": [
+        {
+          "kind": "info",
+          "sources": [
+            "spf"
+          ],
+          "text": "Nature, au lait entier, sans sucre ajouté ; pas de laitage 0 %."
+        }
+      ]
+    },
+    {
+      "id": "fromage-blanc",
+      "name": "Fromage blanc",
+      "group": "dairy",
+      "allergens": [
+        "milk"
+      ]
+    },
+    {
+      "id": "petit-suisse",
+      "name": "Petit-suisse",
+      "group": "dairy",
+      "allergens": [
+        "milk"
+      ]
+    },
+    {
+      "id": "comte",
+      "name": "Comté, emmental, gruyère",
+      "group": "dairy",
+      "allergens": [
+        "milk"
+      ],
+      "rules": [
+        {
+          "kind": "info",
+          "sources": [
+            "agriculture"
+          ],
+          "text": "Pâtes pressées cuites : autorisées même au lait cru."
+        }
+      ]
+    },
+    {
+      "id": "fromage-pasteurise",
+      "name": "Fromage au lait pasteurisé",
+      "group": "dairy",
+      "allergens": [
+        "milk"
+      ]
+    },
+    {
+      "id": "fromage-lait-cru",
+      "name": "Fromage au lait cru (hors comté, emmental…)",
+      "group": "dairy",
+      "allergens": [
+        "milk"
+      ],
+      "rules": [
+        {
+          "kind": "avoid",
+          "untilMonths": 60,
+          "sources": [
+            "agriculture"
+          ],
+          "text": "Risque de bactéries (E. coli, Listeria) : pas avant 5 ans."
+        },
+        {
+          "kind": "avoid",
+          "untilMonths": 36,
+          "sources": [
+            "anses"
+          ],
+          "text": "Lait cru et fromages au lait cru déconseillés avant 3 ans."
+        }
+      ]
+    },
+    {
+      "id": "lait-de-vache",
+      "name": "Lait de vache (en boisson)",
+      "group": "dairy",
+      "allergens": [
+        "milk"
+      ],
+      "rules": [
+        {
+          "kind": "info",
+          "sources": [
+            "oms"
+          ],
+          "text": "L'OMS juge acceptable le lait entier pasteurisé dès 6 mois."
+        },
+        {
+          "kind": "avoid",
+          "untilMonths": 12,
+          "sources": [
+            "anses",
+            "spf"
+          ],
+          "text": "Pas comme boisson principale avant 1 an : lait maternel ou infantile. Possible en petite quantité dans les préparations."
+        }
+      ]
+    },
+    {
+      "id": "lait-cru",
+      "name": "Lait cru",
+      "group": "dairy",
+      "allergens": [
+        "milk"
+      ],
+      "rules": [
+        {
+          "kind": "avoid",
+          "untilMonths": 60,
+          "sources": [
+            "agriculture"
+          ],
+          "text": "Pas avant 5 ans."
+        },
+        {
+          "kind": "avoid",
+          "untilMonths": 36,
+          "sources": [
+            "anses"
+          ],
+          "text": "Déconseillé avant 3 ans."
+        }
+      ]
+    },
+    {
+      "id": "poulet",
+      "name": "Poulet",
+      "group": "fleshFoods"
+    },
+    {
+      "id": "dinde",
+      "name": "Dinde",
+      "group": "fleshFoods"
+    },
+    {
+      "id": "boeuf",
+      "name": "Bœuf",
+      "group": "fleshFoods"
+    },
+    {
+      "id": "veau",
+      "name": "Veau",
+      "group": "fleshFoods"
+    },
+    {
+      "id": "porc",
+      "name": "Porc",
+      "group": "fleshFoods"
+    },
+    {
+      "id": "agneau",
+      "name": "Agneau",
+      "group": "fleshFoods"
+    },
+    {
+      "id": "jambon-blanc",
+      "name": "Jambon blanc",
+      "group": "fleshFoods"
+    },
+    {
+      "id": "foie",
+      "name": "Foie",
+      "group": "fleshFoods"
+    },
+    {
+      "id": "viande-crue",
+      "name": "Viande crue ou rosée (tartare, carpaccio)",
+      "group": "fleshFoods",
+      "rules": [
+        {
+          "kind": "avoid",
+          "untilMonths": 36,
+          "sources": [
+            "anses"
+          ],
+          "text": "Cru ou peu cuit : risque de bactéries (Listeria, E. coli…). Bien cuire à cœur avant 3 ans."
+        }
+      ]
+    },
+    {
+      "id": "charcuterie-crue",
+      "name": "Charcuterie crue (saucisson, jambon cru)",
+      "group": "fleshFoods",
+      "rules": [
+        {
+          "kind": "avoid",
+          "untilMonths": 36,
+          "sources": [
+            "anses"
+          ],
+          "text": "Cru ou peu cuit : risque de bactéries (Listeria, E. coli…). Bien cuire à cœur avant 3 ans."
+        }
+      ]
+    },
+    {
+      "id": "saumon",
+      "name": "Saumon",
+      "group": "fleshFoods",
+      "allergens": [
+        "fish"
+      ],
+      "rules": [
+        {
+          "kind": "info",
+          "sources": [
+            "anses",
+            "spf"
+          ],
+          "text": "Allergène à ne pas retarder : à proposer dès le début de la diversification."
+        }
+      ]
+    },
+    {
+      "id": "cabillaud",
+      "name": "Cabillaud",
+      "group": "fleshFoods",
+      "allergens": [
+        "fish"
+      ]
+    },
+    {
+      "id": "colin",
+      "name": "Colin",
+      "group": "fleshFoods",
+      "allergens": [
+        "fish"
+      ]
+    },
+    {
+      "id": "sardine",
+      "name": "Sardine",
+      "group": "fleshFoods",
+      "allergens": [
+        "fish"
+      ]
+    },
+    {
+      "id": "maquereau",
+      "name": "Maquereau",
+      "group": "fleshFoods",
+      "allergens": [
+        "fish"
+      ]
+    },
+    {
+      "id": "truite",
+      "name": "Truite",
+      "group": "fleshFoods",
+      "allergens": [
+        "fish"
+      ]
+    },
+    {
+      "id": "sole",
+      "name": "Sole",
+      "group": "fleshFoods",
+      "allergens": [
+        "fish"
+      ]
+    },
+    {
+      "id": "thon",
+      "name": "Thon",
+      "group": "fleshFoods",
+      "allergens": [
+        "fish"
+      ],
+      "rules": [
+        {
+          "kind": "info",
+          "sources": [
+            "anses"
+          ],
+          "text": "Grand prédateur, riche en mercure : à limiter avant 3 ans."
+        }
+      ]
+    },
+    {
+      "id": "grands-predateurs",
+      "name": "Bar, dorade, lotte, brochet, raie",
+      "group": "fleshFoods",
+      "allergens": [
+        "fish"
+      ],
+      "rules": [
+        {
+          "kind": "info",
+          "sources": [
+            "anses"
+          ],
+          "text": "Grand prédateur, riche en mercure : à limiter avant 3 ans."
+        }
+      ]
+    },
+    {
+      "id": "espadon",
+      "name": "Espadon, marlin, requin, lamproie",
+      "group": "fleshFoods",
+      "allergens": [
+        "fish"
+      ],
+      "rules": [
+        {
+          "kind": "avoid",
+          "untilMonths": 36,
+          "sources": [
+            "anses"
+          ],
+          "text": "Très riche en mercure : à éviter avant 3 ans."
+        }
+      ]
+    },
+    {
+      "id": "poisson-fume",
+      "name": "Poisson fumé (saumon fumé…)",
+      "group": "fleshFoods",
+      "allergens": [
+        "fish"
+      ],
+      "rules": [
+        {
+          "kind": "avoid",
+          "untilMonths": 36,
+          "sources": [
+            "anses"
+          ],
+          "text": "Risque de Listeria : pas avant 3 ans."
+        }
+      ]
+    },
+    {
+      "id": "poisson-cru",
+      "name": "Poisson cru (sushi, tartare)",
+      "group": "fleshFoods",
+      "allergens": [
+        "fish"
+      ],
+      "rules": [
+        {
+          "kind": "avoid",
+          "untilMonths": 36,
+          "sources": [
+            "anses"
+          ],
+          "text": "Cru ou peu cuit : risque de bactéries (Listeria, E. coli…). Bien cuire à cœur avant 3 ans."
+        }
+      ]
+    },
+    {
+      "id": "poissons-eau-douce",
+      "name": "Anguille, carpe, brème, barbeau, silure",
+      "group": "fleshFoods",
+      "allergens": [
+        "fish"
+      ],
+      "rules": [
+        {
+          "kind": "info",
+          "sources": [
+            "anses"
+          ],
+          "text": "Riche en polluants (PCB) : au plus une fois tous les 2 mois."
+        }
+      ]
+    },
+    {
+      "id": "crevettes",
+      "name": "Crevettes cuites",
+      "group": "fleshFoods",
+      "allergens": [
+        "crustaceans"
+      ]
+    },
+    {
+      "id": "moules",
+      "name": "Moules cuites",
+      "group": "fleshFoods",
+      "allergens": [
+        "molluscs"
+      ]
+    },
+    {
+      "id": "coquillages-crus",
+      "name": "Coquillages crus (huîtres…)",
+      "group": "fleshFoods",
+      "allergens": [
+        "molluscs"
+      ],
+      "rules": [
+        {
+          "kind": "avoid",
+          "untilMonths": 36,
+          "sources": [
+            "anses"
+          ],
+          "text": "Cru ou peu cuit : risque de bactéries (Listeria, E. coli…). Bien cuire à cœur avant 3 ans."
+        }
+      ]
+    },
+    {
+      "id": "oeuf-cuit",
+      "name": "Œuf dur ou bien cuit",
+      "group": "eggs",
+      "allergens": [
+        "eggs"
+      ],
+      "rules": [
+        {
+          "kind": "info",
+          "sources": [
+            "anses",
+            "spf"
+          ],
+          "text": "Allergène à ne pas retarder : à proposer dès le début de la diversification."
+        }
+      ]
+    },
+    {
+      "id": "jaune-oeuf",
+      "name": "Jaune d'œuf cuit",
+      "group": "eggs",
+      "allergens": [
+        "eggs"
+      ]
+    },
+    {
+      "id": "oeuf-cru",
+      "name": "Œuf cru ou peu cuit (mayonnaise, mousse maison, œuf coque)",
+      "group": "eggs",
+      "allergens": [
+        "eggs"
+      ],
+      "rules": [
+        {
+          "kind": "avoid",
+          "untilMonths": 72,
+          "sources": [
+            "anses"
+          ],
+          "text": "Risque de salmonelle : jaune et blanc bien cuits avant 6 ans."
+        }
+      ]
+    },
+    {
+      "id": "carotte",
+      "name": "Carotte",
+      "group": "vitaminAFruitsVeg"
+    },
+    {
+      "id": "potiron",
+      "name": "Potiron",
+      "group": "vitaminAFruitsVeg"
+    },
+    {
+      "id": "butternut",
+      "name": "Courge butternut",
+      "group": "vitaminAFruitsVeg"
+    },
+    {
+      "id": "patate-douce",
+      "name": "Patate douce",
+      "group": "vitaminAFruitsVeg"
+    },
+    {
+      "id": "epinard",
+      "name": "Épinard",
+      "group": "vitaminAFruitsVeg",
+      "rules": [
+        {
+          "kind": "info",
+          "sources": [
+            "efsa"
+          ],
+          "text": "Riche en nitrates : ne pas garder cuit à température ambiante, éviter en cas d'infection digestive."
+        }
+      ]
+    },
+    {
+      "id": "blette",
+      "name": "Blette",
+      "group": "vitaminAFruitsVeg",
+      "rules": [
+        {
+          "kind": "info",
+          "sources": [
+            "efsa"
+          ],
+          "text": "Riche en nitrates : ne pas garder cuit à température ambiante, éviter en cas d'infection digestive."
+        }
+      ]
+    },
+    {
+      "id": "poivron-rouge",
+      "name": "Poivron rouge",
+      "group": "vitaminAFruitsVeg"
+    },
+    {
+      "id": "mangue",
+      "name": "Mangue",
+      "group": "vitaminAFruitsVeg"
+    },
+    {
+      "id": "abricot",
+      "name": "Abricot",
+      "group": "vitaminAFruitsVeg"
+    },
+    {
+      "id": "melon",
+      "name": "Melon",
+      "group": "vitaminAFruitsVeg"
+    },
+    {
+      "id": "papaye",
+      "name": "Papaye",
+      "group": "vitaminAFruitsVeg"
+    },
+    {
+      "id": "kaki",
+      "name": "Kaki",
+      "group": "vitaminAFruitsVeg"
+    },
+    {
+      "id": "courgette",
+      "name": "Courgette",
+      "group": "otherFruitsVeg"
+    },
+    {
+      "id": "haricots-verts",
+      "name": "Haricots verts",
+      "group": "otherFruitsVeg"
+    },
+    {
+      "id": "petits-pois",
+      "name": "Petits pois",
+      "group": "otherFruitsVeg"
+    },
+    {
+      "id": "brocoli",
+      "name": "Brocoli",
+      "group": "otherFruitsVeg"
+    },
+    {
+      "id": "chou-fleur",
+      "name": "Chou-fleur",
+      "group": "otherFruitsVeg"
+    },
+    {
+      "id": "poireau",
+      "name": "Poireau",
+      "group": "otherFruitsVeg"
+    },
+    {
+      "id": "panais",
+      "name": "Panais",
+      "group": "otherFruitsVeg"
+    },
+    {
+      "id": "navet",
+      "name": "Navet",
+      "group": "otherFruitsVeg"
+    },
+    {
+      "id": "betterave",
+      "name": "Betterave",
+      "group": "otherFruitsVeg"
+    },
+    {
+      "id": "tomate",
+      "name": "Tomate",
+      "group": "otherFruitsVeg"
+    },
+    {
+      "id": "tomate-cerise",
+      "name": "Tomate cerise",
+      "group": "otherFruitsVeg",
+      "rules": [
+        {
+          "kind": "prepare",
+          "untilMonths": 60,
+          "sources": [
+            "spf"
+          ],
+          "text": "Aliment rond : couper en quatre dans la longueur, retirer pépins ou noyau."
+        }
+      ]
+    },
+    {
+      "id": "concombre",
+      "name": "Concombre",
+      "group": "otherFruitsVeg"
+    },
+    {
+      "id": "aubergine",
+      "name": "Aubergine",
+      "group": "otherFruitsVeg"
+    },
+    {
+      "id": "fenouil",
+      "name": "Fenouil",
+      "group": "otherFruitsVeg"
+    },
+    {
+      "id": "avocat",
+      "name": "Avocat",
+      "group": "otherFruitsVeg"
+    },
+    {
+      "id": "artichaut",
+      "name": "Artichaut",
+      "group": "otherFruitsVeg"
+    },
+    {
+      "id": "celeri",
+      "name": "Céleri",
+      "group": "otherFruitsVeg",
+      "allergens": [
+        "celery"
+      ]
+    },
+    {
+      "id": "asperge",
+      "name": "Asperge",
+      "group": "otherFruitsVeg"
+    },
+    {
+      "id": "champignon",
+      "name": "Champignon",
+      "group": "otherFruitsVeg"
+    },
+    {
+      "id": "pomme",
+      "name": "Pomme",
+      "group": "otherFruitsVeg"
+    },
+    {
+      "id": "poire",
+      "name": "Poire",
+      "group": "otherFruitsVeg"
+    },
+    {
+      "id": "banane",
+      "name": "Banane",
+      "group": "otherFruitsVeg"
+    },
+    {
+      "id": "peche",
+      "name": "Pêche",
+      "group": "otherFruitsVeg"
+    },
+    {
+      "id": "prune",
+      "name": "Prune",
+      "group": "otherFruitsVeg"
+    },
+    {
+      "id": "fraise",
+      "name": "Fraise",
+      "group": "otherFruitsVeg"
+    },
+    {
+      "id": "framboise",
+      "name": "Framboise",
+      "group": "otherFruitsVeg"
+    },
+    {
+      "id": "myrtille",
+      "name": "Myrtille",
+      "group": "otherFruitsVeg",
+      "rules": [
+        {
+          "kind": "prepare",
+          "untilMonths": 60,
+          "sources": [
+            "spf"
+          ],
+          "text": "Aliment rond : couper en quatre dans la longueur, retirer pépins ou noyau."
+        }
+      ]
+    },
+    {
+      "id": "raisin",
+      "name": "Raisin",
+      "group": "otherFruitsVeg",
+      "rules": [
+        {
+          "kind": "prepare",
+          "untilMonths": 60,
+          "sources": [
+            "spf"
+          ],
+          "text": "Aliment rond : couper en quatre dans la longueur, retirer pépins ou noyau."
+        }
+      ]
+    },
+    {
+      "id": "clementine",
+      "name": "Clémentine",
+      "group": "otherFruitsVeg"
+    },
+    {
+      "id": "kiwi",
+      "name": "Kiwi",
+      "group": "otherFruitsVeg"
+    },
+    {
+      "id": "cerise",
+      "name": "Cerise",
+      "group": "otherFruitsVeg",
+      "rules": [
+        {
+          "kind": "prepare",
+          "untilMonths": 60,
+          "sources": [
+            "spf"
+          ],
+          "text": "Aliment rond : couper en quatre dans la longueur, retirer pépins ou noyau."
+        }
+      ]
+    },
+    {
+      "id": "ananas",
+      "name": "Ananas",
+      "group": "otherFruitsVeg"
+    },
+    {
+      "id": "pasteque",
+      "name": "Pastèque",
+      "group": "otherFruitsVeg"
+    },
+    {
+      "id": "figue",
+      "name": "Figue",
+      "group": "otherFruitsVeg"
+    },
+    {
+      "id": "huile-colza",
+      "name": "Huile de colza",
+      "group": "outsideGroups",
+      "rules": [
+        {
+          "kind": "info",
+          "sources": [
+            "anses",
+            "spf"
+          ],
+          "text": "Matière grasse à ajouter aux repas : une cuillère à café d'huile ou une noisette de beurre."
+        }
+      ]
+    },
+    {
+      "id": "huile-olive",
+      "name": "Huile d'olive",
+      "group": "outsideGroups",
+      "rules": [
+        {
+          "kind": "info",
+          "sources": [
+            "anses",
+            "spf"
+          ],
+          "text": "Matière grasse à ajouter aux repas : une cuillère à café d'huile ou une noisette de beurre."
+        }
+      ]
+    },
+    {
+      "id": "huile-noix",
+      "name": "Huile de noix",
+      "group": "outsideGroups",
+      "rules": [
+        {
+          "kind": "info",
+          "sources": [
+            "anses",
+            "spf"
+          ],
+          "text": "Matière grasse à ajouter aux repas : une cuillère à café d'huile ou une noisette de beurre."
+        }
+      ]
+    },
+    {
+      "id": "beurre",
+      "name": "Beurre",
+      "group": "outsideGroups",
+      "allergens": [
+        "milk"
+      ],
+      "rules": [
+        {
+          "kind": "info",
+          "sources": [
+            "anses",
+            "spf"
+          ],
+          "text": "Matière grasse à ajouter aux repas : une cuillère à café d'huile ou une noisette de beurre."
+        }
+      ]
+    },
+    {
+      "id": "creme-fraiche",
+      "name": "Crème fraîche",
+      "group": "outsideGroups",
+      "allergens": [
+        "milk"
+      ]
+    },
+    {
+      "id": "miel",
+      "name": "Miel",
+      "group": "outsideGroups",
+      "rules": [
+        {
+          "kind": "avoid",
+          "untilMonths": 12,
+          "sources": [
+            "oms",
+            "anses"
+          ],
+          "text": "Risque de botulisme infantile, même cuit ou dans une préparation."
+        }
+      ]
+    },
+    {
+      "id": "sel",
+      "name": "Sel ajouté",
+      "group": "outsideGroups",
+      "rules": [
+        {
+          "kind": "avoid",
+          "untilMonths": 36,
+          "sources": [
+            "spf",
+            "oms"
+          ],
+          "text": "Ne pas saler les plats avant 3 ans."
+        }
+      ]
+    },
+    {
+      "id": "sucre",
+      "name": "Sucre ajouté, confiseries, édulcorants",
+      "group": "outsideGroups",
+      "rules": [
+        {
+          "kind": "avoid",
+          "untilMonths": 36,
+          "sources": [
+            "oms",
+            "spf"
+          ],
+          "text": "Pas de sucre ajouté ni d'édulcorant avant 3 ans."
+        }
+      ]
+    },
+    {
+      "id": "boissons-sucrees",
+      "name": "Boissons sucrées, sodas",
+      "group": "outsideGroups",
+      "rules": [
+        {
+          "kind": "avoid",
+          "untilMonths": 36,
+          "sources": [
+            "oms",
+            "spf"
+          ],
+          "text": "À proscrire : l'eau est la seule boisson à proposer en plus du lait."
+        }
+      ]
+    },
+    {
+      "id": "jus-de-fruits",
+      "name": "Jus de fruits",
+      "group": "outsideGroups",
+      "rules": [
+        {
+          "kind": "info",
+          "sources": [
+            "oms",
+            "spf"
+          ],
+          "text": "Pas recommandé, même 100 % pur jus : préférer le fruit entier et l'eau."
+        }
+      ]
+    },
+    {
+      "id": "the-cafe",
+      "name": "Thé, café",
+      "group": "outsideGroups",
+      "rules": [
+        {
+          "kind": "avoid",
+          "untilMonths": 36,
+          "sources": [
+            "anses"
+          ],
+          "text": "Caféine et théine : pas avant 3 ans."
+        }
+      ]
+    },
+    {
+      "id": "chocolat",
+      "name": "Chocolat",
+      "group": "outsideGroups",
+      "rules": [
+        {
+          "kind": "info",
+          "sources": [
+            "anses"
+          ],
+          "text": "À limiter avant 3 ans (nickel, sucre)."
+        }
+      ]
+    },
+    {
+      "id": "boisson-vegetale",
+      "name": "Boisson végétale (soja, amande, avoine, riz)",
+      "group": "outsideGroups",
+      "rules": [
+        {
+          "kind": "avoid",
+          "untilMonths": 12,
+          "sources": [
+            "anses",
+            "spf"
+          ],
+          "text": "Ne remplace pas le lait maternel ou infantile avant 1 an : risque de carences."
+        }
+      ]
+    },
+    {
+      "id": "herbes",
+      "name": "Herbes aromatiques",
+      "group": "outsideGroups"
+    }
+  ]
+}
