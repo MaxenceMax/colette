@@ -18,5 +18,9 @@ abstract final class DocumentEntryDto {
       'notDownloaded' => DownloadStatus.notDownloaded,
       _ => DownloadStatus.downloaded,
     },
+    downloadProgress: switch (map['downloadProgress']) {
+      final num value => value.toDouble().clamp(0.0, 1.0),
+      _ => null,
+    },
   );
 }

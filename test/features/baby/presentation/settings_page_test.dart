@@ -1,7 +1,7 @@
 import 'package:colette/core/clock/app_clock.dart';
 import 'package:colette/core/firebase/firebase_providers.dart';
 import 'package:colette/features/baby/domain/entities/baby_profile.dart';
-import 'package:colette/features/baby/domain/entities/weight_entry.dart';
+import 'package:colette/features/baby/domain/entities/growth_measurement.dart';
 import 'package:colette/features/baby/presentation/pages/settings_page.dart';
 import 'package:colette/features/baby/presentation/providers/baby_providers.dart';
 import 'package:colette/features/diapers/presentation/providers/diaper_stock_providers.dart';
@@ -14,7 +14,9 @@ import '../../../helpers/in_memory_household_local_store.dart';
 import '../../../helpers/pump_app.dart';
 
 void main() {
-  testWidgets('affiche le profil, les pesées et le code foyer', (tester) async {
+  testWidgets('affiche le profil, les mesures et le code foyer', (
+    tester,
+  ) async {
     SharedPreferences.setMockInitialValues({});
     final prefs = await SharedPreferences.getInstance();
     await pumpApp(
@@ -30,9 +32,13 @@ void main() {
             BabyProfile(name: 'Colette', birthDate: DateTime(2026, 9, 1)),
           ),
         ),
-        weightsProvider.overrideWith(
+        measurementsProvider.overrideWith(
           (ref) => Stream.value([
-            WeightEntry(id: 'w', measuredAt: DateTime(2026, 9, 9), grams: 3600),
+            GrowthMeasurement(
+              id: 'w',
+              measuredAt: DateTime(2026, 9, 9),
+              grams: 3600,
+            ),
           ]),
         ),
         currentDeviceProvider.overrideWith((ref) => Stream.value(null)),
@@ -42,6 +48,7 @@ void main() {
     );
     expect(find.text('Colette'), findsOneWidget);
     expect(find.text('3600 g'), findsOneWidget);
+    expect(find.text('Mesures'), findsOneWidget);
     expect(find.text('Soins attendus'), findsOneWidget);
     // La section Couches (et, plus bas, la section Foyer) est sous la ligne
     // de flottaison de la taille de test par défaut (800x600) : la ListView

@@ -10,6 +10,8 @@
 
 Spec : `docs/superpowers/specs/2026-09-22-icloud-documents-design.md`.
 
+Lot 3 (flux en direct, suppression, Fichiers) : voir `2026-09-23-icloud-documents-lot3.md`.
+
 **Conventions du projet à respecter dans chaque tâche :**
 
 - Après toute modification d'un fichier annoté `@freezed` ou `@riverpod` : `dart run build_runner build -d`.

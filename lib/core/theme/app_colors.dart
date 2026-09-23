@@ -47,7 +47,7 @@ enum AppColors {
   categoryBath(light: Color(0xFFA8624F), dark: Color(0xFFC98A79)),
 
   // Graphiques
-  /// Eucalyptus : courbes et zone de référence OMS, distinctes des pesées cannelle.
+  /// Eucalyptus : courbes et zone de référence OMS, distinctes des mesures cannelle.
   growthReference(light: Color(0xFF57795D), dark: Color(0xFF9DBBA2)),
 
   shadow(light: Color(0xFF000000), dark: Color(0xFFFFFFFF));

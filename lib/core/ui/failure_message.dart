@@ -18,6 +18,10 @@ String failureMessage(Object failure, S s) => switch (failure) {
     ValidationReason.foodNameTooLong => s.errorFoodNameTooLong,
     ValidationReason.duplicateFoodName => s.errorDuplicateFoodName,
     ValidationReason.customFoodInUse => s.errorCustomFoodInUse,
+    ValidationReason.emptyMeasurement => s.errorEmptyMeasurement,
+    ValidationReason.invalidLength => s.errorInvalidLength,
+    ValidationReason.invalidHeadCircumference =>
+      s.errorInvalidHeadCircumference,
   },
   DocumentsFailure(:final reason) => switch (reason) {
     DocumentsReason.noFolder ||

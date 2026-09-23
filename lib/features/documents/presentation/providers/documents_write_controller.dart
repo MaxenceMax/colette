@@ -39,10 +39,10 @@ class DocumentsWriteController extends _$DocumentsWriteController {
         ),
         _ => AsyncError(failure, StackTrace.current),
       },
-      (_) {
-        ref.invalidate(documentsFolderProvider(folderPath));
-        return const AsyncData(null);
-      },
+      // Pas d'invalidation : Swift force le relistage du flux du dossier
+      // après chaque écriture réussie. Une invalidation fermerait puis
+      // rouvrirait inutilement le flux natif (canal, requête, portée).
+      (_) => const AsyncData(null),
     );
   }
 }
