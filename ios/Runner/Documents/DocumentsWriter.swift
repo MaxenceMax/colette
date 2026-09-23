@@ -73,11 +73,21 @@ enum DocumentsWriter {
     return target.lastPathComponent
   }
 
-  private static func coordinatedWrite(to target: URL, _ body: (URL) throws -> Void) throws {
+  /// Supprime un fichier (réel ou placeholder) sous coordination iCloud.
+  static func delete(_ url: URL) throws {
+    try coordinatedWrite(to: url, options: .forDeleting) { target in
+      try FileManager.default.removeItem(at: target)
+    }
+  }
+
+  private static func coordinatedWrite(
+    to target: URL, options: NSFileCoordinator.WritingOptions = [],
+    _ body: (URL) throws -> Void
+  ) throws {
     var coordinationError: NSError?
     var writeError: Error?
     NSFileCoordinator().coordinate(
-      writingItemAt: target, options: [], error: &coordinationError
+      writingItemAt: target, options: options, error: &coordinationError
     ) { url in
       do { try body(url) } catch { writeError = error }
     }
