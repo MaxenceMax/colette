@@ -85,7 +85,7 @@ test/features/diversification/
 - Modify: `lib/features/dashboard/domain/use_cases/compute_baby_age.dart`
 - Test: `test/core/dates/date_extensions_test.dart`
 
-- [ ] **Step 1 : Tests rouges**
+- [x] **Step 1 : Tests rouges**
 
 Ajouter à la fin du `main()` de `test/core/dates/date_extensions_test.dart` :
 
@@ -131,12 +131,12 @@ Ajouter à la fin du `main()` de `test/core/dates/date_extensions_test.dart` :
   });
 ```
 
-- [ ] **Step 2 : Vérifier l'échec**
+- [x] **Step 2 : Vérifier l'échec**
 
 Run: `flutter test test/core/dates/date_extensions_test.dart`
 Expected: FAIL, `completedMonthsBetween` et `dateAfterCompletedMonths` non définis.
 
-- [ ] **Step 3 : Implémentation**
+- [x] **Step 3 : Implémentation**
 
 Ajouter à la fin de `lib/core/dates/date_extensions.dart` :
 
@@ -160,12 +160,12 @@ DateTime dateAfterCompletedMonths(DateTime from, int months) {
 
 Dans `lib/features/dashboard/domain/use_cases/compute_baby_age.dart`, remplacer `_monthsBetween(birthDate, now)` par `completedMonthsBetween(birthDate, now)` et supprimer la méthode privée `_monthsBetween`.
 
-- [ ] **Step 4 : Vérifier le succès**
+- [x] **Step 4 : Vérifier le succès**
 
 Run: `flutter test test/core/dates test/features/dashboard`
 Expected: PASS (les tests de `ComputeBabyAge` restent verts sans modification).
 
-- [ ] **Step 5 : Commit**
+- [x] **Step 5 : Commit**
 
 ```bash
 dart format lib test && dart analyze
@@ -199,7 +199,7 @@ Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>"
 - Create: `lib/features/diversification/domain/entities/tasting_warning.dart`
 - Test: `test/features/diversification/domain/entities_test.dart`
 
-- [ ] **Step 1 : Tests rouges**
+- [x] **Step 1 : Tests rouges**
 
 `test/features/diversification/domain/entities_test.dart` :
 
@@ -265,12 +265,12 @@ void main() {
 }
 ```
 
-- [ ] **Step 2 : Vérifier l'échec**
+- [x] **Step 2 : Vérifier l'échec**
 
 Run: `flutter test test/features/diversification/domain/entities_test.dart`
 Expected: FAIL (imports introuvables).
 
-- [ ] **Step 3 : Implémentation**
+- [x] **Step 3 : Implémentation**
 
 `food_group.dart` :
 
@@ -685,12 +685,12 @@ sealed class TastingWarning with _$TastingWarning {
 }
 ```
 
-- [ ] **Step 4 : Génération et vérification**
+- [x] **Step 4 : Génération et vérification**
 
 Run: `dart run build_runner build -d && flutter test test/features/diversification/domain/entities_test.dart`
 Expected: PASS.
 
-- [ ] **Step 5 : Commit**
+- [x] **Step 5 : Commit**
 
 ```bash
 dart format lib test && dart analyze
@@ -710,7 +710,7 @@ Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>"
 - Test: `test/features/diversification/domain/compute_diversification_phase_test.dart`
 - Test: `test/features/diversification/domain/compute_food_status_test.dart`
 
-- [ ] **Step 1 : Tests rouges**
+- [x] **Step 1 : Tests rouges**
 
 `compute_diversification_phase_test.dart` :
 
@@ -874,12 +874,12 @@ void main() {
 }
 ```
 
-- [ ] **Step 2 : Vérifier l'échec**
+- [x] **Step 2 : Vérifier l'échec**
 
 Run: `flutter test test/features/diversification/domain`
 Expected: FAIL (use cases absents).
 
-- [ ] **Step 3 : Implémentation**
+- [x] **Step 3 : Implémentation**
 
 `compute_diversification_phase.dart` :
 
@@ -970,12 +970,12 @@ class ComputeFoodStatus {
 }
 ```
 
-- [ ] **Step 4 : Vérifier le succès**
+- [x] **Step 4 : Vérifier le succès**
 
 Run: `flutter test test/features/diversification/domain`
 Expected: PASS.
 
-- [ ] **Step 5 : Commit**
+- [x] **Step 5 : Commit**
 
 ```bash
 dart format lib test && dart analyze
@@ -995,7 +995,7 @@ Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>"
 - Create: `lib/features/diversification/domain/use_cases/compute_foods_to_retry.dart`
 - Test: `test/features/diversification/domain/tasting_summaries_test.dart`
 
-- [ ] **Step 1 : Tests rouges**
+- [x] **Step 1 : Tests rouges**
 
 `tasting_summaries_test.dart` :
 
@@ -1135,12 +1135,12 @@ void main() {
 }
 ```
 
-- [ ] **Step 2 : Vérifier l'échec**
+- [x] **Step 2 : Vérifier l'échec**
 
 Run: `flutter test test/features/diversification/domain/tasting_summaries_test.dart`
 Expected: FAIL.
 
-- [ ] **Step 3 : Implémentation**
+- [x] **Step 3 : Implémentation**
 
 `compute_daily_diversity.dart` :
 
@@ -1257,12 +1257,12 @@ class ComputeFoodsToRetry {
 
 (`counts` est une `LinkedHashMap` : ses clés gardent l'ordre de première rencontre, donc de la dégustation la plus récente.)
 
-- [ ] **Step 4 : Vérifier le succès**
+- [x] **Step 4 : Vérifier le succès**
 
 Run: `flutter test test/features/diversification/domain`
 Expected: PASS.
 
-- [ ] **Step 5 : Commit**
+- [x] **Step 5 : Commit**
 
 ```bash
 dart format lib test && dart analyze
@@ -1287,7 +1287,7 @@ Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>"
 - Test: `test/features/diversification/domain/tasting_rules_test.dart`
 - Test: `test/features/diversification/domain/filter_foods_test.dart`
 
-- [ ] **Step 1 : Tests rouges**
+- [x] **Step 1 : Tests rouges**
 
 `tasting_rules_test.dart` :
 
@@ -1430,12 +1430,12 @@ void main() {
 }
 ```
 
-- [ ] **Step 2 : Vérifier l'échec**
+- [x] **Step 2 : Vérifier l'échec**
 
 Run: `flutter test test/features/diversification/domain`
 Expected: FAIL.
 
-- [ ] **Step 3 : Implémentation**
+- [x] **Step 3 : Implémentation**
 
 Dans `lib/core/result/failure.dart`, ajouter à la fin de l'enum `ValidationReason` (après `invalidDiaperCount`) :
 
@@ -1601,12 +1601,12 @@ class FilterFoods {
 }
 ```
 
-- [ ] **Step 4 : Vérifier le succès**
+- [x] **Step 4 : Vérifier le succès**
 
 Run: `flutter gen-l10n && flutter test test/features/diversification/domain test/core`
 Expected: PASS.
 
-- [ ] **Step 5 : Commit**
+- [x] **Step 5 : Commit**
 
 ```bash
 dart format lib test && dart analyze && flutter test
@@ -1628,7 +1628,7 @@ Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>"
 - Create: `test/features/diversification/helpers/catalog_fixture.dart`
 - Test: `test/features/diversification/data/food_catalog_repository_test.dart`
 
-- [ ] **Step 1 : Fixture de test**
+- [x] **Step 1 : Fixture de test**
 
 `test/features/diversification/helpers/catalog_fixture.dart` (réutilisée par les tests de présentation) :
 
@@ -1689,7 +1689,7 @@ FoodCatalog catalogFixture() => FoodCatalogDto.fromJson(
 );
 ```
 
-- [ ] **Step 2 : Tests rouges**
+- [x] **Step 2 : Tests rouges**
 
 `test/features/diversification/data/food_catalog_repository_test.dart` :
 
@@ -1768,12 +1768,12 @@ void main() {
 }
 ```
 
-- [ ] **Step 3 : Vérifier l'échec**
+- [x] **Step 3 : Vérifier l'échec**
 
 Run: `flutter test test/features/diversification/data`
 Expected: FAIL.
 
-- [ ] **Step 4 : Implémentation**
+- [x] **Step 4 : Implémentation**
 
 `domain/repositories/food_catalog_repository.dart` :
 
@@ -1920,12 +1920,12 @@ class AssetFoodCatalogRepository implements FoodCatalogRepository {
 }
 ```
 
-- [ ] **Step 5 : Vérifier le succès**
+- [x] **Step 5 : Vérifier le succès**
 
 Run: `flutter test test/features/diversification/data`
 Expected: PASS.
 
-- [ ] **Step 6 : Commit**
+- [x] **Step 6 : Commit**
 
 ```bash
 dart format lib test && dart analyze
@@ -1946,7 +1946,7 @@ Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>"
 - Modify: `pubspec.yaml` (section `flutter:`)
 - Test: `test/features/diversification/data/catalogue_content_test.dart`
 
-- [ ] **Step 1 : Test de validation (rouge)**
+- [x] **Step 1 : Test de validation (rouge)**
 
 `test/features/diversification/data/catalogue_content_test.dart` :
 
@@ -2052,7 +2052,7 @@ void main() {
 Run: `flutter test test/features/diversification/data/catalogue_content_test.dart`
 Expected: FAIL (fichier absent).
 
-- [ ] **Step 2 : Déclarer l'asset**
+- [x] **Step 2 : Déclarer l'asset**
 
 Dans `pubspec.yaml`, section `flutter:` (après `uses-material-design: true`) :
 
@@ -2061,7 +2061,7 @@ Dans `pubspec.yaml`, section `flutter:` (après `uses-material-design: true`) :
     - assets/diversification/
 ```
 
-- [ ] **Step 3 : Rédiger `assets/diversification/catalogue.json`**
+- [x] **Step 3 : Rédiger `assets/diversification/catalogue.json`**
 
 Structure : celle de la fixture de la tâche 6, avec `"reviewedAt": "2026-09-23"` et les sources de la spec §5.1 (`oms`, `anses`, `spf`, `espghan`, `agriculture`, `efsa`, avec leurs URL).
 
@@ -2100,12 +2100,12 @@ Structure : celle de la fixture de la tâche 6, avec `"reviewedAt": "2026-09-23"
 
 Chaque aliment sans règle omet `rules` ; sans allergène, omet `allergens`.
 
-- [ ] **Step 4 : Vérifier le succès**
+- [x] **Step 4 : Vérifier le succès**
 
 Run: `flutter test test/features/diversification/data`
 Expected: PASS.
 
-- [ ] **Step 5 : Commit**
+- [x] **Step 5 : Commit**
 
 ```bash
 git add assets/diversification/catalogue.json pubspec.yaml test/features/diversification/data/catalogue_content_test.dart
@@ -2130,7 +2130,7 @@ Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>"
 - Test: `test/features/diversification/data/firestore_tastings_repository_test.dart`
 - Test: `test/features/diversification/data/firestore_custom_foods_repository_test.dart`
 
-- [ ] **Step 1 : Tests rouges**
+- [x] **Step 1 : Tests rouges**
 
 `firestore_tastings_repository_test.dart` :
 
@@ -2263,12 +2263,12 @@ void main() {
 }
 ```
 
-- [ ] **Step 2 : Vérifier l'échec**
+- [x] **Step 2 : Vérifier l'échec**
 
 Run: `flutter test test/features/diversification/data`
 Expected: FAIL.
 
-- [ ] **Step 3 : Implémentation**
+- [x] **Step 3 : Implémentation**
 
 `lib/core/firebase/firestore_paths.dart` : ajouter
 
@@ -2489,12 +2489,12 @@ class FirestoreCustomFoodsRepository implements CustomFoodsRepository {
 }
 ```
 
-- [ ] **Step 4 : Vérifier le succès**
+- [x] **Step 4 : Vérifier le succès**
 
 Run: `flutter test test/features/diversification/data`
 Expected: PASS.
 
-- [ ] **Step 5 : Commit**
+- [x] **Step 5 : Commit**
 
 ```bash
 dart format lib test && dart analyze
@@ -2514,7 +2514,7 @@ Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>"
 - Create: `lib/features/diversification/presentation/providers/catalog_filter.dart`
 - Test: `test/features/diversification/presentation/diversification_providers_test.dart`
 
-- [ ] **Step 1 : Tests rouges**
+- [x] **Step 1 : Tests rouges**
 
 `diversification_providers_test.dart` :
 
@@ -2642,12 +2642,12 @@ void main() {
 }
 ```
 
-- [ ] **Step 2 : Vérifier l'échec**
+- [x] **Step 2 : Vérifier l'échec**
 
 Run: `flutter test test/features/diversification/presentation/diversification_providers_test.dart`
 Expected: FAIL.
 
-- [ ] **Step 3 : Implémentation**
+- [x] **Step 3 : Implémentation**
 
 `diversification_providers.dart` :
 
@@ -2859,12 +2859,12 @@ class CatalogFilter extends _$CatalogFilter {
 }
 ```
 
-- [ ] **Step 4 : Génération et vérification**
+- [x] **Step 4 : Génération et vérification**
 
 Run: `dart run build_runner build -d && flutter test test/features/diversification/presentation/diversification_providers_test.dart`
 Expected: PASS. Si `dart analyze` (riverpod_lint) signale une dépendance manquante ou un `ref` mal utilisé, corriger selon le message.
 
-- [ ] **Step 5 : Commit**
+- [x] **Step 5 : Commit**
 
 ```bash
 dart format lib test && dart analyze
@@ -2883,7 +2883,7 @@ Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>"
 - Create: `lib/features/diversification/presentation/providers/custom_food_controller.dart`
 - Test: `test/features/diversification/presentation/diversification_controllers_test.dart`
 
-- [ ] **Step 1 : Tests rouges**
+- [x] **Step 1 : Tests rouges**
 
 `diversification_controllers_test.dart` :
 
@@ -3054,12 +3054,12 @@ void main() {
 }
 ```
 
-- [ ] **Step 2 : Vérifier l'échec**
+- [x] **Step 2 : Vérifier l'échec**
 
 Run: `flutter test test/features/diversification/presentation/diversification_controllers_test.dart`
 Expected: FAIL.
 
-- [ ] **Step 3 : Implémentation**
+- [x] **Step 3 : Implémentation**
 
 `tasting_form_controller.dart` :
 
@@ -3207,12 +3207,12 @@ class CustomFoodController extends _$CustomFoodController {
 }
 ```
 
-- [ ] **Step 4 : Génération et vérification**
+- [x] **Step 4 : Génération et vérification**
 
 Run: `dart run build_runner build -d && flutter test test/features/diversification/presentation`
 Expected: PASS.
 
-- [ ] **Step 5 : Commit**
+- [x] **Step 5 : Commit**
 
 ```bash
 dart format lib test && dart analyze
@@ -3234,7 +3234,7 @@ Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>"
 - Create: `lib/features/diversification/presentation/widgets/guide_item_tile.dart`
 - Test: `test/features/diversification/presentation/food_widgets_test.dart`
 
-- [ ] **Step 1 : Clés ARB**
+- [x] **Step 1 : Clés ARB**
 
 Ajouter dans `lib/l10n/app_fr.arb` :
 
@@ -3300,7 +3300,7 @@ Ajouter dans `lib/l10n/app_fr.arb` :
 
 Run: `flutter gen-l10n`
 
-- [ ] **Step 2 : Tests rouges**
+- [x] **Step 2 : Tests rouges**
 
 `food_widgets_test.dart` :
 
@@ -3373,7 +3373,7 @@ void main() {
 Run: `flutter test test/features/diversification/presentation/food_widgets_test.dart`
 Expected: FAIL.
 
-- [ ] **Step 3 : Implémentation**
+- [x] **Step 3 : Implémentation**
 
 `presentation/food_labels.dart` :
 
@@ -3646,12 +3646,12 @@ class GuideItemTile extends StatelessWidget {
 }
 ```
 
-- [ ] **Step 4 : Vérifier le succès**
+- [x] **Step 4 : Vérifier le succès**
 
 Run: `flutter test test/features/diversification/presentation/food_widgets_test.dart`
 Expected: PASS.
 
-- [ ] **Step 5 : Commit**
+- [x] **Step 5 : Commit**
 
 ```bash
 dart format lib test && dart analyze
@@ -3674,7 +3674,7 @@ Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>"
 - Create: `test/features/diversification/helpers/diversification_overrides.dart`
 - Test: `test/features/diversification/presentation/tasting_form_sheet_test.dart`
 
-- [ ] **Step 1 : Clés ARB**
+- [x] **Step 1 : Clés ARB**
 
 ```json
   "actionAddTasting": "Noter une dégustation",
@@ -3701,7 +3701,7 @@ Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>"
 
 Run: `flutter gen-l10n`
 
-- [ ] **Step 2 : Overrides partagés des tests de présentation**
+- [x] **Step 2 : Overrides partagés des tests de présentation**
 
 `test/features/diversification/helpers/diversification_overrides.dart` :
 
@@ -3795,7 +3795,7 @@ List<Override> diversificationOverrides({
 
 Dans `test/features/diversification/presentation/diversification_controllers_test.dart` (tâche 10), remplacer les deux classes `Mock…Repository` locales par l'import de `../helpers/diversification_overrides.dart` (mêmes noms), sans autre changement.
 
-- [ ] **Step 3 : Tests rouges**
+- [x] **Step 3 : Tests rouges**
 
 `tasting_form_sheet_test.dart` :
 
@@ -3920,7 +3920,7 @@ void main() {
 Run: `flutter test test/features/diversification/presentation/tasting_form_sheet_test.dart`
 Expected: FAIL.
 
-- [ ] **Step 4 : Implémentation**
+- [x] **Step 4 : Implémentation**
 
 `widgets/tasting_warnings_dialog.dart` :
 
@@ -4377,12 +4377,12 @@ class _FoodRulesSection extends StatelessWidget {
 
 (En modification, l'aliment n'est pas modifiable : `onTap: null`. Pour changer d'aliment, supprimer la dégustation et en noter une nouvelle.)
 
-- [ ] **Step 5 : Vérifier le succès**
+- [x] **Step 5 : Vérifier le succès**
 
 Run: `flutter test test/features/diversification/presentation`
 Expected: PASS. Si le `SegmentedButton` à trois segments déborde dans le test (largeur 800), réduire à `label` seul sans `icon`.
 
-- [ ] **Step 6 : Commit**
+- [x] **Step 6 : Commit**
 
 ```bash
 dart format lib test && dart analyze
@@ -4401,7 +4401,7 @@ Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>"
 - Create: `lib/features/diversification/presentation/widgets/custom_food_sheet.dart`
 - Test: `test/features/diversification/presentation/custom_food_sheet_test.dart`
 
-- [ ] **Step 1 : Clés ARB**
+- [x] **Step 1 : Clés ARB**
 
 ```json
   "customFoodNewTitle": "Nouvel aliment",
@@ -4413,7 +4413,7 @@ Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>"
 
 Run: `flutter gen-l10n`
 
-- [ ] **Step 2 : Tests rouges**
+- [x] **Step 2 : Tests rouges**
 
 `custom_food_sheet_test.dart` :
 
@@ -4507,7 +4507,7 @@ void main() {
 Run: `flutter test test/features/diversification/presentation/custom_food_sheet_test.dart`
 Expected: FAIL.
 
-- [ ] **Step 3 : Implémentation**
+- [x] **Step 3 : Implémentation**
 
 `widgets/custom_food_sheet.dart` :
 
@@ -4651,12 +4651,12 @@ class _CustomFoodSheetState extends ConsumerState<CustomFoodSheet> {
 }
 ```
 
-- [ ] **Step 4 : Vérifier le succès**
+- [x] **Step 4 : Vérifier le succès**
 
 Run: `flutter test test/features/diversification/presentation/custom_food_sheet_test.dart`
 Expected: PASS. Note : « Fruits et légumes » est le libellé court de `otherFruitsVeg` ; s'il apparaît plusieurs fois, cibler `find.widgetWithText(ChoiceChip, 'Fruits et légumes')`.
 
-- [ ] **Step 5 : Commit**
+- [x] **Step 5 : Commit**
 
 ```bash
 dart format lib test && dart analyze
@@ -4677,7 +4677,7 @@ Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>"
 - Create: `lib/features/diversification/presentation/widgets/age_guide_sheet.dart`
 - Test: `test/features/diversification/presentation/phase_header_test.dart`
 
-- [ ] **Step 1 : Clés ARB**
+- [x] **Step 1 : Clés ARB**
 
 ```json
   "tabPlate": "Assiette",
@@ -4719,7 +4719,7 @@ extension DiversificationPhaseLabels on DiversificationPhase {
 }
 ```
 
-- [ ] **Step 2 : Tests rouges**
+- [x] **Step 2 : Tests rouges**
 
 `phase_header_test.dart` :
 
@@ -4777,7 +4777,7 @@ void main() {
 Run: `flutter test test/features/diversification/presentation/phase_header_test.dart`
 Expected: FAIL.
 
-- [ ] **Step 3 : Implémentation**
+- [x] **Step 3 : Implémentation**
 
 `widgets/phase_header.dart` :
 
@@ -4944,12 +4944,12 @@ class _GuideSection extends StatelessWidget {
 }
 ```
 
-- [ ] **Step 4 : Vérifier le succès**
+- [x] **Step 4 : Vérifier le succès**
 
 Run: `flutter test test/features/diversification/presentation/phase_header_test.dart`
 Expected: PASS.
 
-- [ ] **Step 5 : Commit**
+- [x] **Step 5 : Commit**
 
 ```bash
 dart format lib test && dart analyze
@@ -4972,7 +4972,7 @@ Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>"
 - Create: `lib/features/diversification/presentation/widgets/retry_card.dart`
 - Test: `test/features/diversification/presentation/plate_cards_test.dart`
 
-- [ ] **Step 1 : Clés ARB et routes**
+- [x] **Step 1 : Clés ARB et routes**
 
 ```json
   "preparationTitle": "Bientôt la diversification",
@@ -5011,7 +5011,7 @@ Dans `AppRoutes` (`lib/app/router/app_router.dart`), ajouter :
   static String plateFood(String foodId) => '$plate/food/$foodId';
 ```
 
-- [ ] **Step 2 : Tests rouges**
+- [x] **Step 2 : Tests rouges**
 
 `plate_cards_test.dart` :
 
@@ -5114,7 +5114,7 @@ void main() {
 Run: `flutter test test/features/diversification/presentation/plate_cards_test.dart`
 Expected: FAIL.
 
-- [ ] **Step 3 : Implémentation**
+- [x] **Step 3 : Implémentation**
 
 `widgets/preparation_card.dart` :
 
@@ -5471,12 +5471,12 @@ class RetryCard extends ConsumerWidget {
 
 (La liste « À reproposer » est courte par construction et vit dans une carte : un `Column` suffit, comme les autres cartes de l'accueil.)
 
-- [ ] **Step 4 : Vérifier le succès**
+- [x] **Step 4 : Vérifier le succès**
 
 Run: `flutter test test/features/diversification/presentation/plate_cards_test.dart`
 Expected: PASS.
 
-- [ ] **Step 5 : Commit**
+- [x] **Step 5 : Commit**
 
 ```bash
 dart format lib test && dart analyze
@@ -5499,7 +5499,7 @@ Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>"
 - Create: `lib/features/diversification/presentation/pages/plate_page.dart`
 - Test: `test/features/diversification/presentation/plate_page_test.dart`
 
-- [ ] **Step 1 : Clés ARB**
+- [x] **Step 1 : Clés ARB**
 
 ```json
   "catalogTitle": "Aliments · {count, plural, =0{aucun goûté} =1{1 goûté} other{{count} goûtés}}",
@@ -5514,7 +5514,7 @@ Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>"
 
 Run: `flutter gen-l10n`
 
-- [ ] **Step 2 : Tests rouges**
+- [x] **Step 2 : Tests rouges**
 
 `plate_page_test.dart` :
 
@@ -5603,7 +5603,7 @@ void main() {
 Run: `flutter test test/features/diversification/presentation/plate_page_test.dart`
 Expected: FAIL.
 
-- [ ] **Step 3 : Implémentation**
+- [x] **Step 3 : Implémentation**
 
 `widgets/catalog_search_bar.dart` :
 
@@ -5933,12 +5933,12 @@ class _PlatePageState extends ConsumerState<PlatePage> {
 }
 ```
 
-- [ ] **Step 4 : Vérifier le succès**
+- [x] **Step 4 : Vérifier le succès**
 
 Run: `flutter test test/features/diversification/presentation/plate_page_test.dart`
 Expected: PASS. En cas de texte trouvé deux fois (« Œuf » : puce allergène et fiche ; « À éviter » : puce filtre et badges), cibler la puce avec `find.widgetWithText(ChoiceChip, 'À éviter')` ou `find.descendant(of: find.byType(AllergensCard), matching: find.text('Œuf'))`.
 
-- [ ] **Step 5 : Commit**
+- [x] **Step 5 : Commit**
 
 ```bash
 dart format lib test && dart analyze
@@ -5961,7 +5961,7 @@ Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>"
 - Modify: `test/app/app_router_test.dart`
 - Test: `test/features/diversification/presentation/food_detail_page_test.dart`
 
-- [ ] **Step 1 : Clés ARB**
+- [x] **Step 1 : Clés ARB**
 
 ```json
   "actionEdit": "Modifier",
@@ -5981,7 +5981,7 @@ Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>"
 
 Run: `flutter gen-l10n`
 
-- [ ] **Step 2 : Tests rouges**
+- [x] **Step 2 : Tests rouges**
 
 `food_detail_page_test.dart` :
 
@@ -6121,7 +6121,7 @@ Dans `test/app/app_router_test.dart`, remplacer le second test par :
 Run: `flutter test test/features/diversification/presentation/food_detail_page_test.dart test/app/app_router_test.dart`
 Expected: FAIL.
 
-- [ ] **Step 3 : Implémentation**
+- [x] **Step 3 : Implémentation**
 
 `widgets/tasting_history_sliver.dart` :
 
@@ -6481,12 +6481,12 @@ class _DeleteFoodButton extends ConsumerWidget {
 
 Vérifier par `grep -rn "goBranch(\|currentIndex ==" lib test` qu'aucun code ne suppose l'index 2 pour Réglages (la navigation passe par les chemins `AppRoutes`).
 
-- [ ] **Step 4 : Vérifier le succès**
+- [x] **Step 4 : Vérifier le succès**
 
 Run: `dart run build_runner build -d && flutter test`
 Expected: PASS sur toute la suite.
 
-- [ ] **Step 5 : Commit**
+- [x] **Step 5 : Commit**
 
 ```bash
 dart format lib test && dart analyze
@@ -6502,7 +6502,7 @@ Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>"
 
 **Cette tâche est menée par le coordinateur.**
 
-- [ ] **Step 1 : Suite complète**
+- [x] **Step 1 : Suite complète**
 
 ```bash
 dart format lib test
@@ -6512,11 +6512,11 @@ flutter test
 
 Expected: aucun fichier reformaté, `No issues found!`, tous les tests verts.
 
-- [ ] **Step 2 : Rendu clair et sombre**
+- [x] **Step 2 : Rendu clair et sombre**
 
 Écrire un test jetable (non commité) `test/tmp_plate_render_test.dart` qui monte `PlatePage` puis `FoodDetailPage(foodId: 'arachide')` et la feuille Dégustation avec `diversificationOverrides(tastings: …)`, dans `MaterialApp(theme: ThemeService().light())` puis `.dark()`, à la taille iPhone 15 (`viewSize: Size(393, 852)`), et capture chaque écran avec `expectLater(find.byType(MaterialApp), matchesGoldenFile('/tmp/colette-plate-<nom>.png'))`. Lancer `flutter test --update-goldens test/tmp_plate_render_test.dart`, lire les PNG, corriger les défauts de contraste ou de débordement, puis supprimer le test.
 
-- [ ] **Step 3 : Aligner la spec**
+- [x] **Step 3 : Aligner la spec**
 
 Mettre à jour `docs/superpowers/specs/2026-09-23-diversification-design.md` avec les précisions listées en tête de ce plan : sous-titre sans âge, icône de précaution sur « Pas encore », `prepare` actif sans profil, tutoiement, `CatalogFilter`. Cocher les tâches du plan. Commit `docs:`.
 
@@ -6527,3 +6527,5 @@ Présenter à Maxence un résumé lisible du catalogue (interdits, précautions,
 - [ ] **Step 5 : Proposer l'intégration**
 
 Lister les branches en cours avec leur divergence et simuler le merge (`git merge-tree --write-tree main feat/diversification`), puis demander la validation à Maxence avant tout `merge --no-ff` sur `main`. Pas de push sans demande explicite.
+
+**Écarts constatés à l'exécution (spec alignée) :** catalogue livré à 123 aliments (boisson au soja séparée, « siki », texte propre à la charcuterie crue, Anses sur les sodas, deux repères du guide) ; pas de règle `prepare` pour le sésame (absent des sources) ; tri des dégustations en mémoire ; règles échues masquées sur la fiche et règles actives seules, encadrées, dans la feuille ; bouton « Ajouter un aliment ».

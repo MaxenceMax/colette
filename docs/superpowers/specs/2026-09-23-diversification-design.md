@@ -13,7 +13,7 @@ Besoin exprimé : un nouvel onglet dédié, avec l'OMS comme référence.
 | Sujet | Décision |
 | --- | --- |
 | Suivi | Carnet de dégustations. Chaque essai a une date, et en option une appréciation (aimé / bof / refusé), une réaction observée (oui / non) et une note. |
-| Catalogue | Environ 110 aliments embarqués dans l'app, classés par groupe OMS, avec leurs allergènes et leurs règles sourcées. Le foyer peut ajouter des aliments perso, partagés entre les deux appareils. |
+| Catalogue | 123 aliments embarqués dans l'app, classés par groupe OMS, avec leurs allergènes et leurs règles sourcées. Le foyer peut ajouter des aliments perso, partagés entre les deux appareils. |
 | Sources | L'OMS d'abord, complétée par l'Anses, Santé publique France (SPF), l'ESPGHAN et le ministère de l'Agriculture pour ce que l'OMS ne traite pas (allergènes, interdits précis, étouffement). Chaque règle affiche sa source. En cas de divergence, les deux avis sont montrés et **la règle la plus prudente fixe le statut**. |
 | Aliment déconseillé à l'âge actuel | L'app avertit sans bloquer : la saisie demande une confirmation. |
 | Avant 6 mois | L'onglet est visible en mode « préparation ». |
@@ -78,12 +78,12 @@ S'y ajoute `outsideGroups` pour ce qui ne compte pas dans la diversité : matiè
 | Poisson fumé | `avoid` | 36 mois | Anses |
 | Espadon, marlin, siki, requin, lamproie | `avoid` | 36 mois | Anses |
 | Grands prédateurs (thon, lotte, bar, dorade, brochet, raie) | `info` (à limiter) | — | Anses |
-| Soja et produits au soja | `avoid` | 36 mois | Anses, SPF |
+| Soja et produits au soja (dont la boisson au soja) | `avoid` | 36 mois | Anses, SPF |
 | Thé, café, sodas | `avoid` | 36 mois | Anses |
 | Chocolat | `info` (à limiter avant 3 ans) | — | Anses |
 | Fruits à coque et arachide entiers, aliments petits, durs et ronds | `avoid` | 60 mois | SPF (5 ans), Anses (3 ans) |
 | Raisin, tomate cerise, myrtille | `prepare` : couper en deux ou en quatre, retirer les pépins | 60 mois | SPF |
-| Arachide, fruits à coque, sésame (pâte, poudre) | `prepare` : en pâte ou en poudre dans une purée | 60 mois | SPF |
+| Arachide et fruits à coque (pâte, poudre) | `prepare` : en pâte ou en poudre dans une purée | 60 mois | SPF. Le sésame n'est pas cité par les sources : pas de règle `prepare` |
 | Épinards et légumes-feuilles cuits | `info` : ne pas conserver à température ambiante, éviter en cas d'infection digestive | — | EFSA 2010 |
 
 Un avis Anses de mai 2026 propose d'abaisser la dose tolérable de méthylmercure. Les règles sur les poissons pourront évoluer : c'est une simple mise à jour du JSON.
@@ -111,14 +111,14 @@ Un avis Anses de mai 2026 propose d'abaisser la dose tolérable de méthylmercur
 De haut en bas, dans un `CustomScrollView` :
 
 1. **En-tête de phase.**
-   - Contenu : « 7 mois · phase 6–8 mois · 2 à 3 repas ».
+   - Contenu : « Phase 6–8 mois · 2 à 3 repas ». L'âge n'est pas répété : il figure déjà sur l'accueil.
    - L'icône ⓘ (cible tactile de 48 pt) ouvre la feuille **Repères à son âge**. La feuille contient :
      - textures et nombre de repas (OMS puis France) ;
      - signes de maturité ;
      - signes de faim et de satiété ;
      - conseils contre l'étouffement ;
      - la section « Sources » (liens et date de consultation) ;
-     - la mention « Informations générales, ne remplacent pas l'avis de votre pédiatre ».
+     - la mention « Informations générales : elles ne remplacent pas l'avis de ton pédiatre » (tutoiement, comme le reste de l'app).
    - Sans profil bébé : message invitant à renseigner le profil dans Réglages. Le catalogue reste affiché, sans statut lié à l'âge.
 2. **Carte Préparation**, avant 6 mois, à la place de la carte Aujourd'hui. Elle contient :
    - le compte à rebours « Dans N jours : 6 mois » ;
@@ -147,7 +147,7 @@ De haut en bas, dans un `CustomScrollView` :
 
 La fiche montre :
 - le nom, le groupe OMS et les allergènes (les 14 possibles) ;
-- les règles actives et à venir, chacune avec son texte et sa ou ses sources ;
+- les règles encore actives à l'âge du bébé et les conseils sans âge limite (`info`), chacune avec son texte et sa ou ses sources ; une règle échue n'est plus affichée ;
 - quand les sources divergent, un avis par source ;
 - l'historique des dégustations, de la plus récente à la plus ancienne. Un tap modifie une dégustation, un balayage la supprime avec confirmation ;
 - le bouton « Noter une dégustation », qui ouvre la feuille avec l'aliment présélectionné.
@@ -164,7 +164,7 @@ Champs :
 - **Note** : texte libre, 500 caractères maximum.
 
 Comportement :
-- Choisir un aliment affiche ses règles actives dans un encadré, avec son allergène le cas échéant.
+- Choisir un aliment affiche, dans un encadré, ses allergènes et ses règles actives à l'âge du bébé à la date de la dégustation (toutes les règles sans date de naissance).
 - Si « réaction observée » est cochée, un rappel s'affiche : « En cas de gêne respiratoire, gonflement du visage ou malaise : appelez le 15 ».
 - À l'enregistrement, `CheckTastingWarnings` peut renvoyer des avertissements : règle `avoid` active, âge inférieur à 4 mois. Dans ce cas, une boîte de dialogue les liste, avec leurs sources, et propose « Enregistrer quand même » ou « Annuler ».
 - La même feuille sert à la modification.
@@ -215,7 +215,7 @@ Aucun doublon de nom (insensible aux accents et à la casse) n'est autorisé ave
 - `id` : slug ASCII en minuscules, stable. Il ne change jamais une fois publié, car les dégustations y font référence.
 - `rules[].kind` : `avoid` ou `prepare` (tous deux avec `untilMonths` obligatoire), ou `info` (sans `untilMonths`).
 - Quand deux sources divergent sur un même aliment, le JSON porte une règle par avis. Exemple avec le lait de vache : une règle `info` source `oms` (« acceptable dès 6 mois ») et une règle `avoid` source `anses`/`spf` jusqu'à 12 mois.
-- Contenu cible, environ 110 aliments :
+- Contenu livré, 123 aliments (dont une boisson au soja distincte des autres boissons végétales) :
 
 | Groupe | Nombre visé | Exemples |
 | --- | --- | --- |
@@ -246,10 +246,12 @@ L'âge est pris en mois révolus. Le calcul applique ces règles dans l'ordre :
 
 1. **Règle `avoid` active** (`ageMonths < untilMonths`) : `FoodStatus.avoid(untilMonths, sources)`. On retient la règle active au `untilMonths` le plus grand, c'est-à-dire la plus prudente. Badge : « À éviter avant 1 an · OMS, Anses ».
 2. **Âge inférieur à 6 mois** : `FoodStatus.notYetRecommended`. Badge : « Dès 6 mois (OMS) », avec la mention « possible dès 4 mois (France) » sur la fiche.
-3. **Au moins une dégustation** : `FoodStatus.tasted(count, needsPreparation)`. Badge : « Goûté ×N ». Une règle `prepare` active ajoute une icône de précaution.
+3. **Au moins une dégustation** : `FoodStatus.tasted(count, needsPreparation)`. Badge : « Goûté ×N ».
 4. **Sinon** : `FoodStatus.notTasted`. Badge : « Pas encore ».
 
-Sans profil bébé, les étapes 1 et 2 sont ignorées. Un aliment perso n'a pas de règle : seules les étapes 2 à 4 s'appliquent.
+Dans les cas 3 et 4, une règle `prepare` active ajoute une icône de précaution. À égalité de `untilMonths` entre règles `avoid` actives, les sources sont fusionnées.
+
+Sans profil bébé, les étapes 1 et 2 sont ignorées et toute règle `prepare` est considérée active, par prudence. Un aliment perso n'a pas de règle : seules les étapes 2 à 4 s'appliquent.
 
 ## 6. Données Firestore
 
@@ -274,7 +276,7 @@ households/{code}/customFoods/{id}
   - un `group` inconnu est lu comme `outsideGroups` ;
   - un document sans `at` ou `foodId` valides est ignoré, avec un log `colette`.
 - Un `foodId` introuvable dans le catalogue comme dans les aliments perso produit un aliment « Aliment inconnu » (groupe `outsideGroups`, sans règle). Il reste visible dans les historiques et ne compte pas dans la diversité.
-- **Flux unique** : `tastings` trié par `at` décroissant, sans limite. Le volume attendu est de quelques centaines de documents sur 18 mois. Tous les indicateurs sont calculés côté app, et aucun compteur n'est stocké.
+- **Flux unique** : `tastings` sans limite, trié en mémoire par `at` décroissant (puis `id`) après la lecture tolérante. Le volume attendu est de quelques centaines de documents sur 18 mois. Tous les indicateurs sont calculés côté app, et aucun compteur n'est stocké.
 - Aucun index composite n'est nécessaire.
 - Règles de sécurité inchangées : `households/{code}/{collection}/{docId}` couvre déjà les deux collections. Seul le commentaire est mis à jour.
 - Ni `feedingPlanSyncProvider` ni les Cloud Functions ne sont concernés.
@@ -322,23 +324,23 @@ Nouvelle feature `lib/features/diversification/`. Elle consomme `babyProfileProv
   - `foodCatalogProvider` (keepAlive) ;
   - `tastingsProvider` et `customFoodsProvider` (Stream) ;
   - `foodsProvider` : fusion catalogue + perso, indexée par id ;
-  - `diversificationPhaseProvider` ;
+  - `diversificationTimelineProvider` (phase, âge, échéance des 6 mois) ;
   - `dailyDiversityProvider`, `allergenProgressProvider`, `foodsToRetryProvider` ;
   - `foodStatusesProvider` ;
   - `tastingFormControllerProvider` et `customFoodControllerProvider` (actions `save` et `delete`).
 - **Pages** : `PlatePage`, `FoodDetailPage`.
 - **Widgets** :
   - `PhaseHeader`, `PreparationCard`, `TodayDiversityCard`, `AllergensCard`, `RetryCard` ;
-  - `FoodCatalogSection` et `FoodRow` (liste en `SliverList.builder`) ;
+  - `CatalogSearchBar`, `CatalogFilterChips`, `FoodCatalogSliver` et `FoodRow` (liste en `SliverList.builder`) ;
   - `FoodStatusBadge` ;
   - `TastingFormSheet`, `CustomFoodSheet`, `AgeGuideSheet`, `TastingWarningsDialog`.
-- L'état des filtres et de la recherche du catalogue est un état d'interface local, dans un `ConsumerStatefulWidget` avec `TextEditingController`, disposé dans `dispose()`.
+- L'état des filtres et de la recherche du catalogue vit dans un notifier `CatalogFilter`, partagé entre la carte Allergènes et la liste. Le champ de recherche garde son `TextEditingController` local, disposé dans `dispose()`.
 - **Hors de la feature** :
   - `AppRoutes.plate = '/plate'` et une 4ᵉ `StatefulShellBranch` dans `app_router.dart` ;
   - une 4ᵉ `NavigationDestination` dans `MainShell`, dont le commentaire passe de « trois » à « quatre » onglets ;
   - de nouvelles clés dans `app_fr.arb`.
 - **Design system** :
-  - de nouvelles couleurs `AppColors`, clair et sombre, pour les états d'allergène et de statut, si les couleurs existantes (catégories de soin, succès, alerte) ne suffisent pas ;
+  - aucune nouvelle couleur : les tokens existants (succès, alerte, erreur, texte secondaire) suffisent ;
   - le contenu du catalogue et du guide est de la donnée : il vient du JSON, pas de l'ARB. Les libellés d'interface restent dans l'ARB.
 
 ## 8. Erreurs
