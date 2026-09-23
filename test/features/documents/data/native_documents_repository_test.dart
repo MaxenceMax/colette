@@ -30,6 +30,138 @@ void main() {
         .setMockMethodCallHandler(channel, null);
   });
 
+  const folderChannel = EventChannel('colette/documents/folder/test');
+
+  /// Mock `openFolderStream` → canal de test, et le handler du flux.
+  void mockFolderStream(
+    MockStreamHandler handler, {
+    Object? Function(MethodCall call)? methods,
+  }) {
+    mock((call) {
+      if (call.method == 'openFolderStream') {
+        return {'channel': folderChannel.name};
+      }
+      return methods?.call(call);
+    });
+    TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
+        .setMockStreamHandler(folderChannel, handler);
+  }
+
+  Map<String, Object?> rawEntry(String name, {double? progress}) => {
+    'name': name,
+    'path': 'Ordonnances/$name',
+    'isDirectory': false,
+    'size': 10,
+    'modifiedAt': 1000,
+    'downloadStatus': progress == null ? 'downloaded' : 'downloading',
+    'downloadProgress': ?progress,
+  };
+
+  test('watch ouvre un canal pour le chemin et mappe chaque liste', () async {
+    mockFolderStream(
+      MockStreamHandler.inline(
+        onListen: (_, events) {
+          events.success([rawEntry('a.pdf')]);
+          events.success([rawEntry('a.pdf'), rawEntry('b.pdf', progress: 0.5)]);
+          events.endOfStream();
+        },
+      ),
+    );
+    final results = await repo.watch('Ordonnances').toList();
+    expect(calls.single.method, 'openFolderStream');
+    expect(calls.single.arguments, {'path': 'Ordonnances'});
+    expect(results, hasLength(2));
+    final second = results[1].toNullable()!;
+    expect(second.map((e) => e.name), ['a.pdf', 'b.pdf']);
+    expect(second[1].downloadProgress, 0.5);
+  });
+
+  test('watch convertit une erreur du flux en Left puis se termine', () async {
+    mockFolderStream(
+      MockStreamHandler.inline(
+        onListen: (_, events) {
+          events.success([rawEntry('a.pdf')]);
+          events.error(code: 'accessDenied');
+        },
+      ),
+    );
+    final results = await repo.watch('Ordonnances').toList();
+    expect(results[0].isRight(), isTrue);
+    expect(
+      results[1].getLeft().toNullable(),
+      const DocumentsFailure(DocumentsReason.accessDenied),
+    );
+  });
+
+  test('watch renvoie Left si openFolderStream échoue', () async {
+    mock((_) => throw PlatformException(code: 'noFolder'));
+    final results = await repo.watch('').toList();
+    expect(
+      results.single.getLeft().toNullable(),
+      const DocumentsFailure(DocumentsReason.noFolder),
+    );
+  });
+
+  test('watch propage le désabonnement', () async {
+    var cancelled = false;
+    mockFolderStream(
+      MockStreamHandler.inline(
+        onListen: (_, events) => events.success([rawEntry('a.pdf')]),
+        onCancel: (_) => cancelled = true,
+      ),
+    );
+    final first = await repo.watch('Ordonnances').first;
+    expect(first.isRight(), isTrue);
+    // `first` annule l'abonnement dès le premier événement.
+    await Future<void>.delayed(Duration.zero);
+    expect(cancelled, isTrue);
+  });
+
+  test('watch : entrée malformée → Left UnknownFailure', () async {
+    mockFolderStream(
+      MockStreamHandler.inline(
+        onListen: (_, events) => events.success([
+          {'name': 1},
+        ]),
+      ),
+    );
+    final results = await repo.watch('').toList();
+    expect(results.single.getLeft().toNullable(), isA<UnknownFailure>());
+  });
+
+  test('download transmet le chemin', () async {
+    mock((_) => null);
+    final result = await repo.download('a.pdf');
+    expect(result.isRight(), isTrue);
+    expect(calls.single.method, 'download');
+    expect(calls.single.arguments, {'path': 'a.pdf'});
+  });
+
+  test('delete transmet le chemin', () async {
+    mock((_) => null);
+    final result = await repo.delete('Ordonnances/a.pdf');
+    expect(result.isRight(), isTrue);
+    expect(calls.single.method, 'delete');
+    expect(calls.single.arguments, {'path': 'Ordonnances/a.pdf'});
+  });
+
+  test('openInFiles transmet le chemin', () async {
+    mock((_) => null);
+    final result = await repo.openInFiles('Ordonnances');
+    expect(result.isRight(), isTrue);
+    expect(calls.single.method, 'openInFiles');
+    expect(calls.single.arguments, {'path': 'Ordonnances'});
+  });
+
+  test('delete : code io → DocumentsFailure.io', () async {
+    mock((_) => throw PlatformException(code: 'io'));
+    final result = await repo.delete('Ordonnances');
+    expect(
+      result.getLeft().toNullable(),
+      const DocumentsFailure(DocumentsReason.io),
+    );
+  });
+
   test('rootFolder renvoie null sans dossier', () async {
     mock((_) => null);
     final result = await repo.rootFolder();

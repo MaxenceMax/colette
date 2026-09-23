@@ -18,6 +18,20 @@ abstract interface class DocumentsRepository {
   /// Contenu brut (non trié) d'un dossier.
   Future<Either<Failure, List<DocumentEntry>>> list(String path);
 
+  /// Contenu d'un dossier en direct : une liste complète (non triée) à chaque
+  /// changement iCloud. Un `Left` est suivi de la fin du flux.
+  Stream<Either<Failure, List<DocumentEntry>>> watch(String path);
+
+  /// Lance le téléchargement iCloud du fichier et rend la main aussitôt.
+  Future<Either<Failure, void>> download(String path);
+
+  /// Supprime un fichier (jamais un dossier) ; iCloud le garde trente jours
+  /// dans « Récemment supprimés ».
+  Future<Either<Failure, void>> delete(String path);
+
+  /// Ouvre l'app Fichiers sur ce dossier.
+  Future<Either<Failure, void>> openInFiles(String path);
+
   /// Télécharge si besoin puis affiche l'aperçu ; revient à la fermeture.
   Future<Either<Failure, void>> preview(String path);
 
