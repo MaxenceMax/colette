@@ -7,6 +7,7 @@ import 'package:colette/features/baby/presentation/widgets/care_settings_section
 import 'package:colette/features/baby/presentation/widgets/measurements_section.dart';
 import 'package:colette/features/diapers/presentation/providers/diaper_stock_controller.dart';
 import 'package:colette/features/diapers/presentation/widgets/diaper_stock_section.dart';
+import 'package:colette/features/health/presentation/widgets/calendar_settings_section.dart';
 import 'package:colette/features/household/presentation/providers/household_providers.dart';
 import 'package:colette/features/household/presentation/widgets/household_section.dart';
 import 'package:colette/features/notifications/presentation/providers/notifications_providers.dart';
@@ -18,7 +19,7 @@ import 'package:colette/shared/ui/widgets/theme_mode_section.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-/// Onglet Réglages : bébé, mesures, soins attendus, sommeil, notifications, apparence, foyer.
+/// Onglet Réglages : bébé, mesures, soins attendus, sommeil, notifications, calendrier, apparence, foyer.
 class SettingsPage extends ConsumerWidget {
   const SettingsPage({super.key});
 
@@ -71,6 +72,8 @@ class SettingsPage extends ConsumerWidget {
             SectionHeader(title: s.settingsNotificationsSection),
             NotificationsSection(device: device),
           ],
+          SectionHeader(title: s.settingsCalendarSection),
+          const CalendarSettingsSection(),
           SectionHeader(title: s.settingsAppearanceSection),
           const ThemeModeSection(),
           if (code != null) ...[
