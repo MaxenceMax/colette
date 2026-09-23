@@ -33,9 +33,9 @@ Alternatives écartées :
 | Ligne du jour | Surlignée (fond `primaryContainer`) dans les deux tables, d'après le jour de vie. |
 | Calcul du jour | Avec pesée : « {mlPerKg} ml/kg × {kg} kg = {ml} ml » sous la règle au poids (poids en kg avec une décimale, séparateur locale). Sans pesée : l'invitation existante à ajouter une pesée. |
 | Carte, ligne d'aide | Cible ajustée : « Cible ajustée à {ml} ml · OMS : {oms} ml ». Sinon, comportement actuel (mention « Repères par âge… » uniquement sans pesée). |
-| Carte, accès | Icône info (`Icons.info_outline`) à droite du titre « Prochain biberon », infobulle « Repères OMS ». Le tap sur la carte continue d'ouvrir le formulaire biberon. |
-| Écriture | Chaque changement de la cible passe par `BabySettingsController.updateCareSettings`, qui déclenche `feedingPlanSync`. État local optimiste dans la feuille, comme `CareSettingsSection`. |
-| Erreurs | `ref.listen` sur `babySettingsControllerProvider` dans la feuille : `SnackBar` avec `failureMessage`. |
+| Carte, accès | Icône info (`Icons.info_outline`) à droite du titre « Prochain biberon », infobulle « Voir les repères OMS ». Le tap sur la carte continue d'ouvrir le formulaire biberon. |
+| Écriture | Chaque changement de la cible passe par `BabySettingsController.updateCareSettings`, qui déclenche `feedingPlanSync`. État local optimiste dans la feuille, comme `CareSettingsSection`. `BabySettingsController._run` lit `feedingPlanSyncProvider` avant l'`await` et ne touche `state` que si `ref.mounted`, pour que fermer la feuille pendant l'écriture ne casse ni le contrôleur ni la sync. |
+| Erreurs | Affichée dans la feuille, sous le titre de la section cible (texte en `error`), et la valeur optimiste est remise à celle du profil. Pas de `SnackBar` : la feuille modale le masquerait. |
 | Sans profil | L'icône info n'existe pas (la carte « plan indisponible » est inchangée). |
 | Cloud Functions | Aucun changement : `StoredCareSettings` est partiel, le champ inconnu est ignoré ; les fonctions ne lisent que `feedingPlan.suggestedMl` et `nextBottleAt`. |
 
@@ -50,8 +50,9 @@ Domaine (`features/dashboard/domain`) :
 - `FeedingAgeBand` (enum, `entities/feeding_age_band.dart`) : dix valeurs avec `dailyMl`, et `static FeedingAgeBand forDayOfLife(int day)`. `ComputeFeedingPlan.dailyTargetFromAge` délègue à `forDayOfLife(day).dailyMl` ; la table de nombres n'existe plus qu'ici.
 - `FeedingPlan` : champs ajoutés `omsTargetMl` et `isTargetOverridden`. `dailyTargetMl` reste la cible effective.
 - `ComputeFeedingPlan.call` : paramètre `int? dailyTargetMlOverride`. Calcule `omsTargetMl` comme aujourd'hui, puis `dailyTargetMl = dailyTargetMlOverride ?? omsTargetMl`, `isTargetOverridden = dailyTargetMlOverride != null`. `isEstimatedFromAge` garde son sens : cible OMS obtenue sans pesée.
+- `ComputeFeedingPlan.weightTargetMl(dayOfLife, grams)` : seul endroit qui calcule la cible OMS au poids ; réutilisé par `ComputeFeedingReference`.
 - `FeedingReference` (freezed, `entities/feeding_reference.dart`) : `dayOfLife`, `ageBand`, `mlPerKg`, `weightGrams?`, `weightTargetMl?`.
-- `ComputeFeedingReference()(birthDate, latestWeightGrams, now) → FeedingReference` : réutilise `ComputeFeedingPlan.dayOfLife` et `mlPerKg` ; `weightTargetMl` arrondi à 10 ml, `null` sans pesée.
+- `ComputeFeedingReference()(birthDate, latestWeightGrams, now) → FeedingReference` : réutilise `ComputeFeedingPlan.dayOfLife`, `mlPerKg` et `weightTargetMl` ; `null` sans pesée.
 
 Données (`features/baby/data`) :
 
@@ -62,10 +63,10 @@ Présentation :
 - `dashboard_providers.dart` : `feedingPlanProvider` passe `profile.careSettings.dailyTargetMl` ; nouveau `feedingReferenceProvider` (`FeedingReference?`, `null` sans profil).
 - `feeding_plan_sync.dart` : `FirestoreFeedingPlanSync` passe aussi l'override.
 - `next_bottle_card.dart` : icône info dans la ligne de titre, ligne d'aide conditionnelle.
-- `feeding_reference_sheet.dart` (nouveau, `dashboard/presentation/widgets`) : `showFeedingReferenceSheet(context)` et `FeedingReferenceSheet` (`ConsumerStatefulWidget`, `isScrollControlled`, `useSafeArea`). Sections en widgets privés, chacune sous 300 lignes au total :
+- `feeding_reference_sheet.dart` (nouveau, `dashboard/presentation/widgets`) : `showFeedingReferenceSheet(context)` et `FeedingReferenceSheet` (`ConsumerWidget`, `isScrollControlled`, `useSafeArea`). Sections en widgets privés :
   - `_AgeTableSection` : une ligne par `FeedingAgeBand`, ligne courante surlignée.
   - `_WeightRuleSection` : six lignes ml/kg, ligne courante surlignée, calcul du jour ou invitation à peser.
-  - `_TargetSection` : cible OMS affichée ; bouton « Ajuster » qui pose `dailyTargetMl = omsTargetMl` ; une fois ajustée, `IntStepperRow` (min 100, max 1500, pas 10, suffixe ml) et bouton texte « Revenir au calcul OMS » qui pose `null`.
+  - `FeedingTargetSection` (fichier `feeding_target_section.dart`, `ConsumerStatefulWidget` à état local optimiste) : cible OMS affichée ; bouton « Ajuster » qui pose `dailyTargetMl = omsTargetMl` (borné) ; une fois ajustée, `IntStepperRow` (min 100, max 1500, pas 10, suffixe ml) et bouton texte « Revenir au calcul OMS » qui pose `null` ; erreur d'écriture affichée en ligne.
 - Les libellés des tranches d'âge et des jours sont des clés l10n ; le domaine ne porte aucun texte.
 
 ## 5. Fichiers touchés
@@ -80,9 +81,11 @@ Présentation :
 - `lib/features/dashboard/presentation/providers/dashboard_providers.dart` : override, `feedingReferenceProvider`.
 - `lib/features/dashboard/presentation/providers/feeding_plan_sync.dart` : override.
 - `lib/features/dashboard/presentation/widgets/next_bottle_card.dart` : icône info, ligne d'aide.
-- `lib/features/dashboard/presentation/widgets/feeding_reference_sheet.dart` (nouveau).
-- `lib/l10n/app_fr.arb` : `feedingReferenceTitle`, `feedingReferenceSource`, `feedingReferenceTooltip`, `feedingReferenceAgeTitle`, `feedingReferenceWeightTitle`, `feedingAgeBandDay{1..5}`, `feedingAgeBandDay6ToMonth1`, `feedingAgeBandMonth1To2`, `feedingAgeBandMonth2To4`, `feedingAgeBandMonth4To6`, `feedingAgeBandMonth6Plus`, `feedingWeightRuleDay6Plus`, `feedingMlPerDay(ml)`, `feedingMlPerKg(ml)`, `feedingWeightCalc(mlPerKg, kg, ml)`, `feedingTargetTitle`, `feedingTargetOms(ml)`, `feedingTargetAdjust`, `feedingTargetReset`, `feedingPlanAdjusted(ml, oms)`.
-- Tests : `compute_feeding_plan_test.dart` (override), `feeding_age_band_test.dart` (nouveau), `compute_feeding_reference_test.dart` (nouveau), `baby_profile_dto_test.dart` (champ), `feeding_plan_sync_test.dart` (override transmis), `dashboard_page_test.dart` (ligne « Cible ajustée », icône info), `feeding_reference_sheet_test.dart` (nouveau).
+- `lib/features/dashboard/presentation/widgets/feeding_reference_sheet.dart` (nouveau) : feuille, table par âge, règle au poids.
+- `lib/features/dashboard/presentation/widgets/feeding_target_section.dart` (nouveau) : `FeedingTargetSection`, cible ajustable avec état local optimiste et erreur en ligne.
+- `lib/features/baby/presentation/providers/baby_settings_controller.dart` : sync lue avant l'`await`, garde `ref.mounted`.
+- `lib/l10n/app_fr.arb` : `feedingPlanAdjusted(ml, oms)`, `feedingReferenceTooltip`, `feedingReferenceTitle`, `feedingReferenceSource`, `feedingReferenceAgeTitle`, `feedingReferenceWeightTitle`, `feedingDayOfLife(day)` (jours 1 à 5, dans les deux tables), `feedingAgeBandDay6ToMonth1`, `feedingAgeBandMonth1To2`, `feedingAgeBandMonth2To4`, `feedingAgeBandMonth4To6`, `feedingAgeBandMonth6Plus`, `feedingWeightRuleDay6Plus`, `feedingMlPerDay(ml)`, `feedingMlPerKg(ml)`, `feedingWeightCalc(mlPerKg, kg, ml)`, `feedingTargetTitle`, `feedingTargetOms(ml)`, `feedingTargetAdjust`, `feedingTargetAdjusted`, `feedingTargetReset`.
+- Tests : `feeding_age_band_test.dart`, `compute_feeding_reference_test.dart`, `dashboard_providers_test.dart`, `feeding_reference_sheet_test.dart` (nouveaux) ; ajouts dans `compute_feeding_plan_test.dart` (override, bornes), `baby_profile_dto_test.dart`, `firestore_baby_repository_test.dart` (effacement via merge), `baby_settings_controller_test.dart` (destruction pendant l'écriture), `feeding_plan_sync_test.dart`, `dashboard_page_test.dart` (mention, icône, tap carte).
 
 Documentation : spec v1 §6.3 complétée (cible ajustée, source unique de la table par âge, snapshot inchangé).
 
@@ -94,6 +97,6 @@ Documentation : spec v1 §6.3 complétée (cible ajustée, source unique de la t
 - DTO : aller-retour avec 600 ; absent → `null` ; `'abc'` → `null` ; 50 → 100 ; 9 999 → 1 500.
 - `FirestoreFeedingPlanSync` : avec `dailyTargetMl` 600 dans le profil, le snapshot écrit reflète la cible ajustée (`suggestedMl` cohérent).
 - Carte : avec override, texte « Cible ajustée à 600 ml · OMS : 630 ml » ; sans override et sans pesée, mention actuelle ; l'icône info ouvre la feuille.
-- Feuille : la ligne du jour est surlignée dans les deux tables ; « Ajuster » appelle `updateCareSettings` avec `dailyTargetMl` = cible OMS ; « + » appelle avec +10 ; « Revenir au calcul OMS » appelle avec `null` ; erreur du contrôleur → `SnackBar`.
+- Feuille : la ligne du jour est surlignée dans les deux tables ; « Ajuster » appelle `updateCareSettings` avec `dailyTargetMl` = cible OMS ; « + » appelle avec +10 ; « Revenir au calcul OMS » appelle avec `null` ; une cible poussée par l'autre appareil est adoptée ; une erreur d'écriture s'affiche en ligne et annule l'ajustement.
 
 Vérification finale : `dart run build_runner build -d`, `dart format lib test`, `dart analyze`, `flutter test`.

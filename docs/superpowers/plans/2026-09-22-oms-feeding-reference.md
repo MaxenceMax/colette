@@ -146,7 +146,7 @@ Co-Authored-By: Claude Fable 5.1 <noreply@anthropic.com>"
 - Modify: `lib/features/dashboard/domain/use_cases/compute_feeding_plan.dart`
 - Test: `test/features/dashboard/domain/compute_feeding_plan_test.dart`
 
-- [ ] **Étape 1 : tests rouges**
+- [x] **Étape 1 : tests rouges**
 
 Ajouter à la fin de `main()` dans `test/features/dashboard/domain/compute_feeding_plan_test.dart` :
 
@@ -208,12 +208,12 @@ Ajouter à la fin de `main()` dans `test/features/dashboard/domain/compute_feedi
   });
 ```
 
-- [ ] **Étape 2 : vérifier l'échec**
+- [x] **Étape 2 : vérifier l'échec**
 
 Run: `flutter test test/features/dashboard/domain/compute_feeding_plan_test.dart`
 Expected: échec de compilation, paramètre `dailyTargetMlOverride` inconnu.
 
-- [ ] **Étape 3 : `CareSettings`**
+- [x] **Étape 3 : `CareSettings`**
 
 Remplacer le contenu de `lib/features/baby/domain/entities/care_settings.dart` :
 
@@ -245,7 +245,7 @@ abstract class CareSettings with _$CareSettings {
 }
 ```
 
-- [ ] **Étape 4 : `FeedingPlan`**
+- [x] **Étape 4 : `FeedingPlan`**
 
 Dans `lib/features/dashboard/domain/entities/feeding_plan.dart`, remplacer la factory :
 
@@ -266,7 +266,7 @@ Dans `lib/features/dashboard/domain/entities/feeding_plan.dart`, remplacer la fa
   }) = _FeedingPlan;
 ```
 
-- [ ] **Étape 5 : `ComputeFeedingPlan`**
+- [x] **Étape 5 : `ComputeFeedingPlan`**
 
 Dans `lib/features/dashboard/domain/use_cases/compute_feeding_plan.dart`, remplacer la méthode `call` :
 
@@ -330,12 +330,12 @@ Mettre à jour aussi le commentaire de classe :
 /// `feedsPerDay` est borné à 1 minimum pour ne jamais diviser par zéro.
 ```
 
-- [ ] **Étape 6 : générer et vérifier le vert**
+- [x] **Étape 6 : générer et vérifier le vert**
 
 Run: `dart run build_runner build -d && flutter test test/features/dashboard/domain/ test/features/baby/`
 Expected: build sans erreur ; tous les tests verts.
 
-- [ ] **Étape 7 : commit**
+- [x] **Étape 7 : commit**
 
 ```bash
 git add lib/features/baby/domain/entities/care_settings.dart lib/features/baby/domain/entities/care_settings.freezed.dart lib/features/dashboard/domain/entities/feeding_plan.dart lib/features/dashboard/domain/entities/feeding_plan.freezed.dart lib/features/dashboard/domain/use_cases/compute_feeding_plan.dart test/features/dashboard/domain/compute_feeding_plan_test.dart
@@ -353,7 +353,7 @@ Co-Authored-By: Claude Fable 5.1 <noreply@anthropic.com>"
 - Create: `lib/features/dashboard/domain/use_cases/compute_feeding_reference.dart`
 - Test: `test/features/dashboard/domain/compute_feeding_reference_test.dart`
 
-- [ ] **Étape 1 : test rouge**
+- [x] **Étape 1 : test rouge**
 
 Créer `test/features/dashboard/domain/compute_feeding_reference_test.dart` :
 
@@ -404,12 +404,12 @@ void main() {
 }
 ```
 
-- [ ] **Étape 2 : vérifier l'échec**
+- [x] **Étape 2 : vérifier l'échec**
 
 Run: `flutter test test/features/dashboard/domain/compute_feeding_reference_test.dart`
 Expected: échec de compilation, fichiers introuvables.
 
-- [ ] **Étape 3 : entité**
+- [x] **Étape 3 : entité**
 
 Créer `lib/features/dashboard/domain/entities/feeding_reference.dart` :
 
@@ -432,7 +432,7 @@ abstract class FeedingReference with _$FeedingReference {
 }
 ```
 
-- [ ] **Étape 4 : use case**
+- [x] **Étape 4 : use case**
 
 Créer `lib/features/dashboard/domain/use_cases/compute_feeding_reference.dart` :
 
@@ -466,12 +466,12 @@ class ComputeFeedingReference {
 }
 ```
 
-- [ ] **Étape 5 : générer et vérifier le vert**
+- [x] **Étape 5 : générer et vérifier le vert**
 
 Run: `dart run build_runner build -d && flutter test test/features/dashboard/domain/`
 Expected: tous verts.
 
-- [ ] **Étape 6 : commit**
+- [x] **Étape 6 : commit**
 
 ```bash
 git add lib/features/dashboard/domain/entities/feeding_reference.dart lib/features/dashboard/domain/entities/feeding_reference.freezed.dart lib/features/dashboard/domain/use_cases/compute_feeding_reference.dart test/features/dashboard/domain/compute_feeding_reference_test.dart
@@ -488,7 +488,7 @@ Co-Authored-By: Claude Fable 5.1 <noreply@anthropic.com>"
 - Modify: `lib/features/baby/data/dtos/baby_profile_dto.dart:5-45`
 - Test: `test/features/baby/data/baby_profile_dto_test.dart`
 
-- [ ] **Étape 1 : tests rouges**
+- [x] **Étape 1 : tests rouges**
 
 Ajouter à la fin de `main()` dans `test/features/baby/data/baby_profile_dto_test.dart` :
 
@@ -532,12 +532,12 @@ Ajouter à la fin de `main()` dans `test/features/baby/data/baby_profile_dto_tes
   });
 ```
 
-- [ ] **Étape 2 : vérifier l'échec**
+- [x] **Étape 2 : vérifier l'échec**
 
 Run: `flutter test test/features/baby/data/baby_profile_dto_test.dart`
 Expected: les tests `aller-retour` et `borné` échouent (le champ n'est ni écrit ni lu).
 
-- [ ] **Étape 3 : implémentation**
+- [x] **Étape 3 : implémentation**
 
 Dans `lib/features/baby/data/dtos/baby_profile_dto.dart`, dans `CareSettingsDto.toMap`, ajouter après `'feedsPerDay': settings.feedsPerDay,` :
 
@@ -571,12 +571,12 @@ Et dans `fromMap`, ajouter après `feedsPerDay: ...,` :
     ),
 ```
 
-- [ ] **Étape 4 : vérifier le vert**
+- [x] **Étape 4 : vérifier le vert**
 
 Run: `flutter test test/features/baby/`
 Expected: tous verts.
 
-- [ ] **Étape 5 : commit**
+- [x] **Étape 5 : commit**
 
 ```bash
 git add lib/features/baby/data/dtos/baby_profile_dto.dart test/features/baby/data/baby_profile_dto_test.dart
@@ -594,7 +594,7 @@ Co-Authored-By: Claude Fable 5.1 <noreply@anthropic.com>"
 - Modify: `lib/features/dashboard/presentation/providers/feeding_plan_sync.dart:55-62`
 - Test: `test/features/dashboard/presentation/feeding_plan_sync_test.dart`
 
-- [ ] **Étape 1 : test rouge**
+- [x] **Étape 1 : test rouge**
 
 Ajouter avant le test `'sync n\'échoue pas sans profil'` dans `test/features/dashboard/presentation/feeding_plan_sync_test.dart` :
 
@@ -641,12 +641,12 @@ Ajouter avant le test `'sync n\'échoue pas sans profil'` dans `test/features/da
 
 Ajouter l'import `package:colette/features/baby/domain/entities/care_settings.dart` en tête du fichier.
 
-- [ ] **Étape 2 : vérifier l'échec**
+- [x] **Étape 2 : vérifier l'échec**
 
 Run: `flutter test test/features/dashboard/presentation/feeding_plan_sync_test.dart`
 Expected: le nouveau test échoue, `suggestedMl` vaut 60.
 
-- [ ] **Étape 3 : `feeding_plan_sync.dart`**
+- [x] **Étape 3 : `feeding_plan_sync.dart`**
 
 Dans `FirestoreFeedingPlanSync.sync`, ajouter l'argument dans l'appel à `ComputeFeedingPlan` :
 
@@ -662,7 +662,7 @@ Dans `FirestoreFeedingPlanSync.sync`, ajouter l'argument dans l'appel à `Comput
       );
 ```
 
-- [ ] **Étape 4 : `dashboard_providers.dart`**
+- [x] **Étape 4 : `dashboard_providers.dart`**
 
 Ajouter les imports :
 
@@ -689,12 +689,12 @@ FeedingReference? feedingReference(Ref ref) {
 }
 ```
 
-- [ ] **Étape 5 : générer et vérifier le vert**
+- [x] **Étape 5 : générer et vérifier le vert**
 
 Run: `dart run build_runner build -d && flutter test test/features/dashboard/`
 Expected: tous verts.
 
-- [ ] **Étape 6 : commit**
+- [x] **Étape 6 : commit**
 
 ```bash
 git add lib/features/dashboard/presentation/providers/dashboard_providers.dart lib/features/dashboard/presentation/providers/dashboard_providers.g.dart lib/features/dashboard/presentation/providers/feeding_plan_sync.dart test/features/dashboard/presentation/feeding_plan_sync_test.dart
@@ -713,7 +713,7 @@ Co-Authored-By: Claude Fable 5.1 <noreply@anthropic.com>"
 - Create: `lib/features/dashboard/presentation/widgets/feeding_target_section.dart`
 - Test: `test/features/dashboard/presentation/feeding_reference_sheet_test.dart`
 
-- [ ] **Étape 1 : clés l10n**
+- [x] **Étape 1 : clés l10n**
 
 Dans `lib/l10n/app_fr.arb`, insérer après la ligne `"feedingPlanUnavailable": ...,` :
 
@@ -750,7 +750,7 @@ Dans `lib/l10n/app_fr.arb`, insérer après la ligne `"feedingPlanUnavailable": 
 Run: `flutter gen-l10n`
 Expected: aucune erreur ; `S.of(context).feedingReferenceTitle` disponible.
 
-- [ ] **Étape 2 : test rouge**
+- [x] **Étape 2 : test rouge**
 
 Créer `test/features/dashboard/presentation/feeding_reference_sheet_test.dart` :
 
@@ -919,12 +919,12 @@ void main() {
 }
 ```
 
-- [ ] **Étape 3 : vérifier l'échec**
+- [x] **Étape 3 : vérifier l'échec**
 
 Run: `flutter test test/features/dashboard/presentation/feeding_reference_sheet_test.dart`
 Expected: échec de compilation, `feeding_reference_sheet.dart` introuvable.
 
-- [ ] **Étape 4 : section cible ajustable**
+- [x] **Étape 4 : section cible ajustable**
 
 Créer `lib/features/dashboard/presentation/widgets/feeding_target_section.dart` :
 
@@ -1024,7 +1024,7 @@ class _FeedingTargetSectionState extends ConsumerState<FeedingTargetSection> {
 }
 ```
 
-- [ ] **Étape 5 : feuille**
+- [x] **Étape 5 : feuille**
 
 Créer `lib/features/dashboard/presentation/widgets/feeding_reference_sheet.dart` :
 
@@ -1245,12 +1245,12 @@ class _ReferenceRow extends StatelessWidget {
 }
 ```
 
-- [ ] **Étape 6 : vérifier le vert**
+- [x] **Étape 6 : vérifier le vert**
 
 Run: `flutter test test/features/dashboard/presentation/feeding_reference_sheet_test.dart`
 Expected: 5 tests verts. Si le test du SnackBar échoue parce que le message n'apparaît pas, vérifier que `pumpApp` monte bien un `MaterialApp` (il fournit le `ScaffoldMessenger`) et que `pumpAndSettle` est appelé après le tap.
 
-- [ ] **Étape 7 : format, analyse, commit**
+- [x] **Étape 7 : format, analyse, commit**
 
 Run: `dart format lib test && dart analyze`
 Expected: aucune erreur ni avertissement.
@@ -1270,7 +1270,7 @@ Co-Authored-By: Claude Fable 5.1 <noreply@anthropic.com>"
 - Modify: `lib/features/dashboard/presentation/widgets/next_bottle_card.dart`
 - Test: `test/features/dashboard/presentation/dashboard_page_test.dart`
 
-- [ ] **Étape 1 : tests rouges**
+- [x] **Étape 1 : tests rouges**
 
 Dans `test/features/dashboard/presentation/dashboard_page_test.dart`, ajouter l'import `package:colette/features/baby/domain/entities/care_settings.dart`, puis donner à `overridesFor` un paramètre `baby` :
 
@@ -1351,12 +1351,12 @@ Ajouter à la fin de `main()` :
   });
 ```
 
-- [ ] **Étape 2 : vérifier l'échec**
+- [x] **Étape 2 : vérifier l'échec**
 
 Run: `flutter test test/features/dashboard/presentation/dashboard_page_test.dart`
 Expected: les trois nouveaux tests échouent (« 80 ml » existe déjà grâce à la Tâche 5, mais la mention et l'icône manquent).
 
-- [ ] **Étape 3 : carte**
+- [x] **Étape 3 : carte**
 
 Dans `lib/features/dashboard/presentation/widgets/next_bottle_card.dart`, ajouter l'import :
 
@@ -1407,12 +1407,12 @@ Remplacer le bloc final `if (plan.isEstimatedFromAge) Text(...)` par :
             ),
 ```
 
-- [ ] **Étape 4 : vérifier le vert**
+- [x] **Étape 4 : vérifier le vert**
 
 Run: `flutter test test/features/dashboard/`
 Expected: tous verts, y compris le test existant « affiche l'âge, le prochain biberon… » (le titre « Prochain biberon » reste trouvé une fois).
 
-- [ ] **Étape 5 : format, analyse, commit**
+- [x] **Étape 5 : format, analyse, commit**
 
 Run: `dart format lib test && dart analyze`
 Expected: aucune erreur.
@@ -1432,7 +1432,7 @@ Co-Authored-By: Claude Fable 5.1 <noreply@anthropic.com>"
 - Modify: `docs/superpowers/specs/2026-09-21-colette-v1-design.md:270-299`
 - Modify: `docs/superpowers/specs/2026-09-22-oms-feeding-reference-design.md:85`
 
-- [ ] **Étape 1 : spec v1**
+- [x] **Étape 1 : spec v1**
 
 Dans `docs/superpowers/specs/2026-09-21-colette-v1-design.md`, après le paragraphe qui commence par « La carte affiche en complément le nombre de biberons… » (§6.3), ajouter :
 
@@ -1440,7 +1440,7 @@ Dans `docs/superpowers/specs/2026-09-21-colette-v1-design.md`, après le paragra
 La table par âge est portée par l'enum `FeedingAgeBand`, source unique. Une cible journalière ajustée (`careSettings.dailyTargetMl`, `null` = OMS) remplace la cible OMS dans le calcul ; la carte affiche alors « Cible ajustée à X ml · OMS : Y ml ». Une feuille « Repères OMS », ouverte par une icône info sur la carte, montre la table par âge, la règle ml/kg, la ligne du jour et permet d'ajuster la cible. Le snapshot `feedingPlan` garde la même forme ; voir `2026-09-22-oms-feeding-reference-design.md`.
 ```
 
-- [ ] **Étape 2 : spec de la fonctionnalité**
+- [x] **Étape 2 : spec de la fonctionnalité**
 
 Dans `docs/superpowers/specs/2026-09-22-oms-feeding-reference-design.md`, dans la liste « Fichiers touchés », remplacer la ligne `lib/l10n/app_fr.arb` par :
 
@@ -1455,7 +1455,7 @@ Et dans la même liste, remplacer la ligne `feeding_reference_sheet.dart (nouvea
 - `lib/features/dashboard/presentation/widgets/feeding_target_section.dart` (nouveau) : `FeedingTargetSection`, cible ajustable avec état local optimiste.
 ```
 
-- [ ] **Étape 3 : vérification complète**
+- [x] **Étape 3 : vérification complète**
 
 Run: `dart run build_runner build -d && flutter gen-l10n && dart format lib test && dart analyze && flutter test`
 Expected: build sans erreur, `dart format` ne modifie aucun fichier, `dart analyze` sans problème, tous les tests verts.
@@ -1470,7 +1470,7 @@ Lancer l'app sur un simulateur iPhone (`flutter run` ou le tool simulateur), ave
 4. « Revenir au calcul OMS » remet la carte dans son état initial.
 5. Passer en thème sombre (Réglages › Apparence) : la ligne surlignée reste lisible.
 
-- [ ] **Étape 5 : commit**
+- [x] **Étape 5 : commit**
 
 ```bash
 git add docs/superpowers/specs/2026-09-21-colette-v1-design.md docs/superpowers/specs/2026-09-22-oms-feeding-reference-design.md

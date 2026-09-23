@@ -45,6 +45,19 @@ void main() {
       expect(ComputeFeedingPlan.mlPerKg(40), 150);
     });
 
+    test('mlPerKgPlateauDay est le jour où le plafond de 150 est atteint', () {
+      expect(
+        ComputeFeedingPlan.mlPerKg(ComputeFeedingPlan.mlPerKgPlateauDay - 1),
+        lessThan(
+          ComputeFeedingPlan.mlPerKg(ComputeFeedingPlan.mlPerKgPlateauDay),
+        ),
+      );
+      expect(
+        ComputeFeedingPlan.mlPerKg(ComputeFeedingPlan.mlPerKgPlateauDay),
+        ComputeFeedingPlan.mlPerKg(ComputeFeedingPlan.mlPerKgPlateauDay + 1),
+      );
+    });
+
     test('repères par âge sans pesée', () {
       expect(ComputeFeedingPlan.dailyTargetFromAge(1), 240);
       expect(ComputeFeedingPlan.dailyTargetFromAge(5), 480);
@@ -174,5 +187,110 @@ void main() {
     );
     expect(plan.feedsPerDay, 1);
     expect(plan.suggestedMl, 240);
+  });
+
+  group('cible ajustée', () {
+    test('remplace la cible OMS et pilote la suggestion', () {
+      final bottle = makeEvent(
+        id: 'a',
+        startAt: DateTime(2026, 9, 10, 9),
+        bottleMl: 60,
+      );
+      final plan = compute(
+        birthDate: birth,
+        latestWeightGrams: 4200,
+        feedsPerDay: 8,
+        todayBottles: [bottle],
+        lastBottle: bottle,
+        now: DateTime(2026, 9, 10, 12),
+        dailyTargetMlOverride: 600,
+      );
+      expect(plan.dailyTargetMl, 600);
+      expect(plan.omsTargetMl, 630);
+      expect(plan.isTargetOverridden, isTrue);
+      expect(plan.isEstimatedFromAge, isFalse);
+      expect(plan.remainingMl, 540);
+      // 540 / 7 = 77,1 → 80.
+      expect(plan.suggestedMl, 80);
+    });
+
+    test('sans override, la cible effective est la cible OMS', () {
+      final plan = compute(
+        birthDate: birth,
+        latestWeightGrams: 4200,
+        feedsPerDay: 8,
+        todayBottles: const [],
+        lastBottle: null,
+        now: DateTime(2026, 9, 10, 12),
+      );
+      expect(plan.dailyTargetMl, 630);
+      expect(plan.omsTargetMl, 630);
+      expect(plan.isTargetOverridden, isFalse);
+    });
+
+    test('override sans pesée : estimé par âge mais cible forcée', () {
+      final plan = compute(
+        birthDate: birth,
+        latestWeightGrams: null,
+        feedsPerDay: 8,
+        todayBottles: const [],
+        lastBottle: null,
+        now: DateTime(2026, 9, 20, 12),
+        dailyTargetMlOverride: 600,
+      );
+      expect(plan.dailyTargetMl, 600);
+      expect(plan.omsTargetMl, 480);
+      expect(plan.isEstimatedFromAge, isTrue);
+      expect(plan.isTargetOverridden, isTrue);
+    });
+
+    test('override égal à la cible OMS : toujours signalé comme ajusté', () {
+      final plan = compute(
+        birthDate: birth,
+        latestWeightGrams: 4200,
+        feedsPerDay: 8,
+        todayBottles: const [],
+        lastBottle: null,
+        now: DateTime(2026, 9, 10, 12),
+        dailyTargetMlOverride: 630,
+      );
+      expect(plan.dailyTargetMl, plan.omsTargetMl);
+      expect(plan.isTargetOverridden, isTrue);
+    });
+
+    test(
+      'override inférieur aux ml déjà donnés : reste 0, suggestion plancher 30',
+      () {
+        final bottle = makeEvent(
+          id: 'a',
+          startAt: DateTime(2026, 9, 10, 9),
+          bottleMl: 200,
+        );
+        final plan = compute(
+          birthDate: birth,
+          latestWeightGrams: 4200,
+          feedsPerDay: 8,
+          todayBottles: [bottle],
+          lastBottle: bottle,
+          now: DateTime(2026, 9, 10, 12),
+          dailyTargetMlOverride: 100,
+        );
+        expect(plan.remainingMl, 0);
+        expect(plan.suggestedMl, ComputeFeedingPlan.minSuggestedMl);
+      },
+    );
+
+    test('override très haut : la suggestion reste plafonnée à 240', () {
+      final plan = compute(
+        birthDate: birth,
+        latestWeightGrams: 4200,
+        feedsPerDay: 4,
+        todayBottles: const [],
+        lastBottle: null,
+        now: DateTime(2026, 9, 10, 12),
+        dailyTargetMlOverride: 1500,
+      );
+      expect(plan.suggestedMl, ComputeFeedingPlan.maxSuggestedMl);
+    });
   });
 }

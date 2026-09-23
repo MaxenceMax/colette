@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:colette/core/ids/id_generator.dart';
 import 'package:colette/core/result/failure.dart';
 import 'package:colette/features/baby/domain/entities/baby_profile.dart';
@@ -126,6 +128,22 @@ void main() {
         verify(() => repo.saveProfile('ABCDEFGH', captureAny())).captured.single
             as BabyProfile;
     expect(saved.careSettings.feedsPerDay, 7);
+    verify(() => sync.sync()).called(1);
+  });
+
+  test('la sync du plan part même si le contrôleur est détruit pendant l\'écriture', () async {
+    final completer = Completer<Either<Failure, void>>();
+    when(() => repo.saveProfile(any(), any()))
+        .thenAnswer((_) => completer.future);
+    final sub = container.listen(babySettingsControllerProvider, (_, _) {});
+    final future = container
+        .read(babySettingsControllerProvider.notifier)
+        .saveProfile(profile);
+    // Plus aucun écouteur : le contrôleur autoDispose est détruit pendant l'await.
+    sub.close();
+    await Future<void>.delayed(Duration.zero);
+    completer.complete(right(null));
+    expect(await future, isTrue);
     verify(() => sync.sync()).called(1);
   });
 }

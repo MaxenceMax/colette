@@ -74,7 +74,7 @@ final class BabyProfileProvider
     : super(
         from: null,
         argument: null,
-        retry: null,
+        retry: noRetry,
         name: r'babyProfileProvider',
         isAutoDispose: true,
         dependencies: null,
@@ -96,7 +96,7 @@ final class BabyProfileProvider
   }
 }
 
-String _$babyProfileHash() => r'e8ac72c64d29a0776c6ae015d1f697d94ad7e5ab';
+String _$babyProfileHash() => r'7ff12b0325173288e7813bffae05a5b327992c77';
 
 /// Pesées du foyer courant, de la plus récente à la plus ancienne.
 
@@ -120,7 +120,7 @@ final class WeightsProvider
     : super(
         from: null,
         argument: null,
-        retry: null,
+        retry: noRetry,
         name: r'weightsProvider',
         isAutoDispose: true,
         dependencies: null,
@@ -142,7 +142,7 @@ final class WeightsProvider
   }
 }
 
-String _$weightsHash() => r'8a9634588c2e5480383bc287b4d9cef911c16a92';
+String _$weightsHash() => r'53476379617c8179dbdb8dd2528a8d579cc76650';
 
 /// Pesée la plus récente, ou `null`.
 
@@ -189,3 +189,105 @@ final class LatestWeightProvider
 }
 
 String _$latestWeightHash() => r'149e6fb6f54389b1d5a8a0f8b665f8bcd4e12ad1';
+
+/// Dernière pesée et évolution depuis la précédente, ou `null` sans pesée.
+
+@ProviderFor(weightTrend)
+final weightTrendProvider = WeightTrendProvider._();
+
+/// Dernière pesée et évolution depuis la précédente, ou `null` sans pesée.
+
+final class WeightTrendProvider
+    extends $FunctionalProvider<WeightTrend?, WeightTrend?, WeightTrend?>
+    with $Provider<WeightTrend?> {
+  /// Dernière pesée et évolution depuis la précédente, ou `null` sans pesée.
+  WeightTrendProvider._()
+    : super(
+        from: null,
+        argument: null,
+        retry: null,
+        name: r'weightTrendProvider',
+        isAutoDispose: true,
+        dependencies: null,
+        $allTransitiveDependencies: null,
+      );
+
+  @override
+  String debugGetCreateSourceHash() => _$weightTrendHash();
+
+  @$internal
+  @override
+  $ProviderElement<WeightTrend?> $createElement($ProviderPointer pointer) =>
+      $ProviderElement(pointer);
+
+  @override
+  WeightTrend? create(Ref ref) {
+    return weightTrend(ref);
+  }
+
+  /// {@macro riverpod.override_with_value}
+  Override overrideWithValue(WeightTrend? value) {
+    return $ProviderOverride(
+      origin: this,
+      providerOverride: $SyncValueProvider<WeightTrend?>(value),
+    );
+  }
+}
+
+String _$weightTrendHash() => r'9e49640f580b5863ebef9b99544fd3acb848d052';
+
+/// Percentiles OMS sur la période des pesées, une journée de marge de chaque
+/// côté ; vide sans pesée, sans profil ou sans sexe renseigné.
+
+@ProviderFor(whoWeightReference)
+final whoWeightReferenceProvider = WhoWeightReferenceProvider._();
+
+/// Percentiles OMS sur la période des pesées, une journée de marge de chaque
+/// côté ; vide sans pesée, sans profil ou sans sexe renseigné.
+
+final class WhoWeightReferenceProvider
+    extends
+        $FunctionalProvider<
+          List<WhoWeightPercentiles>,
+          List<WhoWeightPercentiles>,
+          List<WhoWeightPercentiles>
+        >
+    with $Provider<List<WhoWeightPercentiles>> {
+  /// Percentiles OMS sur la période des pesées, une journée de marge de chaque
+  /// côté ; vide sans pesée, sans profil ou sans sexe renseigné.
+  WhoWeightReferenceProvider._()
+    : super(
+        from: null,
+        argument: null,
+        retry: null,
+        name: r'whoWeightReferenceProvider',
+        isAutoDispose: true,
+        dependencies: null,
+        $allTransitiveDependencies: null,
+      );
+
+  @override
+  String debugGetCreateSourceHash() => _$whoWeightReferenceHash();
+
+  @$internal
+  @override
+  $ProviderElement<List<WhoWeightPercentiles>> $createElement(
+    $ProviderPointer pointer,
+  ) => $ProviderElement(pointer);
+
+  @override
+  List<WhoWeightPercentiles> create(Ref ref) {
+    return whoWeightReference(ref);
+  }
+
+  /// {@macro riverpod.override_with_value}
+  Override overrideWithValue(List<WhoWeightPercentiles> value) {
+    return $ProviderOverride(
+      origin: this,
+      providerOverride: $SyncValueProvider<List<WhoWeightPercentiles>>(value),
+    );
+  }
+}
+
+String _$whoWeightReferenceHash() =>
+    r'5e32ae3fcc1288753372f81fe6ec531937f92cfb';

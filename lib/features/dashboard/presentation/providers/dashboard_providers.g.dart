@@ -52,7 +52,59 @@ final class FeedingPlanProvider
   }
 }
 
-String _$feedingPlanHash() => r'abc57d5aa8e84acdc5367099a655624b40df6dae';
+String _$feedingPlanHash() => r'528f633c90907a1354b0dd13d9006bc1f4932f81';
+
+/// Repères OMS du jour ; `null` sans profil.
+
+@ProviderFor(feedingReference)
+final feedingReferenceProvider = FeedingReferenceProvider._();
+
+/// Repères OMS du jour ; `null` sans profil.
+
+final class FeedingReferenceProvider
+    extends
+        $FunctionalProvider<
+          FeedingReference?,
+          FeedingReference?,
+          FeedingReference?
+        >
+    with $Provider<FeedingReference?> {
+  /// Repères OMS du jour ; `null` sans profil.
+  FeedingReferenceProvider._()
+    : super(
+        from: null,
+        argument: null,
+        retry: null,
+        name: r'feedingReferenceProvider',
+        isAutoDispose: true,
+        dependencies: null,
+        $allTransitiveDependencies: null,
+      );
+
+  @override
+  String debugGetCreateSourceHash() => _$feedingReferenceHash();
+
+  @$internal
+  @override
+  $ProviderElement<FeedingReference?> $createElement(
+    $ProviderPointer pointer,
+  ) => $ProviderElement(pointer);
+
+  @override
+  FeedingReference? create(Ref ref) {
+    return feedingReference(ref);
+  }
+
+  /// {@macro riverpod.override_with_value}
+  Override overrideWithValue(FeedingReference? value) {
+    return $ProviderOverride(
+      origin: this,
+      providerOverride: $SyncValueProvider<FeedingReference?>(value),
+    );
+  }
+}
+
+String _$feedingReferenceHash() => r'8a9809afb300ad94c7f022370461abf432f1e6d7';
 
 /// Biberons des dernières 24 h glissantes.
 

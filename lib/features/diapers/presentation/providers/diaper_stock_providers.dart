@@ -1,6 +1,7 @@
 import 'dart:developer' as developer;
 
 import 'package:colette/core/firebase/firebase_providers.dart';
+import 'package:colette/core/result/no_retry.dart';
 import 'package:colette/features/diapers/data/repositories/firestore_diaper_stock_repository.dart';
 import 'package:colette/features/diapers/domain/entities/diaper_stock.dart';
 import 'package:colette/features/diapers/domain/entities/diaper_stock_status.dart';
@@ -18,7 +19,7 @@ DiaperStockRepository diaperStockRepository(Ref ref) =>
     FirestoreDiaperStockRepository(ref.watch(firestoreProvider));
 
 /// Stock du foyer courant ; `null` sans foyer ou tant qu'il n'est pas renseigné.
-@riverpod
+@Riverpod(retry: noRetry)
 Stream<DiaperStock?> diaperStock(Ref ref) {
   final code = ref.watch(currentHouseholdCodeProvider);
   if (code == null) return Stream.value(null);

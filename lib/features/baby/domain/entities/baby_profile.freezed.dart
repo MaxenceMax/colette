@@ -15,7 +15,8 @@ T _$identity<T>(T value) => value;
 /// @nodoc
 mixin _$BabyProfile {
 
- String get name; DateTime get birthDate; DateTime? get cordFallenAt; CareSettings get careSettings;
+ String get name; DateTime get birthDate; DateTime? get cordFallenAt;/// `null` tant que non renseigné : pas de courbes OMS.
+ BabySex? get sex; CareSettings get careSettings;
 /// Create a copy of BabyProfile
 /// with the given fields replaced by the non-null parameter values.
 @JsonKey(includeFromJson: false, includeToJson: false)
@@ -27,20 +28,20 @@ $BabyProfileCopyWith<BabyProfile> get copyWith => _$BabyProfileCopyWithImpl<Baby
 @override
 bool operator ==(Object other) {
   final _this = this as BabyProfile;
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is BabyProfile&&(identical(other.name, _this.name) || other.name == _this.name)&&(identical(other.birthDate, _this.birthDate) || other.birthDate == _this.birthDate)&&(identical(other.cordFallenAt, _this.cordFallenAt) || other.cordFallenAt == _this.cordFallenAt)&&(identical(other.careSettings, _this.careSettings) || other.careSettings == _this.careSettings));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is BabyProfile&&(identical(other.name, _this.name) || other.name == _this.name)&&(identical(other.birthDate, _this.birthDate) || other.birthDate == _this.birthDate)&&(identical(other.cordFallenAt, _this.cordFallenAt) || other.cordFallenAt == _this.cordFallenAt)&&(identical(other.sex, _this.sex) || other.sex == _this.sex)&&(identical(other.careSettings, _this.careSettings) || other.careSettings == _this.careSettings));
 }
 
 
 @override
 int get hashCode {
   final _this = this as BabyProfile;
-  return Object.hash(runtimeType,_this.name,_this.birthDate,_this.cordFallenAt,_this.careSettings);
+  return Object.hash(runtimeType,_this.name,_this.birthDate,_this.cordFallenAt,_this.sex,_this.careSettings);
 }
 
 @override
 String toString() {
   final _this = this as BabyProfile;
-  return 'BabyProfile(name: ${_this.name}, birthDate: ${_this.birthDate}, cordFallenAt: ${_this.cordFallenAt}, careSettings: ${_this.careSettings})';
+  return 'BabyProfile(name: ${_this.name}, birthDate: ${_this.birthDate}, cordFallenAt: ${_this.cordFallenAt}, sex: ${_this.sex}, careSettings: ${_this.careSettings})';
 }
 
 
@@ -51,7 +52,7 @@ abstract mixin class $BabyProfileCopyWith<$Res>  {
   factory $BabyProfileCopyWith(BabyProfile value, $Res Function(BabyProfile) _then) = _$BabyProfileCopyWithImpl;
 @useResult
 $Res call({
- String name, DateTime birthDate, DateTime? cordFallenAt, CareSettings careSettings
+ String name, DateTime birthDate, DateTime? cordFallenAt, BabySex? sex, CareSettings careSettings
 });
 
 
@@ -68,12 +69,13 @@ class _$BabyProfileCopyWithImpl<$Res>
 
 /// Create a copy of BabyProfile
 /// with the given fields replaced by the non-null parameter values.
-@pragma('vm:prefer-inline') @override $Res call({Object? name = null,Object? birthDate = null,Object? cordFallenAt = freezed,Object? careSettings = null,}) {
+@pragma('vm:prefer-inline') @override $Res call({Object? name = null,Object? birthDate = null,Object? cordFallenAt = freezed,Object? sex = freezed,Object? careSettings = null,}) {
   return _then(BabyProfile(
 name: null == name ? _self.name : name // ignore: cast_nullable_to_non_nullable
 as String,birthDate: null == birthDate ? _self.birthDate : birthDate // ignore: cast_nullable_to_non_nullable
 as DateTime,cordFallenAt: freezed == cordFallenAt ? _self.cordFallenAt : cordFallenAt // ignore: cast_nullable_to_non_nullable
-as DateTime?,careSettings: null == careSettings ? _self.careSettings : careSettings // ignore: cast_nullable_to_non_nullable
+as DateTime?,sex: freezed == sex ? _self.sex : sex // ignore: cast_nullable_to_non_nullable
+as BabySex?,careSettings: null == careSettings ? _self.careSettings : careSettings // ignore: cast_nullable_to_non_nullable
 as CareSettings,
   ));
 }
@@ -168,10 +170,10 @@ return $default(_that);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( String name,  DateTime birthDate,  DateTime? cordFallenAt,  CareSettings careSettings)?  $default,{required TResult orElse(),}) {final _that = this;
+@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( String name,  DateTime birthDate,  DateTime? cordFallenAt,  BabySex? sex,  CareSettings careSettings)?  $default,{required TResult orElse(),}) {final _that = this;
 switch (_that) {
 case _BabyProfile() when $default != null:
-return $default(_that.name,_that.birthDate,_that.cordFallenAt,_that.careSettings);case _:
+return $default(_that.name,_that.birthDate,_that.cordFallenAt,_that.sex,_that.careSettings);case _:
   return orElse();
 
 }
@@ -189,10 +191,10 @@ return $default(_that.name,_that.birthDate,_that.cordFallenAt,_that.careSettings
 /// }
 /// ```
 
-@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( String name,  DateTime birthDate,  DateTime? cordFallenAt,  CareSettings careSettings)  $default,) {final _that = this;
+@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( String name,  DateTime birthDate,  DateTime? cordFallenAt,  BabySex? sex,  CareSettings careSettings)  $default,) {final _that = this;
 switch (_that) {
 case _BabyProfile():
-return $default(_that.name,_that.birthDate,_that.cordFallenAt,_that.careSettings);case _:
+return $default(_that.name,_that.birthDate,_that.cordFallenAt,_that.sex,_that.careSettings);case _:
   throw StateError('Unexpected subclass');
 
 }
@@ -209,10 +211,10 @@ return $default(_that.name,_that.birthDate,_that.cordFallenAt,_that.careSettings
 /// }
 /// ```
 
-@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( String name,  DateTime birthDate,  DateTime? cordFallenAt,  CareSettings careSettings)?  $default,) {final _that = this;
+@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( String name,  DateTime birthDate,  DateTime? cordFallenAt,  BabySex? sex,  CareSettings careSettings)?  $default,) {final _that = this;
 switch (_that) {
 case _BabyProfile() when $default != null:
-return $default(_that.name,_that.birthDate,_that.cordFallenAt,_that.careSettings);case _:
+return $default(_that.name,_that.birthDate,_that.cordFallenAt,_that.sex,_that.careSettings);case _:
   return null;
 
 }
@@ -224,12 +226,14 @@ return $default(_that.name,_that.birthDate,_that.cordFallenAt,_that.careSettings
 
 
 class _BabyProfile implements BabyProfile {
-  const _BabyProfile({required this.name, required this.birthDate, this.cordFallenAt, this.careSettings = const CareSettings()});
+  const _BabyProfile({required this.name, required this.birthDate, this.cordFallenAt, this.sex, this.careSettings = const CareSettings()});
   
 
 @override final  String name;
 @override final  DateTime birthDate;
 @override final  DateTime? cordFallenAt;
+/// `null` tant que non renseigné : pas de courbes OMS.
+@override final  BabySex? sex;
 @override@JsonKey() final  CareSettings careSettings;
 
 /// Create a copy of BabyProfile
@@ -242,18 +246,18 @@ _$BabyProfileCopyWith<_BabyProfile> get copyWith => __$BabyProfileCopyWithImpl<_
 
 @override
 bool operator ==(Object other) {
-    return identical(this, other) || (other.runtimeType == runtimeType&&other is _BabyProfile&&(identical(other.name, name) || other.name == name)&&(identical(other.birthDate, birthDate) || other.birthDate == birthDate)&&(identical(other.cordFallenAt, cordFallenAt) || other.cordFallenAt == cordFallenAt)&&(identical(other.careSettings, careSettings) || other.careSettings == careSettings));
+    return identical(this, other) || (other.runtimeType == runtimeType&&other is _BabyProfile&&(identical(other.name, name) || other.name == name)&&(identical(other.birthDate, birthDate) || other.birthDate == birthDate)&&(identical(other.cordFallenAt, cordFallenAt) || other.cordFallenAt == cordFallenAt)&&(identical(other.sex, sex) || other.sex == sex)&&(identical(other.careSettings, careSettings) || other.careSettings == careSettings));
 }
 
 
 @override
 int get hashCode {
-    return Object.hash(runtimeType,name,birthDate,cordFallenAt,careSettings);
+    return Object.hash(runtimeType,name,birthDate,cordFallenAt,sex,careSettings);
 }
 
 @override
 String toString() {
-    return 'BabyProfile(name: $name, birthDate: $birthDate, cordFallenAt: $cordFallenAt, careSettings: $careSettings)';
+    return 'BabyProfile(name: $name, birthDate: $birthDate, cordFallenAt: $cordFallenAt, sex: $sex, careSettings: $careSettings)';
 }
 
 
@@ -264,7 +268,7 @@ abstract mixin class _$BabyProfileCopyWith<$Res> implements $BabyProfileCopyWith
   factory _$BabyProfileCopyWith(_BabyProfile value, $Res Function(_BabyProfile) _then) = __$BabyProfileCopyWithImpl;
 @override @useResult
 $Res call({
- String name, DateTime birthDate, DateTime? cordFallenAt, CareSettings careSettings
+ String name, DateTime birthDate, DateTime? cordFallenAt, BabySex? sex, CareSettings careSettings
 });
 
 
@@ -281,12 +285,13 @@ class __$BabyProfileCopyWithImpl<$Res>
 
 /// Create a copy of BabyProfile
 /// with the given fields replaced by the non-null parameter values.
-@override @pragma('vm:prefer-inline') $Res call({Object? name = null,Object? birthDate = null,Object? cordFallenAt = freezed,Object? careSettings = null,}) {
+@override @pragma('vm:prefer-inline') $Res call({Object? name = null,Object? birthDate = null,Object? cordFallenAt = freezed,Object? sex = freezed,Object? careSettings = null,}) {
   return _then(_BabyProfile(
 name: null == name ? _self.name : name // ignore: cast_nullable_to_non_nullable
 as String,birthDate: null == birthDate ? _self.birthDate : birthDate // ignore: cast_nullable_to_non_nullable
 as DateTime,cordFallenAt: freezed == cordFallenAt ? _self.cordFallenAt : cordFallenAt // ignore: cast_nullable_to_non_nullable
-as DateTime?,careSettings: null == careSettings ? _self.careSettings : careSettings // ignore: cast_nullable_to_non_nullable
+as DateTime?,sex: freezed == sex ? _self.sex : sex // ignore: cast_nullable_to_non_nullable
+as BabySex?,careSettings: null == careSettings ? _self.careSettings : careSettings // ignore: cast_nullable_to_non_nullable
 as CareSettings,
   ));
 }
