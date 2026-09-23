@@ -281,5 +281,10 @@
   "tastingWarningTooEarly": "Avant 4 mois, aucun aliment autre que le lait n'est recommandé (OMS, France).",
   "tastingWarningsConfirm": "Enregistrer quand même",
   "catalogSearchHint": "Rechercher un aliment",
-  "catalogEmpty": "Aucun aliment ne correspond."
+  "catalogEmpty": "Aucun aliment ne correspond.",
+  "customFoodNewTitle": "Nouvel aliment",
+  "customFoodEditTitle": "Modifier l'aliment",
+  "customFoodFieldName": "Nom",
+  "customFoodFieldGroup": "Groupe",
+  "customFoodFieldAllergens": "Allergènes"
 }
