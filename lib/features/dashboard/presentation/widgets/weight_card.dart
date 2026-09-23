@@ -51,9 +51,10 @@ class WeightCard extends ConsumerWidget {
               crossAxisAlignment: .end,
               spacing: AppSpacing.md.value,
               children: [
-                Expanded(child: WeightTrendSummary(trend: trend)),
+                Expanded(flex: 3, child: WeightTrendSummary(trend: trend)),
                 if (weights.length > 1)
                   Expanded(
+                    flex: 2,
                     child: SizedBox(
                       height: AppSize.xxxl.value,
                       child: WeightChart(weights: weights, compact: true),

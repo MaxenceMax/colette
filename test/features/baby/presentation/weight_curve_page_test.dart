@@ -61,7 +61,10 @@ void main() {
     expect(find.byType(LineChart), findsOneWidget);
     expect(find.text('3650 g'), findsWidgets);
     expect(find.text('Pesée du 14 sept. 2026'), findsOneWidget);
-    expect(find.text('+180 g en 4 jours · +45 g/jour'), findsOneWidget);
+    expect(
+      find.text('+180\u00A0g en 4\u00A0jours · +45\u00A0g/jour'),
+      findsOneWidget,
+    );
     expect(find.text('2 sept.'), findsOneWidget);
     expect(find.text('14 sept.'), findsOneWidget);
 

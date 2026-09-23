@@ -135,7 +135,7 @@
   "@weightKg": { "placeholders": { "kg": { "type": "String" } } },
   "weightMeasuredOn": "Pesée du {date}",
   "@weightMeasuredOn": { "placeholders": { "date": { "type": "String" } } },
-  "weightTrendSince": "{delta} g en {days, plural, =1{1 jour} other{{days} jours}} · {perDay} g/jour",
+  "weightTrendSince": "{delta}\u00A0g en {days, plural, =1{1\u00A0jour} other{{days}\u00A0jours}} · {perDay}\u00A0g/jour",
   "@weightTrendSince": { "placeholders": { "delta": { "type": "String" }, "days": { "type": "int" }, "perDay": { "type": "String" } } },
   "weightTrendFirst": "Première pesée",
   "weightCardTitle": "Poids",
