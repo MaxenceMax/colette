@@ -105,6 +105,8 @@ void main() {
       expect(find.text('Soin des yeux'), findsOneWidget);
       expect(find.text('Bain'), findsOneWidget);
       expect(find.text('couches'), findsOneWidget);
+      await tester.scrollUntilVisible(find.text('Poids'), 200);
+      expect(find.text('3600 g'), findsOneWidget);
     },
   );
 

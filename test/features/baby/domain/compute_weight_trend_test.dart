@@ -1,5 +1,4 @@
 import 'package:colette/features/baby/domain/entities/weight_entry.dart';
-import 'package:colette/features/baby/domain/entities/weight_trend.dart';
 import 'package:colette/features/baby/domain/use_cases/compute_weight_trend.dart';
 import 'package:flutter_test/flutter_test.dart';
 
