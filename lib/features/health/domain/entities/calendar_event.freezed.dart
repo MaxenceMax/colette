@@ -15,7 +15,8 @@ T _$identity<T>(T value) => value;
 /// @nodoc
 mixin _$CalendarEvent {
 
- String get eventId; String get url; String get title; DateTime get start; DateTime get end; String? get notes;
+ String get eventId; String get url; String get title; DateTime get start; DateTime get end; String? get notes;/// `calendarItemExternalIdentifier` d'EventKit : l'UID iCloud, identique sur tous les appareils.
+ String? get externalId;
 /// Create a copy of CalendarEvent
 /// with the given fields replaced by the non-null parameter values.
 @JsonKey(includeFromJson: false, includeToJson: false)
@@ -27,20 +28,20 @@ $CalendarEventCopyWith<CalendarEvent> get copyWith => _$CalendarEventCopyWithImp
 @override
 bool operator ==(Object other) {
   final _this = this as CalendarEvent;
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is CalendarEvent&&(identical(other.eventId, _this.eventId) || other.eventId == _this.eventId)&&(identical(other.url, _this.url) || other.url == _this.url)&&(identical(other.title, _this.title) || other.title == _this.title)&&(identical(other.start, _this.start) || other.start == _this.start)&&(identical(other.end, _this.end) || other.end == _this.end)&&(identical(other.notes, _this.notes) || other.notes == _this.notes));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is CalendarEvent&&(identical(other.eventId, _this.eventId) || other.eventId == _this.eventId)&&(identical(other.url, _this.url) || other.url == _this.url)&&(identical(other.title, _this.title) || other.title == _this.title)&&(identical(other.start, _this.start) || other.start == _this.start)&&(identical(other.end, _this.end) || other.end == _this.end)&&(identical(other.notes, _this.notes) || other.notes == _this.notes)&&(identical(other.externalId, _this.externalId) || other.externalId == _this.externalId));
 }
 
 
 @override
 int get hashCode {
   final _this = this as CalendarEvent;
-  return Object.hash(runtimeType,_this.eventId,_this.url,_this.title,_this.start,_this.end,_this.notes);
+  return Object.hash(runtimeType,_this.eventId,_this.url,_this.title,_this.start,_this.end,_this.notes,_this.externalId);
 }
 
 @override
 String toString() {
   final _this = this as CalendarEvent;
-  return 'CalendarEvent(eventId: ${_this.eventId}, url: ${_this.url}, title: ${_this.title}, start: ${_this.start}, end: ${_this.end}, notes: ${_this.notes})';
+  return 'CalendarEvent(eventId: ${_this.eventId}, url: ${_this.url}, title: ${_this.title}, start: ${_this.start}, end: ${_this.end}, notes: ${_this.notes}, externalId: ${_this.externalId})';
 }
 
 
@@ -51,7 +52,7 @@ abstract mixin class $CalendarEventCopyWith<$Res>  {
   factory $CalendarEventCopyWith(CalendarEvent value, $Res Function(CalendarEvent) _then) = _$CalendarEventCopyWithImpl;
 @useResult
 $Res call({
- String eventId, String url, String title, DateTime start, DateTime end, String? notes
+ String eventId, String url, String title, DateTime start, DateTime end, String? notes, String? externalId
 });
 
 
@@ -68,7 +69,7 @@ class _$CalendarEventCopyWithImpl<$Res>
 
 /// Create a copy of CalendarEvent
 /// with the given fields replaced by the non-null parameter values.
-@pragma('vm:prefer-inline') @override $Res call({Object? eventId = null,Object? url = null,Object? title = null,Object? start = null,Object? end = null,Object? notes = freezed,}) {
+@pragma('vm:prefer-inline') @override $Res call({Object? eventId = null,Object? url = null,Object? title = null,Object? start = null,Object? end = null,Object? notes = freezed,Object? externalId = freezed,}) {
   return _then(CalendarEvent(
 eventId: null == eventId ? _self.eventId : eventId // ignore: cast_nullable_to_non_nullable
 as String,url: null == url ? _self.url : url // ignore: cast_nullable_to_non_nullable
@@ -76,6 +77,7 @@ as String,title: null == title ? _self.title : title // ignore: cast_nullable_to
 as String,start: null == start ? _self.start : start // ignore: cast_nullable_to_non_nullable
 as DateTime,end: null == end ? _self.end : end // ignore: cast_nullable_to_non_nullable
 as DateTime,notes: freezed == notes ? _self.notes : notes // ignore: cast_nullable_to_non_nullable
+as String?,externalId: freezed == externalId ? _self.externalId : externalId // ignore: cast_nullable_to_non_nullable
 as String?,
   ));
 }
@@ -161,10 +163,10 @@ return $default(_that);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( String eventId,  String url,  String title,  DateTime start,  DateTime end,  String? notes)?  $default,{required TResult orElse(),}) {final _that = this;
+@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( String eventId,  String url,  String title,  DateTime start,  DateTime end,  String? notes,  String? externalId)?  $default,{required TResult orElse(),}) {final _that = this;
 switch (_that) {
 case _CalendarEvent() when $default != null:
-return $default(_that.eventId,_that.url,_that.title,_that.start,_that.end,_that.notes);case _:
+return $default(_that.eventId,_that.url,_that.title,_that.start,_that.end,_that.notes,_that.externalId);case _:
   return orElse();
 
 }
@@ -182,10 +184,10 @@ return $default(_that.eventId,_that.url,_that.title,_that.start,_that.end,_that.
 /// }
 /// ```
 
-@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( String eventId,  String url,  String title,  DateTime start,  DateTime end,  String? notes)  $default,) {final _that = this;
+@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( String eventId,  String url,  String title,  DateTime start,  DateTime end,  String? notes,  String? externalId)  $default,) {final _that = this;
 switch (_that) {
 case _CalendarEvent():
-return $default(_that.eventId,_that.url,_that.title,_that.start,_that.end,_that.notes);case _:
+return $default(_that.eventId,_that.url,_that.title,_that.start,_that.end,_that.notes,_that.externalId);case _:
   throw StateError('Unexpected subclass');
 
 }
@@ -202,10 +204,10 @@ return $default(_that.eventId,_that.url,_that.title,_that.start,_that.end,_that.
 /// }
 /// ```
 
-@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( String eventId,  String url,  String title,  DateTime start,  DateTime end,  String? notes)?  $default,) {final _that = this;
+@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( String eventId,  String url,  String title,  DateTime start,  DateTime end,  String? notes,  String? externalId)?  $default,) {final _that = this;
 switch (_that) {
 case _CalendarEvent() when $default != null:
-return $default(_that.eventId,_that.url,_that.title,_that.start,_that.end,_that.notes);case _:
+return $default(_that.eventId,_that.url,_that.title,_that.start,_that.end,_that.notes,_that.externalId);case _:
   return null;
 
 }
@@ -217,7 +219,7 @@ return $default(_that.eventId,_that.url,_that.title,_that.start,_that.end,_that.
 
 
 class _CalendarEvent implements CalendarEvent {
-  const _CalendarEvent({required this.eventId, required this.url, required this.title, required this.start, required this.end, this.notes});
+  const _CalendarEvent({required this.eventId, required this.url, required this.title, required this.start, required this.end, this.notes, this.externalId});
   
 
 @override final  String eventId;
@@ -226,6 +228,8 @@ class _CalendarEvent implements CalendarEvent {
 @override final  DateTime start;
 @override final  DateTime end;
 @override final  String? notes;
+/// `calendarItemExternalIdentifier` d'EventKit : l'UID iCloud, identique sur tous les appareils.
+@override final  String? externalId;
 
 /// Create a copy of CalendarEvent
 /// with the given fields replaced by the non-null parameter values.
@@ -237,18 +241,18 @@ _$CalendarEventCopyWith<_CalendarEvent> get copyWith => __$CalendarEventCopyWith
 
 @override
 bool operator ==(Object other) {
-    return identical(this, other) || (other.runtimeType == runtimeType&&other is _CalendarEvent&&(identical(other.eventId, eventId) || other.eventId == eventId)&&(identical(other.url, url) || other.url == url)&&(identical(other.title, title) || other.title == title)&&(identical(other.start, start) || other.start == start)&&(identical(other.end, end) || other.end == end)&&(identical(other.notes, notes) || other.notes == notes));
+    return identical(this, other) || (other.runtimeType == runtimeType&&other is _CalendarEvent&&(identical(other.eventId, eventId) || other.eventId == eventId)&&(identical(other.url, url) || other.url == url)&&(identical(other.title, title) || other.title == title)&&(identical(other.start, start) || other.start == start)&&(identical(other.end, end) || other.end == end)&&(identical(other.notes, notes) || other.notes == notes)&&(identical(other.externalId, externalId) || other.externalId == externalId));
 }
 
 
 @override
 int get hashCode {
-    return Object.hash(runtimeType,eventId,url,title,start,end,notes);
+    return Object.hash(runtimeType,eventId,url,title,start,end,notes,externalId);
 }
 
 @override
 String toString() {
-    return 'CalendarEvent(eventId: $eventId, url: $url, title: $title, start: $start, end: $end, notes: $notes)';
+    return 'CalendarEvent(eventId: $eventId, url: $url, title: $title, start: $start, end: $end, notes: $notes, externalId: $externalId)';
 }
 
 
@@ -259,7 +263,7 @@ abstract mixin class _$CalendarEventCopyWith<$Res> implements $CalendarEventCopy
   factory _$CalendarEventCopyWith(_CalendarEvent value, $Res Function(_CalendarEvent) _then) = __$CalendarEventCopyWithImpl;
 @override @useResult
 $Res call({
- String eventId, String url, String title, DateTime start, DateTime end, String? notes
+ String eventId, String url, String title, DateTime start, DateTime end, String? notes, String? externalId
 });
 
 
@@ -276,7 +280,7 @@ class __$CalendarEventCopyWithImpl<$Res>
 
 /// Create a copy of CalendarEvent
 /// with the given fields replaced by the non-null parameter values.
-@override @pragma('vm:prefer-inline') $Res call({Object? eventId = null,Object? url = null,Object? title = null,Object? start = null,Object? end = null,Object? notes = freezed,}) {
+@override @pragma('vm:prefer-inline') $Res call({Object? eventId = null,Object? url = null,Object? title = null,Object? start = null,Object? end = null,Object? notes = freezed,Object? externalId = freezed,}) {
   return _then(_CalendarEvent(
 eventId: null == eventId ? _self.eventId : eventId // ignore: cast_nullable_to_non_nullable
 as String,url: null == url ? _self.url : url // ignore: cast_nullable_to_non_nullable
@@ -284,6 +288,7 @@ as String,title: null == title ? _self.title : title // ignore: cast_nullable_to
 as String,start: null == start ? _self.start : start // ignore: cast_nullable_to_non_nullable
 as DateTime,end: null == end ? _self.end : end // ignore: cast_nullable_to_non_nullable
 as DateTime,notes: freezed == notes ? _self.notes : notes // ignore: cast_nullable_to_non_nullable
+as String?,externalId: freezed == externalId ? _self.externalId : externalId // ignore: cast_nullable_to_non_nullable
 as String?,
   ));
 }

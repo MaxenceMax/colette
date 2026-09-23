@@ -12,6 +12,9 @@ abstract class CalendarEvent with _$CalendarEvent {
     required DateTime start,
     required DateTime end,
     String? notes,
+
+    /// `calendarItemExternalIdentifier` d'EventKit : l'UID iCloud, identique sur tous les appareils.
+    String? externalId,
   }) = _CalendarEvent;
 }
 

@@ -92,7 +92,7 @@ Section « Calendrier » dans Réglages : « Ajouter les RDV santé à : {titre 
 | --- | --- | --- |
 | `requestAccess` | — | `granted` / `denied` (`requestFullAccessToEvents` si iOS 17+, sinon `requestAccess(to: .event)`) |
 | `listCalendars` | — | `[{id, title, colorHex, source}]`, calendriers `allowsContentModifications` seulement |
-| `findEvents` | `calendarId, from, to` | `[{eventId, url, title, start, end}]` dont l'URL commence par `colette://rdv/` |
+| `findEvents` | `calendarId, from, to` | `[{eventId, url, title, start, end, notes, externalId}]` dont l'URL commence par `colette://rdv/` (`externalId` : `calendarItemExternalIdentifier`, l'UID iCloud, identique sur les deux iPhones) |
 | `upsertEvent` | `calendarId, eventId?, url, title, start, end, notes, alarms` | `eventId` |
 | `deleteEvent` | `calendarId, eventId` | — |
 
@@ -110,14 +110,16 @@ Erreurs remontées en codes : `accessDenied`, `calendarNotFound`, `io`. `Info.pl
 
 `ReconcileCalendar(visits, stages, babyName, events, now) → List<CalendarAction>` (pur, testé) :
 
-- **RDV attendus** : visites avec `appointmentAt ≥ début d'hier` et sans `doneAt`.
+- **RDV attendus** : visites avec `début d'hier ≤ appointmentAt < now + 2 ans` et sans `doneAt`. Au-delà de la fenêtre, le RDV est ignoré (il serait de toute façon absent de `findEvents`, donc invisible pour le nettoyage).
+- Début, fin et alertes sont calculés sur `appointmentAt` tronqué à la minute (`DateTime(year, month, day, hour, minute)`) : Firestore garde les secondes/microsecondes, EventKit les tronque, la comparaison doit ignorer cet écart.
+- Alertes : la veille à 18 h et 1 h avant, en ne gardant que celles postérieures à `now` (pas d'alerte dans le passé).
 - **Événements présents** : ceux renvoyés par `findEvents` sur `[début d'hier, now + 2 ans]`, groupés par URL.
-- Pour chaque RDV attendu : aucun événement → `create` ; un événement dont début, fin ou titre diffère → `update` ; plusieurs événements → garder le premier (mis à jour si besoin), `delete` des autres.
+- Pour chaque RDV attendu : aucun événement → `create` ; un événement dont début, fin (à la minute) ou titre diffère → `update` ; plusieurs événements → garder celui dont l'`externalId` est le plus petit dans l'ordre lexicographique (les `externalId` nuls passent après, égalité ou absence départagée par `eventId`) — ce critère est identique sur les deux iPhones, contrairement à `eventId` qui est propre à chaque appareil —, mis à jour si besoin, `delete` des autres.
 - Chaque événement dont l'URL ne correspond à aucun RDV attendu → `delete`.
 
 `CalendarSyncController` (présentation) lit le calendrier choisi, appelle `findEvents`, calcule les actions et les exécute une par une. Déclenchée après chaque écriture de visite par cet iPhone, au démarrage de l'app et à l'ouverture de la page Santé. Sans calendrier choisi : rien. `calendarNotFound` : choix local effacé, message « Calendrier introuvable, choisis-en un autre ». `accessDenied` : message avec bouton « Ouvrir les Réglages ». Tout autre échec : journalisé (`log(..., name: 'colette')`), jamais bloquant ; Firestore reste la source de vérité.
 
-Limite assumée : si les deux iPhones créent l'événement avant la synchronisation iCloud, un doublon existe jusqu'à la prochaine réconciliation, qui le supprime.
+Limites assumées : si les deux iPhones créent l'événement avant la synchronisation iCloud, un doublon existe jusqu'à la prochaine réconciliation, qui le supprime (déterministe grâce à l'`externalId`, une fois l'UID iCloud répliqué). Un événement plus ancien que `windowStart(now)` (RDV reporté à une date antérieure à la fenêtre lue) n'est jamais relu par `findEvents` ni nettoyé : il reste dans le calendrier.
 
 ## 6. Rappels
 

@@ -31,11 +31,14 @@ class ReconcileCalendar {
     required DateTime now,
   }) {
     final from = windowStart(now);
+    final until = windowEnd(now);
     final wanted = <String, CalendarEventDraft>{
       for (final visit in visits)
         if (visit.appointmentAt case final at?
-            when visit.doneAt == null && !at.isBefore(from))
-          urlOf(visit.stageId): _draft(visit, at, titleOf(visit.stageId)),
+            when visit.doneAt == null &&
+                !at.isBefore(from) &&
+                at.isBefore(until))
+          urlOf(visit.stageId): _draft(visit, at, titleOf(visit.stageId), now),
     };
     final byUrl = <String, List<CalendarEvent>>{};
     for (final event in events) {
@@ -48,11 +51,12 @@ class ReconcileCalendar {
         actions.add(CalendarAction.create(draft));
         continue;
       }
-      final kept = existing.first;
+      final ordered = [...existing]..sort(_compareForKeep);
+      final kept = ordered.first;
       if (_differs(kept, draft)) {
         actions.add(CalendarAction.update(kept.eventId, draft));
       }
-      for (final extra in existing.skip(1)) {
+      for (final extra in ordered.skip(1)) {
         actions.add(CalendarAction.delete(extra.eventId));
       }
     }
@@ -62,27 +66,49 @@ class ReconcileCalendar {
     return actions;
   }
 
+  /// Doublon : garde le plus petit `externalId` (UID iCloud, identique sur les deux iPhones) ; les absents passent après, `eventId` en dernier recours.
+  static int _compareForKeep(CalendarEvent a, CalendarEvent b) {
+    final cmp = switch ((a.externalId, b.externalId)) {
+      (null, null) => 0,
+      (null, _) => 1,
+      (_, null) => -1,
+      (final x?, final y?) => x.compareTo(y),
+    };
+    return cmp != 0 ? cmp : a.eventId.compareTo(b.eventId);
+  }
+
   static CalendarEventDraft _draft(
     MedicalVisit visit,
     DateTime at,
     String title,
-  ) => CalendarEventDraft(
-    url: urlOf(visit.stageId),
-    title: title,
-    start: at,
-    end: at.add(eventDuration),
-    notes: visit.practitioner,
-    alarms: [
-      DateTime(at.year, at.month, at.day - 1, eveAlarmHour),
-      at.subtract(lastAlarmBefore),
-    ],
-  );
+    DateTime now,
+  ) {
+    final start = DateTime(at.year, at.month, at.day, at.hour, at.minute);
+    final alarms = [
+      DateTime(start.year, start.month, start.day - 1, eveAlarmHour),
+      start.subtract(lastAlarmBefore),
+    ].where((alarm) => alarm.isAfter(now)).toList();
+    return CalendarEventDraft(
+      url: urlOf(visit.stageId),
+      title: title,
+      start: start,
+      end: start.add(eventDuration),
+      notes: visit.practitioner,
+      alarms: alarms,
+    );
+  }
 
-  /// Comparaison à la milliseconde : Firestore et EventKit n'ont pas la même précision.
+  /// Comparaison à la minute : Firestore garde les secondes, EventKit les tronque.
   static bool _differs(CalendarEvent event, CalendarEventDraft draft) =>
       event.title != draft.title ||
       (event.notes ?? '') != (draft.notes ?? '') ||
-      event.start.millisecondsSinceEpoch !=
-          draft.start.millisecondsSinceEpoch ||
-      event.end.millisecondsSinceEpoch != draft.end.millisecondsSinceEpoch;
+      !_sameMinute(event.start, draft.start) ||
+      !_sameMinute(event.end, draft.end);
+
+  static bool _sameMinute(DateTime a, DateTime b) =>
+      a.year == b.year &&
+      a.month == b.month &&
+      a.day == b.day &&
+      a.hour == b.hour &&
+      a.minute == b.minute;
 }
