@@ -61,7 +61,7 @@ final class DocumentsPreviewControllerProvider
 }
 
 String _$documentsPreviewControllerHash() =>
-    r'a38d2f4b420875015dacf866268bd54defd52ef3';
+    r'96d49723315a7d89aba806fef2d753d751ff9c28';
 
 /// Ouverture d'un fichier, une instance par chemin : chaque ligne suit la
 /// sienne. Un fichier non téléchargé est d'abord téléchargé ; l'aperçu

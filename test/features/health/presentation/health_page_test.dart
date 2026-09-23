@@ -13,7 +13,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 import '../../../helpers/pump_app.dart';
-import 'health_card_test.dart' show entry;
+import '../health_factories.dart';
 
 void main() {
   testWidgets('sections par statut, faites repliées', (tester) async {

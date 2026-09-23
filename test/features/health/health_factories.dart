@@ -2,6 +2,9 @@ import 'package:colette/features/health/domain/entities/custom_appointment.dart'
 import 'package:colette/features/health/domain/entities/custom_vaccine.dart';
 import 'package:colette/features/health/domain/entities/given_vaccine.dart';
 import 'package:colette/features/health/domain/entities/medical_stage.dart';
+import 'package:colette/features/health/domain/entities/medical_stage_status.dart';
+import 'package:colette/features/health/domain/entities/medical_timeline.dart';
+import 'package:colette/features/health/domain/reference/medical_schedule.dart';
 import 'package:colette/features/health/domain/entities/medical_visit.dart';
 import 'package:colette/features/health/domain/entities/vaccine_code.dart';
 
@@ -43,4 +46,26 @@ CustomAppointment makeAppointment({
   vaccines: vaccines,
   updatedAt: DateTime(2026, 9, 1),
   updatedByDeviceId: 'device-a',
+);
+
+/// Entrée de frise de test pour l'étape [id], fenêtre du 1er au 30 novembre 2026.
+MedicalTimelineEntry entry(
+  MedicalStageId id,
+  MedicalStageStatus status, {
+  DateTime? appointmentAt,
+  String? practitioner,
+}) => MedicalTimelineEntry(
+  stage: stageById(id),
+  dueFrom: DateTime(2026, 11, 1),
+  dueUntil: DateTime(2026, 12, 1),
+  status: status,
+  visit: switch (status) {
+    MedicalStageStatus.done => makeVisit(id, doneAt: DateTime(2026, 9, 4)),
+    _ when appointmentAt != null => makeVisit(
+      id,
+      appointmentAt: appointmentAt,
+      practitioner: practitioner,
+    ),
+    _ => null,
+  },
 );
