@@ -43,7 +43,8 @@ class DocumentsPreviewController extends _$DocumentsPreviewController {
   }
 
   /// Suit le dossier parent jusqu'à ce que l'entrée soit téléchargée
-  /// (→ aperçu) ou que le téléchargement retombe (→ `io`).
+  /// (→ aperçu), que le téléchargement retombe (→ `io`) ou que l'entrée
+  /// disparaisse (→ repos, rien à montrer).
   void _waitForDownload() {
     final folder = documentsFolderProvider(parentPath(path));
     var seenDownloading = false;
@@ -52,6 +53,14 @@ class DocumentsPreviewController extends _$DocumentsPreviewController {
 
     void handle(AsyncValue<List<DocumentEntry>> next) {
       if (settled) return;
+      if (next.isLoading) {
+        // Rafraîchissement ou invalidation : le flux natif est reconstruit
+        // et sa première liste précède sa requête de métadonnées, donc un
+        // placeholder y est `notDownloaded` sans que le téléchargement ait
+        // échoué. On repart de zéro plutôt que de conclure à un échec.
+        seenDownloading = false;
+        return;
+      }
       final entries = next.value;
       if (entries == null) return;
       final current = entries.where((e) => e.path == path).firstOrNull;
@@ -65,13 +74,18 @@ class DocumentsPreviewController extends _$DocumentsPreviewController {
         case DownloadStatus.notDownloaded when !seenDownloading:
           // iCloud n'a pas encore pris le téléchargement en compte.
           break;
-        case DownloadStatus.notDownloaded || null:
+        case DownloadStatus.notDownloaded:
           settled = true;
           _stopWaiting();
           state = AsyncError(
             const DocumentsFailure(DocumentsReason.io),
             StackTrace.current,
           );
+        case null:
+          // Fichier supprimé entre-temps (ici ou sur l'autre iPhone).
+          settled = true;
+          _stopWaiting();
+          state = const AsyncData(null);
       }
     }
 

@@ -22,14 +22,15 @@ abstract interface class DocumentsRepository {
   /// Lance le téléchargement iCloud du fichier et rend la main aussitôt.
   Future<Either<Failure, void>> download(String path);
 
-  /// Supprime un fichier (jamais un dossier) ; iCloud le garde trente jours
-  /// dans « Récemment supprimés ».
+  /// Supprime un fichier (jamais un dossier) ; passe par la corbeille iCloud
+  /// quand iOS le permet, sinon suppression directe.
   Future<Either<Failure, void>> delete(String path);
 
   /// Ouvre l'app Fichiers sur ce dossier.
   Future<Either<Failure, void>> openInFiles(String path);
 
-  /// Télécharge si besoin puis affiche l'aperçu ; revient à la fermeture.
+  /// Affiche l'aperçu d'un fichier déjà téléchargé, revient à la fermeture ;
+  /// `io` immédiat si le fichier n'est pas lisible localement.
   Future<Either<Failure, void>> preview(String path);
 
   /// Scanne avec l'appareil photo et écrit un PDF ; renvoie le nom final.

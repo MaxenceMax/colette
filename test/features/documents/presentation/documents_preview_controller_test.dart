@@ -93,13 +93,47 @@ void main() {
     verifyNever(() => repo.preview(any()));
   });
 
-  test('entrée disparue du dossier → erreur io', () async {
+  test('entrée disparue pendant l\'attente → repos sans erreur', () async {
     when(() => repo.download(path)).thenAnswer((_) async => right(null));
     await controller().open(entry(DownloadStatus.notDownloaded));
+    folder.add(right([entry(DownloadStatus.downloading)]));
+    await settle();
     folder.add(right(const []));
     await settle();
-    expect(state().error, const DocumentsFailure(DocumentsReason.io));
+    expect(state(), const AsyncData<void>(null));
+    verifyNever(() => repo.preview(any()));
   });
+
+  test(
+    'rafraîchissement pendant le téléchargement : on continue d\'attendre',
+    () async {
+      final second = StreamController<Either<Failure, List<DocumentEntry>>>();
+      addTearDown(() => unawaited(second.close()));
+      var watchCalls = 0;
+      when(() => repo.watch('Ordonnances')).thenAnswer((_) {
+        watchCalls++;
+        return watchCalls == 1 ? folder.stream : second.stream;
+      });
+      when(() => repo.download(path)).thenAnswer((_) async => right(null));
+      when(() => repo.preview(path)).thenAnswer((_) async => right(null));
+
+      await controller().open(entry(DownloadStatus.notDownloaded));
+      folder.add(right([entry(DownloadStatus.downloading, progress: 0.4)]));
+      await settle();
+
+      container.invalidate(documentsFolderProvider('Ordonnances'));
+      await container.pump();
+      second.add(right([entry(DownloadStatus.notDownloaded)]));
+      await settle();
+      expect(state().isLoading, isTrue);
+      verifyNever(() => repo.preview(any()));
+
+      second.add(right([entry(DownloadStatus.downloaded)]));
+      await settle();
+      verify(() => repo.preview(path)).called(1);
+      expect(state(), const AsyncData<void>(null));
+    },
+  );
 
   test('échec du download → erreur, sans attente', () async {
     when(() => repo.download(path)).thenAnswer(
