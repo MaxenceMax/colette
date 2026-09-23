@@ -54,12 +54,12 @@ Calcul des dates : `birthDate + N mois` avec le jour borné à la fin du mois (3
 | `MedicalStageStatus` (enum) | `done`, `appointmentPassed` (RDV passé, visite non marquée faite), `scheduled`, `late`, `due`, `upcoming`. |
 | `ComputeMedicalStageStatus` (pur) | Pour une étape, sa visite éventuelle, la date de naissance et `now` : `done` si `doneAt` ; sinon `appointmentPassed` si `appointmentAt < now` ; sinon `scheduled` si `appointmentAt` ; sinon `late` si `now ≥ fin de fenêtre` ; sinon `due` si `now ≥ début − 14 jours` ; sinon `upcoming`. Les vaccins recommandés non reçus n'influent jamais sur le statut. |
 | `ComputeMedicalTimeline` (pur) | Toutes les étapes avec dates absolues (`dueFrom`, `dueUntil`), statut et visite, triées par âge ; plus `next` = première étape non `done`. |
-| `ComputeMedicalReminderSnapshot` (pur) | Les 3 premières étapes non faites : `{stageId, dueFrom, dueUntil, hasAppointment}` ; sert au digest (§6). |
+| `ComputeMedicalReminderSnapshot` (pur) | Les 3 premières étapes non faites et sans RDV : `{stageId, dueFrom, dueUntil, hasAppointment}` ; sert au digest (§6). |
 | `ReconcileCalendar` (pur) | Voir §5. |
 | `MedicalRepository` | `watchVisits`, `saveVisit` (`set` complet), `deleteVisit`, `saveReminderSnapshot`. |
 | `CalendarRepository` | Pont vers EventKit (§5). |
 
-`ValidationReason` gagne `appointmentBeforeBirth` (RDV antérieur à la naissance) et `doneInFuture` (visite marquée faite dans le futur, tolérance 5 min comme les événements).
+`ValidationReason` gagne `medicalDateBeforeBirth` (RDV antérieur à la naissance) et `medicalDateInFuture` (visite marquée faite dans le futur, tolérance 5 min comme les événements).
 
 ## 4. Données
 
