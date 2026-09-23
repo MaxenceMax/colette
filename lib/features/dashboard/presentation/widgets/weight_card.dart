@@ -26,7 +26,7 @@ class WeightCard extends ConsumerWidget {
     final trend = ref.watch(growthTrendProvider(GrowthMetric.weight));
     final secondary = context.appColor(AppColors.textSecondary);
     return ColetteCardSurface(
-      onTap: () => context.push(AppRoutes.weights),
+      onTap: () => context.push(AppRoutes.growth),
       child: Column(
         crossAxisAlignment: .start,
         spacing: AppSpacing.sm.value,

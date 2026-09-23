@@ -17,6 +17,20 @@ abstract final class GrowthFormat {
     GrowthMetric.headCircumference => s.measurementCm(centimetres(value)),
   };
 
+  /// Nom court de [metric], pour le sélecteur.
+  static String label(S s, GrowthMetric metric) => switch (metric) {
+    GrowthMetric.weight => s.growthMetricWeight,
+    GrowthMetric.length => s.growthMetricLength,
+    GrowthMetric.headCircumference => s.growthMetricHeadCircumference,
+  };
+
+  /// Message quand [metric] n'a jamais été mesurée.
+  static String empty(S s, GrowthMetric metric) => switch (metric) {
+    GrowthMetric.weight => s.growthEmptyWeight,
+    GrowthMetric.length => s.growthEmptyLength,
+    GrowthMetric.headCircumference => s.growthEmptyHeadCircumference,
+  };
+
   /// Écart avec signe explicite, sans unité : « +180 », « −0,5 », « 0 ».
   static String signedDelta(GrowthMetric metric, int delta) {
     if (delta == 0) return '0';

@@ -24,8 +24,8 @@ void main() {
           builder: (_, _) => const Scaffold(body: WeightCard()),
           routes: [
             GoRoute(
-              path: 'weights',
-              builder: (_, _) => const Scaffold(body: Text('page courbe')),
+              path: 'growth',
+              builder: (_, _) => const Scaffold(body: Text('page croissance')),
             ),
           ],
         ),
@@ -87,11 +87,11 @@ void main() {
     expect(find.byType(LineChart), findsOneWidget);
   });
 
-  testWidgets('taper la carte ouvre la courbe de poids', (tester) async {
+  testWidgets('taper la carte ouvre la page de croissance', (tester) async {
     await pumpCard(tester, weights);
     await tester.tap(find.byType(WeightCard));
     await tester.pumpAndSettle();
-    expect(find.text('page courbe'), findsOneWidget);
+    expect(find.text('page croissance'), findsOneWidget);
   });
 
   testWidgets('une mesure de taille seule ne remplace pas le poids', (

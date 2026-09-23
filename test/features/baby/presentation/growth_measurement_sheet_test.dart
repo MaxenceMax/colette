@@ -162,9 +162,18 @@ void main() {
   ) async {
     await pumpApp(
       tester,
-      const Scaffold(body: GrowthMeasurementSheet()),
+      Scaffold(
+        body: Builder(
+          builder: (context) => ElevatedButton(
+            onPressed: () => showGrowthMeasurementSheet(context),
+            child: const Text('Ouvrir'),
+          ),
+        ),
+      ),
       overrides: overrides(),
     );
+    await tester.tap(find.text('Ouvrir'));
+    await tester.pumpAndSettle();
     await tester.enterText(
       find.widgetWithText(TextField, 'Taille (cm)'),
       '150',
