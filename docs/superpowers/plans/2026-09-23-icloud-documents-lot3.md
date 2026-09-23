@@ -35,7 +35,7 @@
 - Modify: `lib/features/documents/data/dtos/document_entry_dto.dart`
 - Test: `test/features/documents/domain/parent_path_test.dart`, `test/features/documents/data/document_entry_dto_test.dart`
 
-- [ ] **Step 1 : tests rouges**
+- [x] **Step 1 : tests rouges**
 
 Créer `test/features/documents/domain/parent_path_test.dart` :
 
@@ -88,12 +88,12 @@ Ajouter à la fin de `main()` dans `test/features/documents/data/document_entry_
   });
 ```
 
-- [ ] **Step 2 : vérifier l'échec**
+- [x] **Step 2 : vérifier l'échec**
 
 Run: `flutter test test/features/documents/domain/parent_path_test.dart test/features/documents/data/document_entry_dto_test.dart`
 Expected: échec de compilation (`parent_path.dart` introuvable, `downloadProgress` inconnu).
 
-- [ ] **Step 3 : implémentation**
+- [x] **Step 3 : implémentation**
 
 `lib/features/documents/domain/use_cases/parent_path.dart` :
 
@@ -134,12 +134,12 @@ abstract class DocumentEntry with _$DocumentEntry {
     },
 ```
 
-- [ ] **Step 4 : régénérer et vérifier**
+- [x] **Step 4 : régénérer et vérifier**
 
 Run: `dart run build_runner build -d && flutter test test/features/documents`
 Expected: tout passe (le champ optionnel ne casse aucun constructeur existant).
 
-- [ ] **Step 5 : commit**
+- [x] **Step 5 : commit**
 
 ```bash
 git add lib/features/documents/domain lib/features/documents/data/dtos test/features/documents/domain test/features/documents/data/document_entry_dto_test.dart
@@ -155,7 +155,7 @@ git commit -m "feat: progression de téléchargement sur DocumentEntry, parentPa
 - Modify: `lib/features/documents/data/native_documents_repository.dart`
 - Test: `test/features/documents/data/native_documents_repository_test.dart`
 
-- [ ] **Step 1 : tests rouges**
+- [x] **Step 1 : tests rouges**
 
 Dans `test/features/documents/data/native_documents_repository_test.dart`, ajouter les imports :
 
@@ -304,12 +304,12 @@ Ajouter, après `tearDown`, un helper de flux et les tests suivants (avant la bo
 
 Note : `List<Either<Failure, List<DocumentEntry>>>` est le type de `results` ; l'import de `DocumentEntry` sert à l'inférence si l'analyseur le demande, sinon le retirer.
 
-- [ ] **Step 2 : vérifier l'échec**
+- [x] **Step 2 : vérifier l'échec**
 
 Run: `flutter test test/features/documents/data/native_documents_repository_test.dart`
 Expected: échec de compilation (`watch`, `download`, `delete`, `openInFiles` inconnus).
 
-- [ ] **Step 3 : interface**
+- [x] **Step 3 : interface**
 
 `lib/features/documents/domain/repositories/documents_repository.dart` — ajouter après `list` :
 
@@ -329,7 +329,7 @@ Expected: échec de compilation (`watch`, `download`, `delete`, `openInFiles` in
   Future<Either<Failure, void>> openInFiles(String path);
 ```
 
-- [ ] **Step 4 : implémentation native**
+- [x] **Step 4 : implémentation native**
 
 Remplacer `lib/features/documents/data/native_documents_repository.dart` en entier :
 
@@ -479,12 +479,12 @@ class NativeDocumentsRepository implements DocumentsRepository {
 
 Le `try/catch` de `watch` couvre l'appel de méthode, l'abonnement et le mapping : une erreur du flux (`PlatformException` émise par `receiveBroadcastStream`) sort de `await for` comme une exception, devient un `Left`, et le générateur se termine. Le `EventChannel` est créé à partir du nom renvoyé par Swift ; en test, `setMockStreamHandler` sur ce même nom suffit.
 
-- [ ] **Step 5 : vérifier**
+- [x] **Step 5 : vérifier**
 
 Run: `dart analyze && flutter test test/features/documents/data`
 Expected: 0 problème, tout passe. Si `dart analyze` signale l'import de `DocumentEntry` inutilisé dans le test, le retirer.
 
-- [ ] **Step 6 : commit**
+- [x] **Step 6 : commit**
 
 ```bash
 git add lib/features/documents/domain/repositories lib/features/documents/data test/features/documents/data
@@ -502,7 +502,7 @@ git commit -m "feat: flux d'un dossier, download, delete et openInFiles dans le 
 - Modify: `lib/features/documents/data/native_documents_repository.dart` (retirer `list`)
 - Test: `test/features/documents/presentation/documents_providers_test.dart`, `documents_write_controller_test.dart`, `documents_root_test.dart`, `documents_page_test.dart`, `test/features/documents/data/native_documents_repository_test.dart`
 
-- [ ] **Step 1 : tests du provider (rouges)**
+- [x] **Step 1 : tests du provider (rouges)**
 
 Remplacer `test/features/documents/presentation/documents_providers_test.dart` :
 
@@ -603,7 +603,7 @@ void main() {
 }
 ```
 
-- [ ] **Step 2 : provider**
+- [x] **Step 2 : provider**
 
 Dans `lib/features/documents/presentation/providers/documents_providers.dart`, remplacer `documentsFolder` :
 
@@ -624,7 +624,7 @@ Stream<List<DocumentEntry>> documentsFolder(Ref ref, String path) => ref
 Run: `dart run build_runner build -d && flutter test test/features/documents/presentation/documents_providers_test.dart`
 Expected: 4 tests verts.
 
-- [ ] **Step 3 : contrôleur d'écriture sans invalidation**
+- [x] **Step 3 : contrôleur d'écriture sans invalidation**
 
 Dans `documents_write_controller.dart`, remplacer la branche succès de `_run` :
 
@@ -744,7 +744,7 @@ void main() {
 Run: `flutter test test/features/documents/presentation/documents_write_controller_test.dart`
 Expected: 4 tests verts.
 
-- [ ] **Step 4 : test de `DocumentsRoot`**
+- [x] **Step 4 : test de `DocumentsRoot`**
 
 Dans `test/features/documents/presentation/documents_root_test.dart`, remplacer la ligne 22 :
 
@@ -759,7 +759,7 @@ et remplacer toutes les occurrences de `verify(() => repo.list('')).called(2)` p
 Run: `flutter test test/features/documents/presentation/documents_root_test.dart`
 Expected: vert.
 
-- [ ] **Step 5 : test de page**
+- [x] **Step 5 : test de page**
 
 Dans `test/features/documents/presentation/documents_page_test.dart` :
 
@@ -832,7 +832,7 @@ Dans `test/features/documents/presentation/documents_page_test.dart` :
 Run: `flutter test test/features/documents/presentation/documents_page_test.dart`
 Expected: vert. Vérifier `grep -n "repo.list" test/features/documents/presentation/documents_page_test.dart` : aucune occurrence.
 
-- [ ] **Step 6 : retirer `list`**
+- [x] **Step 6 : retirer `list`**
 
 - Retirer la méthode `list` de `DocumentsRepository` (interface) et de `NativeDocumentsRepository`.
 - Dans `test/features/documents/data/native_documents_repository_test.dart` : supprimer le test « list transmet le chemin et mappe les entrées », « list renvoie une liste vide quand le canal renvoie null », « entrée malformée → UnknownFailure » (couvert par `watch`), et remplacer `repo.list('')` par `repo.download('')` dans la boucle des codes d'erreur, « code inconnu → UnknownFailure » et « canal absent → UnknownFailure ».
@@ -840,7 +840,7 @@ Expected: vert. Vérifier `grep -n "repo.list" test/features/documents/presentat
 Run: `grep -rn "\.list(" lib/features/documents test/features/documents` → aucune occurrence. Puis `dart analyze && flutter test`.
 Expected: 0 problème ; toute la suite verte.
 
-- [ ] **Step 7 : commit**
+- [x] **Step 7 : commit**
 
 ```bash
 git add lib/features/documents test/features/documents
@@ -856,7 +856,7 @@ git commit -m "feat: liste de documents en flux natif, plus d'invalidation à l'
 - Modify: `lib/features/documents/presentation/widgets/document_entry_tile.dart`
 - Test: `test/features/documents/presentation/documents_preview_controller_test.dart`, `documents_page_test.dart`
 
-- [ ] **Step 1 : tests du contrôleur (rouges)**
+- [x] **Step 1 : tests du contrôleur (rouges)**
 
 Remplacer `test/features/documents/presentation/documents_preview_controller_test.dart` :
 
@@ -997,12 +997,12 @@ void main() {
 }
 ```
 
-- [ ] **Step 2 : vérifier l'échec**
+- [x] **Step 2 : vérifier l'échec**
 
 Run: `flutter test test/features/documents/presentation/documents_preview_controller_test.dart`
 Expected: échec de compilation (`open` inconnu).
 
-- [ ] **Step 3 : contrôleur**
+- [x] **Step 3 : contrôleur**
 
 Remplacer `lib/features/documents/presentation/providers/documents_preview_controller.dart` :
 
@@ -1106,7 +1106,7 @@ class DocumentsPreviewController extends _$DocumentsPreviewController {
 Run: `dart run build_runner build -d && flutter test test/features/documents/presentation/documents_preview_controller_test.dart`
 Expected: 8 tests verts. Si `riverpod_lint` refuse `ref.listen` avec `fireImmediately` dans un notifier, garder l'appel : c'est l'API publique de `Ref` en Riverpod 3.
 
-- [ ] **Step 4 : tuile**
+- [x] **Step 4 : tuile**
 
 Dans `lib/features/documents/presentation/widgets/document_entry_tile.dart` :
 
@@ -1211,7 +1211,7 @@ Le test existant « fichier nuage : icône, et échec io → SnackBar » est rem
 Run: `flutter test test/features/documents/presentation`
 Expected: vert. Les tests avec indicateur animé utilisent `pump()` et non `pumpAndSettle()`.
 
-- [ ] **Step 5 : vérification et commit**
+- [x] **Step 5 : vérification et commit**
 
 Run: `dart format lib test && dart analyze && flutter test`
 Expected: 0 changement de format, 0 problème, suite verte.
@@ -1233,7 +1233,7 @@ git commit -m "feat: téléchargement puis aperçu automatique, progression sur 
 - Modify: `lib/features/documents/presentation/pages/documents_page.dart`
 - Test: `test/features/documents/presentation/documents_delete_controller_test.dart`, `documents_page_test.dart`
 
-- [ ] **Step 1 : l10n**
+- [x] **Step 1 : l10n**
 
 Dans `lib/l10n/app_fr.arb`, avant `"copied"` :
 
@@ -1247,7 +1247,7 @@ Dans `lib/l10n/app_fr.arb`, avant `"copied"` :
 Run: `flutter gen-l10n`
 Expected: `S.documentsDeleteBody(String name)` généré.
 
-- [ ] **Step 2 : test du contrôleur (rouge)**
+- [x] **Step 2 : test du contrôleur (rouge)**
 
 Créer `test/features/documents/presentation/documents_delete_controller_test.dart` :
 
@@ -1304,7 +1304,7 @@ void main() {
 }
 ```
 
-- [ ] **Step 3 : contrôleur**
+- [x] **Step 3 : contrôleur**
 
 `lib/features/documents/presentation/providers/documents_delete_controller.dart` :
 
@@ -1339,7 +1339,7 @@ class DocumentsDeleteController extends _$DocumentsDeleteController {
 Run: `dart run build_runner build -d && flutter test test/features/documents/presentation/documents_delete_controller_test.dart`
 Expected: 2 tests verts.
 
-- [ ] **Step 4 : tests de page (rouges)**
+- [x] **Step 4 : tests de page (rouges)**
 
 Ajouter dans `documents_page_test.dart` :
 
@@ -1406,7 +1406,7 @@ Ajouter dans `documents_page_test.dart` :
 Run: `flutter test test/features/documents/presentation/documents_page_test.dart`
 Expected: les 4 nouveaux tests échouent (pas de `Dismissible`, pas de dialogue).
 
-- [ ] **Step 5 : widget de glissement**
+- [x] **Step 5 : widget de glissement**
 
 `lib/features/documents/presentation/widgets/document_delete_dismissible.dart` :
 
@@ -1494,7 +1494,7 @@ class DocumentDeleteDismissible extends ConsumerWidget {
 
 Vérifier l'import du thème texte : `coletteTextStyles` vient de `package:colette/core/theme/text_styles.dart` (voir `documents_root_section.dart` pour l'import exact utilisé dans la feature).
 
-- [ ] **Step 6 : tuile et page**
+- [x] **Step 6 : tuile et page**
 
 Dans `document_entry_tile.dart`, envelopper le `ListTile` renvoyé par `build` :
 
@@ -1540,7 +1540,7 @@ avec l'import `package:colette/features/documents/presentation/providers/documen
 Run: `flutter test test/features/documents/presentation/documents_page_test.dart`
 Expected: vert. Si `tester.drag` ne déclenche pas `confirmDismiss` (seuil non atteint), remplacer par `await tester.fling(find.text(name), const Offset(-400, 0), 1000);`.
 
-- [ ] **Step 7 : vérification et commit**
+- [x] **Step 7 : vérification et commit**
 
 Run: `dart format lib test && dart analyze && flutter test`
 Expected: 0 changement, 0 problème, suite verte. `documents_page.dart` doit rester sous 300 lignes ; sinon extraire les deux `ref.listen` dans un widget privé `_DocumentsErrorListeners` (un `ConsumerWidget` qui enveloppe le `Scaffold`).
@@ -1561,7 +1561,7 @@ git commit -m "feat: suppression d'un document par glissement avec confirmation"
 - Modify: `lib/features/documents/presentation/pages/documents_page.dart`
 - Test: `test/features/documents/presentation/documents_open_in_files_controller_test.dart`, `documents_page_test.dart`
 
-- [ ] **Step 1 : l10n**
+- [x] **Step 1 : l10n**
 
 Dans `app_fr.arb`, après `documentsErrorDelete` :
 
@@ -1572,7 +1572,7 @@ Dans `app_fr.arb`, après `documentsErrorDelete` :
 
 Run: `flutter gen-l10n`.
 
-- [ ] **Step 2 : test du contrôleur (rouge)**
+- [x] **Step 2 : test du contrôleur (rouge)**
 
 `test/features/documents/presentation/documents_open_in_files_controller_test.dart` :
 
@@ -1634,7 +1634,7 @@ void main() {
 }
 ```
 
-- [ ] **Step 3 : contrôleur**
+- [x] **Step 3 : contrôleur**
 
 `lib/features/documents/presentation/providers/documents_open_in_files_controller.dart` :
 
@@ -1666,7 +1666,7 @@ class DocumentsOpenInFilesController extends _$DocumentsOpenInFilesController {
 Run: `dart run build_runner build -d && flutter test test/features/documents/presentation/documents_open_in_files_controller_test.dart`
 Expected: 2 tests verts.
 
-- [ ] **Step 4 : tests de page (rouges)**
+- [x] **Step 4 : tests de page (rouges)**
 
 ```dart
   testWidgets('bouton Fichiers : présent avec une liste, appelle openInFiles',
@@ -1721,7 +1721,7 @@ Expected: 2 tests verts.
 Run: `flutter test test/features/documents/presentation/documents_page_test.dart`
 Expected: les 4 nouveaux tests échouent.
 
-- [ ] **Step 5 : bouton et page**
+- [x] **Step 5 : bouton et page**
 
 `lib/features/documents/presentation/widgets/documents_open_in_files_button.dart` :
 
@@ -1776,7 +1776,7 @@ Dans `documents_page.dart`, l'`AppBar` devient :
 Run: `flutter test test/features/documents/presentation/documents_page_test.dart`
 Expected: vert.
 
-- [ ] **Step 6 : vérification et commit**
+- [x] **Step 6 : vérification et commit**
 
 Run: `dart format lib test && dart analyze && flutter test`
 Expected: propre, suite verte.
@@ -1799,7 +1799,7 @@ git commit -m "feat: bouton Ouvrir dans Fichiers sur la page Documents"
 
 Pas de test automatisé Swift : la vérification est `flutter build ios --simulator` (compilation) puis la liste de contrôle sur iPhone (Task 8).
 
-- [ ] **Step 1 : `DocumentsLister` — progression, `isAvailable` public, retrait du sondage**
+- [x] **Step 1 : `DocumentsLister` — progression, `isAvailable` public, retrait du sondage**
 
 Remplacer `ios/Runner/Documents/DocumentsLister.swift` :
 
@@ -1933,7 +1933,7 @@ enum DocumentsLister {
 
 (`ensureDownloaded` et `poll` sont supprimés.)
 
-- [ ] **Step 2 : `DocumentsWriter.delete`**
+- [x] **Step 2 : `DocumentsWriter.delete`**
 
 Dans `ios/Runner/Documents/DocumentsWriter.swift`, remplacer `coordinatedWrite` et ajouter `delete` :
 
@@ -1963,7 +1963,7 @@ Dans `ios/Runner/Documents/DocumentsWriter.swift`, remplacer `coordinatedWrite` 
   }
 ```
 
-- [ ] **Step 3 : `DocumentsFolderWatcher`**
+- [x] **Step 3 : `DocumentsFolderWatcher`**
 
 Créer `ios/Runner/Documents/DocumentsFolderWatcher.swift` :
 
@@ -2074,7 +2074,7 @@ final class DocumentsFolderWatcher {
 }
 ```
 
-- [ ] **Step 4 : `DocumentsPlugin`**
+- [x] **Step 4 : `DocumentsPlugin`**
 
 Remplacer `ios/Runner/Documents/DocumentsPlugin.swift` en entier :
 
@@ -2460,7 +2460,7 @@ Points d'attention :
 - `preview` lève `io` depuis `exclusive`, qui répond avec `reply` : le verrou est libéré (chemin 1 du commentaire).
 - Un `openFolderStream` dont Flutter n'écoute jamais le canal (provider détruit entre l'appel et l'abonnement) laisse un observateur non démarré avec sa portée ouverte jusqu'à la fin du processus. Cas limite accepté : l'abonnement suit l'appel de méthode dans la même fonction Dart (`watch`), et un désabonnement pendant l'appel provoque quand même `listen` puis `cancel` (voir `watch` en Task 2).
 
-- [ ] **Step 5 : enregistrer le fichier et compiler**
+- [x] **Step 5 : enregistrer le fichier et compiler**
 
 Run: `ruby ios/scripts/add_documents_sources.rb`
 Expected: `ajouté : DocumentsFolderWatcher.swift`. Le relancer : aucune sortie.
@@ -2468,7 +2468,7 @@ Expected: `ajouté : DocumentsFolderWatcher.swift`. Le relancer : aucune sortie.
 Run: `flutter build ios --simulator 2>&1 | tail -5`
 Expected: `✓ Built build/ios/iphonesimulator/Runner.app`. En cas d'erreur Swift, corriger et rejouer : les noms d'API à vérifier en premier sont `NSMetadataQueryAccessibleUbiquitousExternalDocumentsScope`, `NSMetadataUbiquitousItemPercentDownloadedKey`, `NSMetadataUbiquitousItemIsDownloadingKey`, `FlutterEndOfEventStream`, `FlutterEventChannel(name:binaryMessenger:)`.
 
-- [ ] **Step 6 : commit**
+- [x] **Step 6 : commit**
 
 ```bash
 git add ios/Runner/Documents ios/Runner.xcodeproj/project.pbxproj
@@ -2484,7 +2484,7 @@ git commit -m "feat: pont Swift, flux d'un dossier par NSMetadataQuery, download
 - Modify: `README.md`
 - Modify: `docs/superpowers/plans/2026-09-22-icloud-documents.md` (renvoi), ce plan (cases cochées)
 
-- [ ] **Step 1 : spec, section 5**
+- [x] **Step 1 : spec, section 5**
 
 Remplacer le paragraphe qui commence par « `EventChannel` nommé `colette/documents/folder` (lot 3, remplace l'ancienne méthode `list`) » par :
 
@@ -2500,7 +2500,7 @@ et, dans le tableau des méthodes, ajouter la ligne :
 
 Dans la section 6, paragraphe sur `watch(path)` : remplacer « s'abonne à `EventChannel('colette/documents/folder').receiveBroadcastStream(path)` » par « appelle `openFolderStream` puis s'abonne à `EventChannel(nom reçu).receiveBroadcastStream()` ».
 
-- [ ] **Step 2 : README et plans**
+- [x] **Step 2 : README et plans**
 
 `README.md`, ligne « Documents : … » : remplacer par « Documents : consultation en direct du dossier iCloud Drive partagé (choisi une fois par iPhone), aperçu Quick Look avec téléchargement automatique, scan et import, suppression, ouverture dans Fichiers. »
 
@@ -2513,7 +2513,7 @@ Cocher les cases des tâches 1 à 7 de ce plan.
 Run: `dart format lib test && dart analyze && flutter test && flutter build ios --release 2>&1 | tail -3`
 Expected: 0 changement, 0 problème, suite verte, `✓ Built build/ios/iphoneos/Runner.app`.
 
-- [ ] **Step 4 : commit**
+- [x] **Step 4 : commit**
 
 ```bash
 git add docs README.md
@@ -2527,7 +2527,7 @@ xcrun devicectl device install app --device 273D8811-664A-58F7-BC07-A83762C233B9
 xcrun devicectl device process launch --device 273D8811-664A-58F7-BC07-A83762C233B9 fr.montet.colette
 ```
 
-Puis liste de contrôle, points 17 à 22 de la spec (section 8), par Maxence. Si le point 22 échoue (aucune mise à jour sans rafraîchir, aucune progression), c'est que `NSMetadataQueryAccessibleUbiquitousExternalDocumentsScope` ne couvre pas le dossier partagé : appliquer le plan de repli de la section 11 (relistage sur minuterie dans `DocumentsFolderWatcher` tant qu'une entrée est `downloading`), sans toucher au contrat ni à Flutter.
+Puis liste de contrôle, points 17 à 26 de la spec (section 8), par Maxence. Si le point 22 échoue (aucune mise à jour sans rafraîchir, aucune progression), c'est que `NSMetadataQueryAccessibleUbiquitousExternalDocumentsScope` ne couvre pas le dossier partagé : appliquer le plan de repli de la section 11 (relistage sur minuterie dans `DocumentsFolderWatcher` tant qu'une entrée est `downloading`), sans toucher au contrat ni à Flutter.
 
 ---
 
@@ -2536,3 +2536,11 @@ Puis liste de contrôle, points 17 à 22 de la spec (section 8), par Maxence. Si
 - **Couverture de la spec** : section 3 (flux, téléchargement, aperçu, suppression, Fichiers, verrou) → Tasks 7 et 4 ; section 4 (`downloadProgress`) → Task 1 ; section 5 (canal, méthodes) → Tasks 2, 7, 8 ; section 6 (repository, providers, contrôleurs) → Tasks 2, 3, 4, 5, 6 ; section 7 (tuile, glissement, bouton, erreurs, l10n) → Tasks 4, 5, 6 ; section 8 (tests, liste 17 à 22) → chaque tâche et Task 8 ; section 11 (repli) → Task 8.
 - **Cohérence des noms** : `watch`, `download`, `delete`, `openInFiles`, `openFolderStream` (Dart et Swift) ; `DocumentsPreviewController.open(entry)` ; `DocumentsDeleteController.delete(path)` ; `DocumentsOpenInFilesController.open()` ; `DocumentDeleteDismissible` ; `DocumentsOpenInFilesButton` ; `parentPath` ; `DocumentsLister.startDownload` / `isAvailable` / `realURL` / `locate` ; `DocumentsWriter.delete` ; `DocumentsFolderWatcher.start(sink:)` / `stop()` / `refresh()` / `relativePath`.
 - **Écart connu avec la spec initiale du lot 3** : canal par abonnement via `openFolderStream` au lieu d'un canal unique avec le chemin en argument (Task 8 met la spec à jour).
+
+### Écarts à l'exécution
+
+- **Task 4, `fireImmediately`** : `ref.listen(..., fireImmediately: true)` appelle l'écouteur avant de renvoyer la souscription ; une issue immédiate (fichier déjà téléchargé) laissait donc l'écoute ouverte. Corrigé : abonnement d'abord, puis évaluation à la main de la valeur courante (`handle(ref.read(folder))`), drapeau `settled` pour une seule issue.
+- **Gardes `ref.mounted`** après chaque `await` dans les trois contrôleurs du lot 3 (aperçu, suppression, Fichiers), plus `if (state.isLoading) return;` en tête de `delete()` et `open()`.
+- **Task 5** : garde `context.mounted` au retour de la boîte de dialogue de suppression (ligne démontée entre-temps : rien n'est supprimé) ; glissement désactivé (`DismissDirection.none`) sur toutes les lignes du dossier pendant une suppression.
+- **Task 6** : branche d'erreur d'accès sur le bouton Fichiers (`noFolder`/`accessDenied` → invalidation du dossier, vue « accès perdu ») au lieu d'une `SnackBar` pour toute erreur.
+- **Task 7** : chemins canoniques (`resolvingSymlinksInPath`) pour le filtre des enfants directs et les clés de progression ; prédicat en OU sur les formes `/private/var/…` et `/var/…` ; état « en téléchargement » collant jusqu'à `downloaded`, disparition de la requête, `Current` ou erreur de téléchargement ; `trashItem` tenté avant `removeItem`, coordination sur l'URL logique ; drapeau `stopped` dans l'observateur (`start` après `stop` sans effet) ; diagnostics `os_log` (échec de démarrage de la requête, nombre de résultats à la fin de la collecte).
