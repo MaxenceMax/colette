@@ -3,6 +3,7 @@ import 'dart:math' as math;
 import 'package:colette/core/dates/date_extensions.dart';
 import 'package:colette/features/baby/domain/entities/baby_sex.dart';
 import 'package:colette/features/baby/domain/entities/who_weight_percentiles.dart';
+import 'package:colette/features/baby/domain/reference/who_lms.dart';
 import 'package:colette/features/baby/domain/reference/who_weight_for_age.dart';
 
 /// Percentiles OMS du poids pour l'âge, jour par jour sur une période.
