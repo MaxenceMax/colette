@@ -8,7 +8,9 @@ import 'package:colette/features/events/presentation/pages/timeline_page.dart';
 import 'package:colette/features/events/presentation/providers/events_providers.dart';
 import 'package:colette/features/events/presentation/widgets/event_tile.dart';
 import 'package:colette/features/household/presentation/providers/household_providers.dart';
+import 'package:colette/features/sleep/domain/entities/sleep_session.dart';
 import 'package:colette/features/sleep/presentation/providers/sleep_providers.dart';
+import 'package:colette/features/sleep/presentation/widgets/sleep_tile.dart';
 import 'package:colette/shared/ui/widgets/empty_state.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -23,6 +25,29 @@ import '../../../helpers/pump_app.dart';
 import '../../../helpers/sleep_session_factory.dart';
 
 class MockEventsRepository extends Mock implements EventsRepository {}
+
+/// Dépôt de sommeils qui répond immédiatement tant que [holdNewCalls] est
+/// faux ; une fois activé, chaque nouvel appel de `watchStartedSince` renvoie
+/// un flux qui ne dira jamais rien, pour simuler un écho Firestore qui
+/// n'arrive pas tout de suite.
+class RecordingSleepRepository extends FakeSleepRepository {
+  RecordingSleepRepository([super.sessions = const []]);
+
+  final List<DateTime> calls = [];
+  bool holdNewCalls = false;
+  final List<StreamController<List<SleepSession>>> heldControllers = [];
+
+  @override
+  Stream<List<SleepSession>> watchStartedSince(String code, DateTime from) {
+    calls.add(from);
+    if (holdNewCalls) {
+      final controller = StreamController<List<SleepSession>>();
+      heldControllers.add(controller);
+      return controller.stream;
+    }
+    return super.watchStartedSince(code, from);
+  }
+}
 
 void main() {
   final now = DateTime(2026, 9, 21, 14);
@@ -210,4 +235,148 @@ void main() {
     final careY = tester.getTopLeft(find.text('09h05')).dy;
     expect(sleepY, lessThan(careY));
   });
+
+  testWidgets(
+    'un Journal qui ne contient que des sommeils n\'affiche pas l\'état vide',
+    (tester) async {
+      final repo = MockEventsRepository();
+      when(() => repo.watchLatest(any(), limit: any(named: 'limit')))
+          .thenAnswer((_) => Stream.value(const []));
+      await pumpApp(
+        tester,
+        const TimelinePage(),
+        overrides: [
+          eventsRepositoryProvider.overrideWithValue(repo),
+          sleepRepositoryProvider.overrideWithValue(
+            FakeSleepRepository([
+              makeSleep(
+                id: 's',
+                startAt: DateTime(2026, 9, 21, 10, 20),
+                endAt: DateTime(2026, 9, 21, 12),
+              ),
+            ]),
+          ),
+          clockProvider.overrideWithValue(FixedClock(now)),
+          householdLocalStoreProvider.overrideWithValue(
+            InMemoryHouseholdLocalStore(householdCode: 'ABCDEFGH'),
+          ),
+        ],
+      );
+      expect(find.byType(EmptyState), findsNothing);
+      expect(find.byType(SleepTile), findsOneWidget);
+    },
+  );
+
+  testWidgets('glisser puis confirmer supprime le sommeil', (tester) async {
+    final eventsRepo = MockEventsRepository();
+    when(() => eventsRepo.watchLatest(any(), limit: any(named: 'limit')))
+        .thenAnswer((_) => Stream.value(const []));
+    final sleepRepo = FakeSleepRepository([
+      makeSleep(
+        id: 's1',
+        startAt: DateTime(2026, 9, 21, 10),
+        endAt: DateTime(2026, 9, 21, 11),
+      ),
+    ]);
+    await pumpApp(
+      tester,
+      const TimelinePage(),
+      overrides: [
+        eventsRepositoryProvider.overrideWithValue(eventsRepo),
+        sleepRepositoryProvider.overrideWithValue(sleepRepo),
+        clockProvider.overrideWithValue(FixedClock(now)),
+        householdLocalStoreProvider.overrideWithValue(
+          InMemoryHouseholdLocalStore(householdCode: 'ABCDEFGH'),
+        ),
+        feedingPlanSyncProvider.overrideWithValue(const NoopFeedingPlanSync()),
+      ],
+    );
+    await tester.drag(find.byType(Dismissible), const Offset(-500, 0));
+    await tester.pumpAndSettle();
+    await tester.tap(find.widgetWithText(TextButton, 'Supprimer'));
+    await tester.pumpAndSettle();
+    expect(sleepRepo.deleted, ['s1']);
+  });
+
+  testWidgets(
+    'les sommeils ne disparaissent pas quand la fenêtre chargée s\'élargit',
+    (tester) async {
+      final eventsRepo = MockEventsRepository();
+      final initialEvents = List.generate(
+        5,
+        (i) => makeEvent(
+          id: 'e$i',
+          startAt: DateTime(
+            2026,
+            9,
+            21,
+            20,
+          ).subtract(Duration(minutes: 10 * i)),
+          pee: true,
+        ),
+      );
+      final page2 = StreamController<List<CareEvent>>();
+      addTearDown(page2.close);
+      when(() => eventsRepo.watchLatest(any(), limit: 30))
+          .thenAnswer((_) => Stream.value(initialEvents));
+      when(() => eventsRepo.watchLatest(any(), limit: 60))
+          .thenAnswer((_) => page2.stream);
+
+      final sleepRepo = RecordingSleepRepository([
+        makeSleep(
+          id: 's1',
+          startAt: DateTime(2026, 9, 21, 10),
+          endAt: DateTime(2026, 9, 21, 11),
+        ),
+      ]);
+      addTearDown(() {
+        for (final controller in sleepRepo.heldControllers) {
+          controller.close();
+        }
+      });
+
+      late WidgetRef pageRef;
+      await pumpApp(
+        tester,
+        Consumer(
+          builder: (context, ref, _) {
+            pageRef = ref;
+            return const TimelinePage();
+          },
+        ),
+        overrides: [
+          eventsRepositoryProvider.overrideWithValue(eventsRepo),
+          sleepRepositoryProvider.overrideWithValue(sleepRepo),
+          clockProvider.overrideWithValue(FixedClock(now)),
+          householdLocalStoreProvider.overrideWithValue(
+            InMemoryHouseholdLocalStore(householdCode: 'ABCDEFGH'),
+          ),
+        ],
+      );
+
+      expect(find.byType(SleepTile), findsOneWidget);
+
+      // À partir d'ici, tout nouvel appel au dépôt de sommeils reste en
+      // attente indéfiniment (simule un écho Firestore qui tarde).
+      sleepRepo.holdNewCalls = true;
+
+      // Charge la page suivante : la liste d'événements finit par s'élargir
+      // à un jour plus ancien, ce qui recule `from` pour les sommeils.
+      pageRef.read(timelineLimitProvider.notifier).loadMore();
+      await tester.pump();
+      page2.add([
+        ...initialEvents,
+        makeEvent(id: 'older', startAt: DateTime(2026, 9, 20, 8), pee: true),
+      ]);
+      await tester.pump();
+      await tester.pump();
+
+      expect(
+        find.byType(SleepTile),
+        findsOneWidget,
+        reason:
+            'la tuile de sommeil doit rester affichée pendant le rechargement',
+      );
+    },
+  );
 }

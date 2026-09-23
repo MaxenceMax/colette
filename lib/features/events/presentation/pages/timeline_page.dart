@@ -1,6 +1,4 @@
 import 'package:colette/core/clock/app_clock.dart';
-import 'package:colette/core/clock/now_providers.dart';
-import 'package:colette/core/dates/date_extensions.dart';
 import 'package:colette/core/theme/app_colors.dart';
 import 'package:colette/core/theme/design_tokens.dart';
 import 'package:colette/core/theme/text_styles.dart';
@@ -8,6 +6,7 @@ import 'package:colette/features/events/domain/entities/care_event.dart';
 import 'package:colette/features/events/presentation/day_label.dart';
 import 'package:colette/features/events/presentation/providers/event_form_controller.dart';
 import 'package:colette/features/events/presentation/providers/events_providers.dart';
+import 'package:colette/features/events/presentation/providers/timeline_sleeps_provider.dart';
 import 'package:colette/features/events/presentation/timeline_entry.dart';
 import 'package:colette/features/events/presentation/timeline_grouping.dart';
 import 'package:colette/features/events/presentation/widgets/day_header_delegate.dart';
@@ -16,7 +15,6 @@ import 'package:colette/features/events/presentation/widgets/event_tile.dart';
 import 'package:colette/features/events/presentation/widgets/timeline_delete_dialog.dart';
 import 'package:colette/features/sleep/domain/entities/sleep_session.dart';
 import 'package:colette/features/sleep/presentation/providers/sleep_form_controller.dart';
-import 'package:colette/features/sleep/presentation/providers/sleep_providers.dart';
 import 'package:colette/features/sleep/presentation/widgets/sleep_form_sheet.dart';
 import 'package:colette/features/sleep/presentation/widgets/sleep_tile.dart';
 import 'package:colette/l10n/generated/app_localizations.dart';
@@ -32,14 +30,8 @@ class TimelinePage extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final s = S.of(context);
     final events = ref.watch(timelineEventsProvider);
-    final loaded = events.value;
-    final today = ref.watch(todayProvider);
-    final from = switch (loaded) {
-      final list? when list.isNotEmpty => list.last.startAt.dateOnly,
-      _ => DateTime(today.year, today.month, today.day - 7),
-    };
     final sleeps =
-        ref.watch(timelineSleepsProvider(from)).value ?? const <SleepSession>[];
+        ref.watch(timelineSleepsProvider).value ?? const <SleepSession>[];
     return Scaffold(
       appBar: AppBar(title: Text(s.journalTitle)),
       floatingActionButton: FloatingActionButton(

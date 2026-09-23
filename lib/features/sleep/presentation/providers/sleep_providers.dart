@@ -93,11 +93,3 @@ List<SleepDay>? sleepWeek(Ref ref) {
     now: ref.watch(currentMinuteProvider),
   );
 }
-
-/// Sommeils du Journal depuis [from] ; [from] doit être stable (minuit d'un jour).
-@Riverpod(retry: noRetry)
-Stream<List<SleepSession>> timelineSleeps(Ref ref, DateTime from) {
-  final code = ref.watch(currentHouseholdCodeProvider);
-  if (code == null) return Stream.value(const []);
-  return ref.watch(sleepRepositoryProvider).watchStartedSince(code, from);
-}
