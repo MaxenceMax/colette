@@ -60,12 +60,12 @@ final class FirestoreHealthSync implements HealthSync {
     return future;
   }
 
+  /// Relance tant qu'un appel est arrivé pendant la passe précédente.
   Future<void> _runExclusive() async {
-    await _doSync();
-    if (_again) {
+    do {
       _again = false;
       await _doSync();
-    }
+    } while (_again);
     _running = null;
   }
 
