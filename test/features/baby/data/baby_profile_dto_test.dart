@@ -1,8 +1,13 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:colette/features/baby/data/dtos/baby_profile_dto.dart';
+import 'package:colette/features/baby/domain/entities/baby_profile.dart';
+import 'package:colette/features/baby/domain/entities/baby_sex.dart';
 import 'package:colette/features/baby/domain/entities/care_settings.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 void main() {
+  _sexTests();
+
   test('CareSettingsDto.fromMap ignore une valeur non numérique', () {
     expect(
       CareSettingsDto.fromMap(const {'bathEveryDays': '5'}).bathEveryDays,
@@ -143,6 +148,38 @@ void main() {
         )['dailyTargetMl'],
         1500,
       );
+    });
+  });
+}
+
+void _sexTests() {
+  group('BabyProfileDto sexe', () {
+    final base = {
+      'name': 'Colette',
+      'birthDate': Timestamp.fromDate(DateTime(2026, 9, 1)),
+    };
+
+    test('aller-retour fille et garçon', () {
+      for (final sex in BabySex.values) {
+        final profile = BabyProfile(
+          name: 'Colette',
+          birthDate: DateTime(2026, 9, 1),
+          sex: sex,
+        );
+        expect(BabyProfileDto.toMap(profile)['sex'], sex.name);
+        expect(BabyProfileDto.fromMap(BabyProfileDto.toMap(profile)).sex, sex);
+      }
+    });
+
+    test('absent ou inconnu : non renseigné', () {
+      expect(BabyProfileDto.fromMap(base).sex, isNull);
+      expect(BabyProfileDto.fromMap({...base, 'sex': 'autre'}).sex, isNull);
+      expect(BabyProfileDto.fromMap({...base, 'sex': 1}).sex, isNull);
+    });
+
+    test('non renseigné : écrit null', () {
+      final profile = BabyProfile(name: 'C', birthDate: DateTime(2026, 9, 1));
+      expect(BabyProfileDto.toMap(profile)['sex'], isNull);
     });
   });
 }

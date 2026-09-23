@@ -3,6 +3,7 @@ import 'package:colette/core/dates/date_extensions.dart';
 import 'package:colette/core/theme/design_tokens.dart';
 import 'package:colette/core/theme/text_styles.dart';
 import 'package:colette/core/ui/date_time_picker.dart';
+import 'package:colette/features/baby/presentation/providers/baby_providers.dart';
 import 'package:colette/features/baby/presentation/providers/baby_settings_controller.dart';
 import 'package:colette/l10n/generated/app_localizations.dart';
 import 'package:colette/shared/ui/widgets/date_field.dart';
@@ -20,7 +21,7 @@ Future<void> showAddWeightSheet(BuildContext context) =>
       builder: (_) => const AddWeightSheet(),
     );
 
-/// Date + grammes.
+/// Date (de la naissance à aujourd'hui) + grammes.
 class AddWeightSheet extends ConsumerStatefulWidget {
   const AddWeightSheet({super.key});
 
@@ -44,6 +45,7 @@ class _AddWeightSheetState extends ConsumerState<AddWeightSheet> {
       initial: _measuredAt,
       mode: CupertinoDatePickerMode.date,
       maximum: ref.read(clockProvider).now(),
+      minimum: ref.read(babyProfileProvider).value?.birthDate,
     );
     if (picked != null) setState(() => _measuredAt = picked.dateOnly);
   }
@@ -59,6 +61,8 @@ class _AddWeightSheetState extends ConsumerState<AddWeightSheet> {
   @override
   Widget build(BuildContext context) {
     final s = S.of(context);
+    // Gardé à l'écoute : `_pickDate` y lit la date de naissance, borne basse.
+    ref.watch(babyProfileProvider);
     return Padding(
       padding: EdgeInsets.only(bottom: MediaQuery.viewInsetsOf(context).bottom),
       child: ListView(

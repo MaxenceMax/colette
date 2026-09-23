@@ -158,3 +158,14 @@ enum AppOpacity {
   /// Applique cette opacité à [color].
   Color applyTo(Color color) => color.withValues(alpha: value);
 }
+
+/// Épaisseurs de trait (courbes, grilles de graphiques).
+enum AppStroke {
+  hairline(1),
+  regular(2),
+  thick(3);
+
+  const AppStroke(this.value);
+
+  final double value;
+}
