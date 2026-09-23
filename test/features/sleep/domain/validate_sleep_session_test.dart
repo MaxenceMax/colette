@@ -157,4 +157,98 @@ void main() {
       SleepOverlapFailure(startAt: ongoing.startAt),
     );
   });
+
+  test('une session en cours ignore les autres sommeils en cours', () {
+    final other = makeSleep(id: 'o', startAt: DateTime(2026, 9, 23, 14));
+    final sleep = makeSleep(id: 's', startAt: DateTime(2026, 9, 23, 15));
+    expect(failureOf(sleep, others: [other]), isNull);
+  });
+
+  test(
+    'une session en cours refuse un sommeil terminé qui commence après elle',
+    () {
+      final other = makeSleep(
+        id: 'o',
+        startAt: DateTime(2026, 9, 23, 15, 30),
+        endAt: DateTime(2026, 9, 23, 15, 45),
+      );
+      final sleep = makeSleep(id: 's', startAt: DateTime(2026, 9, 23, 15));
+      expect(
+        failureOf(sleep, others: [other]),
+        SleepOverlapFailure(startAt: other.startAt, endAt: other.endAt),
+      );
+    },
+  );
+
+  test('un sommeil qui en contient un autre est un chevauchement', () {
+    final other = makeSleep(
+      id: 'o',
+      startAt: DateTime(2026, 9, 23, 13),
+      endAt: DateTime(2026, 9, 23, 15),
+    );
+    final sleep = makeSleep(
+      startAt: DateTime(2026, 9, 23, 13, 30),
+      endAt: DateTime(2026, 9, 23, 14),
+    );
+    expect(
+      failureOf(sleep, others: [other]),
+      SleepOverlapFailure(startAt: other.startAt, endAt: other.endAt),
+    );
+  });
+
+  test('un sommeil contenu dans un autre est un chevauchement', () {
+    final other = makeSleep(
+      id: 'o',
+      startAt: DateTime(2026, 9, 23, 13, 30),
+      endAt: DateTime(2026, 9, 23, 14),
+    );
+    final sleep = makeSleep(
+      startAt: DateTime(2026, 9, 23, 13),
+      endAt: DateTime(2026, 9, 23, 15),
+    );
+    expect(
+      failureOf(sleep, others: [other]),
+      SleepOverlapFailure(startAt: other.startAt, endAt: other.endAt),
+    );
+  });
+
+  test(
+    'bord à bord inverse : la fin du sommeil correspond au début de l\'autre',
+    () {
+      final other = makeSleep(
+        id: 'o',
+        startAt: DateTime(2026, 9, 23, 14),
+        endAt: DateTime(2026, 9, 23, 15),
+      );
+      final sleep = makeSleep(
+        startAt: DateTime(2026, 9, 23, 13),
+        endAt: DateTime(2026, 9, 23, 14),
+      );
+      expect(failureOf(sleep, others: [other]), isNull);
+    },
+  );
+
+  test('accepte exactement 24 h', () {
+    final sleep = makeSleep(
+      startAt: DateTime(2026, 9, 22, 16),
+      endAt: DateTime(2026, 9, 23, 16),
+    );
+    expect(failureOf(sleep), isNull);
+  });
+
+  test('accepte un début à 00:00 le jour de naissance', () {
+    final sleep = makeSleep(
+      startAt: DateTime(2026, 9, 1),
+      endAt: DateTime(2026, 9, 1, 1),
+    );
+    expect(failureOf(sleep), isNull);
+  });
+
+  test('accepte une nuit de 22 h à 6 h le lendemain', () {
+    final sleep = makeSleep(
+      startAt: DateTime(2026, 9, 22, 22),
+      endAt: DateTime(2026, 9, 23, 6),
+    );
+    expect(failureOf(sleep), isNull);
+  });
 }

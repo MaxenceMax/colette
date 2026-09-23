@@ -36,6 +36,9 @@ class ValidateSleepSession {
     final sessionEnd = end ?? _openEnd;
     for (final other in others) {
       if (other.id == session.id) continue;
+      // Deux sommeils en cours ne peuvent être que des doublons d'un double
+      // appui, nettoyés au réveil par planWakeUp : on les ignore entre eux.
+      if (end == null && other.endAt == null) continue;
       final otherEnd = other.endAt ?? _openEnd;
       if (session.startAt.isBefore(otherEnd) &&
           other.startAt.isBefore(sessionEnd)) {
