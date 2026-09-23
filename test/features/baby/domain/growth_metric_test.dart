@@ -42,4 +42,20 @@ void main() {
     expect(GrowthMetric.length.latestOf(measurements), lengthOnly);
     expect(GrowthMetric.headCircumference.latestOf([weightOnly]), isNull);
   });
+
+  test('latestOf et seriesOf départagent deux mesures du même jour par id', () {
+    final sameDay = DateTime(2026, 9, 20);
+    final x = GrowthMeasurement(id: 'x', measuredAt: sameDay, grams: 3100);
+    final y = GrowthMeasurement(id: 'y', measuredAt: sameDay, grams: 3300);
+
+    expect(GrowthMetric.weight.latestOf([x, y]), y);
+    expect(GrowthMetric.weight.latestOf([y, x]), y);
+    expect(GrowthMetric.weight.seriesOf([x, y]).last.value, y.grams);
+    expect(GrowthMetric.weight.seriesOf([y, x]).last.value, y.grams);
+  });
+
+  test('latestOf et seriesOf gèrent une liste vide', () {
+    expect(GrowthMetric.weight.latestOf(const []), isNull);
+    expect(GrowthMetric.weight.seriesOf(const []), isEmpty);
+  });
 }

@@ -67,4 +67,18 @@ void main() {
       ValidationReason.invalidLength,
     );
   });
+
+  test('quand plusieurs champs sont invalides, le poids est prioritaire', () {
+    expect(
+      reasonOf(measurement(grams: 1, lengthMm: 1, headMm: 1)),
+      ValidationReason.invalidWeight,
+    );
+  });
+
+  test('puis la taille est prioritaire sur le périmètre crânien', () {
+    expect(
+      reasonOf(measurement(lengthMm: 1, headMm: 1)),
+      ValidationReason.invalidLength,
+    );
+  });
 }

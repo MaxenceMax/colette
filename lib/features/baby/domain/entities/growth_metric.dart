@@ -16,21 +16,23 @@ enum GrowthMetric {
     GrowthMetric.headCircumference => measurement.headCircumferenceMm,
   };
 
-  /// Points des mesures qui contiennent cette grandeur, du plus ancien au plus récent.
-  List<GrowthPoint> seriesOf(Iterable<GrowthMeasurement> measurements) => [
-    for (final m in measurements)
-      if (valueOf(m) case final value?) (at: m.measuredAt, value: value),
-  ]..sort((a, b) => a.at.compareTo(b.at));
+  /// Points des mesures qui contiennent cette grandeur, triés par [_compare] (ordre déterministe même à date égale).
+  List<GrowthPoint> seriesOf(Iterable<GrowthMeasurement> measurements) {
+    final withValue = measurements.where((m) => valueOf(m) != null).toList()
+      ..sort(_compare);
+    return [for (final m in withValue) (at: m.measuredAt, value: valueOf(m)!)];
+  }
 
-  /// Mesure la plus récente qui contient cette grandeur, ou `null`.
+  /// Mesure la plus récente qui contient cette grandeur selon [_compare], ou `null`.
   GrowthMeasurement? latestOf(Iterable<GrowthMeasurement> measurements) {
-    GrowthMeasurement? latest;
-    for (final m in measurements) {
-      if (valueOf(m) == null) continue;
-      if (latest == null || m.measuredAt.isAfter(latest.measuredAt)) {
-        latest = m;
-      }
-    }
-    return latest;
+    final withValue = measurements.where((m) => valueOf(m) != null).toList()
+      ..sort(_compare);
+    return withValue.isEmpty ? null : withValue.last;
+  }
+
+  /// Ordre déterministe des mesures : par [GrowthMeasurement.measuredAt], puis par `id` pour départager celles du même jour.
+  static int _compare(GrowthMeasurement a, GrowthMeasurement b) {
+    final byDate = a.measuredAt.compareTo(b.measuredAt);
+    return byDate != 0 ? byDate : a.id.compareTo(b.id);
   }
 }
