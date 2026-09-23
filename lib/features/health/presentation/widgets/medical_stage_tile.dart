@@ -3,7 +3,7 @@ import 'package:colette/core/theme/design_tokens.dart';
 import 'package:colette/core/theme/text_styles.dart';
 import 'package:colette/features/health/domain/entities/medical_stage_status.dart';
 import 'package:colette/features/health/domain/entities/medical_timeline.dart';
-import 'package:colette/features/health/presentation/widgets/health_labels.dart';
+import 'package:colette/features/health/presentation/labels/health_labels.dart';
 import 'package:colette/features/health/presentation/widgets/health_status_text.dart';
 import 'package:colette/l10n/generated/app_localizations.dart';
 import 'package:flutter/material.dart';

@@ -4,7 +4,7 @@ import 'package:colette/core/theme/text_styles.dart';
 import 'package:colette/core/ui/date_time_picker.dart';
 import 'package:colette/features/health/domain/entities/given_vaccine.dart';
 import 'package:colette/features/health/domain/entities/medical_stage.dart';
-import 'package:colette/features/health/presentation/widgets/health_labels.dart';
+import 'package:colette/features/health/presentation/labels/health_labels.dart';
 import 'package:colette/l10n/generated/app_localizations.dart';
 import 'package:colette/shared/ui/widgets/date_field.dart';
 import 'package:flutter/cupertino.dart';
@@ -81,7 +81,7 @@ class _StageVaccineRowState extends State<StageVaccineRow> {
           value: given != null,
           title: Text(
             widget.vaccine.recommended
-                ? '$name · ${s.healthSheetRecommended}'
+                ? s.healthVaccineRecommended(name)
                 : name,
             style: Theme.of(context).coletteTextStyles.body,
           ),

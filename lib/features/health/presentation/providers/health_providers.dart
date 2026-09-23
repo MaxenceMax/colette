@@ -35,14 +35,20 @@ Stream<List<MedicalVisit>> medicalVisits(Ref ref) {
   return ref.watch(medicalRepositoryProvider).watchVisits(code);
 }
 
-/// Frise du suivi médical ; `null` sans profil.
+/// Frise du suivi médical ; `null` sans profil ou tant que les visites ne
+/// sont pas lues (sinon « En retard » s'afficherait un instant au démarrage).
 @riverpod
 MedicalTimeline? medicalTimeline(Ref ref) {
   final profile = ref.watch(babyProfileProvider).value;
   if (profile == null) return null;
+  final visits = switch (ref.watch(medicalVisitsProvider)) {
+    AsyncData(:final value) => value,
+    _ => null,
+  };
+  if (visits == null) return null;
   return const ComputeMedicalTimeline()(
     birthDate: profile.birthDate,
-    visits: ref.watch(medicalVisitsProvider).value ?? const [],
+    visits: visits,
     now: ref.watch(currentMinuteProvider),
   );
 }

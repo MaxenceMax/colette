@@ -159,12 +159,14 @@ final class MedicalVisitsProvider
 
 String _$medicalVisitsHash() => r'b4d185df76a166b161f9570afc29918cff3e2bd3';
 
-/// Frise du suivi médical ; `null` sans profil.
+/// Frise du suivi médical ; `null` sans profil ou tant que les visites ne
+/// sont pas lues (sinon « En retard » s'afficherait un instant au démarrage).
 
 @ProviderFor(medicalTimeline)
 final medicalTimelineProvider = MedicalTimelineProvider._();
 
-/// Frise du suivi médical ; `null` sans profil.
+/// Frise du suivi médical ; `null` sans profil ou tant que les visites ne
+/// sont pas lues (sinon « En retard » s'afficherait un instant au démarrage).
 
 final class MedicalTimelineProvider
     extends
@@ -174,7 +176,8 @@ final class MedicalTimelineProvider
           MedicalTimeline?
         >
     with $Provider<MedicalTimeline?> {
-  /// Frise du suivi médical ; `null` sans profil.
+  /// Frise du suivi médical ; `null` sans profil ou tant que les visites ne
+  /// sont pas lues (sinon « En retard » s'afficherait un instant au démarrage).
   MedicalTimelineProvider._()
     : super(
         from: null,
@@ -208,4 +211,4 @@ final class MedicalTimelineProvider
   }
 }
 
-String _$medicalTimelineHash() => r'33f084fbbe415afd74530cd7b41049cc46487a6f';
+String _$medicalTimelineHash() => r'041935bc720cfae144cc916abf320d876cdd9a00';
