@@ -1,3 +1,4 @@
+import 'package:colette/features/sleep/domain/entities/sleep_kind.dart';
 import 'package:colette/features/sleep/domain/entities/sleep_status.dart';
 import 'package:colette/features/sleep/domain/use_cases/compute_sleep_summary.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -44,6 +45,7 @@ void main() {
   test('un sommeil à cheval sur la fenêtre ne compte que sa partie dedans', () {
     final night = makeSleep(
       id: 'n',
+      kind: SleepKind.night,
       startAt: DateTime(2026, 9, 22, 14),
       endAt: DateTime(2026, 9, 22, 18),
     );
@@ -87,4 +89,58 @@ void main() {
     expect(summary.status, SleepStatus.awake(since: DateTime(2026, 9, 20, 11)));
     expect(summary.last24h, Duration.zero);
   });
+
+  test('à exactement 16 h, le sommeil en cours reste endormi', () {
+    final ongoing = makeSleep(
+      id: 'o',
+      startAt: now.subtract(const Duration(hours: 16)),
+    );
+    final summary = computeSleepSummary(
+      recent: [ongoing],
+      latest: ongoing,
+      now: now,
+    );
+    expect(summary.status, SleepStatus.asleep(ongoing));
+  });
+
+  test('un sommeil en cours commencé avant la fenêtre compte 24 h au plus', () {
+    final ongoing = makeSleep(id: 'o', startAt: DateTime(2026, 9, 1));
+    final summary = computeSleepSummary(
+      recent: [ongoing],
+      latest: ongoing,
+      now: now,
+    );
+    expect(summary.last24h, const Duration(hours: 24));
+  });
+
+  test('openSleeps trie par début et conserve les doublons', () {
+    final b = makeSleep(id: 'b', startAt: DateTime(2026, 9, 23, 15, 1));
+    final a = makeSleep(id: 'a', startAt: DateTime(2026, 9, 23, 15));
+    expect(openSleeps([b, a], null), [a, b]);
+  });
+
+  test(
+    '« éveillé·e depuis » suit la fin la plus récente même hors de latest',
+    () {
+      final older = makeSleep(
+        id: 'a',
+        startAt: DateTime(2026, 9, 23, 10),
+        endAt: DateTime(2026, 9, 23, 11),
+      );
+      final newer = makeSleep(
+        id: 'b',
+        startAt: DateTime(2026, 9, 23, 13),
+        endAt: DateTime(2026, 9, 23, 14),
+      );
+      final summary = computeSleepSummary(
+        recent: [older, newer],
+        latest: older,
+        now: now,
+      );
+      expect(
+        summary.status,
+        SleepStatus.awake(since: DateTime(2026, 9, 23, 14)),
+      );
+    },
+  );
 }

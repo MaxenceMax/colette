@@ -7,26 +7,38 @@ const sleepSummaryWindow = Duration(hours: 24);
 /// Au-delà, un sommeil en cours est signalé comme réveil oublié.
 const forgottenWakeAfter = Duration(hours: 16);
 
+/// Réunit [recent] et [latest] par identifiant, [latest] ayant priorité.
+Map<String, SleepSession> _byId(
+  List<SleepSession> recent,
+  SleepSession? latest,
+) {
+  final byId = {for (final s in recent) s.id: s};
+  if (latest != null) byId[latest.id] = latest;
+  return byId;
+}
+
+/// Sommeils ouverts, du plus ancien au plus récent, doublons compris.
+List<SleepSession> openSleeps(
+  List<SleepSession> recent,
+  SleepSession? latest,
+) =>
+    _byId(recent, latest).values.where((s) => s.isOngoing).toList()
+      ..sort((a, b) => a.startAt.compareTo(b.startAt));
+
 /// Réunit [recent] et [latest] sans doublon d'identifiant, en ne gardant que le
 /// plus ancien sommeil ouvert (les autres sont des doublons d'appuis simultanés).
 List<SleepSession> mergeSleeps(
   List<SleepSession> recent,
   SleepSession? latest,
 ) {
-  final byId = {for (final s in recent) s.id: s};
-  if (latest != null) byId[latest.id] = latest;
-  final open = byId.values.where((s) => s.isOngoing).toList()
-    ..sort((a, b) => a.startAt.compareTo(b.startAt));
-  final duplicates = open.skip(1).map((s) => s.id).toSet();
-  return byId.values.where((s) => !duplicates.contains(s.id)).toList();
-}
-
-/// Sommeils ouverts, du plus ancien au plus récent, doublons compris.
-List<SleepSession> openSleeps(List<SleepSession> recent, SleepSession? latest) {
-  final byId = {for (final s in recent) s.id: s};
-  if (latest != null) byId[latest.id] = latest;
-  return byId.values.where((s) => s.isOngoing).toList()
-    ..sort((a, b) => a.startAt.compareTo(b.startAt));
+  final duplicates = openSleeps(
+    recent,
+    latest,
+  ).skip(1).map((s) => s.id).toSet();
+  return _byId(
+    recent,
+    latest,
+  ).values.where((s) => !duplicates.contains(s.id)).toList();
 }
 
 /// État actuel et total sur les dernières 24 h.
