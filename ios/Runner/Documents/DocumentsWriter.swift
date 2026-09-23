@@ -73,10 +73,24 @@ enum DocumentsWriter {
     return target.lastPathComponent
   }
 
-  /// Supprime un fichier (réel ou placeholder) sous coordination iCloud.
+  /// Supprime un fichier sous coordination iCloud, sur son URL logique (fichier réel).
+  /// `trashItem` est tenté d'abord pour que le fichier rejoigne « Récemment supprimés »
+  /// quand iOS le permet, `removeItem` sert de repli. Si seul le placeholder
+  /// `.nom.ext.icloud` existe, c'est lui qui est supprimé.
   static func delete(_ url: URL) throws {
     try coordinatedWrite(to: url, options: .forDeleting) { target in
-      try FileManager.default.removeItem(at: target)
+      let manager = FileManager.default
+      guard manager.fileExists(atPath: target.path) else {
+        try manager.removeItem(
+          at: target.deletingLastPathComponent()
+            .appendingPathComponent(".\(target.lastPathComponent).icloud"))
+        return
+      }
+      do {
+        try manager.trashItem(at: target, resultingItemURL: nil)
+      } catch {
+        try manager.removeItem(at: target)
+      }
     }
   }
 

@@ -254,7 +254,7 @@ final class DocumentsPlugin: NSObject {
         result(value)
       }
     ) {
-      try DocumentsWriter.delete(located)
+      try DocumentsWriter.delete(DocumentsLister.realURL(for: located))
       return nil
     }
   }
