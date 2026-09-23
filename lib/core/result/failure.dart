@@ -69,6 +69,23 @@ final class DocumentsFailure extends Failure {
   int get hashCode => reason.hashCode;
 }
 
+/// Raison d'une [CalendarFailure].
+enum CalendarReason { accessDenied, calendarNotFound, io }
+
+/// Erreur du pont natif Calendrier (EventKit).
+final class CalendarFailure extends Failure {
+  const CalendarFailure(this.reason);
+
+  final CalendarReason reason;
+
+  @override
+  bool operator ==(Object other) =>
+      other is CalendarFailure && other.reason == reason;
+
+  @override
+  int get hashCode => reason.hashCode;
+}
+
 /// Sommeil qui chevauche un autre sommeil déjà enregistré.
 final class SleepOverlapFailure extends Failure {
   const SleepOverlapFailure({required this.startAt, this.endAt});

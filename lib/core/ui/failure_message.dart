@@ -43,5 +43,10 @@ String failureMessage(Object failure, S s) => switch (failure) {
     // Jamais affiché : l'UI ignore cancelled.
     DocumentsReason.cancelled => s.errorUnknown,
   },
+  CalendarFailure(:final reason) => switch (reason) {
+    CalendarReason.accessDenied => s.calendarErrorAccessDenied,
+    CalendarReason.calendarNotFound => s.calendarErrorNotFound,
+    CalendarReason.io => s.calendarErrorIo,
+  },
   _ => s.errorUnknown,
 };
