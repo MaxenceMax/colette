@@ -1,4 +1,5 @@
 import 'package:colette/features/diversification/domain/entities/allergen.dart';
+import 'package:colette/features/diversification/domain/entities/diversification_phase.dart';
 import 'package:colette/features/diversification/domain/entities/food.dart';
 import 'package:colette/features/diversification/domain/entities/food_group.dart';
 import 'package:colette/features/diversification/domain/entities/liking.dart';
@@ -76,6 +77,16 @@ extension RuleSourceLabels on RuleSource {
     RuleSource.espghan => s.sourceEspghan,
     RuleSource.agriculture => s.sourceAgriculture,
     RuleSource.efsa => s.sourceEfsa,
+  };
+}
+
+/// Libellés des phases.
+extension DiversificationPhaseLabels on DiversificationPhase {
+  String label(S s) => switch (this) {
+    DiversificationPhase.preparation => s.phasePreparation,
+    DiversificationPhase.months6To8 => s.phaseMonths6To8,
+    DiversificationPhase.months9To11 => s.phaseMonths9To11,
+    DiversificationPhase.months12To23 => s.phaseMonths12To23,
   };
 }
 
