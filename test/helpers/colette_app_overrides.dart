@@ -1,6 +1,7 @@
 import 'package:colette/core/clock/now_providers.dart';
 import 'package:colette/core/connectivity/connectivity_provider.dart';
 import 'package:colette/core/firebase/firebase_providers.dart';
+import 'package:colette/features/health/presentation/providers/health_sync.dart';
 import 'package:colette/features/household/presentation/providers/household_providers.dart';
 import 'package:colette/features/notifications/domain/push_token_source.dart';
 import 'package:colette/features/notifications/presentation/providers/notifications_providers.dart';
@@ -37,5 +38,6 @@ Future<List<Override>> coletteAppOverrides({
     pushTokenSourceProvider.overrideWithValue(
       pushTokenSource ?? FakePushTokenSource(),
     ),
+    healthSyncProvider.overrideWithValue(const NoopHealthSync()),
   ];
 }
