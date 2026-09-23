@@ -494,5 +494,19 @@
   "vaccineMenB": "Méningocoque B",
   "vaccineMenACWY": "Méningocoques ACWY",
   "vaccineMmr": "ROR (rougeole, oreillons, rubéole)",
-  "vaccineRotavirus": "Rotavirus"
+  "vaccineRotavirus": "Rotavirus",
+  "healthSheetAppointment": "Rendez-vous",
+  "healthSheetPickAppointment": "Choisir la date du RDV",
+  "healthSheetRemoveAppointment": "Retirer le RDV",
+  "healthSheetPractitioner": "Praticien (facultatif)",
+  "healthSheetVaccines": "Vaccins",
+  "healthSheetRecommended": "recommandé",
+  "healthSheetGivenOn": "Date de l'injection",
+  "healthSheetBrand": "Nom commercial (facultatif)",
+  "healthSheetLot": "N° de lot (facultatif)",
+  "healthSheetVisit": "Visite",
+  "healthSheetMarkDone": "Marquer comme faite",
+  "healthSheetCancelDone": "Annuler la visite",
+  "healthSheetDoneOn": "Date de la visite",
+  "healthSheetNote": "Note (facultatif)"
 }

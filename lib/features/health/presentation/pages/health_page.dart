@@ -8,6 +8,7 @@ import 'package:colette/features/health/presentation/providers/health_providers.
 import 'package:colette/features/health/presentation/providers/health_sync.dart';
 import 'package:colette/features/health/presentation/providers/medical_visit_controller.dart';
 import 'package:colette/features/health/presentation/providers/selected_calendar.dart';
+import 'package:colette/features/health/presentation/widgets/medical_stage_sheet.dart';
 import 'package:colette/features/health/presentation/widgets/medical_stage_tile.dart';
 import 'package:colette/l10n/generated/app_localizations.dart';
 import 'package:colette/shared/ui/widgets/colette_card_surface.dart';
@@ -164,9 +165,3 @@ class _DoneSection extends StatelessWidget {
     ),
   );
 }
-
-/// Remplacée par la feuille d'étape à la tâche 10.
-Future<void> showMedicalStageSheet(
-  BuildContext context,
-  MedicalTimelineEntry entry,
-) async {}
