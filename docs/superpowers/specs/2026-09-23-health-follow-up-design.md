@@ -91,7 +91,7 @@ Section « Calendrier » dans Réglages : « Ajouter les RDV santé à : {titre 
 | Méthode | Entrée | Sortie |
 | --- | --- | --- |
 | `requestAccess` | — | `granted` / `denied` (`requestFullAccessToEvents` si iOS 17+, sinon `requestAccess(to: .event)`) |
-| `listCalendars` | — | `[{id, title, colorHex, source}]`, calendriers `allowsContentModifications` seulement |
+| `listCalendars` | — | `[{id, title, colorHex, source}]`, calendriers modifiables iCloud ou locaux seulement (les comptes Exchange ou Google peuvent perdre l'URL de l'événement) |
 | `findEvents` | `calendarId, from, to` | `[{eventId, url, title, start, end, notes, externalId}]` dont l'URL commence par `colette://rdv/` (`externalId` : `calendarItemExternalIdentifier`, l'UID iCloud, identique sur les deux iPhones) |
 | `upsertEvent` | `calendarId, eventId?, url, title, start, end, notes, alarms` | `eventId` |
 | `deleteEvent` | `calendarId, eventId` | — |
