@@ -6,6 +6,7 @@ abstract final class FirestorePaths {
   /// Mesures de croissance (poids, taille, périmètre crânien) ; nom historique.
   static const weights = 'weights';
   static const devices = 'devices';
+  static const sleeps = 'sleeps';
   static const tastings = 'tastings';
   static const customFoods = 'customFoods';
 }

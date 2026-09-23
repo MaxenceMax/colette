@@ -9,6 +9,9 @@ enum ValidationReason {
   unknownHouseholdCode,
   notificationsDenied,
   invalidDiaperCount,
+  sleepInFuture,
+  sleepTooLong,
+  sleepBeforeBirth,
   foodNameTooLong,
   duplicateFoodName,
   customFoodInUse,
@@ -62,4 +65,24 @@ final class DocumentsFailure extends Failure {
 
   @override
   int get hashCode => reason.hashCode;
+}
+
+/// Sommeil qui chevauche un autre sommeil déjà enregistré.
+final class SleepOverlapFailure extends Failure {
+  const SleepOverlapFailure({required this.startAt, this.endAt});
+
+  /// Début du sommeil en conflit.
+  final DateTime startAt;
+
+  /// Fin du sommeil en conflit ; `null` s'il est en cours.
+  final DateTime? endAt;
+
+  @override
+  bool operator ==(Object other) =>
+      other is SleepOverlapFailure &&
+      other.startAt == startAt &&
+      other.endAt == endAt;
+
+  @override
+  int get hashCode => Object.hash(startAt, endAt);
 }

@@ -8,6 +8,7 @@ import 'package:colette/features/events/presentation/providers/events_providers.
 import 'package:colette/features/events/presentation/widgets/day_header_delegate.dart';
 import 'package:colette/features/events/presentation/widgets/event_form_sheet.dart';
 import 'package:colette/features/household/presentation/providers/household_providers.dart';
+import 'package:colette/features/sleep/presentation/providers/sleep_providers.dart';
 import 'package:colette/l10n/generated/app_localizations.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -15,6 +16,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:mocktail/mocktail.dart';
 
 import '../../../helpers/care_event_factory.dart';
+import '../../../helpers/fake_sleep_repository.dart';
 import '../../../helpers/in_memory_household_local_store.dart';
 
 class MockEventsRepository extends Mock implements EventsRepository {}
@@ -40,6 +42,7 @@ void main() {
         overrides: [
           isOnlineProvider.overrideWith((ref) => Stream.value(true)),
           eventsRepositoryProvider.overrideWithValue(repo),
+          sleepRepositoryProvider.overrideWithValue(FakeSleepRepository()),
           clockProvider.overrideWithValue(FixedClock(now)),
           householdLocalStoreProvider.overrideWithValue(
             InMemoryHouseholdLocalStore(householdCode: 'ABCDEFGH'),

@@ -50,7 +50,16 @@ enum AppColors {
   /// Eucalyptus : courbes et zone de référence OMS, distinctes des mesures cannelle.
   growthReference(light: Color(0xFF57795D), dark: Color(0xFF9DBBA2)),
 
-  shadow(light: Color(0xFF000000), dark: Color(0xFFFFFFFF));
+  /// Prune : nuits sur la frise du sommeil, icône lune.
+  sleepNight(light: Color(0xFF6B5B7B), dark: Color(0xFFB7A6C9)),
+
+  /// Lilas : siestes sur la frise du sommeil (fond uniquement, jamais en texte).
+  sleepNap(light: Color(0xFFAE9BC4), dark: Color(0xFF8A77A3)),
+
+  shadow(light: Color(0xFF000000), dark: Color(0xFFFFFFFF)),
+
+  /// Transparent : fond d'un élément sans couleur propre (ex. ligne non sélectionnée).
+  transparent(light: Color(0x00000000), dark: Color(0x00000000));
 
   const AppColors({required this.light, required this.dark});
 

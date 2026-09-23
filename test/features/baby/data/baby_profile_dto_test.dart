@@ -150,6 +150,28 @@ void main() {
       );
     });
   });
+
+  group('horaires de nuit', () {
+    test('valeurs par défaut 20 h et 7 h sans champ', () {
+      final settings = CareSettingsDto.fromMap(const {});
+      expect(settings.nightStartHour, 20);
+      expect(settings.nightEndHour, 7);
+    });
+
+    test('aller-retour et bornes 0 à 23', () {
+      const settings = CareSettings(nightStartHour: 21, nightEndHour: 6);
+      expect(
+        CareSettingsDto.fromMap(CareSettingsDto.toMap(settings)),
+        settings,
+      );
+      final clamped = CareSettingsDto.fromMap(const {
+        'nightStartHour': 30,
+        'nightEndHour': -2,
+      });
+      expect(clamped.nightStartHour, 23);
+      expect(clamped.nightEndHour, 0);
+    });
+  });
 }
 
 void _sexTests() {

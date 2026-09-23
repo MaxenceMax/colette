@@ -12,6 +12,8 @@ abstract final class CareSettingsDto {
     'umbilicalCarePerDay': settings.umbilicalCarePerDay,
     'bathEveryDays': settings.bathEveryDays,
     'feedsPerDay': settings.feedsPerDay,
+    'nightStartHour': settings.nightStartHour,
+    'nightEndHour': settings.nightEndHour,
     'dailyTargetMl': settings.dailyTargetMl?.clamp(
       CareSettings.minDailyTargetMl,
       CareSettings.maxDailyTargetMl,
@@ -64,6 +66,8 @@ abstract final class CareSettingsDto {
     umbilicalCarePerDay: _readUmbilicalCarePerDay(map),
     bathEveryDays: _readInt(map, 'bathEveryDays', 2, min: 1, max: 30),
     feedsPerDay: _readInt(map, 'feedsPerDay', 8, min: 1, max: 24),
+    nightStartHour: _readInt(map, 'nightStartHour', 20, min: 0, max: 23),
+    nightEndHour: _readInt(map, 'nightEndHour', 7, min: 0, max: 23),
     dailyTargetMl: _readOptionalInt(
       map,
       'dailyTargetMl',

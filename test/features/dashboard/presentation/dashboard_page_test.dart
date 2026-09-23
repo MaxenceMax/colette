@@ -14,6 +14,7 @@ import 'package:colette/features/events/domain/repositories/events_repository.da
 import 'package:colette/features/events/presentation/providers/events_providers.dart';
 import 'package:colette/features/events/presentation/widgets/event_form_sheet.dart';
 import 'package:colette/features/household/presentation/providers/household_providers.dart';
+import 'package:colette/features/sleep/presentation/providers/sleep_providers.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart'
     show AsyncData, AsyncValue;
@@ -24,6 +25,7 @@ import 'package:mocktail/mocktail.dart';
 
 import '../../../helpers/care_event_factory.dart';
 import '../../../helpers/documents_repository_override.dart';
+import '../../../helpers/fake_sleep_repository.dart';
 import '../../../helpers/in_memory_household_local_store.dart';
 import '../../../helpers/pump_app.dart';
 
@@ -84,6 +86,7 @@ void main() {
     idGeneratorProvider.overrideWithValue(const FixedIdGenerator('e-new')),
     feedingPlanSyncProvider.overrideWithValue(const NoopFeedingPlanSync()),
     diaperStockStatusProvider.overrideWithValue(diaperStatus),
+    sleepRepositoryProvider.overrideWithValue(FakeSleepRepository()),
   ];
 
   testWidgets(
@@ -106,13 +109,24 @@ void main() {
         find.text('2 biberons · 150 ml sur les dernières 24 h'),
         findsOneWidget,
       );
-      expect(find.text('Soin des yeux'), findsOneWidget);
+      expect(find.text('Sommeil'), findsOneWidget);
+      expect(find.text('Aucun sommeil noté'), findsOneWidget);
+      await tester.scrollUntilVisible(find.text('Soin des yeux'), 200);
       expect(find.text('Bain'), findsOneWidget);
-      expect(find.text('couches'), findsOneWidget);
+      await tester.scrollUntilVisible(find.text('couches'), 200);
       await tester.scrollUntilVisible(find.text('Poids'), 200);
       expect(find.text('3600 g'), findsOneWidget);
     },
   );
+
+  testWidgets('affiche la carte Sommeil sous le prochain biberon', (
+    tester,
+  ) async {
+    final repo = MockEventsRepository();
+    await pumpApp(tester, const DashboardPage(), overrides: overridesFor(repo));
+    expect(find.text('Sommeil'), findsOneWidget);
+    expect(find.text('Aucun sommeil noté'), findsOneWidget);
+  });
 
   testWidgets(
     'taper une tâche à faire enregistre le soin et propose d\'annuler',

@@ -33,11 +33,13 @@ class _CareSettingsSectionState extends ConsumerState<CareSettingsSection> {
     }
   }
 
-  void _update(CareSettings next) {
-    setState(() => _settings = next);
+  /// Fusionne le champ modifié dans le profil frais, pour ne jamais écraser
+  /// un champ écrit entre-temps par `SleepSettingsSection`.
+  void _update(CareSettings Function(CareSettings settings) apply) {
+    setState(() => _settings = apply(_settings));
     ref
         .read(babySettingsControllerProvider.notifier)
-        .updateCareSettings(widget.profile, next);
+        .updateCareSettings(widget.profile, apply(widget.profile.careSettings));
   }
 
   @override
@@ -54,43 +56,49 @@ class _CareSettingsSectionState extends ConsumerState<CareSettingsSection> {
             value: _settings.adrigylPerDay,
             min: 0,
             max: 3,
-            onChanged: (v) => _update(_settings.copyWith(adrigylPerDay: v)),
+            onChanged: (v) =>
+                _update((settings) => settings.copyWith(adrigylPerDay: v)),
           ),
           IntStepperRow(
             label: s.settingsEyeCarePerDay,
             value: _settings.eyeCarePerDay,
             min: 0,
             max: 4,
-            onChanged: (v) => _update(_settings.copyWith(eyeCarePerDay: v)),
+            onChanged: (v) =>
+                _update((settings) => settings.copyWith(eyeCarePerDay: v)),
           ),
           IntStepperRow(
             label: s.settingsNoseCarePerDay,
             value: _settings.noseCarePerDay,
             min: 0,
             max: 4,
-            onChanged: (v) => _update(_settings.copyWith(noseCarePerDay: v)),
+            onChanged: (v) =>
+                _update((settings) => settings.copyWith(noseCarePerDay: v)),
           ),
           IntStepperRow(
             label: s.settingsUmbilicalCarePerDay,
             value: _settings.umbilicalCarePerDay,
             min: 0,
             max: 4,
-            onChanged: (v) =>
-                _update(_settings.copyWith(umbilicalCarePerDay: v)),
+            onChanged: (v) => _update(
+              (settings) => settings.copyWith(umbilicalCarePerDay: v),
+            ),
           ),
           IntStepperRow(
             label: s.settingsBathEveryDays,
             value: _settings.bathEveryDays,
             min: 1,
             max: 7,
-            onChanged: (v) => _update(_settings.copyWith(bathEveryDays: v)),
+            onChanged: (v) =>
+                _update((settings) => settings.copyWith(bathEveryDays: v)),
           ),
           IntStepperRow(
             label: s.settingsFeedsPerDay,
             value: _settings.feedsPerDay,
             min: 4,
             max: 12,
-            onChanged: (v) => _update(_settings.copyWith(feedsPerDay: v)),
+            onChanged: (v) =>
+                _update((settings) => settings.copyWith(feedsPerDay: v)),
           ),
         ],
       ),

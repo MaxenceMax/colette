@@ -1,3 +1,4 @@
+import 'package:colette/core/dates/time_format.dart';
 import 'package:colette/core/result/failure.dart';
 import 'package:colette/l10n/generated/app_localizations.dart';
 
@@ -15,6 +16,9 @@ String failureMessage(Object failure, S s) => switch (failure) {
     ValidationReason.unknownHouseholdCode => s.errorUnknownCode,
     ValidationReason.notificationsDenied => s.errorNotificationsDenied,
     ValidationReason.invalidDiaperCount => s.errorInvalidDiaperCount,
+    ValidationReason.sleepInFuture => s.errorSleepInFuture,
+    ValidationReason.sleepTooLong => s.errorSleepTooLong,
+    ValidationReason.sleepBeforeBirth => s.errorSleepBeforeBirth,
     ValidationReason.foodNameTooLong => s.errorFoodNameTooLong,
     ValidationReason.duplicateFoodName => s.errorDuplicateFoodName,
     ValidationReason.customFoodInUse => s.errorCustomFoodInUse,
@@ -22,6 +26,13 @@ String failureMessage(Object failure, S s) => switch (failure) {
     ValidationReason.invalidLength => s.errorInvalidLength,
     ValidationReason.invalidHeadCircumference =>
       s.errorInvalidHeadCircumference,
+  },
+  SleepOverlapFailure(:final startAt, :final endAt) => switch (endAt) {
+    null => s.errorSleepOverlapOngoing(formatHourMinute(startAt)),
+    final end => s.errorSleepOverlap(
+      formatHourMinute(startAt),
+      formatHourMinute(end),
+    ),
   },
   DocumentsFailure(:final reason) => switch (reason) {
     DocumentsReason.noFolder ||

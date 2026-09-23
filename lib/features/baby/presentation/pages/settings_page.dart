@@ -11,13 +11,14 @@ import 'package:colette/features/household/presentation/providers/household_prov
 import 'package:colette/features/household/presentation/widgets/household_section.dart';
 import 'package:colette/features/notifications/presentation/providers/notifications_providers.dart';
 import 'package:colette/features/notifications/presentation/widgets/notifications_section.dart';
+import 'package:colette/features/sleep/presentation/widgets/sleep_settings_section.dart';
 import 'package:colette/l10n/generated/app_localizations.dart';
 import 'package:colette/shared/ui/widgets/section_header.dart';
 import 'package:colette/shared/ui/widgets/theme_mode_section.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-/// Onglet Réglages : bébé, mesures, soins attendus, notifications, apparence, foyer.
+/// Onglet Réglages : bébé, mesures, soins attendus, sommeil, notifications, apparence, foyer.
 class SettingsPage extends ConsumerWidget {
   const SettingsPage({super.key});
 
@@ -57,6 +58,8 @@ class SettingsPage extends ConsumerWidget {
             const MeasurementsSection(),
             SectionHeader(title: s.settingsCareSection),
             CareSettingsSection(profile: profile),
+            SectionHeader(title: s.settingsSleepSection),
+            SleepSettingsSection(profile: profile),
           ] else
             const Padding(
               padding: EdgeInsets.zero,
