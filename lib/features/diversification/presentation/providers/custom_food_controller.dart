@@ -51,7 +51,10 @@ class CustomFoodController extends _$CustomFoodController {
       name: name,
       existingNames: existingNames,
     );
-    if (reason != null) return _reject(reason);
+    if (reason != null) {
+      _reject(reason);
+      return false;
+    }
     final food = Food(
       id: id ?? ref.read(idGeneratorProvider).newId(),
       name: name.trim(),
@@ -59,19 +62,21 @@ class CustomFoodController extends _$CustomFoodController {
       allergens: allergens,
       isCustom: true,
     );
-    return _run(
+    final failure = await _run(
       (code) => ref.read(customFoodsRepositoryProvider).save(code, food),
     );
+    return failure == null;
   }
 
-  /// Supprime l'aliment ; refusé s'il a au moins une dégustation.
-  Future<bool> delete(String foodId) async {
+  /// Supprime l'aliment ; refusé s'il a au moins une dégustation. `null` en
+  /// cas de succès, sinon l'échec (à afficher par l'appelant).
+  Future<Failure?> delete(String foodId) async {
     final List<Tasting> tastings;
     try {
       tastings = await ref.read(tastingsProvider.future);
     } on Object catch (e, st) {
       if (ref.mounted) state = AsyncError(e, st);
-      return false;
+      return UnknownFailure(e, st);
     }
     if (tastings.any((tasting) => tasting.foodId == foodId)) {
       return _reject(ValidationReason.customFoodInUse);
@@ -81,18 +86,19 @@ class CustomFoodController extends _$CustomFoodController {
     );
   }
 
-  bool _reject(ValidationReason reason) {
+  Failure _reject(ValidationReason reason) {
+    final failure = ValidationFailure(reason);
     if (ref.mounted) {
-      state = AsyncError(ValidationFailure(reason), StackTrace.current);
+      state = AsyncError(failure, StackTrace.current);
     }
-    return false;
+    return failure;
   }
 
-  Future<bool> _run(
+  Future<Failure?> _run(
     Future<Either<Failure, void>> Function(String code) action,
   ) async {
     final code = ref.read(currentHouseholdCodeProvider);
-    if (code == null) return false;
+    if (code == null) return const UnknownFailure('no household code');
     state = const AsyncLoading();
     final result = await action(code);
     if (ref.mounted) {
@@ -101,6 +107,6 @@ class CustomFoodController extends _$CustomFoodController {
         (_) => const AsyncData(null),
       );
     }
-    return result.isRight();
+    return result.fold((failure) => failure, (_) => null);
   }
 }

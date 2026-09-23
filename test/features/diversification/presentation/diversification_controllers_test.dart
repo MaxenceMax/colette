@@ -136,7 +136,7 @@ void main() {
     });
 
     test('delete', () async {
-      expect(await controller().delete('t1'), isTrue);
+      expect(await controller().delete('t1'), isNull);
       verify(() => tastingsRepo.delete(code, 't1')).called(1);
     });
   });
@@ -211,7 +211,11 @@ void main() {
     );
 
     test('suppression refusée si des dégustations existent', () async {
-      expect(await controller().delete('c1'), isFalse);
+      final failure = await controller().delete('c1');
+      expect(
+        (failure! as ValidationFailure).reason,
+        ValidationReason.customFoodInUse,
+      );
       verifyNever(() => foodsRepo.delete(any(), any()));
       expect(
         (container.read(customFoodControllerProvider).error!
@@ -222,7 +226,7 @@ void main() {
     });
 
     test('suppression sans dégustation', () async {
-      expect(await controller().delete('c2'), isTrue);
+      expect(await controller().delete('c2'), isNull);
       verify(() => foodsRepo.delete(code, 'c2')).called(1);
     });
   });

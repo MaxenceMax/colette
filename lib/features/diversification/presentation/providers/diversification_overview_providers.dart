@@ -86,4 +86,5 @@ List<FoodGroupSection> filteredCatalog(Ref ref) => const FilterFoods()(
   filter: ref.watch(catalogFilterProvider),
   statuses: ref.watch(foodStatusesProvider),
   tastingCounts: ref.watch(tastingCountsProvider),
+  ageMonths: ref.watch(diversificationTimelineProvider)?.ageMonths,
 );

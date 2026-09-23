@@ -43,9 +43,10 @@ class _PlatePageState extends ConsumerState<PlatePage> {
   @override
   Widget build(BuildContext context) {
     final s = S.of(context);
-    final catalog = ref.watch(foodCatalogProvider);
+    final foodsAsync = ref.watch(foodsProvider);
+    final tastingsAsync = ref.watch(tastingsProvider);
     final timeline = ref.watch(diversificationTimelineProvider);
-    final foods = ref.watch(foodsProvider).value ?? const {};
+    final foods = foodsAsync.value ?? const {};
     final tastedCount = ref
         .watch(tastingCountsProvider)
         .keys
@@ -53,8 +54,13 @@ class _PlatePageState extends ConsumerState<PlatePage> {
         .length;
     return Scaffold(
       body: SafeArea(
-        child: switch (catalog) {
-          AsyncData() => CustomScrollView(
+        child: switch ((foodsAsync, tastingsAsync)) {
+          (AsyncError(:final error), _) ||
+          (_, AsyncError(:final error)) => EmptyState(
+            icon: Icons.error_outline,
+            message: failureMessage(error, s),
+          ),
+          (AsyncData(), _) => CustomScrollView(
             slivers: [
               SliverPadding(
                 padding: AppSpacing.md.all,
@@ -91,10 +97,6 @@ class _PlatePageState extends ConsumerState<PlatePage> {
               ),
               SliverToBoxAdapter(child: AppSpacing.xl.verticalSpace),
             ],
-          ),
-          AsyncError(:final error) => EmptyState(
-            icon: Icons.error_outline,
-            message: failureMessage(error, s),
           ),
           _ => const Center(child: CircularProgressIndicator()),
         },

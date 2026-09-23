@@ -37,7 +37,7 @@ final class CustomFoodControllerProvider
 }
 
 String _$customFoodControllerHash() =>
-    r'80c8769ec431e8c548c05515cf9628f604e6f4d3';
+    r'c6d498ce0811e1522b4d17f6a87dc3879ebdda03';
 
 /// Création, modification et suppression d'un aliment perso.
 

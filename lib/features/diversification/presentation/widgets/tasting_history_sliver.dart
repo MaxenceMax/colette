@@ -49,6 +49,7 @@ class _TastingTile extends ConsumerWidget {
     // Capturés avant tout `await`, cf. `_DeleteFoodButton._delete`.
     final messenger = ScaffoldMessenger.of(context);
     final s = S.of(context);
+    final controller = ref.read(tastingFormControllerProvider.notifier);
     final confirmed = await showDialog<bool>(
       context: context,
       builder: (dialogContext) => AlertDialog(
@@ -66,20 +67,13 @@ class _TastingTile extends ConsumerWidget {
       ),
     );
     if (confirmed != true) return false;
-    final ok = await ref
-        .read(tastingFormControllerProvider.notifier)
-        .delete(tasting.id);
-    if (!ok) {
-      final error = ref.read(tastingFormControllerProvider).error;
+    final failure = await controller.delete(tasting.id);
+    if (failure != null) {
       messenger.showSnackBar(
-        SnackBar(
-          content: Text(
-            error == null ? s.errorUnknown : failureMessage(error, s),
-          ),
-        ),
+        SnackBar(content: Text(failureMessage(failure, s))),
       );
     }
-    return ok;
+    return failure == null;
   }
 
   @override

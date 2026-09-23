@@ -1,6 +1,8 @@
+import 'package:colette/core/result/failure.dart';
 import 'package:colette/features/diversification/domain/entities/liking.dart';
 import 'package:colette/features/diversification/domain/entities/tasting.dart';
 import 'package:colette/features/diversification/presentation/pages/plate_page.dart';
+import 'package:colette/features/diversification/presentation/providers/diversification_providers.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 
@@ -106,5 +108,36 @@ void main() {
       overrides: diversificationOverrides(catalogError: StateError('KO')),
     );
     expect(find.text('Une erreur est survenue.'), findsOneWidget);
+  });
+
+  testWidgets('aliments perso en erreur réseau : message', (tester) async {
+    final overrides = [
+      ...diversificationOverrides(tastings: tastings)
+          .where((override) => override.origin != customFoodsProvider),
+      customFoodsProvider.overrideWith(
+        (ref) => Stream.error(const NetworkFailure()),
+      ),
+    ];
+    await pumpApp(tester, const PlatePage(), overrides: overrides);
+    expect(
+      find.text('Pas de connexion. Réessaie dans un instant.'),
+      findsOneWidget,
+    );
+  });
+
+  testWidgets('dégustations en erreur réseau : message', (tester) async {
+    final overrides = [
+      ...diversificationOverrides().where(
+        (override) => override.origin != tastingsProvider,
+      ),
+      tastingsProvider.overrideWith(
+        (ref) => Stream.error(const NetworkFailure()),
+      ),
+    ];
+    await pumpApp(tester, const PlatePage(), overrides: overrides);
+    expect(
+      find.text('Pas de connexion. Réessaie dans un instant.'),
+      findsOneWidget,
+    );
   });
 }

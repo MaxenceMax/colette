@@ -2,6 +2,7 @@ import 'package:colette/features/diversification/domain/entities/food.dart';
 import 'package:colette/features/diversification/domain/entities/food_filter.dart';
 import 'package:colette/features/diversification/domain/entities/food_group.dart';
 import 'package:colette/features/diversification/domain/entities/food_group_section.dart';
+import 'package:colette/features/diversification/domain/entities/food_rule.dart';
 import 'package:colette/features/diversification/domain/entities/food_status.dart';
 import 'package:colette/features/diversification/domain/use_cases/food_name.dart';
 
@@ -15,6 +16,11 @@ class FilterFoods {
     required FoodFilter filter,
     required Map<String, FoodStatus> statuses,
     required Map<String, int> tastingCounts,
+
+    /// Âge du bébé, `null` sans profil : [CatalogMode.avoid] se base alors
+    /// directement sur les règles `avoid` de l'aliment, faute de [FoodStatus]
+    /// calculé pour un âge.
+    required int? ageMonths,
   }) {
     final query = normalizeFoodName(filter.query);
     bool keep(Food food) {
@@ -29,7 +35,10 @@ class FilterFoods {
       return switch (filter.mode) {
         CatalogMode.all => true,
         CatalogMode.notTasted => (tastingCounts[food.id] ?? 0) == 0,
-        CatalogMode.avoid => statuses[food.id] is FoodStatusAvoid,
+        CatalogMode.avoid =>
+          ageMonths == null
+              ? food.rules.any((rule) => rule.kind == RuleKind.avoid)
+              : statuses[food.id] is FoodStatusAvoid,
       };
     }
 

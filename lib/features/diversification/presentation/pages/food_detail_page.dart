@@ -162,10 +162,13 @@ class _DeleteFoodButton extends ConsumerWidget {
     // Capturés avant tout `await` : la suppression met à jour le flux des
     // aliments perso avant même que `delete` ne rende la main (le listener
     // Firestore local réagit à l'écriture optimiste), ce qui retire cet
-    // aliment de l'arbre (`Food.unknown`) et invaliderait `context`.
+    // aliment de l'arbre (`Food.unknown`) — ou une dégustation ajoutée
+    // pendant que la boîte de confirmation est ouverte retire ce bouton
+    // (`hasTastings`) — et démonte ce widget avant la fin de `delete`.
     final navigator = Navigator.of(context);
     final messenger = ScaffoldMessenger.of(context);
     final s = S.of(context);
+    final controller = ref.read(customFoodControllerProvider.notifier);
     final confirmed = await showDialog<bool>(
       context: context,
       builder: (dialogContext) => AlertDialog(
@@ -183,21 +186,12 @@ class _DeleteFoodButton extends ConsumerWidget {
       ),
     );
     if (confirmed != true) return;
-    final ok = await ref
-        .read(customFoodControllerProvider.notifier)
-        .delete(food.id);
-    if (ok) {
+    final failure = await controller.delete(food.id);
+    if (failure == null) {
       await navigator.maybePop();
       return;
     }
-    final error = ref.read(customFoodControllerProvider).error;
-    messenger.showSnackBar(
-      SnackBar(
-        content: Text(
-          error == null ? s.errorUnknown : failureMessage(error, s),
-        ),
-      ),
-    );
+    messenger.showSnackBar(SnackBar(content: Text(failureMessage(failure, s))));
   }
 
   @override

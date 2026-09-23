@@ -32,20 +32,22 @@ class TastingFormController extends _$TastingFormController {
       id: draft.id.isEmpty ? ref.read(idGeneratorProvider).newId() : draft.id,
       note: note == null || note.isEmpty ? null : note,
     );
-    return _run(
+    final failure = await _run(
       (code) => ref.read(tastingsRepositoryProvider).save(code, tasting),
     );
+    return failure == null;
   }
 
-  Future<bool> delete(String tastingId) => _run(
+  /// `null` en cas de succès, sinon l'échec (à afficher par l'appelant).
+  Future<Failure?> delete(String tastingId) => _run(
     (code) => ref.read(tastingsRepositoryProvider).delete(code, tastingId),
   );
 
-  Future<bool> _run(
+  Future<Failure?> _run(
     Future<Either<Failure, void>> Function(String code) action,
   ) async {
     final code = ref.read(currentHouseholdCodeProvider);
-    if (code == null) return false;
+    if (code == null) return const UnknownFailure('no household code');
     state = const AsyncLoading();
     final result = await action(code);
     if (ref.mounted) {
@@ -54,6 +56,6 @@ class TastingFormController extends _$TastingFormController {
         (_) => const AsyncData(null),
       );
     }
-    return result.isRight();
+    return result.fold((failure) => failure, (_) => null);
   }
 }

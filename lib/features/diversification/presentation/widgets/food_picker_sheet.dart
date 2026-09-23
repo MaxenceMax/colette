@@ -2,6 +2,7 @@ import 'package:colette/core/theme/design_tokens.dart';
 import 'package:colette/features/diversification/domain/entities/food.dart';
 import 'package:colette/features/diversification/domain/entities/food_filter.dart';
 import 'package:colette/features/diversification/domain/use_cases/filter_foods.dart';
+import 'package:colette/features/diversification/domain/use_cases/food_name.dart';
 import 'package:colette/features/diversification/presentation/providers/diversification_overview_providers.dart';
 import 'package:colette/features/diversification/presentation/providers/diversification_providers.dart';
 import 'package:colette/features/diversification/presentation/widgets/food_status_badge.dart';
@@ -42,15 +43,20 @@ class _FoodPickerSheetState extends ConsumerState<FoodPickerSheet> {
     final s = S.of(context);
     final foods = ref.watch(foodsProvider).value ?? const <String, Food>{};
     final statuses = ref.watch(foodStatusesProvider);
-    final list = [
-      for (final section in const FilterFoods()(
-        foods: foods.values,
-        filter: FoodFilter(query: _query),
-        statuses: statuses,
-        tastingCounts: const {},
-      ))
-        ...section.foods,
-    ];
+    final list =
+        [
+          for (final section in const FilterFoods()(
+            foods: foods.values,
+            filter: FoodFilter(query: _query),
+            statuses: statuses,
+            tastingCounts: const {},
+            ageMonths: ref.watch(diversificationTimelineProvider)?.ageMonths,
+          ))
+            ...section.foods,
+        ]..sort(
+          (a, b) =>
+              normalizeFoodName(a.name).compareTo(normalizeFoodName(b.name)),
+        );
     return Padding(
       padding: EdgeInsets.only(bottom: MediaQuery.viewInsetsOf(context).bottom),
       child: Column(

@@ -2,6 +2,7 @@ import 'package:colette/features/diversification/domain/entities/allergen.dart';
 import 'package:colette/features/diversification/domain/entities/food.dart';
 import 'package:colette/features/diversification/domain/entities/food_filter.dart';
 import 'package:colette/features/diversification/domain/entities/food_group.dart';
+import 'package:colette/features/diversification/domain/entities/food_rule.dart';
 import 'package:colette/features/diversification/domain/entities/food_status.dart';
 import 'package:colette/features/diversification/domain/entities/rule_source.dart';
 import 'package:colette/features/diversification/domain/use_cases/filter_foods.dart';
@@ -25,7 +26,19 @@ void main() {
     group: FoodGroup.eggs,
     allergens: {Allergen.eggs},
   );
-  const honey = Food(id: 'miel', name: 'Miel', group: FoodGroup.outsideGroups);
+  const honey = Food(
+    id: 'miel',
+    name: 'Miel',
+    group: FoodGroup.outsideGroups,
+    rules: [
+      FoodRule(
+        kind: RuleKind.avoid,
+        untilMonths: 12,
+        sources: [RuleSource.oms],
+        text: 'Risque de botulisme infantile.',
+      ),
+    ],
+  );
   final unknown = Food.unknown('disparu');
   final foods = [honey, squash, egg, carrot, unknown];
   final statuses = <String, FoodStatus>{
@@ -40,12 +53,13 @@ void main() {
   // les records Dart comparent leurs champs avec `==`, et `List` ne redéfinit
   // pas `==` (identité), donc deux listes distinctes mais égales ne
   // correspondraient jamais via `expect`.
-  List<(FoodGroup, String)> run(FoodFilter f) => [
+  List<(FoodGroup, String)> run(FoodFilter f, {int? ageMonths = 8}) => [
     for (final section in filter(
       foods: foods,
       filter: f,
       statuses: statuses,
       tastingCounts: counts,
+      ageMonths: ageMonths,
     ))
       (section.group, section.foods.map((food) => food.id).join(', ')),
   ];
@@ -71,6 +85,12 @@ void main() {
 
   test('à éviter : statut avoid', () {
     expect(run(const FoodFilter(mode: CatalogMode.avoid)), [
+      (FoodGroup.outsideGroups, 'miel'),
+    ]);
+  });
+
+  test('à éviter sans profil : se base sur les règles avoid de l\'aliment', () {
+    expect(run(const FoodFilter(mode: CatalogMode.avoid), ageMonths: null), [
       (FoodGroup.outsideGroups, 'miel'),
     ]);
   });

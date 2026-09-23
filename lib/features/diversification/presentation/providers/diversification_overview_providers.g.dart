@@ -392,4 +392,4 @@ final class FilteredCatalogProvider
   }
 }
 
-String _$filteredCatalogHash() => r'591db7c2fabc2a73625bf98b83132128007afafd';
+String _$filteredCatalogHash() => r'8e7ea79b3db66c023ef6d4ca94cc67e7d0d462e9';

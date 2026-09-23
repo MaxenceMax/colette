@@ -155,6 +155,49 @@ void main() {
     },
   );
 
+  testWidgets(
+    'suppression : une dégustation arrive pendant la confirmation, refusée',
+    (tester) async {
+      // Reproduit l'autre téléphone qui note une dégustation pendant que la
+      // boîte de confirmation est ouverte ici : `hasTastings` devient vrai,
+      // ce qui retire `_DeleteFoodButton` de l'arbre avant la fin de
+      // `delete`.
+      final controller = StreamController<List<Tasting>>();
+      addTearDown(controller.close);
+      final overrides = [
+        ...diversificationOverrides(
+          customFoods: const [kaki],
+          tastingsRepository: tastingsRepo,
+          customFoodsRepository: foodsRepo,
+        ).where((override) => override.origin != tastingsProvider),
+        tastingsProvider.overrideWith((ref) => controller.stream),
+      ];
+      await pumpApp(
+        tester,
+        const FoodDetailPage(foodId: 'c1'),
+        overrides: overrides,
+      );
+      controller.add(const []);
+      await tester.pumpAndSettle();
+      await tester.scrollUntilVisible(find.text('Supprimer cet aliment'), 200);
+      await tester.tap(find.text('Supprimer cet aliment'));
+      await tester.pumpAndSettle();
+      controller.add([
+        Tasting(id: 't1', foodId: 'c1', at: DateTime(2027, 4, 1)),
+      ]);
+      await tester.pump();
+      await tester.tap(find.text('Supprimer'));
+      await tester.pumpAndSettle();
+      expect(
+        find.text(
+          'Cet aliment a des dégustations : il ne peut pas être supprimé.',
+        ),
+        findsOneWidget,
+      );
+      verifyNever(() => foodsRepo.delete(any(), any()));
+    },
+  );
+
   testWidgets('miel après 1 an : plus de règle à éviter', (tester) async {
     await pumpApp(
       tester,
