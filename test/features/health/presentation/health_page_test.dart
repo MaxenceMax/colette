@@ -1,10 +1,14 @@
 import 'package:colette/core/firebase/firebase_providers.dart';
+import 'package:colette/core/result/failure.dart';
 import 'package:colette/features/health/domain/entities/medical_stage.dart';
 import 'package:colette/features/health/domain/entities/medical_stage_status.dart';
 import 'package:colette/features/health/domain/entities/medical_timeline.dart';
 import 'package:colette/features/health/presentation/pages/health_page.dart';
+import 'package:colette/features/health/presentation/providers/calendar_sync_issue.dart';
 import 'package:colette/features/health/presentation/providers/health_providers.dart';
 import 'package:colette/features/health/presentation/providers/health_sync.dart';
+import 'package:colette/features/health/presentation/providers/selected_calendar.dart';
+import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
@@ -48,5 +52,35 @@ void main() {
     await tester.tap(find.text('Faites (1)'));
     await tester.pumpAndSettle();
     expect(find.text('Examen des 8 jours'), findsOneWidget);
+  });
+
+  testWidgets('alerte quand le calendrier n\'est plus synchronisé', (
+    tester,
+  ) async {
+    SharedPreferences.setMockInitialValues({
+      SelectedCalendar.idKey: 'c1',
+      SelectedCalendar.titleKey: 'Famille',
+    });
+    final prefs = await SharedPreferences.getInstance();
+    await pumpApp(
+      tester,
+      const HealthPage(),
+      overrides: [
+        sharedPreferencesProvider.overrideWithValue(prefs),
+        healthSyncProvider.overrideWithValue(const NoopHealthSync()),
+        medicalTimelineProvider.overrideWithValue(null),
+        calendarSyncIssueProvider.overrideWithValue(
+          CalendarReason.accessDenied,
+        ),
+      ],
+    );
+    expect(
+      find.text(
+        "Colette n'a pas accès au Calendrier. Autorise-le dans Réglages iOS › Colette › Calendriers.",
+      ),
+      findsOneWidget,
+    );
+    expect(find.byIcon(Icons.sync_problem), findsOneWidget);
+    expect(find.textContaining('Famille'), findsNothing);
   });
 }

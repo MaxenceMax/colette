@@ -6,6 +6,7 @@ import 'package:colette/features/health/domain/entities/calendar_choice.dart';
 import 'package:colette/features/health/domain/entities/device_calendar.dart';
 import 'package:colette/features/health/domain/repositories/calendar_repository.dart';
 import 'package:colette/features/health/presentation/providers/calendar_settings_controller.dart';
+import 'package:colette/features/health/presentation/providers/calendar_sync_issue.dart';
 import 'package:colette/features/health/presentation/providers/health_providers.dart';
 import 'package:colette/features/health/presentation/providers/health_sync.dart';
 import 'package:colette/features/health/presentation/providers/selected_calendar.dart';
@@ -87,6 +88,28 @@ void main() {
       const CalendarChoice(id: 'c1', title: 'Famille'),
     );
     verify(() => sync.sync()).called(1);
+  });
+
+  test('choose efface l\'alerte de synchronisation', () async {
+    container
+        .read(calendarSyncIssueProvider.notifier)
+        .report(CalendarReason.accessDenied);
+
+    await controller().choose(
+      const DeviceCalendar(id: 'c1', title: 'Famille', source: 'iCloud'),
+    );
+
+    expect(container.read(calendarSyncIssueProvider), isNull);
+  });
+
+  test('clear efface l\'alerte de synchronisation', () async {
+    container
+        .read(calendarSyncIssueProvider.notifier)
+        .report(CalendarReason.accessDenied);
+
+    await controller().clear();
+
+    expect(container.read(calendarSyncIssueProvider), isNull);
   });
 
   test('choose passe par AsyncLoading pendant la synchronisation', () async {

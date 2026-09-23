@@ -3,6 +3,7 @@ import 'dart:async';
 import 'package:colette/core/result/failure.dart';
 import 'package:colette/features/health/domain/entities/calendar_choice.dart';
 import 'package:colette/features/health/domain/entities/device_calendar.dart';
+import 'package:colette/features/health/presentation/providers/calendar_sync_issue.dart';
 import 'package:colette/features/health/presentation/providers/health_providers.dart';
 import 'package:colette/features/health/presentation/providers/health_sync.dart';
 import 'package:colette/features/health/presentation/providers/selected_calendar.dart';
@@ -43,6 +44,7 @@ class CalendarSettingsController extends _$CalendarSettingsController {
     // Lu avant l'await : le contrôleur autoDispose peut être détruit pendant la synchronisation.
     final sync = ref.read(healthSyncProvider);
     state = const AsyncLoading();
+    ref.read(calendarSyncIssueProvider.notifier).clear();
     await ref
         .read(selectedCalendarProvider.notifier)
         .choose(CalendarChoice(id: calendar.id, title: calendar.title));
@@ -55,6 +57,7 @@ class CalendarSettingsController extends _$CalendarSettingsController {
   /// Arrête la synchronisation, sans toucher aux événements existants.
   Future<void> clear() async {
     state = const AsyncLoading();
+    ref.read(calendarSyncIssueProvider.notifier).clear();
     await ref.read(selectedCalendarProvider.notifier).clear();
     if (ref.mounted) {
       state = const AsyncData(null);

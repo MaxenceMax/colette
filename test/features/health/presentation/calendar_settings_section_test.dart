@@ -1,8 +1,10 @@
 import 'dart:async';
 
 import 'package:colette/core/firebase/firebase_providers.dart';
+import 'package:colette/core/result/failure.dart';
 import 'package:colette/features/health/domain/entities/device_calendar.dart';
 import 'package:colette/features/health/domain/repositories/calendar_repository.dart';
+import 'package:colette/features/health/presentation/providers/calendar_sync_issue.dart';
 import 'package:colette/features/health/presentation/providers/health_providers.dart';
 import 'package:colette/features/health/presentation/providers/health_sync.dart';
 import 'package:colette/features/health/presentation/providers/selected_calendar.dart';
@@ -150,5 +152,27 @@ void main() {
     await tester.pumpAndSettle();
     expect(find.text('Choisir un calendrier'), findsOneWidget);
     expect(prefs.getString(SelectedCalendar.idKey), isNull);
+  });
+
+  testWidgets('affiche l\'alerte de synchronisation', (tester) async {
+    await prefs.setString(SelectedCalendar.idKey, 'c1');
+    await prefs.setString(SelectedCalendar.titleKey, 'Famille');
+    await pumpApp(
+      tester,
+      const Scaffold(body: CalendarSettingsSection()),
+      overrides: [
+        ...overrides(),
+        calendarSyncIssueProvider.overrideWithValue(
+          CalendarReason.accessDenied,
+        ),
+      ],
+    );
+    expect(find.text('RDV santé ajoutés à : Famille'), findsOneWidget);
+    expect(
+      find.text(
+        "Colette n'a pas accès au Calendrier. Autorise-le dans Réglages iOS › Colette › Calendriers.",
+      ),
+      findsOneWidget,
+    );
   });
 }

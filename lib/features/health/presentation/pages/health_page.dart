@@ -1,9 +1,12 @@
+import 'package:colette/core/result/failure.dart';
 import 'package:colette/core/theme/app_colors.dart';
 import 'package:colette/core/theme/design_tokens.dart';
 import 'package:colette/core/theme/text_styles.dart';
 import 'package:colette/core/ui/failure_message.dart';
+import 'package:colette/features/health/domain/entities/calendar_choice.dart';
 import 'package:colette/features/health/domain/entities/medical_stage_status.dart';
 import 'package:colette/features/health/domain/entities/medical_timeline.dart';
+import 'package:colette/features/health/presentation/providers/calendar_sync_issue.dart';
 import 'package:colette/features/health/presentation/providers/health_providers.dart';
 import 'package:colette/features/health/presentation/providers/health_sync.dart';
 import 'package:colette/features/health/presentation/providers/medical_visit_controller.dart';
@@ -77,7 +80,8 @@ class _HealthPageState extends ConsumerState<HealthPage> {
   }
 }
 
-/// Calendrier synchronisé sur cet iPhone, ou invitation à le régler.
+/// Calendrier synchronisé sur cet iPhone, alerte de synchronisation, ou
+/// invitation à le régler.
 class _CalendarStatus extends ConsumerWidget {
   const _CalendarStatus();
 
@@ -85,22 +89,35 @@ class _CalendarStatus extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final s = S.of(context);
     final choice = ref.watch(selectedCalendarProvider);
+    final issue = ref.watch(calendarSyncIssueProvider);
+    final (icon, text, color) = switch ((issue, choice)) {
+      (final CalendarReason reason, _) => (
+        Icons.sync_problem,
+        failureMessage(CalendarFailure(reason), s),
+        AppColors.warning,
+      ),
+      (null, null) => (
+        Icons.event_busy_outlined,
+        s.healthCalendarNotConfigured,
+        AppColors.textSecondary,
+      ),
+      (null, final CalendarChoice choice) => (
+        Icons.event_available,
+        s.healthCalendarSynced(choice.title),
+        AppColors.textSecondary,
+      ),
+    };
     return Padding(
       padding: AppSpacing.md.vertical,
       child: Row(
         spacing: AppSpacing.sm.value,
         children: [
-          Icon(
-            choice == null ? Icons.event_busy_outlined : Icons.event_available,
-            color: context.appColor(AppColors.textSecondary),
-          ),
+          Icon(icon, color: context.appColor(color)),
           Expanded(
             child: Text(
-              choice == null
-                  ? s.healthCalendarNotConfigured
-                  : s.healthCalendarSynced(choice.title),
+              text,
               style: Theme.of(context).coletteTextStyles.small
-                  .copyWith(color: context.appColor(AppColors.textSecondary)),
+                  .copyWith(color: context.appColor(color)),
             ),
           ),
         ],

@@ -38,7 +38,7 @@ final class CalendarSettingsControllerProvider
 }
 
 String _$calendarSettingsControllerHash() =>
-    r'12a9997f15233439ce60c1df7ef5b15bac51414a';
+    r'31400bbcdde3f90e664cd0aa45dede4b8a472baf';
 
 /// Accès au Calendrier et choix du calendrier des RDV santé sur cet iPhone.
 

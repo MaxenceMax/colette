@@ -10,6 +10,7 @@ import 'package:colette/features/health/domain/entities/medical_visit.dart';
 import 'package:colette/features/health/domain/use_cases/compute_medical_reminder_snapshot.dart';
 import 'package:colette/features/health/domain/use_cases/compute_medical_timeline.dart';
 import 'package:colette/features/health/domain/use_cases/reconcile_calendar.dart';
+import 'package:colette/features/health/presentation/providers/calendar_sync_issue.dart';
 import 'package:colette/features/health/presentation/providers/health_providers.dart';
 import 'package:colette/features/health/presentation/providers/selected_calendar.dart';
 import 'package:colette/features/health/presentation/widgets/health_labels.dart';
@@ -129,7 +130,15 @@ final class FirestoreHealthSync implements HealthSync {
     DateTime now,
   ) async {
     final choice = _ref.read(selectedCalendarProvider);
-    if (choice == null) return;
+    if (choice == null) {
+      // « Calendrier introuvable » explique pourquoi le choix a disparu :
+      // l'alerte reste jusqu'au prochain choix.
+      if (_ref.read(calendarSyncIssueProvider) !=
+          CalendarReason.calendarNotFound) {
+        _ref.read(calendarSyncIssueProvider.notifier).clear();
+      }
+      return;
+    }
     final calendar = _ref.read(calendarRepositoryProvider);
     final found = await calendar.findEvents(
       choice.id,
@@ -166,22 +175,29 @@ final class FirestoreHealthSync implements HealthSync {
         if (stop) return;
       }
     }
+    _ref.read(calendarSyncIssueProvider.notifier).clear();
   }
 
-  /// Calendrier disparu : on oublie le choix, s'il n'a pas changé entre-temps.
-  /// Accès refusé : on journalise et on arrête. Autre échec (`io`, inconnu) :
-  /// on journalise et on continue avec les actions suivantes.
+  /// Calendrier disparu : on oublie le choix, s'il n'a pas changé entre-temps,
+  /// et on le signale. Accès refusé : on le signale et on arrête. Autre échec
+  /// (`io`, inconnu) : on journalise et on continue avec les actions suivantes.
   ///
   /// Renvoie `true` si la boucle des actions doit s'arrêter.
   Future<bool> _handleFailure(CalendarChoice choice, Failure failure) async {
     switch (failure) {
       case CalendarFailure(reason: CalendarReason.calendarNotFound):
         if (_ref.read(selectedCalendarProvider)?.id == choice.id) {
+          _ref
+              .read(calendarSyncIssueProvider.notifier)
+              .report(CalendarReason.calendarNotFound);
           await _ref.read(selectedCalendarProvider.notifier).clear();
         }
         return true;
       case CalendarFailure(reason: CalendarReason.accessDenied):
         developer.log('Calendar sync failed: $failure', name: 'colette');
+        _ref
+            .read(calendarSyncIssueProvider.notifier)
+            .report(CalendarReason.accessDenied);
         return true;
       default:
         developer.log('Calendar sync failed: $failure', name: 'colette');
