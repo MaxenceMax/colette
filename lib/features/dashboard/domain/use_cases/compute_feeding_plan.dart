@@ -8,6 +8,7 @@ import 'package:colette/features/events/domain/entities/care_event.dart';
 /// Plan biberons selon l'OMS : 150 ml/kg/jour (montée progressive la 1re semaine),
 /// réparti sur `feedsPerDay` prises ; repères par âge sans pesée.
 /// Une cible ajustée (`dailyTargetMlOverride`) remplace la cible OMS.
+/// Le prochain biberon est une fourchette à ±15 % de l'intervalle.
 ///
 /// `feedsPerDay` est borné à 1 minimum pour ne jamais diviser par zéro.
 class ComputeFeedingPlan {
@@ -27,15 +28,18 @@ class ComputeFeedingPlan {
   }) {
     final safeFeedsPerDay = max(1, feedsPerDay);
     final day = dayOfLife(birthDate, now);
-    final (omsTargetMl, estimated) = switch (latestWeightGrams) {
-      null => (dailyTargetFromAge(day), true),
-      final grams => (weightTargetMl(day, grams), false),
-    };
+    final omsTargetMl = dailyTargetFor(
+      dayOfLife: day,
+      latestWeightGrams: latestWeightGrams,
+    );
     final dailyTargetMl = dailyTargetMlOverride ?? omsTargetMl;
-    final interval = Duration(minutes: (24 * 60 / safeFeedsPerDay).round());
+    final interval = intervalFor(safeFeedsPerDay);
     final nextBottleAt = lastBottle == null
         ? now
         : lastBottle.startAt.add(interval);
+    final (windowStart, windowEnd) = lastBottle == null
+        ? (now, now)
+        : windowAround(nextBottleAt, interval);
     final givenMl = todayBottles.fold(0, (sum, e) => sum + (e.bottleMl ?? 0));
     final bottlesGiven = todayBottles.length;
     final bottlesRemaining = max(0, safeFeedsPerDay - bottlesGiven);
@@ -50,12 +54,52 @@ class ComputeFeedingPlan {
       isTargetOverridden: dailyTargetMlOverride != null,
       feedsPerDay: safeFeedsPerDay,
       nextBottleAt: nextBottleAt,
+      windowStart: windowStart,
+      windowEnd: windowEnd,
       suggestedMl: suggestedMl,
       bottlesGiven: bottlesGiven,
       givenMl: givenMl,
-      isEstimatedFromAge: estimated,
+      isEstimatedFromAge: latestWeightGrams == null,
     );
   }
+
+  /// Demi-largeur de la fourchette, en fraction de l'intervalle.
+  static const windowHalfWidthRatio = 0.15;
+
+  /// Intervalle entre deux prises ; `feedsPerDay` borné à 1 minimum.
+  static Duration intervalFor(int feedsPerDay) =>
+      Duration(minutes: (24 * 60 / max(1, feedsPerDay)).round());
+
+  /// Fourchette à ±15 % de l'intervalle autour de `center`, arrondie aux 5 min.
+  static (DateTime, DateTime) windowAround(DateTime center, Duration interval) {
+    final half = Duration(
+      minutes: (interval.inMinutes * windowHalfWidthRatio).round(),
+    );
+    return (
+      roundTo5Minutes(center.subtract(half)),
+      roundTo5Minutes(center.add(half)),
+    );
+  }
+
+  /// Arrondi aux 5 minutes les plus proches, secondes ignorées.
+  static DateTime roundTo5Minutes(DateTime time) {
+    final minutes =
+        time.microsecondsSinceEpoch ~/ Duration.microsecondsPerMinute;
+    final rounded = (minutes / 5).round() * 5;
+    return DateTime.fromMicrosecondsSinceEpoch(
+      rounded * Duration.microsecondsPerMinute,
+      isUtc: time.isUtc,
+    );
+  }
+
+  /// Cible OMS : au poids si une pesée est connue, sinon repères par âge.
+  static int dailyTargetFor({
+    required int dayOfLife,
+    required int? latestWeightGrams,
+  }) => switch (latestWeightGrams) {
+    null => dailyTargetFromAge(dayOfLife),
+    final grams => weightTargetMl(dayOfLife, grams),
+  };
 
   /// Jour de vie en jours civils ; 1 le jour de la naissance, jamais moins.
   static int dayOfLife(DateTime birthDate, DateTime now) =>

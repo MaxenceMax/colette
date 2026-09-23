@@ -54,6 +54,58 @@ final class FeedingPlanProvider
 
 String _$feedingPlanHash() => r'528f633c90907a1354b0dd13d9006bc1f4932f81';
 
+/// Biberons prévus sur les 24 prochaines heures ; `null` sans plan.
+
+@ProviderFor(bottleSchedule)
+final bottleScheduleProvider = BottleScheduleProvider._();
+
+/// Biberons prévus sur les 24 prochaines heures ; `null` sans plan.
+
+final class BottleScheduleProvider
+    extends
+        $FunctionalProvider<
+          List<ProjectedBottle>?,
+          List<ProjectedBottle>?,
+          List<ProjectedBottle>?
+        >
+    with $Provider<List<ProjectedBottle>?> {
+  /// Biberons prévus sur les 24 prochaines heures ; `null` sans plan.
+  BottleScheduleProvider._()
+    : super(
+        from: null,
+        argument: null,
+        retry: null,
+        name: r'bottleScheduleProvider',
+        isAutoDispose: true,
+        dependencies: null,
+        $allTransitiveDependencies: null,
+      );
+
+  @override
+  String debugGetCreateSourceHash() => _$bottleScheduleHash();
+
+  @$internal
+  @override
+  $ProviderElement<List<ProjectedBottle>?> $createElement(
+    $ProviderPointer pointer,
+  ) => $ProviderElement(pointer);
+
+  @override
+  List<ProjectedBottle>? create(Ref ref) {
+    return bottleSchedule(ref);
+  }
+
+  /// {@macro riverpod.override_with_value}
+  Override overrideWithValue(List<ProjectedBottle>? value) {
+    return $ProviderOverride(
+      origin: this,
+      providerOverride: $SyncValueProvider<List<ProjectedBottle>?>(value),
+    );
+  }
+}
+
+String _$bottleScheduleHash() => r'a371a5cd036479b5f2fe9b0554b9b629bb408546';
+
 /// Repères OMS du jour ; `null` sans profil.
 
 @ProviderFor(feedingReference)

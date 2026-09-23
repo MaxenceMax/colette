@@ -125,7 +125,7 @@ void main() {
     expect(plan.suggestedMl, 60);
   });
 
-  test('le retard est calculé depuis le dernier biberon + intervalle', () {
+  test('le retard est compté depuis la fin de la fourchette', () {
     final last = makeEvent(
       id: 'a',
       startAt: DateTime(2026, 9, 10, 6),
@@ -140,7 +140,76 @@ void main() {
       now: DateTime(2026, 9, 10, 10),
     );
     expect(plan.nextBottleAt, DateTime(2026, 9, 10, 9));
-    expect(plan.lateBy(DateTime(2026, 9, 10, 10)), const Duration(hours: 1));
+    expect(plan.windowEnd, DateTime(2026, 9, 10, 9, 25));
+    expect(plan.hasWindow, isTrue);
+    expect(plan.lateBy(DateTime(2026, 9, 10, 9, 20)), Duration.zero);
+    expect(plan.lateBy(DateTime(2026, 9, 10, 10)), const Duration(minutes: 35));
+  });
+
+  group('fourchette', () {
+    test('arrondi aux 5 min, secondes ignorées', () {
+      expect(
+        ComputeFeedingPlan.roundTo5Minutes(DateTime(2026, 9, 10, 7, 43)),
+        DateTime(2026, 9, 10, 7, 45),
+      );
+      expect(
+        ComputeFeedingPlan.roundTo5Minutes(DateTime(2026, 9, 10, 7, 42, 50)),
+        DateTime(2026, 9, 10, 7, 40),
+      );
+      expect(
+        ComputeFeedingPlan.roundTo5Minutes(DateTime(2026, 9, 10, 8, 37)),
+        DateTime(2026, 9, 10, 8, 35),
+      );
+    });
+
+    (DateTime, DateTime) windowFor(int feeds, DateTime last) {
+      final bottle = makeEvent(id: 'a', startAt: last, bottleMl: 60);
+      final plan = compute(
+        birthDate: birth,
+        latestWeightGrams: 3600,
+        feedsPerDay: feeds,
+        todayBottles: [bottle],
+        lastBottle: bottle,
+        now: last,
+      );
+      return (plan.windowStart, plan.windowEnd);
+    }
+
+    test('8 prises : ±27 min autour de dernier + 3 h', () {
+      expect(windowFor(8, DateTime(2026, 9, 10, 5, 10)), (
+        DateTime(2026, 9, 10, 7, 45),
+        DateTime(2026, 9, 10, 8, 35),
+      ));
+    });
+
+    test('6 prises : ±36 min autour de dernier + 4 h', () {
+      expect(windowFor(6, DateTime(2026, 9, 10, 6)), (
+        DateTime(2026, 9, 10, 9, 25),
+        DateTime(2026, 9, 10, 10, 35),
+      ));
+    });
+
+    test('12 prises : ±18 min autour de dernier + 2 h', () {
+      expect(windowFor(12, DateTime(2026, 9, 10, 6)), (
+        DateTime(2026, 9, 10, 7, 40),
+        DateTime(2026, 9, 10, 8, 20),
+      ));
+    });
+
+    test('sans biberon : fourchette réduite à maintenant', () {
+      final now = DateTime(2026, 9, 10, 12, 3);
+      final plan = compute(
+        birthDate: birth,
+        latestWeightGrams: 3600,
+        feedsPerDay: 8,
+        todayBottles: const [],
+        lastBottle: null,
+        now: now,
+      );
+      expect(plan.windowStart, now);
+      expect(plan.windowEnd, now);
+      expect(plan.hasWindow, isFalse);
+    });
   });
 
   test('la suggestion est bornée entre 30 et 240 ml', () {
