@@ -55,4 +55,26 @@ void main() {
     );
     expect(status(DateTime(2027), visit), MedicalStageStatus.done);
   });
+
+  test('appointmentPassed prime sur late quand la fenêtre est dépassée', () {
+    final visit = makeVisit(
+      MedicalStageId.m2,
+      appointmentAt: DateTime(2026, 11, 3, 10),
+    );
+    expect(
+      status(DateTime(2026, 12, 15), visit),
+      MedicalStageStatus.appointmentPassed,
+    );
+  });
+
+  test('scheduled quand le RDV est exactement à now', () {
+    final visit = makeVisit(
+      MedicalStageId.m2,
+      appointmentAt: DateTime(2026, 11, 3, 10),
+    );
+    expect(
+      status(DateTime(2026, 11, 3, 10), visit),
+      MedicalStageStatus.scheduled,
+    );
+  });
 }

@@ -23,6 +23,7 @@ abstract class MedicalVisit with _$MedicalVisit {
   }) = _MedicalVisit;
 
   /// Rien de saisi : ni RDV, ni visite faite, ni injection, ni note.
+  /// Le praticien seul ne compte pas : il n'a de sens qu'avec un RDV.
   bool get isEmpty =>
       appointmentAt == null &&
       doneAt == null &&
