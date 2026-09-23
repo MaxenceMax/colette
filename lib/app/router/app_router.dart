@@ -41,6 +41,11 @@ abstract final class AppRoutes {
           path: todayDocuments,
           queryParameters: {documentsPathParam: path},
         ).toString();
+
+  static const plate = '/plate';
+
+  /// Fiche d'un aliment de l'onglet Assiette.
+  static String plateFood(String foodId) => '$plate/food/$foodId';
 }
 
 /// Routeur : onboarding tant qu'aucun foyer, sinon shell à trois onglets.
