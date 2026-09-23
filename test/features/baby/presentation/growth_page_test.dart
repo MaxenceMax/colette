@@ -156,6 +156,9 @@ void main() {
     await pumpApp(tester, const GrowthPage(), overrides: overrides(const []));
     expect(find.text('Aucun poids enregistré'), findsOneWidget);
     expect(find.byType(LineChart), findsNothing);
+    // Pas de section Mesures (vide) en double avec l'état vide.
+    expect(find.text('Ajouter une mesure'), findsOneWidget);
+    expect(find.text('Mesures'), findsNothing);
   });
 
   testWidgets('courbes OMS cachées par défaut, le bouton les affiche', (
@@ -205,6 +208,35 @@ void main() {
     );
     expect(barCount(tester), 1);
   });
+
+  testWidgets(
+    'l\'onglet choisi survit à l\'ouverture et à la fermeture de la feuille',
+    (tester) async {
+      await pumpApp(
+        tester,
+        const GrowthPage(),
+        overrides: overrides(measurements),
+      );
+      await selectTab(tester, 'Taille');
+      final addButton = find.widgetWithText(TextButton, 'Ajouter une mesure');
+      await tester.scrollUntilVisible(addButton, 200);
+      await tester.ensureVisible(addButton);
+      await tester.pumpAndSettle();
+      await tester.tap(addButton);
+      await tester.pumpAndSettle();
+      expect(find.byType(GrowthMeasurementSheet), findsOneWidget);
+      Navigator.of(tester.element(find.byType(GrowthMeasurementSheet))).pop();
+      await tester.pumpAndSettle();
+      // Le sélecteur est en haut de la liste : remonter après avoir défilé
+      // vers le bouton d'ajout de `MeasurementsSection`.
+      final selectorFinder = find.byType(SegmentedButton<GrowthMetric>);
+      await tester.scrollUntilVisible(selectorFinder, -200);
+      final selector = tester.widget<SegmentedButton<GrowthMetric>>(
+        selectorFinder,
+      );
+      expect(selector.selected, {GrowthMetric.length});
+    },
+  );
 
   testWidgets('la liste des mesures est sous la courbe', (tester) async {
     await pumpApp(

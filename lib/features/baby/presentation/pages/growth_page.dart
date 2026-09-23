@@ -38,9 +38,8 @@ class GrowthPage extends ConsumerWidget {
       }
     });
     final metric = ref.watch(selectedGrowthMetricProvider);
-    final points = metric.seriesOf(
-      ref.watch(measurementsProvider).value ?? const [],
-    );
+    final measurements = ref.watch(measurementsProvider).value ?? const [];
+    final points = metric.seriesOf(measurements);
     final trend = ref.watch(growthTrendProvider(metric));
     return Scaffold(
       appBar: AppBar(title: Text(s.growthTitle)),
@@ -54,8 +53,10 @@ class GrowthPage extends ConsumerWidget {
             _EmptySection(metric: metric)
           else
             _ChartSection(metric: metric, points: points, trend: trend),
-          SectionHeader(title: s.settingsMeasurementsSection),
-          const MeasurementsSection(),
+          if (measurements.isNotEmpty) ...[
+            SectionHeader(title: s.settingsMeasurementsSection),
+            const MeasurementsSection(),
+          ],
           AppSpacing.xl.verticalSpace,
         ],
       ),
@@ -96,22 +97,18 @@ class _EmptySection extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final s = S.of(context);
-    return Column(
-      children: [
-        EmptyState(
-          icon: switch (metric) {
-            GrowthMetric.weight => Icons.monitor_weight_outlined,
-            GrowthMetric.length => Icons.straighten,
-            GrowthMetric.headCircumference => Icons.child_care_outlined,
-          },
-          message: GrowthFormat.empty(s, metric),
-        ),
-        FilledButton.icon(
-          onPressed: () => showGrowthMeasurementSheet(context),
-          icon: const Icon(Icons.add),
-          label: Text(s.actionAddMeasurement),
-        ),
-      ],
+    return EmptyState(
+      icon: switch (metric) {
+        GrowthMetric.weight => Icons.monitor_weight_outlined,
+        GrowthMetric.length => Icons.straighten,
+        GrowthMetric.headCircumference => Icons.child_care_outlined,
+      },
+      message: GrowthFormat.empty(s, metric),
+      action: FilledButton.icon(
+        onPressed: () => showGrowthMeasurementSheet(context),
+        icon: const Icon(Icons.add),
+        label: Text(s.actionAddMeasurement),
+      ),
     );
   }
 }
