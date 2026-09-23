@@ -6,6 +6,7 @@ import 'package:colette/features/diversification/presentation/pages/food_detail_
 import 'package:colette/features/diversification/presentation/pages/plate_page.dart';
 import 'package:colette/features/documents/presentation/pages/documents_page.dart';
 import 'package:colette/features/events/presentation/pages/timeline_page.dart';
+import 'package:colette/features/health/presentation/pages/health_page.dart';
 import 'package:colette/features/household/presentation/pages/create_household_page.dart';
 import 'package:colette/features/household/presentation/pages/join_household_page.dart';
 import 'package:colette/features/household/presentation/pages/onboarding_page.dart';
@@ -25,6 +26,9 @@ abstract final class AppRoutes {
 
   /// Page Croissance, imbriquée sous Aujourd'hui pour garder la barre d'onglets.
   static const growth = '/today/growth';
+
+  /// Page Santé, imbriquée sous Aujourd'hui pour garder la barre d'onglets.
+  static const health = '/today/health';
 
   /// Page Sommeil, imbriquée sous Aujourd'hui pour garder la barre d'onglets.
   static const sleep = '/today/sleep';
@@ -92,6 +96,10 @@ GoRouter appRouter(Ref ref) {
                   GoRoute(
                     path: 'growth',
                     builder: (_, _) => const GrowthPage(),
+                  ),
+                  GoRoute(
+                    path: 'health',
+                    builder: (_, _) => const HealthPage(),
                   ),
                   GoRoute(path: 'sleep', builder: (_, _) => const SleepPage()),
                   GoRoute(

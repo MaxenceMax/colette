@@ -26,6 +26,8 @@ String failureMessage(Object failure, S s) => switch (failure) {
     ValidationReason.invalidLength => s.errorInvalidLength,
     ValidationReason.invalidHeadCircumference =>
       s.errorInvalidHeadCircumference,
+    ValidationReason.medicalDateBeforeBirth => s.errorMedicalDateBeforeBirth,
+    ValidationReason.medicalDateInFuture => s.errorMedicalDateInFuture,
   },
   SleepOverlapFailure(:final startAt, :final endAt) => switch (endAt) {
     null => s.errorSleepOverlapOngoing(formatHourMinute(startAt)),
@@ -40,6 +42,11 @@ String failureMessage(Object failure, S s) => switch (failure) {
     DocumentsReason.io => s.documentsErrorIo,
     // Jamais affiché : l'UI ignore cancelled.
     DocumentsReason.cancelled => s.errorUnknown,
+  },
+  CalendarFailure(:final reason) => switch (reason) {
+    CalendarReason.accessDenied => s.calendarErrorAccessDenied,
+    CalendarReason.calendarNotFound => s.calendarErrorNotFound,
+    CalendarReason.io => s.calendarErrorIo,
   },
   _ => s.errorUnknown,
 };

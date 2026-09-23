@@ -9,6 +9,7 @@ import 'package:colette/features/dashboard/presentation/widgets/weight_card.dart
 import 'package:colette/features/diapers/presentation/widgets/diaper_stock_alert_card.dart';
 import 'package:colette/features/documents/presentation/widgets/documents_card.dart';
 import 'package:colette/features/events/presentation/widgets/event_form_sheet.dart';
+import 'package:colette/features/health/presentation/widgets/health_card.dart';
 import 'package:colette/features/sleep/presentation/widgets/sleep_card.dart';
 import 'package:colette/l10n/generated/app_localizations.dart';
 import 'package:colette/shared/ui/widgets/section_header.dart';
@@ -16,7 +17,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 /// Onglet Aujourd'hui : âge, prochain biberon, sommeil, reste à faire,
-/// compteurs, poids, documents.
+/// compteurs, poids, santé, documents.
 class DashboardPage extends ConsumerStatefulWidget {
   const DashboardPage({super.key});
 
@@ -61,6 +62,8 @@ class _DashboardPageState extends ConsumerState<DashboardPage> {
             const DayCountersRow(),
             AppSpacing.lg.verticalSpace,
             const WeightCard(),
+            AppSpacing.md.verticalSpace,
+            const HealthCard(),
             AppSpacing.md.verticalSpace,
             const DocumentsCard(),
             AppSpacing.xl.verticalSpace,

@@ -13,5 +13,6 @@ import UIKit
   func didInitializeImplicitFlutterEngine(_ engineBridge: FlutterImplicitEngineBridge) {
     GeneratedPluginRegistrant.register(with: engineBridge.pluginRegistry)
     DocumentsPlugin.register(with: engineBridge.pluginRegistry)
+    CalendarPlugin.register(with: engineBridge.pluginRegistry)
   }
 }

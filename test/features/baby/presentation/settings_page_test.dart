@@ -57,19 +57,32 @@ void main() {
     // le code dans un SelectableText, dont l'EditableText interne expose son
     // propre Scrollable ; `find.byType(Scrollable)` deviendrait ambigu dès que
     // cette section est construite.
+    // On vise directement « Stock non renseigné » (pas d'arrêt intermédiaire
+    // sur « Couches ») : depuis que la section Calendrier a grandi la liste,
+    // un défilement scindé en deux s'arrête parfois sur le bouton « Choisir
+    // un calendrier » plus bas, qui absorbe alors le glissement suivant.
     final scrollable = find.byType(Scrollable).first;
-    await tester.scrollUntilVisible(
-      find.text('Couches'),
-      300,
-      scrollable: scrollable,
-    );
-    expect(find.text('Couches'), findsOneWidget);
     await tester.scrollUntilVisible(
       find.text('Stock non renseigné'),
       300,
       scrollable: scrollable,
     );
+    expect(find.text('Couches'), findsOneWidget);
     expect(find.text('Stock non renseigné'), findsOneWidget);
+    await tester.scrollUntilVisible(
+      find.text(
+        'Les RDV santé ne sont pas ajoutés au Calendrier de cet iPhone.',
+      ),
+      300,
+      scrollable: scrollable,
+    );
+    expect(find.text('Calendrier'), findsOneWidget);
+    expect(
+      find.text(
+        'Les RDV santé ne sont pas ajoutés au Calendrier de cet iPhone.',
+      ),
+      findsOneWidget,
+    );
     await tester.scrollUntilVisible(
       find.text('ABCDEFGH'),
       300,

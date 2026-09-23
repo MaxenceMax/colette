@@ -18,6 +18,8 @@ enum ValidationReason {
   emptyMeasurement,
   invalidLength,
   invalidHeadCircumference,
+  medicalDateBeforeBirth,
+  medicalDateInFuture,
 }
 
 /// Erreur remontée par les repositories et les use cases via `Either`.
@@ -62,6 +64,23 @@ final class DocumentsFailure extends Failure {
   @override
   bool operator ==(Object other) =>
       other is DocumentsFailure && other.reason == reason;
+
+  @override
+  int get hashCode => reason.hashCode;
+}
+
+/// Raison d'une [CalendarFailure].
+enum CalendarReason { accessDenied, calendarNotFound, io }
+
+/// Erreur du pont natif Calendrier (EventKit).
+final class CalendarFailure extends Failure {
+  const CalendarFailure(this.reason);
+
+  final CalendarReason reason;
+
+  @override
+  bool operator ==(Object other) =>
+      other is CalendarFailure && other.reason == reason;
 
   @override
   int get hashCode => reason.hashCode;

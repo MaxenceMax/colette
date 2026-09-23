@@ -1,6 +1,6 @@
 import { Timestamp } from 'firebase-admin/firestore';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
-import type { BabyDoc, Device, DeviceDoc, EventDoc } from './lib/types';
+import type { BabyDoc, Device, DeviceDoc, EventDoc, MedicalReminderDoc } from './lib/types';
 
 const { sendToDevices, loggerError, loggerWarn, households, deviceUpdates } = vi.hoisted(() => ({
   sendToDevices: vi.fn(),
@@ -15,6 +15,7 @@ type FakeHousehold = {
   baby?: BabyDoc;
   devices?: Array<DeviceDoc & { id: string }>;
   events?: EventDoc[];
+  medicalReminder?: MedicalReminderDoc;
   fails?: boolean;
 };
 
@@ -66,7 +67,8 @@ vi.mock('./lib/firestore', async (importOriginal) => ({
         get: async () => ({
           docs: households.map((h) => ({
             id: h.id,
-            get: (field: string) => (field === 'baby' ? h.baby : undefined),
+            get: (field: string) =>
+              field === 'baby' ? h.baby : field === 'medicalReminder' ? h.medicalReminder : undefined,
             ref: {
               collection: (sub: string) => {
                 if (sub === 'events') return fakeQuery(h.events ?? []);
@@ -160,6 +162,13 @@ describe('buildDigestBody', () => {
 
   it('renvoie le libellé seul pour un unique soin en attente', () => {
     expect(buildDigestBody(['Bain'])).toBe('Bain');
+  });
+
+  it('ajoute une ligne par rappel santé après les soins', () => {
+    expect(buildDigestBody(['Bain'], ['RDV à prendre : examen des 8 mois'])).toBe(
+      'Bain\nRDV à prendre : examen des 8 mois',
+    );
+    expect(buildDigestBody([], ['En retard : examen des 8 mois'])).toBe('En retard : examen des 8 mois');
   });
 });
 
@@ -300,5 +309,86 @@ describe('morningDigest', () => {
     await handler();
 
     expect(deviceUpdates).toEqual([]);
+  });
+
+  const m2Due = {
+    stages: [
+      { stageId: 'm2', dueFrom: at('2026-09-20T22:00:00Z'), dueUntil: at('2026-10-20T22:00:00Z'), hasAppointment: false },
+    ],
+  };
+
+  it('envoie une seule ligne santé quand tous les soins sont faits', async () => {
+    households.push({
+      id: 'ABC123',
+      baby: { name: 'Colette' },
+      devices: [{ id: 'd1' }],
+      events: [
+        { startAt: at('2026-09-21T05:00:00Z'), adrigyl: true, eyeCare: true, noseCare: true },
+        { startAt: at('2026-09-21T05:30:00Z'), umbilicalCare: true, bath: true },
+        { startAt: at('2026-09-21T09:00:00Z'), umbilicalCare: true },
+        { startAt: at('2026-09-21T15:00:00Z'), umbilicalCare: true },
+      ],
+      medicalReminder: m2Due,
+    });
+
+    await handler();
+
+    expect(sendToDevices).toHaveBeenCalledTimes(1);
+    expect(sendToDevices.mock.calls[0][2]).toEqual({
+      title: "Aujourd'hui pour Colette",
+      body: 'RDV à prendre : examen et vaccins des 2 mois',
+      data: { route: '/today' },
+    });
+    expect(deviceUpdates).toEqual([{ household: 'ABC123', deviceId: 'd1', data: { lastDigestSentOn: TODAY_KEY } }]);
+  });
+
+  it("digest des soins conservé malgré un `medicalReminder` corrompu", async () => {
+    households.push({
+      id: 'ABC123',
+      baby: { name: 'Colette' },
+      devices: [{ id: 'd1' }],
+      events: [{ startAt: at('2026-09-21T05:00:00Z'), adrigyl: true }],
+      medicalReminder: { stages: {} } as unknown as MedicalReminderDoc,
+    });
+
+    await handler();
+
+    expect(sendToDevices).toHaveBeenCalledTimes(1);
+    expect(sendToDevices.mock.calls[0][2].body).toBe(
+      buildDigestBody(['Soin des yeux', 'Soin du nez', 'Soin du nombril', 'Bain']),
+    );
+  });
+
+  it('concatène soins et lignes santé', async () => {
+    households.push({
+      id: 'ABC123',
+      baby: { name: 'Colette' },
+      devices: [{ id: 'd1' }],
+      events: [],
+      medicalReminder: m2Due,
+    });
+
+    await handler();
+
+    expect(sendToDevices.mock.calls[0][2].body).toBe(
+      buildDigestBody(
+        ['Adrigyl', 'Soin des yeux', 'Soin du nez', 'Soin du nombril', 'Bain'],
+        ['RDV à prendre : examen et vaccins des 2 mois'],
+      ),
+    );
+  });
+
+  it('pas de ligne santé pour une étape avec RDV', async () => {
+    households.push({
+      id: 'ABC123',
+      baby: { name: 'Colette' },
+      devices: [{ id: 'd1' }],
+      events: [],
+      medicalReminder: { stages: [{ ...m2Due.stages[0], hasAppointment: true }] },
+    });
+
+    await handler();
+
+    expect(sendToDevices.mock.calls[0][2].body).not.toContain('RDV à prendre');
   });
 });

@@ -37,6 +37,8 @@ dev_dependencies:
   freezed: ^4.0.2
   mocktail: ^1.0.5
   fake_cloud_firestore: ^4.3.0
+  integration_test:
+    sdk: flutter
 
 flutter:
   generate: true
