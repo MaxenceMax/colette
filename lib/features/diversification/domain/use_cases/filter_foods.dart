@@ -1,0 +1,48 @@
+import 'package:colette/features/diversification/domain/entities/food.dart';
+import 'package:colette/features/diversification/domain/entities/food_filter.dart';
+import 'package:colette/features/diversification/domain/entities/food_group.dart';
+import 'package:colette/features/diversification/domain/entities/food_group_section.dart';
+import 'package:colette/features/diversification/domain/entities/food_status.dart';
+import 'package:colette/features/diversification/domain/use_cases/food_name.dart';
+
+/// Applique recherche et filtres, puis groupe par [FoodGroup] (ordre de l'enum)
+/// avec les aliments triés par nom normalisé. Les aliments inconnus sont exclus.
+class FilterFoods {
+  const FilterFoods();
+
+  List<FoodGroupSection> call({
+    required Iterable<Food> foods,
+    required FoodFilter filter,
+    required Map<String, FoodStatus> statuses,
+    required Map<String, int> tastingCounts,
+  }) {
+    final query = normalizeFoodName(filter.query);
+    bool keep(Food food) {
+      if (food.isUnknown) return false;
+      if (query.isNotEmpty && !normalizeFoodName(food.name).contains(query)) {
+        return false;
+      }
+      if (filter.allergen case final allergen?
+          when !food.allergens.contains(allergen)) {
+        return false;
+      }
+      return switch (filter.mode) {
+        CatalogMode.all => true,
+        CatalogMode.notTasted => (tastingCounts[food.id] ?? 0) == 0,
+        CatalogMode.avoid => statuses[food.id] is FoodStatusAvoid,
+      };
+    }
+
+    final kept = foods.where(keep).toList()
+      ..sort(
+        (a, b) =>
+            normalizeFoodName(a.name).compareTo(normalizeFoodName(b.name)),
+      );
+    return [
+      for (final group in FoodGroup.values)
+        if (kept.where((food) => food.group == group).toList()
+            case final groupFoods when groupFoods.isNotEmpty)
+          FoodGroupSection(group: group, foods: groupFoods),
+    ];
+  }
+}

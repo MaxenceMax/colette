@@ -15,6 +15,9 @@ String failureMessage(Object failure, S s) => switch (failure) {
     ValidationReason.unknownHouseholdCode => s.errorUnknownCode,
     ValidationReason.notificationsDenied => s.errorNotificationsDenied,
     ValidationReason.invalidDiaperCount => s.errorInvalidDiaperCount,
+    ValidationReason.foodNameTooLong => s.errorFoodNameTooLong,
+    ValidationReason.duplicateFoodName => s.errorDuplicateFoodName,
+    ValidationReason.customFoodInUse => s.errorCustomFoodInUse,
   },
   DocumentsFailure(:final reason) => switch (reason) {
     DocumentsReason.noFolder ||
