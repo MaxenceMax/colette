@@ -1831,6 +1831,7 @@ void main() {
           'start': start.millisecondsSinceEpoch,
           'end': start.add(const Duration(minutes: 30)).millisecondsSinceEpoch,
           'notes': 'Dr Martin',
+          'externalId': 'uid-1',
         },
       ],
     );
@@ -1853,6 +1854,7 @@ void main() {
         start: start,
         end: start.add(const Duration(minutes: 30)),
         notes: 'Dr Martin',
+        externalId: 'uid-1',
       ),
     );
   });
@@ -2090,6 +2092,7 @@ class NativeCalendarRepository implements CalendarRepository {
             start: _date(map['start']),
             end: _date(map['end']),
             notes: map['notes'] as String?,
+            externalId: map['externalId'] as String?,
           ),
     ];
   });
@@ -2290,6 +2293,8 @@ final class CalendarPlugin: NSObject {
         "end": millis(event.endDate),
       ]
       if let notes = event.notes { map["notes"] = notes }
+      // Identique sur tous les appareils (UID iCloud) : départage les doublons.
+      if let externalId = event.calendarItemExternalIdentifier { map["externalId"] = externalId }
       return map
     }
   }
