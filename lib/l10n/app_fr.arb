@@ -4,6 +4,7 @@
   "tabToday": "Aujourd'hui",
   "tabJournal": "Journal",
   "tabSettings": "Réglages",
+  "tabHealth": "Santé",
   "onboardingTitle": "Bienvenue",
   "onboardingSubtitle": "Crée votre foyer sur le premier iPhone, puis rejoins-le avec le code sur le second.",
   "onboardingCreate": "Créer notre foyer",
@@ -445,6 +446,8 @@
   "errorSleepBeforeBirth": "Ce sommeil commence avant la naissance.",
   "errorMedicalDateBeforeBirth": "Cette date précède la naissance.",
   "errorMedicalDateInFuture": "Une visite ou une injection ne peut pas être datée dans le futur.",
+  "errorMedicalTitleRequired": "Donne un titre au rendez-vous.",
+  "errorMedicalVaccineNameRequired": "Indique le nom de chaque vaccin ajouté.",
   "calendarErrorAccessDenied": "Colette n'a pas accès au Calendrier. Autorise-le dans Réglages iOS › Colette › Calendriers.",
   "calendarErrorNotFound": "Calendrier introuvable, choisis-en un autre.",
   "calendarErrorIo": "Le Calendrier n'a pas pu être mis à jour.",
@@ -521,5 +524,15 @@
   "healthSheetMarkDone": "Marquer comme faite",
   "healthSheetCancelDone": "Annuler la visite",
   "healthSheetDoneOn": "Date de la visite",
-  "healthSheetNote": "Note (facultatif)"
+  "healthSheetNote": "Note (facultatif)",
+  "healthAddAppointment": "Ajouter un rendez-vous",
+  "healthNewAppointment": "Nouveau rendez-vous",
+  "healthChipCustom": "RDV libre",
+  "healthSheetTitle": "Titre (ostéopathe, ORL, pédiatre…)",
+  "healthSheetOtherVaccine": "Autre vaccin",
+  "healthSheetAddOtherVaccine": "Ajouter un autre vaccin",
+  "healthSheetVaccineName": "Nom du vaccin",
+  "healthSheetRemoveVaccine": "Retirer ce vaccin",
+  "healthDeleteAppointmentTitle": "Supprimer ce rendez-vous ?",
+  "healthDeleteAppointmentBody": "Il sera aussi retiré du Calendrier."
 }

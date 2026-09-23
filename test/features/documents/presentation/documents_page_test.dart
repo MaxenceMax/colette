@@ -1,6 +1,7 @@
 import 'dart:async';
 
 import 'package:colette/app/colette_app.dart';
+import 'package:colette/app/widgets/colette_tab_bar.dart';
 import 'package:colette/app/router/app_router.dart';
 import 'package:colette/core/clock/app_clock.dart';
 import 'package:colette/core/result/failure.dart';
@@ -490,7 +491,7 @@ void main() {
       tester.widget<DocumentsPage>(find.byType(DocumentsPage)).path,
       'Ordonnances/2026',
     );
-    expect(find.byType(NavigationBar), findsOneWidget);
+    expect(find.byType(ColetteTabBar), findsOneWidget);
     expect(find.widgetWithText(AppBar, '2026'), findsOneWidget);
     expect(find.text('a.pdf'), findsOneWidget);
   });

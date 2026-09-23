@@ -28,6 +28,9 @@ String failureMessage(Object failure, S s) => switch (failure) {
       s.errorInvalidHeadCircumference,
     ValidationReason.medicalDateBeforeBirth => s.errorMedicalDateBeforeBirth,
     ValidationReason.medicalDateInFuture => s.errorMedicalDateInFuture,
+    ValidationReason.medicalTitleRequired => s.errorMedicalTitleRequired,
+    ValidationReason.medicalVaccineNameRequired =>
+      s.errorMedicalVaccineNameRequired,
   },
   SleepOverlapFailure(:final startAt, :final endAt) => switch (endAt) {
     null => s.errorSleepOverlapOngoing(formatHourMinute(startAt)),

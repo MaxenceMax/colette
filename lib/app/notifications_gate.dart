@@ -46,6 +46,7 @@ class _NotificationsGateState extends ConsumerState<NotificationsGate> {
   static const _allowedPaths = {
     AppRoutes.today,
     AppRoutes.journal,
+    AppRoutes.health,
     AppRoutes.settings,
   };
 

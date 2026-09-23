@@ -12,4 +12,7 @@ abstract final class FirestorePaths {
 
   /// Visites médicales, une par étape du calendrier (identifiant = `MedicalStageId.name`).
   static const medicalVisits = 'medicalVisits';
+
+  /// RDV libres hors calendrier (identifiant = UUID).
+  static const medicalAppointments = 'medicalAppointments';
 }

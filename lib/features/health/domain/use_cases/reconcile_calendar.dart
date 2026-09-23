@@ -1,5 +1,6 @@
 import 'package:colette/features/health/domain/entities/calendar_action.dart';
 import 'package:colette/features/health/domain/entities/calendar_event.dart';
+import 'package:colette/features/health/domain/entities/custom_appointment.dart';
 import 'package:colette/features/health/domain/entities/medical_stage.dart';
 import 'package:colette/features/health/domain/entities/medical_visit.dart';
 
@@ -16,6 +17,10 @@ class ReconcileCalendar {
 
   static String urlOf(MedicalStageId id) => '$urlPrefix${id.name}';
 
+  /// URL d'un RDV libre : `colette://rdv/custom/{id}`.
+  static String customUrlOf(String appointmentId) =>
+      '${urlPrefix}custom/$appointmentId';
+
   /// Début de la fenêtre lue et gérée : minuit d'hier.
   static DateTime windowStart(DateTime now) =>
       DateTime(now.year, now.month, now.day - 1);
@@ -26,19 +31,35 @@ class ReconcileCalendar {
 
   List<CalendarAction> call({
     required List<MedicalVisit> visits,
+    List<CustomAppointment> appointments = const [],
     required List<CalendarEvent> events,
     required String Function(MedicalStageId id) titleOf,
+    String Function(CustomAppointment appointment)? titleOfAppointment,
     required DateTime now,
   }) {
     final from = windowStart(now);
     final until = windowEnd(now);
+    bool inWindow(DateTime at) => !at.isBefore(from) && at.isBefore(until);
     final wanted = <String, CalendarEventDraft>{
       for (final visit in visits)
         if (visit.appointmentAt case final at?
-            when visit.doneAt == null &&
-                !at.isBefore(from) &&
-                at.isBefore(until))
-          urlOf(visit.stageId): _draft(visit, at, titleOf(visit.stageId), now),
+            when visit.doneAt == null && inWindow(at))
+          urlOf(visit.stageId): _draft(
+            urlOf(visit.stageId),
+            at,
+            titleOf(visit.stageId),
+            visit.practitioner,
+            now,
+          ),
+      for (final appointment in appointments)
+        if (appointment.doneAt == null && inWindow(appointment.appointmentAt))
+          customUrlOf(appointment.id): _draft(
+            customUrlOf(appointment.id),
+            appointment.appointmentAt,
+            titleOfAppointment?.call(appointment) ?? appointment.title,
+            appointment.practitioner,
+            now,
+          ),
     };
     final byUrl = <String, List<CalendarEvent>>{};
     for (final event in events) {
@@ -78,9 +99,10 @@ class ReconcileCalendar {
   }
 
   static CalendarEventDraft _draft(
-    MedicalVisit visit,
+    String url,
     DateTime at,
     String title,
+    String? notes,
     DateTime now,
   ) {
     final start = DateTime(at.year, at.month, at.day, at.hour, at.minute);
@@ -89,11 +111,11 @@ class ReconcileCalendar {
       start.subtract(lastAlarmBefore),
     ].where((alarm) => alarm.isAfter(now)).toList();
     return CalendarEventDraft(
-      url: urlOf(visit.stageId),
+      url: url,
       title: title,
       start: start,
       end: start.add(eventDuration),
-      notes: visit.practitioner,
+      notes: notes,
       alarms: alarms,
     );
   }

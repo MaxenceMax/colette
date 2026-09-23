@@ -13,7 +13,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 import '../../../helpers/pump_app.dart';
-import 'health_card_test.dart' show entry;
+import '../health_factories.dart';
 
 void main() {
   testWidgets('sections par statut, faites repliées', (tester) async {
@@ -82,5 +82,42 @@ void main() {
     );
     expect(find.byIcon(Icons.sync_problem), findsOneWidget);
     expect(find.textContaining('Famille'), findsNothing);
+  });
+
+  testWidgets('RDV libre mêlé aux étapes, bouton d\'ajout', (tester) async {
+    SharedPreferences.setMockInitialValues({});
+    final prefs = await SharedPreferences.getInstance();
+    await pumpApp(
+      tester,
+      const HealthPage(),
+      overrides: [
+        sharedPreferencesProvider.overrideWithValue(prefs),
+        healthSyncProvider.overrideWithValue(const NoopHealthSync()),
+        medicalTimelineProvider.overrideWithValue(
+          MedicalTimeline(
+            entries: [entry(MedicalStageId.m2, MedicalStageStatus.due)],
+            appointments: [
+              AppointmentItem(
+                makeAppointment(appointmentAt: DateTime(2026, 10, 15, 9)),
+                MedicalStageStatus.scheduled,
+              ),
+            ],
+          ),
+        ),
+      ],
+    );
+    expect(find.text('À faire'), findsOneWidget);
+    expect(find.text('Ostéopathe'), findsOneWidget);
+    expect(find.text('RDV libre'), findsOneWidget);
+    // Le RDV libre (15 octobre) précède l'étape des 2 mois (1er novembre).
+    expect(
+      tester.getTopLeft(find.text('Ostéopathe')).dy,
+      lessThan(tester.getTopLeft(find.text('Examen et vaccins des 2 mois')).dy),
+    );
+    expect(find.byTooltip('Ajouter un rendez-vous'), findsOneWidget);
+
+    await tester.tap(find.byTooltip('Ajouter un rendez-vous'));
+    await tester.pumpAndSettle();
+    expect(find.text('Nouveau rendez-vous'), findsOneWidget);
   });
 }

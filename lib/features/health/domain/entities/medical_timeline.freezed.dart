@@ -313,9 +313,325 @@ $MedicalVisitCopyWith<$Res>? get visit {
 }
 
 /// @nodoc
+mixin _$MedicalTimelineItem {
+
+
+
+
+
+@override
+bool operator ==(Object other) {
+    return identical(this, other) || (other.runtimeType == runtimeType&&other is MedicalTimelineItem);
+}
+
+
+@override
+int get hashCode => runtimeType.hashCode;
+
+@override
+String toString() {
+    return 'MedicalTimelineItem()';
+}
+
+
+}
+
+/// @nodoc
+class $MedicalTimelineItemCopyWith<$Res>  {
+$MedicalTimelineItemCopyWith(MedicalTimelineItem _, $Res Function(MedicalTimelineItem) __);
+}
+
+
+/// Adds pattern-matching-related methods to [MedicalTimelineItem].
+extension MedicalTimelineItemPatterns on MedicalTimelineItem {
+/// A variant of `map` that fallback to returning `orElse`.
+///
+/// It is equivalent to doing:
+/// ```dart
+/// switch (sealedClass) {
+///   case final Subclass value:
+///     return ...;
+///   case _:
+///     return orElse();
+/// }
+/// ```
+
+@optionalTypeArgs TResult maybeMap<TResult extends Object?>({TResult Function( StageItem value)?  stage,TResult Function( AppointmentItem value)?  appointment,required TResult orElse(),}){
+final _that = this;
+switch (_that) {
+case StageItem() when stage != null:
+return stage(_that);case AppointmentItem() when appointment != null:
+return appointment(_that);case _:
+  return orElse();
+
+}
+}
+/// A `switch`-like method, using callbacks.
+///
+/// Callbacks receives the raw object, upcasted.
+/// It is equivalent to doing:
+/// ```dart
+/// switch (sealedClass) {
+///   case final Subclass value:
+///     return ...;
+///   case final Subclass2 value:
+///     return ...;
+/// }
+/// ```
+
+@optionalTypeArgs TResult map<TResult extends Object?>({required TResult Function( StageItem value)  stage,required TResult Function( AppointmentItem value)  appointment,}){
+final _that = this;
+switch (_that) {
+case StageItem():
+return stage(_that);case AppointmentItem():
+return appointment(_that);}
+}
+/// A variant of `map` that fallback to returning `null`.
+///
+/// It is equivalent to doing:
+/// ```dart
+/// switch (sealedClass) {
+///   case final Subclass value:
+///     return ...;
+///   case _:
+///     return null;
+/// }
+/// ```
+
+@optionalTypeArgs TResult? mapOrNull<TResult extends Object?>({TResult? Function( StageItem value)?  stage,TResult? Function( AppointmentItem value)?  appointment,}){
+final _that = this;
+switch (_that) {
+case StageItem() when stage != null:
+return stage(_that);case AppointmentItem() when appointment != null:
+return appointment(_that);case _:
+  return null;
+
+}
+}
+/// A variant of `when` that fallback to an `orElse` callback.
+///
+/// It is equivalent to doing:
+/// ```dart
+/// switch (sealedClass) {
+///   case Subclass(:final field):
+///     return ...;
+///   case _:
+///     return orElse();
+/// }
+/// ```
+
+@optionalTypeArgs TResult maybeWhen<TResult extends Object?>({TResult Function( MedicalTimelineEntry entry)?  stage,TResult Function( CustomAppointment appointment,  MedicalStageStatus status)?  appointment,required TResult orElse(),}) {final _that = this;
+switch (_that) {
+case StageItem() when stage != null:
+return stage(_that.entry);case AppointmentItem() when appointment != null:
+return appointment(_that.appointment,_that.status);case _:
+  return orElse();
+
+}
+}
+/// A `switch`-like method, using callbacks.
+///
+/// As opposed to `map`, this offers destructuring.
+/// It is equivalent to doing:
+/// ```dart
+/// switch (sealedClass) {
+///   case Subclass(:final field):
+///     return ...;
+///   case Subclass2(:final field2):
+///     return ...;
+/// }
+/// ```
+
+@optionalTypeArgs TResult when<TResult extends Object?>({required TResult Function( MedicalTimelineEntry entry)  stage,required TResult Function( CustomAppointment appointment,  MedicalStageStatus status)  appointment,}) {final _that = this;
+switch (_that) {
+case StageItem():
+return stage(_that.entry);case AppointmentItem():
+return appointment(_that.appointment,_that.status);}
+}
+/// A variant of `when` that fallback to returning `null`
+///
+/// It is equivalent to doing:
+/// ```dart
+/// switch (sealedClass) {
+///   case Subclass(:final field):
+///     return ...;
+///   case _:
+///     return null;
+/// }
+/// ```
+
+@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>({TResult? Function( MedicalTimelineEntry entry)?  stage,TResult? Function( CustomAppointment appointment,  MedicalStageStatus status)?  appointment,}) {final _that = this;
+switch (_that) {
+case StageItem() when stage != null:
+return stage(_that.entry);case AppointmentItem() when appointment != null:
+return appointment(_that.appointment,_that.status);case _:
+  return null;
+
+}
+}
+
+}
+
+/// @nodoc
+
+
+class StageItem extends MedicalTimelineItem {
+  const StageItem(this.entry): super._();
+  
+
+ final  MedicalTimelineEntry entry;
+
+/// Create a copy of MedicalTimelineItem
+/// with the given fields replaced by the non-null parameter values.
+@JsonKey(includeFromJson: false, includeToJson: false)
+@pragma('vm:prefer-inline')
+$StageItemCopyWith<StageItem> get copyWith => _$StageItemCopyWithImpl<StageItem>(this, _$identity);
+
+
+
+@override
+bool operator ==(Object other) {
+    return identical(this, other) || (other.runtimeType == runtimeType&&other is StageItem&&(identical(other.entry, entry) || other.entry == entry));
+}
+
+
+@override
+int get hashCode {
+    return Object.hash(runtimeType,entry);
+}
+
+@override
+String toString() {
+    return 'MedicalTimelineItem.stage(entry: $entry)';
+}
+
+
+}
+
+/// @nodoc
+abstract mixin class $StageItemCopyWith<$Res> implements $MedicalTimelineItemCopyWith<$Res> {
+  factory $StageItemCopyWith(StageItem value, $Res Function(StageItem) _then) = _$StageItemCopyWithImpl;
+@useResult
+$Res call({
+ MedicalTimelineEntry entry
+});
+
+
+$MedicalTimelineEntryCopyWith<$Res> get entry;
+
+}
+/// @nodoc
+class _$StageItemCopyWithImpl<$Res>
+    implements $StageItemCopyWith<$Res> {
+  _$StageItemCopyWithImpl(this._self, this._then);
+
+  final StageItem _self;
+  final $Res Function(StageItem) _then;
+
+/// Create a copy of MedicalTimelineItem
+/// with the given fields replaced by the non-null parameter values.
+@pragma('vm:prefer-inline') $Res call({Object? entry = null,}) {
+  return _then(StageItem(
+null == entry ? _self.entry : entry // ignore: cast_nullable_to_non_nullable
+as MedicalTimelineEntry,
+  ));
+}
+
+/// Create a copy of MedicalTimelineItem
+/// with the given fields replaced by the non-null parameter values.
+@override
+@pragma('vm:prefer-inline')
+$MedicalTimelineEntryCopyWith<$Res> get entry {
+  
+  return $MedicalTimelineEntryCopyWith<$Res>(_self.entry, (value) {
+    return _then(_self.copyWith(entry: value));
+  });
+}
+}
+
+/// @nodoc
+
+
+class AppointmentItem extends MedicalTimelineItem {
+  const AppointmentItem(this.appointment, this.status): super._();
+  
+
+ final  CustomAppointment appointment;
+ final  MedicalStageStatus status;
+
+/// Create a copy of MedicalTimelineItem
+/// with the given fields replaced by the non-null parameter values.
+@JsonKey(includeFromJson: false, includeToJson: false)
+@pragma('vm:prefer-inline')
+$AppointmentItemCopyWith<AppointmentItem> get copyWith => _$AppointmentItemCopyWithImpl<AppointmentItem>(this, _$identity);
+
+
+
+@override
+bool operator ==(Object other) {
+    return identical(this, other) || (other.runtimeType == runtimeType&&other is AppointmentItem&&(identical(other.appointment, appointment) || other.appointment == appointment)&&(identical(other.status, status) || other.status == status));
+}
+
+
+@override
+int get hashCode {
+    return Object.hash(runtimeType,appointment,status);
+}
+
+@override
+String toString() {
+    return 'MedicalTimelineItem.appointment(appointment: $appointment, status: $status)';
+}
+
+
+}
+
+/// @nodoc
+abstract mixin class $AppointmentItemCopyWith<$Res> implements $MedicalTimelineItemCopyWith<$Res> {
+  factory $AppointmentItemCopyWith(AppointmentItem value, $Res Function(AppointmentItem) _then) = _$AppointmentItemCopyWithImpl;
+@useResult
+$Res call({
+ CustomAppointment appointment, MedicalStageStatus status
+});
+
+
+$CustomAppointmentCopyWith<$Res> get appointment;
+
+}
+/// @nodoc
+class _$AppointmentItemCopyWithImpl<$Res>
+    implements $AppointmentItemCopyWith<$Res> {
+  _$AppointmentItemCopyWithImpl(this._self, this._then);
+
+  final AppointmentItem _self;
+  final $Res Function(AppointmentItem) _then;
+
+/// Create a copy of MedicalTimelineItem
+/// with the given fields replaced by the non-null parameter values.
+@pragma('vm:prefer-inline') $Res call({Object? appointment = null,Object? status = null,}) {
+  return _then(AppointmentItem(
+null == appointment ? _self.appointment : appointment // ignore: cast_nullable_to_non_nullable
+as CustomAppointment,null == status ? _self.status : status // ignore: cast_nullable_to_non_nullable
+as MedicalStageStatus,
+  ));
+}
+
+/// Create a copy of MedicalTimelineItem
+/// with the given fields replaced by the non-null parameter values.
+@override
+@pragma('vm:prefer-inline')
+$CustomAppointmentCopyWith<$Res> get appointment {
+  
+  return $CustomAppointmentCopyWith<$Res>(_self.appointment, (value) {
+    return _then(_self.copyWith(appointment: value));
+  });
+}
+}
+
+/// @nodoc
 mixin _$MedicalTimeline {
 
- List<MedicalTimelineEntry> get entries;
+ List<MedicalTimelineEntry> get entries; List<AppointmentItem> get appointments;
 /// Create a copy of MedicalTimeline
 /// with the given fields replaced by the non-null parameter values.
 @JsonKey(includeFromJson: false, includeToJson: false)
@@ -327,20 +643,20 @@ $MedicalTimelineCopyWith<MedicalTimeline> get copyWith => _$MedicalTimelineCopyW
 @override
 bool operator ==(Object other) {
   final _this = this as MedicalTimeline;
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is MedicalTimeline&&const DeepCollectionEquality().equals(other.entries, _this.entries));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is MedicalTimeline&&const DeepCollectionEquality().equals(other.entries, _this.entries)&&const DeepCollectionEquality().equals(other.appointments, _this.appointments));
 }
 
 
 @override
 int get hashCode {
   final _this = this as MedicalTimeline;
-  return Object.hash(runtimeType,const DeepCollectionEquality().hash(_this.entries));
+  return Object.hash(runtimeType,const DeepCollectionEquality().hash(_this.entries),const DeepCollectionEquality().hash(_this.appointments));
 }
 
 @override
 String toString() {
   final _this = this as MedicalTimeline;
-  return 'MedicalTimeline(entries: ${_this.entries})';
+  return 'MedicalTimeline(entries: ${_this.entries}, appointments: ${_this.appointments})';
 }
 
 
@@ -351,7 +667,7 @@ abstract mixin class $MedicalTimelineCopyWith<$Res>  {
   factory $MedicalTimelineCopyWith(MedicalTimeline value, $Res Function(MedicalTimeline) _then) = _$MedicalTimelineCopyWithImpl;
 @useResult
 $Res call({
- List<MedicalTimelineEntry> entries
+ List<MedicalTimelineEntry> entries, List<AppointmentItem> appointments
 });
 
 
@@ -368,10 +684,11 @@ class _$MedicalTimelineCopyWithImpl<$Res>
 
 /// Create a copy of MedicalTimeline
 /// with the given fields replaced by the non-null parameter values.
-@pragma('vm:prefer-inline') @override $Res call({Object? entries = null,}) {
+@pragma('vm:prefer-inline') @override $Res call({Object? entries = null,Object? appointments = null,}) {
   return _then(MedicalTimeline(
 entries: null == entries ? _self.entries : entries // ignore: cast_nullable_to_non_nullable
-as List<MedicalTimelineEntry>,
+as List<MedicalTimelineEntry>,appointments: null == appointments ? _self.appointments : appointments // ignore: cast_nullable_to_non_nullable
+as List<AppointmentItem>,
   ));
 }
 
@@ -456,10 +773,10 @@ return $default(_that);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( List<MedicalTimelineEntry> entries)?  $default,{required TResult orElse(),}) {final _that = this;
+@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( List<MedicalTimelineEntry> entries,  List<AppointmentItem> appointments)?  $default,{required TResult orElse(),}) {final _that = this;
 switch (_that) {
 case _MedicalTimeline() when $default != null:
-return $default(_that.entries);case _:
+return $default(_that.entries,_that.appointments);case _:
   return orElse();
 
 }
@@ -477,10 +794,10 @@ return $default(_that.entries);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( List<MedicalTimelineEntry> entries)  $default,) {final _that = this;
+@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( List<MedicalTimelineEntry> entries,  List<AppointmentItem> appointments)  $default,) {final _that = this;
 switch (_that) {
 case _MedicalTimeline():
-return $default(_that.entries);case _:
+return $default(_that.entries,_that.appointments);case _:
   throw StateError('Unexpected subclass');
 
 }
@@ -497,10 +814,10 @@ return $default(_that.entries);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( List<MedicalTimelineEntry> entries)?  $default,) {final _that = this;
+@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( List<MedicalTimelineEntry> entries,  List<AppointmentItem> appointments)?  $default,) {final _that = this;
 switch (_that) {
 case _MedicalTimeline() when $default != null:
-return $default(_that.entries);case _:
+return $default(_that.entries,_that.appointments);case _:
   return null;
 
 }
@@ -512,7 +829,7 @@ return $default(_that.entries);case _:
 
 
 class _MedicalTimeline extends MedicalTimeline {
-  const _MedicalTimeline({required  List<MedicalTimelineEntry> entries}): _entries = entries,super._();
+  const _MedicalTimeline({required  List<MedicalTimelineEntry> entries,  List<AppointmentItem> appointments = const <AppointmentItem>[]}): _entries = entries,_appointments = appointments,super._();
   
 
  final  List<MedicalTimelineEntry> _entries;
@@ -520,6 +837,13 @@ class _MedicalTimeline extends MedicalTimeline {
   if (_entries is EqualUnmodifiableListView) return _entries;
   // ignore: implicit_dynamic_type
   return EqualUnmodifiableListView(_entries);
+}
+
+ final  List<AppointmentItem> _appointments;
+@override@JsonKey() List<AppointmentItem> get appointments {
+  if (_appointments is EqualUnmodifiableListView) return _appointments;
+  // ignore: implicit_dynamic_type
+  return EqualUnmodifiableListView(_appointments);
 }
 
 
@@ -533,18 +857,18 @@ _$MedicalTimelineCopyWith<_MedicalTimeline> get copyWith => __$MedicalTimelineCo
 
 @override
 bool operator ==(Object other) {
-    return identical(this, other) || (other.runtimeType == runtimeType&&other is _MedicalTimeline&&const DeepCollectionEquality().equals(other.entries, _entries));
+    return identical(this, other) || (other.runtimeType == runtimeType&&other is _MedicalTimeline&&const DeepCollectionEquality().equals(other.entries, _entries)&&const DeepCollectionEquality().equals(other.appointments, _appointments));
 }
 
 
 @override
 int get hashCode {
-    return Object.hash(runtimeType,const DeepCollectionEquality().hash(_entries));
+    return Object.hash(runtimeType,const DeepCollectionEquality().hash(_entries),const DeepCollectionEquality().hash(_appointments));
 }
 
 @override
 String toString() {
-    return 'MedicalTimeline(entries: $entries)';
+    return 'MedicalTimeline(entries: $entries, appointments: $appointments)';
 }
 
 
@@ -555,7 +879,7 @@ abstract mixin class _$MedicalTimelineCopyWith<$Res> implements $MedicalTimeline
   factory _$MedicalTimelineCopyWith(_MedicalTimeline value, $Res Function(_MedicalTimeline) _then) = __$MedicalTimelineCopyWithImpl;
 @override @useResult
 $Res call({
- List<MedicalTimelineEntry> entries
+ List<MedicalTimelineEntry> entries, List<AppointmentItem> appointments
 });
 
 
@@ -572,10 +896,11 @@ class __$MedicalTimelineCopyWithImpl<$Res>
 
 /// Create a copy of MedicalTimeline
 /// with the given fields replaced by the non-null parameter values.
-@override @pragma('vm:prefer-inline') $Res call({Object? entries = null,}) {
+@override @pragma('vm:prefer-inline') $Res call({Object? entries = null,Object? appointments = null,}) {
   return _then(_MedicalTimeline(
 entries: null == entries ? _self._entries : entries // ignore: cast_nullable_to_non_nullable
-as List<MedicalTimelineEntry>,
+as List<MedicalTimelineEntry>,appointments: null == appointments ? _self._appointments : appointments // ignore: cast_nullable_to_non_nullable
+as List<AppointmentItem>,
   ));
 }
 

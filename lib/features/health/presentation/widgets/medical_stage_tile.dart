@@ -32,9 +32,10 @@ class MedicalStageTile extends StatelessWidget {
           Wrap(
             spacing: AppSpacing.xs.value,
             children: [
-              if (stage.hasExam) _Chip(label: s.healthChipExam),
-              if (stage.hasVaccines) _Chip(label: s.healthChipVaccines),
-              if (stage.hasCertificate) _Chip(label: s.healthChipCertificate),
+              if (stage.hasExam) MedicalChip(label: s.healthChipExam),
+              if (stage.hasVaccines) MedicalChip(label: s.healthChipVaccines),
+              if (stage.hasCertificate)
+                MedicalChip(label: s.healthChipCertificate),
             ],
           ),
           Text(
@@ -55,8 +56,9 @@ class MedicalStageTile extends StatelessWidget {
   }
 }
 
-class _Chip extends StatelessWidget {
-  const _Chip({required this.label});
+/// Pastille « Examen », « Vaccins », « Certificat » ou « RDV libre ».
+class MedicalChip extends StatelessWidget {
+  const MedicalChip({super.key, required this.label});
 
   final String label;
 

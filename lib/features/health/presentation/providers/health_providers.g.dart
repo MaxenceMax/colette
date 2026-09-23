@@ -159,14 +159,63 @@ final class MedicalVisitsProvider
 
 String _$medicalVisitsHash() => r'b4d185df76a166b161f9570afc29918cff3e2bd3';
 
-/// Frise du suivi médical ; `null` sans profil ou tant que les visites ne
-/// sont pas lues (sinon « En retard » s'afficherait un instant au démarrage).
+/// RDV libres du foyer courant.
+
+@ProviderFor(medicalAppointments)
+final medicalAppointmentsProvider = MedicalAppointmentsProvider._();
+
+/// RDV libres du foyer courant.
+
+final class MedicalAppointmentsProvider
+    extends
+        $FunctionalProvider<
+          AsyncValue<List<CustomAppointment>>,
+          List<CustomAppointment>,
+          Stream<List<CustomAppointment>>
+        >
+    with
+        $FutureModifier<List<CustomAppointment>>,
+        $StreamProvider<List<CustomAppointment>> {
+  /// RDV libres du foyer courant.
+  MedicalAppointmentsProvider._()
+    : super(
+        from: null,
+        argument: null,
+        retry: noRetry,
+        name: r'medicalAppointmentsProvider',
+        isAutoDispose: true,
+        dependencies: null,
+        $allTransitiveDependencies: null,
+      );
+
+  @override
+  String debugGetCreateSourceHash() => _$medicalAppointmentsHash();
+
+  @$internal
+  @override
+  $StreamProviderElement<List<CustomAppointment>> $createElement(
+    $ProviderPointer pointer,
+  ) => $StreamProviderElement(pointer);
+
+  @override
+  Stream<List<CustomAppointment>> create(Ref ref) {
+    return medicalAppointments(ref);
+  }
+}
+
+String _$medicalAppointmentsHash() =>
+    r'5b81eea43ad21feabad595afe7af8ab9b155832f';
+
+/// Frise du suivi médical ; `null` sans profil ou tant que visites et RDV
+/// libres ne sont pas lus (sinon « En retard » s'afficherait un instant au
+/// démarrage).
 
 @ProviderFor(medicalTimeline)
 final medicalTimelineProvider = MedicalTimelineProvider._();
 
-/// Frise du suivi médical ; `null` sans profil ou tant que les visites ne
-/// sont pas lues (sinon « En retard » s'afficherait un instant au démarrage).
+/// Frise du suivi médical ; `null` sans profil ou tant que visites et RDV
+/// libres ne sont pas lus (sinon « En retard » s'afficherait un instant au
+/// démarrage).
 
 final class MedicalTimelineProvider
     extends
@@ -176,8 +225,9 @@ final class MedicalTimelineProvider
           MedicalTimeline?
         >
     with $Provider<MedicalTimeline?> {
-  /// Frise du suivi médical ; `null` sans profil ou tant que les visites ne
-  /// sont pas lues (sinon « En retard » s'afficherait un instant au démarrage).
+  /// Frise du suivi médical ; `null` sans profil ou tant que visites et RDV
+  /// libres ne sont pas lus (sinon « En retard » s'afficherait un instant au
+  /// démarrage).
   MedicalTimelineProvider._()
     : super(
         from: null,
@@ -211,4 +261,4 @@ final class MedicalTimelineProvider
   }
 }
 
-String _$medicalTimelineHash() => r'041935bc720cfae144cc916abf320d876cdd9a00';
+String _$medicalTimelineHash() => r'd3c2615d87b3fb0a1619249723e497cbcbcb5c8a';

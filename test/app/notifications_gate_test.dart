@@ -1,4 +1,5 @@
 import 'package:colette/app/colette_app.dart';
+import 'package:colette/features/dashboard/presentation/pages/dashboard_page.dart';
 import 'package:colette/core/firebase/firestore_paths.dart';
 import 'package:colette/features/events/presentation/pages/timeline_page.dart';
 import 'package:colette/features/events/presentation/widgets/event_form_sheet.dart';
@@ -87,11 +88,11 @@ void main() {
     source.emitOpened({'route': 'javascript:evil'});
     await tester.pumpAndSettle();
     expect(find.byType(EventFormSheet), findsNothing);
-    expect(find.text('Aujourd\'hui'), findsWidgets);
+    expect(find.byType(DashboardPage), findsOneWidget);
     source.emitOpened({'route': '/nope'});
     await tester.pumpAndSettle();
     expect(find.byType(EventFormSheet), findsNothing);
-    expect(find.text('Aujourd\'hui'), findsWidgets);
+    expect(find.byType(DashboardPage), findsOneWidget);
   });
 
   testWidgets('le message initial est traité au démarrage (route biberon)', (

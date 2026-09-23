@@ -102,4 +102,42 @@ void main() {
       'À faire du 1 nov. 2026 au 30 nov. 2026',
     );
   });
+
+  group('RDV libre', () {
+    test('programmé avec praticien', () {
+      expect(
+        healthAppointmentStatusText(
+          s,
+          AppointmentItem(
+            makeAppointment(practitioner: 'Mme Dupont'),
+            MedicalStageStatus.scheduled,
+          ),
+        ),
+        'RDV le mar. 3 nov., 10h00 · Mme Dupont',
+      );
+    });
+
+    test('RDV passé et fait', () {
+      expect(
+        healthAppointmentStatusText(
+          s,
+          AppointmentItem(
+            makeAppointment(),
+            MedicalStageStatus.appointmentPassed,
+          ),
+        ),
+        'RDV du 3 nov. 2026 passé · à marquer comme faite',
+      );
+      expect(
+        healthAppointmentStatusText(
+          s,
+          AppointmentItem(
+            makeAppointment(doneAt: DateTime(2026, 11, 3)),
+            MedicalStageStatus.done,
+          ),
+        ),
+        'Faite le 3 nov. 2026',
+      );
+    });
+  });
 }

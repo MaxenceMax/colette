@@ -11,7 +11,7 @@ service cloud.firestore {
       allow delete: if false;
     }
     // Sous-collections : events, weights, devices, sleeps, tastings, customFoods,
-    // medicalVisits.
+    // medicalVisits, medicalAppointments.
     match /households/{code}/{collection}/{docId} {
       allow read, write: if request.auth != null;
     }

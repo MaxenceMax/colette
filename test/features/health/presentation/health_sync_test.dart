@@ -403,6 +403,8 @@ void main() {
       );
       when(() => repo.fetchVisitsFromServer(code))
           .thenAnswer((_) async => right([visit]));
+      when(() => repo.fetchAppointmentsFromServer(code))
+          .thenAnswer((_) async => right(const []));
       when(() => repo.saveReminderSnapshot(any(), any()))
           .thenAnswer((_) => Completer<Either<Failure, void>>().future);
       final c = await container(calendarId: 'c1', medicalRepository: repo);
@@ -432,4 +434,53 @@ void main() {
       ).called(1);
     },
   );
+
+  test('crée l\'événement d\'un RDV libre avec le prénom', () async {
+    final c = await container(calendarId: 'c1');
+    await c
+        .read(medicalRepositoryProvider)
+        .saveAppointment(code, makeAppointment(title: 'Ostéopathe'));
+    when(
+      () => calendar.findEvents(
+        'c1',
+        from: any(named: 'from'),
+        to: any(named: 'to'),
+      ),
+    ).thenAnswer((_) async => right(const <CalendarEvent>[]));
+    when(
+      () => calendar.upsertEvent(
+        'c1',
+        eventId: any(named: 'eventId'),
+        draft: any(named: 'draft'),
+      ),
+    ).thenAnswer((_) async => right('e1'));
+
+    await c.read(healthSyncProvider).sync();
+
+    final draft =
+        verify(
+              () => calendar.upsertEvent(
+                'c1',
+                eventId: null,
+                draft: captureAny(named: 'draft'),
+              ),
+            ).captured.single
+            as CalendarEventDraft;
+    expect(draft.title, 'Ostéopathe · Colette');
+    expect(draft.url, 'colette://rdv/custom/rdv-1');
+  });
+
+  test('RDV libres injoignables sur le serveur : rien n\'est écrit', () async {
+    final repo = MockMedicalRepository();
+    when(() => repo.fetchVisitsFromServer(code))
+        .thenAnswer((_) async => right(const []));
+    when(() => repo.fetchAppointmentsFromServer(code))
+        .thenAnswer((_) async => left(const NetworkFailure()));
+    final c = await container(calendarId: 'c1', medicalRepository: repo);
+
+    await c.read(healthSyncProvider).sync();
+
+    verifyNever(() => repo.saveReminderSnapshot(any(), any()));
+    verifyZeroInteractions(calendar);
+  });
 }

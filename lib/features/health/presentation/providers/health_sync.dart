@@ -6,6 +6,7 @@ import 'package:colette/core/result/failure.dart';
 import 'package:colette/features/baby/presentation/providers/baby_providers.dart';
 import 'package:colette/features/health/domain/entities/calendar_action.dart';
 import 'package:colette/features/health/domain/entities/calendar_choice.dart';
+import 'package:colette/features/health/domain/entities/custom_appointment.dart';
 import 'package:colette/features/health/domain/entities/medical_visit.dart';
 import 'package:colette/features/health/domain/use_cases/compute_medical_reminder_snapshot.dart';
 import 'package:colette/features/health/domain/use_cases/compute_medical_timeline.dart';
@@ -84,18 +85,27 @@ final class FirestoreHealthSync implements HealthSync {
       // Jamais le cache : au démarrage à froid, il ignorerait un RDV posé ou
       // déplacé par l'autre iPhone, et la sync l'effacerait du calendrier.
       final fetched = await medical.fetchVisitsFromServer(code);
-      if (fetched case Left(:final value)) {
+      final fetchedAppointments = await medical.fetchAppointmentsFromServer(
+        code,
+      );
+      final unreachable = switch ((fetched, fetchedAppointments)) {
+        (Left(:final value), _) || (_, Left(:final value)) => value,
+        _ => null,
+      };
+      if (unreachable != null) {
         developer.log(
-          'Health sync skipped, server unreachable: ${value.runtimeType}',
+          'Health sync skipped, server unreachable: ${unreachable.runtimeType}',
           name: 'colette',
         );
         return;
       }
       final visits = fetched.getOrElse((_) => const []);
+      final appointments = fetchedAppointments.getOrElse((_) => const []);
       final now = _ref.read(clockProvider).now();
       final timeline = const ComputeMedicalTimeline()(
         birthDate: profile.birthDate,
         visits: visits,
+        appointments: appointments,
         now: now,
       );
       final snapshot = const ComputeMedicalReminderSnapshot()(
@@ -113,7 +123,7 @@ final class FirestoreHealthSync implements HealthSync {
           }
         }),
       );
-      await _syncCalendar(visits, profile.name, now);
+      await _syncCalendar(visits, appointments, profile.name, now);
     } catch (e, stackTrace) {
       developer.log(
         'Health sync failed',
@@ -126,6 +136,7 @@ final class FirestoreHealthSync implements HealthSync {
 
   Future<void> _syncCalendar(
     List<MedicalVisit> visits,
+    List<CustomAppointment> appointments,
     String babyName,
     DateTime now,
   ) async {
@@ -153,8 +164,10 @@ final class FirestoreHealthSync implements HealthSync {
     final s = lookupS(const Locale('fr'));
     final actions = const ReconcileCalendar()(
       visits: visits,
+      appointments: appointments,
       events: events,
       titleOf: (id) => HealthLabels.eventTitle(s, id, babyName),
+      titleOfAppointment: (a) => s.healthEventTitle(a.title, babyName),
       now: now,
     );
     for (final action in actions) {

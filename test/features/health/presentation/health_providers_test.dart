@@ -5,6 +5,7 @@ import 'package:colette/core/clock/now_providers.dart';
 import 'package:colette/core/firebase/firebase_providers.dart';
 import 'package:colette/features/baby/domain/entities/baby_profile.dart';
 import 'package:colette/features/baby/presentation/providers/baby_providers.dart';
+import 'package:colette/features/health/domain/entities/custom_appointment.dart';
 import 'package:colette/features/health/domain/entities/medical_stage.dart';
 import 'package:colette/features/health/domain/entities/medical_visit.dart';
 import 'package:colette/features/health/presentation/providers/health_providers.dart';
@@ -44,10 +45,12 @@ void main() {
   });
 
   test(
-    'medicalTimelineProvider attend les visites avant de calculer',
+    'medicalTimelineProvider attend visites et RDV libres avant de calculer',
     () async {
       final visits = StreamController<List<MedicalVisit>>();
       addTearDown(visits.close);
+      final appointments = StreamController<List<CustomAppointment>>();
+      addTearDown(appointments.close);
       final container = ProviderContainer(
         overrides: [
           clockProvider.overrideWithValue(FixedClock(DateTime(2026, 10, 20))),
@@ -58,6 +61,9 @@ void main() {
             ),
           ),
           medicalVisitsProvider.overrideWith((ref) => visits.stream),
+          medicalAppointmentsProvider.overrideWith(
+            (ref) => appointments.stream,
+          ),
         ],
       );
       addTearDown(container.dispose);
@@ -69,7 +75,15 @@ void main() {
 
       visits.add(const []);
       await container.read(medicalVisitsProvider.future);
+      expect(container.read(medicalTimelineProvider), isNull);
+
+      appointments.add([makeAppointment()]);
+      await container.read(medicalAppointmentsProvider.future);
       expect(container.read(medicalTimelineProvider)?.entries, isNotEmpty);
+      expect(
+        container.read(medicalTimelineProvider)?.appointments,
+        hasLength(1),
+      );
     },
   );
 }

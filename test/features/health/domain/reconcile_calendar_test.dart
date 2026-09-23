@@ -1,5 +1,6 @@
 import 'package:colette/features/health/domain/entities/calendar_action.dart';
 import 'package:colette/features/health/domain/entities/calendar_event.dart';
+import 'package:colette/features/health/domain/entities/custom_appointment.dart';
 import 'package:colette/features/health/domain/entities/medical_stage.dart';
 import 'package:colette/features/health/domain/entities/medical_visit.dart';
 import 'package:colette/features/health/domain/use_cases/reconcile_calendar.dart';
@@ -274,5 +275,100 @@ void main() {
   test('fenêtre de lecture : minuit d\'hier à deux ans', () {
     expect(ReconcileCalendar.windowStart(now), DateTime(2026, 10, 19));
     expect(ReconcileCalendar.windowEnd(now), DateTime(2028, 10, 20));
+  });
+
+  group('RDV libres', () {
+    CalendarEventDraft customDraft(CustomAppointment a) => CalendarEventDraft(
+      url: ReconcileCalendar.customUrlOf(a.id),
+      title: '${a.title} · Colette',
+      start: a.appointmentAt,
+      end: a.appointmentAt.add(ReconcileCalendar.eventDuration),
+      notes: a.practitioner,
+      alarms: [
+        DateTime(
+          a.appointmentAt.year,
+          a.appointmentAt.month,
+          a.appointmentAt.day - 1,
+          18,
+        ),
+        a.appointmentAt.subtract(const Duration(hours: 1)),
+      ],
+    );
+
+    List<CalendarAction> runWith(
+      List<CustomAppointment> appointments,
+      List<CalendarEvent> events, [
+      List<MedicalVisit> visits = const [],
+    ]) => reconcile(
+      visits: visits,
+      appointments: appointments,
+      events: events,
+      titleOf: titleOf,
+      titleOfAppointment: (a) => '${a.title} · Colette',
+      now: now,
+    );
+
+    test('crée l\'événement d\'un RDV libre avec son URL dédiée', () {
+      final rdv = makeAppointment(practitioner: 'Mme Dupont');
+      expect(runWith([rdv], []), [CalendarAction.create(customDraft(rdv))]);
+      expect(
+        ReconcileCalendar.customUrlOf('rdv-1'),
+        'colette://rdv/custom/rdv-1',
+      );
+    });
+
+    test('met à jour un RDV libre déplacé, garde un RDV à jour', () {
+      final rdv = makeAppointment();
+      final upToDate = CalendarEvent(
+        eventId: 'e1',
+        url: ReconcileCalendar.customUrlOf(rdv.id),
+        title: 'Ostéopathe · Colette',
+        start: rdv.appointmentAt,
+        end: rdv.appointmentAt.add(ReconcileCalendar.eventDuration),
+      );
+      expect(runWith([rdv], [upToDate]), isEmpty);
+      final moved = rdv.copyWith(appointmentAt: DateTime(2026, 11, 4, 10));
+      expect(runWith([moved], [upToDate]), [
+        CalendarAction.update('e1', customDraft(moved)),
+      ]);
+    });
+
+    test('supprime l\'événement d\'un RDV libre fait ou retiré', () {
+      final rdv = makeAppointment(doneAt: DateTime(2026, 11, 3));
+      final existing = CalendarEvent(
+        eventId: 'e1',
+        url: ReconcileCalendar.customUrlOf(rdv.id),
+        title: 'x',
+        start: at,
+        end: at,
+      );
+      expect(runWith([rdv], [existing]), [const CalendarAction.delete('e1')]);
+      expect(runWith([], [existing]), [const CalendarAction.delete('e1')]);
+    });
+
+    test('coexiste avec les étapes : une action par RDV', () {
+      final rdv = makeAppointment();
+      final actions = runWith(
+        [rdv],
+        [],
+        [makeVisit(MedicalStageId.m2, appointmentAt: at)],
+      );
+      expect(actions, [
+        CalendarAction.create(draft(MedicalStageId.m2)),
+        CalendarAction.create(customDraft(rdv)),
+      ]);
+    });
+
+    test('sans titre fourni, le titre du RDV libre est utilisé', () {
+      final rdv = makeAppointment();
+      final actions = reconcile(
+        visits: const [],
+        appointments: [rdv],
+        events: const [],
+        titleOf: titleOf,
+        now: now,
+      );
+      expect((actions.single as CreateCalendarEvent).draft.title, 'Ostéopathe');
+    });
   });
 }

@@ -197,4 +197,43 @@ void main() {
       expect((stage['dueFrom'] as Timestamp).toDate(), DateTime(2026, 11, 1));
     },
   );
+
+  group('RDV libres', () {
+    test(
+      'aller-retour, triés par date puis identifiant, suppression',
+      () async {
+        final b = makeAppointment(
+          id: 'b',
+          appointmentAt: DateTime(2026, 11, 3),
+        );
+        final a = makeAppointment(
+          id: 'a',
+          appointmentAt: DateTime(2026, 11, 3),
+        );
+        final c = makeAppointment(
+          id: 'c',
+          appointmentAt: DateTime(2026, 10, 3),
+        );
+        for (final rdv in [b, a, c]) {
+          await repo.saveAppointment(code, rdv);
+        }
+        expect(await repo.watchAppointments(code).first, [c, a, b]);
+        final fetched = await repo.fetchAppointmentsFromServer(code);
+        expect(fetched.getRight().toNullable(), [c, a, b]);
+
+        await repo.deleteAppointment(code, 'a');
+        expect(await repo.watchAppointments(code).first, [c, b]);
+      },
+    );
+
+    test('ignore un document illisible', () async {
+      await db
+          .collection('households')
+          .doc(code)
+          .collection('medicalAppointments')
+          .doc('x')
+          .set({'title': 'sans date'});
+      expect(await repo.watchAppointments(code).first, isEmpty);
+    });
+  });
 }
