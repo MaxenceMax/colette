@@ -12,6 +12,13 @@ export function selectBottleRecipients(devices: Device[]): Device[] {
   return devices.filter((d) => d.notifyBottleReminder !== false);
 }
 
+/** Texte du rappel : fourchette si le snapshot en porte une, sinon ancienne formulation. */
+export function bottleMessage(suggestedMl: number, nextBottleAt: Date, windowEndAt: Date | null) {
+  return windowEndAt
+    ? { title: 'Biberon possible dès maintenant', body: `Environ ${suggestedMl} ml, d'ici ${formatHourMinute(windowEndAt)}` }
+    : { title: 'Biberon dans 10 min', body: `Environ ${suggestedMl} ml, prévu vers ${formatHourMinute(nextBottleAt)}` };
+}
+
 export const bottleReminder = onSchedule({ schedule: 'every 5 minutes', timeZone: ZONE, maxInstances: 1 }, async () => {
   const now = new Date();
   const households = await db().collection('households').get();
@@ -21,9 +28,13 @@ export const bottleReminder = onSchedule({ schedule: 'every 5 minutes', timeZone
       const plan = doc.get('feedingPlan') as FeedingPlanDoc | undefined;
       if (!plan?.nextBottleAt) continue;
       const nextBottleAt = plan.nextBottleAt.toDate();
+      const windowStartAt = plan.windowStartAt?.toDate() ?? null;
+      const windowEndAt = plan.windowEndAt?.toDate() ?? null;
       const lastNotifiedFor = (doc.get('lastBottleNotifiedFor') as Timestamp | undefined)?.toDate() ?? null;
       const due = isReminderDue({
         nextBottleAt,
+        windowStartAt,
+        windowEndAt,
         computedAt: plan.computedAt?.toDate() ?? null,
         lastNotifiedFor,
         now,
@@ -32,8 +43,7 @@ export const bottleReminder = onSchedule({ schedule: 'every 5 minutes', timeZone
 
       const recipients = selectBottleRecipients(await loadDevices(doc.ref));
       const sent = await sendToDevices(doc.id, recipients, {
-        title: 'Biberon dans 10 min',
-        body: `Environ ${plan.suggestedMl} ml, prévu vers ${formatHourMinute(nextBottleAt)}`,
+        ...bottleMessage(plan.suggestedMl, nextBottleAt, windowStartAt ? windowEndAt : null),
         data: { route: '/today?bottle=1' },
       });
 
