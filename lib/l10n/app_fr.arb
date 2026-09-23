@@ -333,6 +333,7 @@
   "@retryItem": { "placeholders": { "liking": { "type": "String" }, "count": { "type": "int" } } },
   "catalogTitle": "Aliments · {count, plural, =0{aucun goûté} =1{1 goûté} other{{count} goûtés}}",
   "@catalogTitle": { "placeholders": { "count": { "type": "int" } } },
+  "catalogAddFood": "Ajouter un aliment",
   "catalogFilterAll": "Tous",
   "catalogFilterNotTasted": "Pas goûtés",
   "catalogFilterAvoid": "À éviter",

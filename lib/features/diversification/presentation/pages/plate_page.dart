@@ -76,7 +76,7 @@ class _PlatePageState extends ConsumerState<PlatePage> {
                       trailing: TextButton.icon(
                         onPressed: () => showCustomFoodSheet(context),
                         icon: const Icon(Icons.add),
-                        label: Text(s.actionAdd),
+                        label: Text(s.catalogAddFood),
                       ),
                     ),
                     const CatalogSearchBar(),

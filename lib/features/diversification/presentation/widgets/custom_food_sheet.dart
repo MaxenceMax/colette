@@ -38,6 +38,11 @@ class _CustomFoodSheetState extends ConsumerState<CustomFoodSheet> {
   late FoodGroup _group = widget.food?.group ?? FoodGroup.otherFruitsVeg;
   late final Set<Allergen> _allergens = {...?widget.food?.allergens};
 
+  /// `true` dès que cette feuille a tenté un enregistrement : évite d'afficher
+  /// un échec ou un chargement laissés par une utilisation précédente du
+  /// contrôleur `autoDispose` (partagé entre les ouvertures successives).
+  bool _submitted = false;
+
   @override
   void dispose() {
     _name.dispose();
@@ -53,6 +58,7 @@ class _CustomFoodSheetState extends ConsumerState<CustomFoodSheet> {
   });
 
   Future<void> _save() async {
+    setState(() => _submitted = true);
     final ok = await ref
         .read(customFoodControllerProvider.notifier)
         .save(
@@ -118,7 +124,7 @@ class _CustomFoodSheetState extends ConsumerState<CustomFoodSheet> {
                 ),
             ],
           ),
-          if (saveState case AsyncError(:final error)) ...[
+          if (saveState case AsyncError(:final error) when _submitted) ...[
             AppSpacing.md.verticalSpace,
             Text(
               failureMessage(error, s),
@@ -129,7 +135,7 @@ class _CustomFoodSheetState extends ConsumerState<CustomFoodSheet> {
           ],
           AppSpacing.lg.verticalSpace,
           FilledButton(
-            onPressed: saveState is AsyncLoading ? null : _save,
+            onPressed: _submitted && saveState is AsyncLoading ? null : _save,
             child: Text(s.actionSave),
           ),
         ],

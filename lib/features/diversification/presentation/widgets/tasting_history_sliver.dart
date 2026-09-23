@@ -46,6 +46,8 @@ class _TastingTile extends ConsumerWidget {
   final Tasting tasting;
 
   Future<bool> _confirmDelete(BuildContext context, WidgetRef ref) async {
+    // Capturés avant tout `await`, cf. `_DeleteFoodButton._delete`.
+    final messenger = ScaffoldMessenger.of(context);
     final s = S.of(context);
     final confirmed = await showDialog<bool>(
       context: context,
@@ -67,10 +69,14 @@ class _TastingTile extends ConsumerWidget {
     final ok = await ref
         .read(tastingFormControllerProvider.notifier)
         .delete(tasting.id);
-    if (!ok && context.mounted) {
+    if (!ok) {
       final error = ref.read(tastingFormControllerProvider).error;
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(failureMessage(error ?? s.errorUnknown, s))),
+      messenger.showSnackBar(
+        SnackBar(
+          content: Text(
+            error == null ? s.errorUnknown : failureMessage(error, s),
+          ),
+        ),
       );
     }
     return ok;

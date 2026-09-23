@@ -33,20 +33,27 @@ class RetryCard extends ConsumerWidget {
             for (final item in items)
               InkWell(
                 onTap: () => context.push(AppRoutes.plateFood(item.food.id)),
-                child: Padding(
-                  padding: AppSpacing.xs.vertical,
-                  child: Row(
-                    spacing: AppSpacing.sm.value,
-                    children: [
-                      Expanded(child: Text(item.food.name, style: styles.body)),
-                      Text(
-                        s.retryItem(
-                          item.lastLiking.label(s),
-                          item.tastingCount,
-                        ),
-                        style: styles.small.copyWith(color: secondary),
+                child: ConstrainedBox(
+                  constraints: BoxConstraints(minHeight: AppSize.xl.value),
+                  child: Center(
+                    child: Padding(
+                      padding: AppSpacing.xs.vertical,
+                      child: Row(
+                        spacing: AppSpacing.sm.value,
+                        children: [
+                          Expanded(
+                            child: Text(item.food.name, style: styles.body),
+                          ),
+                          Text(
+                            s.retryItem(
+                              item.lastLiking.label(s),
+                              item.tastingCount,
+                            ),
+                            style: styles.small.copyWith(color: secondary),
+                          ),
+                        ],
                       ),
-                    ],
+                    ),
                   ),
                 ),
               ),

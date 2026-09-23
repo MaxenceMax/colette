@@ -1,9 +1,14 @@
+import 'dart:async';
+
 import 'package:colette/features/diversification/domain/entities/food.dart';
 import 'package:colette/features/diversification/domain/entities/food_group.dart';
 import 'package:colette/features/diversification/domain/entities/liking.dart';
 import 'package:colette/features/diversification/domain/entities/tasting.dart';
 import 'package:colette/features/diversification/presentation/pages/food_detail_page.dart';
+import 'package:colette/features/diversification/presentation/providers/diversification_providers.dart';
+import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:fpdart/fpdart.dart';
 import 'package:mocktail/mocktail.dart';
 
 import '../../../helpers/pump_app.dart';
@@ -99,5 +104,101 @@ void main() {
     await pump(tester, 'disparu');
     expect(find.text('Aliment inconnu'), findsOneWidget);
     expect(find.text('Noter une dégustation'), findsNothing);
+  });
+
+  testWidgets(
+    'suppression : le flux perd l\'aliment avant la fin de delete, page fermée',
+    (tester) async {
+      // Reproduit la mise à jour optimiste du listener Firestore local : le
+      // flux perd l'aliment avant même que `delete` ne rende la main.
+      final controller = StreamController<List<Food>>();
+      addTearDown(controller.close);
+      when(() => foodsRepo.delete(any(), any())).thenAnswer((_) async {
+        controller.add(const []);
+        return right(null);
+      });
+      final overrides = [
+        ...diversificationOverrides(
+          customFoods: const [kaki],
+          tastingsRepository: tastingsRepo,
+          customFoodsRepository: foodsRepo,
+        ).where((override) => override.origin != customFoodsProvider),
+        customFoodsProvider.overrideWith((ref) => controller.stream),
+      ];
+      await pumpApp(
+        tester,
+        Builder(
+          builder: (context) => Scaffold(
+            body: TextButton(
+              onPressed: () => Navigator.of(context).push(
+                MaterialPageRoute<void>(
+                  builder: (_) => const FoodDetailPage(foodId: 'c1'),
+                ),
+              ),
+              child: const Text('open'),
+            ),
+          ),
+        ),
+        overrides: overrides,
+      );
+      controller.add(const [kaki]);
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('open'));
+      await tester.pumpAndSettle();
+      await tester.scrollUntilVisible(find.text('Supprimer cet aliment'), 200);
+      await tester.tap(find.text('Supprimer cet aliment'));
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('Supprimer'));
+      await tester.pumpAndSettle();
+      expect(find.text('Aliment inconnu'), findsNothing);
+      expect(find.text('open'), findsOneWidget);
+    },
+  );
+
+  testWidgets('miel après 1 an : plus de règle à éviter', (tester) async {
+    await pumpApp(
+      tester,
+      const FoodDetailPage(foodId: 'miel'),
+      overrides: diversificationOverrides(
+        now: DateTime(2027, 10, 1),
+        tastingsRepository: tastingsRepo,
+        customFoodsRepository: foodsRepo,
+      ),
+    );
+    expect(find.text('À éviter avant 1 an'), findsNothing);
+    expect(
+      find.text('Aucun repère particulier pour cet aliment.'),
+      findsOneWidget,
+    );
+  });
+
+  testWidgets('modification d\'une dégustation existante', (tester) async {
+    await pump(
+      tester,
+      'carotte',
+      tastings: [
+        Tasting(
+          id: 't1',
+          foodId: 'carotte',
+          at: DateTime(2027, 4, 10, 12, 5),
+          liking: Liking.loved,
+          note: 'Adore',
+        ),
+      ],
+    );
+    await tester.scrollUntilVisible(find.text('Aimé · Adore'), 200);
+    await tester.tap(find.text('Aimé · Adore'));
+    await tester.pumpAndSettle();
+    expect(find.text('Modifier la dégustation'), findsOneWidget);
+    await tester.ensureVisible(find.text('Enregistrer', skipOffstage: false));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Enregistrer'));
+    await tester.pumpAndSettle();
+    final saved =
+        verify(() => tastingsRepo.save('ABCDEFGH', captureAny()))
+                .captured
+                .single
+            as Tasting;
+    expect(saved.id, 't1');
   });
 }

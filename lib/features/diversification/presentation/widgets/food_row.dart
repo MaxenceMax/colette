@@ -19,20 +19,25 @@ class FoodRow extends StatelessWidget {
     final status = this.status;
     return InkWell(
       onTap: () => context.push(AppRoutes.plateFood(food.id)),
-      child: Padding(
-        padding: AppSpacing.sm.vertical,
-        child: Row(
-          spacing: AppSpacing.sm.value,
-          children: [
-            Expanded(
-              child: Text(
-                food.name,
-                style: Theme.of(context).coletteTextStyles.body,
-              ),
+      child: ConstrainedBox(
+        constraints: BoxConstraints(minHeight: AppSize.xl.value),
+        child: Center(
+          child: Padding(
+            padding: AppSpacing.sm.vertical,
+            child: Row(
+              spacing: AppSpacing.sm.value,
+              children: [
+                Expanded(
+                  child: Text(
+                    food.name,
+                    style: Theme.of(context).coletteTextStyles.body,
+                  ),
+                ),
+                if (status != null)
+                  Flexible(child: FoodStatusBadge(status: status)),
+              ],
             ),
-            if (status != null)
-              Flexible(child: FoodStatusBadge(status: status)),
-          ],
+          ),
         ),
       ),
     );

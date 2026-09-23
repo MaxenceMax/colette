@@ -3,6 +3,7 @@ import 'package:colette/core/theme/design_tokens.dart';
 import 'package:colette/core/theme/text_styles.dart';
 import 'package:colette/core/ui/failure_message.dart';
 import 'package:colette/features/diversification/domain/entities/food.dart';
+import 'package:colette/features/diversification/domain/entities/food_rule.dart';
 import 'package:colette/features/diversification/domain/entities/food_status.dart';
 import 'package:colette/features/diversification/presentation/food_labels.dart';
 import 'package:colette/features/diversification/presentation/providers/custom_food_controller.dart';
@@ -61,6 +62,14 @@ class _FoodDetailView extends ConsumerWidget {
     final secondary = context.appColor(AppColors.textSecondary);
     final status = ref.watch(foodStatusesProvider)[food.id];
     final hasTastings = ref.watch(tastingsForFoodProvider(food.id)).isNotEmpty;
+    final ageMonths = ref.watch(diversificationTimelineProvider)?.ageMonths;
+    final visibleRules = [
+      for (final rule in food.rules)
+        if (rule.kind == RuleKind.info ||
+            ageMonths == null ||
+            rule.isActiveAt(ageMonths))
+          rule,
+    ];
     return Scaffold(
       appBar: AppBar(
         title: Text(foodDisplayName(food, s)),
@@ -111,10 +120,10 @@ class _FoodDetailView extends ConsumerWidget {
                   ),
                 ],
                 SectionHeader(title: s.foodDetailRules),
-                if (food.rules.isEmpty)
+                if (visibleRules.isEmpty)
                   Text(s.foodDetailNoRules, style: styles.body)
                 else
-                  for (final rule in food.rules) RuleTile(rule: rule),
+                  for (final rule in visibleRules) RuleTile(rule: rule),
                 SectionHeader(title: s.foodDetailAllergens),
                 Text(
                   food.allergens.isEmpty
@@ -150,6 +159,12 @@ class _DeleteFoodButton extends ConsumerWidget {
   final Food food;
 
   Future<void> _delete(BuildContext context, WidgetRef ref) async {
+    // Capturés avant tout `await` : la suppression met à jour le flux des
+    // aliments perso avant même que `delete` ne rende la main (le listener
+    // Firestore local réagit à l'écriture optimiste), ce qui retire cet
+    // aliment de l'arbre (`Food.unknown`) et invaliderait `context`.
+    final navigator = Navigator.of(context);
+    final messenger = ScaffoldMessenger.of(context);
     final s = S.of(context);
     final confirmed = await showDialog<bool>(
       context: context,
@@ -171,14 +186,17 @@ class _DeleteFoodButton extends ConsumerWidget {
     final ok = await ref
         .read(customFoodControllerProvider.notifier)
         .delete(food.id);
-    if (!context.mounted) return;
     if (ok) {
-      await Navigator.of(context).maybePop();
+      await navigator.maybePop();
       return;
     }
     final error = ref.read(customFoodControllerProvider).error;
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text(failureMessage(error ?? s.errorUnknown, s))),
+    messenger.showSnackBar(
+      SnackBar(
+        content: Text(
+          error == null ? s.errorUnknown : failureMessage(error, s),
+        ),
+      ),
     );
   }
 

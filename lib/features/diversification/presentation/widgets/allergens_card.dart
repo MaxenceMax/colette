@@ -33,10 +33,13 @@ class AllergensCard extends ConsumerWidget {
           Row(
             children: [
               Expanded(child: Text(s.allergensTitle, style: styles.heading3)),
-              Text(
-                s.allergensIntroduced(introduced, Allergen.tracked.length),
-                style: styles.small.copyWith(
-                  color: context.appColor(AppColors.textSecondary),
+              Flexible(
+                child: Text(
+                  s.allergensIntroduced(introduced, Allergen.tracked.length),
+                  textAlign: .end,
+                  style: styles.small.copyWith(
+                    color: context.appColor(AppColors.textSecondary),
+                  ),
                 ),
               ),
             ],
@@ -104,25 +107,31 @@ class _AllergenChip extends StatelessWidget {
       child: InkWell(
         onTap: onTap,
         borderRadius: AppRadius.round.circular,
-        child: Padding(
-          padding: AppSpacing.symmetric(
-            horizontal: AppSpacing.sm,
-            vertical: AppSpacing.xs,
-          ),
-          child: Row(
-            mainAxisSize: .min,
-            spacing: AppSpacing.xxs.value,
-            children: [
-              Icon(
-                icon,
-                size: AppSize.xs.value,
-                color: context.appColor(color),
+        child: ConstrainedBox(
+          constraints: BoxConstraints(minHeight: AppSize.xl.value),
+          child: Center(
+            widthFactor: 1,
+            child: Padding(
+              padding: AppSpacing.symmetric(
+                horizontal: AppSpacing.sm,
+                vertical: AppSpacing.xs,
               ),
-              Text(
-                allergen.label(s),
-                style: Theme.of(context).coletteTextStyles.small,
+              child: Row(
+                mainAxisSize: .min,
+                spacing: AppSpacing.xxs.value,
+                children: [
+                  Icon(
+                    icon,
+                    size: AppSize.xs.value,
+                    color: context.appColor(color),
+                  ),
+                  Text(
+                    allergen.label(s),
+                    style: Theme.of(context).coletteTextStyles.small,
+                  ),
+                ],
               ),
-            ],
+            ),
           ),
         ),
       ),

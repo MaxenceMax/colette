@@ -1,4 +1,5 @@
 import 'package:colette/core/clock/app_clock.dart';
+import 'package:colette/core/dates/date_extensions.dart';
 import 'package:colette/core/dates/time_format.dart';
 import 'package:colette/core/theme/app_colors.dart';
 import 'package:colette/core/theme/design_tokens.dart';
@@ -7,6 +8,7 @@ import 'package:colette/core/ui/date_time_picker.dart';
 import 'package:colette/core/ui/failure_message.dart';
 import 'package:colette/features/baby/presentation/providers/baby_providers.dart';
 import 'package:colette/features/diversification/domain/entities/food.dart';
+import 'package:colette/features/diversification/domain/entities/food_rule.dart';
 import 'package:colette/features/diversification/domain/entities/liking.dart';
 import 'package:colette/features/diversification/domain/entities/tasting.dart';
 import 'package:colette/features/diversification/domain/use_cases/check_tasting_warnings.dart';
@@ -56,6 +58,11 @@ class _TastingFormSheetState extends ConsumerState<TastingFormSheet> {
   );
   bool _missingFood = false;
 
+  /// `true` dès que cette feuille a tenté un enregistrement : évite d'afficher
+  /// un échec ou un chargement laissés par une utilisation précédente du
+  /// contrôleur `autoDispose` (partagé entre les ouvertures successives).
+  bool _submitted = false;
+
   @override
   void initState() {
     super.initState();
@@ -89,6 +96,7 @@ class _TastingFormSheetState extends ConsumerState<TastingFormSheet> {
   }
 
   Future<void> _save() async {
+    setState(() => _submitted = true);
     final food = _food;
     if (food == null) {
       setState(() => _missingFood = true);
@@ -152,7 +160,7 @@ class _TastingFormSheetState extends ConsumerState<TastingFormSheet> {
               s.tastingFoodRequired,
               style: styles.small.copyWith(color: errorColor),
             ),
-          if (food != null) _FoodRulesSection(food: food),
+          if (food != null) _FoodRulesSection(food: food, at: _at),
           AppSpacing.md.verticalSpace,
           _PickerField(
             label: s.tastingFieldWhen,
@@ -205,14 +213,14 @@ class _TastingFormSheetState extends ConsumerState<TastingFormSheet> {
             minLines: 1,
             maxLines: 3,
           ),
-          if (saveState case AsyncError(:final error))
+          if (saveState case AsyncError(:final error) when _submitted)
             Text(
               failureMessage(error, s),
               style: styles.body.copyWith(color: errorColor),
             ),
           AppSpacing.lg.verticalSpace,
           FilledButton(
-            onPressed: saveState is AsyncLoading ? null : _save,
+            onPressed: _submitted && saveState is AsyncLoading ? null : _save,
             child: Text(s.actionSave),
           ),
         ],
@@ -253,30 +261,59 @@ class _PickerField extends StatelessWidget {
   }
 }
 
-/// Allergènes et règles de l'aliment choisi.
-class _FoodRulesSection extends StatelessWidget {
-  const _FoodRulesSection({required this.food});
+/// Allergènes et règles actives de l'aliment choisi, à l'âge du bébé à la
+/// date de la dégustation ; masqué si rien à montrer.
+class _FoodRulesSection extends ConsumerWidget {
+  const _FoodRulesSection({required this.food, required this.at});
 
   final Food food;
 
+  /// Date de la dégustation, pour calculer l'âge des règles à cette date.
+  final DateTime at;
+
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     final s = S.of(context);
+    final birthDate = ref.watch(babyProfileProvider).value?.birthDate;
+    final ageMonths = birthDate == null
+        ? null
+        : completedMonthsBetween(birthDate, at);
+    final visibleRules = [
+      for (final rule in food.rules)
+        if (rule.kind == RuleKind.info ||
+            ageMonths == null ||
+            rule.isActiveAt(ageMonths))
+          rule,
+    ];
+    if (food.allergens.isEmpty && visibleRules.isEmpty) {
+      return const SizedBox.shrink();
+    }
     return Padding(
       padding: AppSpacing.sm.top,
-      child: Column(
-        crossAxisAlignment: .start,
-        children: [
-          if (food.allergens.isNotEmpty)
-            Text(
-              s.tastingAllergens(
-                food.allergens.map((allergen) => allergen.label(s)).join(', '),
-              ),
-              style: Theme.of(context).coletteTextStyles.label
-                  .copyWith(color: context.appColor(AppColors.warning)),
-            ),
-          for (final rule in food.rules) RuleTile(rule: rule),
-        ],
+      child: DecoratedBox(
+        decoration: BoxDecoration(
+          border: Border.all(color: context.appColor(AppColors.border)),
+          borderRadius: AppRadius.md.circular,
+        ),
+        child: Padding(
+          padding: AppSpacing.sm.all,
+          child: Column(
+            crossAxisAlignment: .start,
+            children: [
+              if (food.allergens.isNotEmpty)
+                Text(
+                  s.tastingAllergens(
+                    food.allergens
+                        .map((allergen) => allergen.label(s))
+                        .join(', '),
+                  ),
+                  style: Theme.of(context).coletteTextStyles.label
+                      .copyWith(color: context.appColor(AppColors.warning)),
+                ),
+              for (final rule in visibleRules) RuleTile(rule: rule),
+            ],
+          ),
+        ),
       ),
     );
   }

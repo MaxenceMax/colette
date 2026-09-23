@@ -30,9 +30,12 @@ class TodayDiversityCard extends ConsumerWidget {
               Expanded(
                 child: Text(s.todayDiversityTitle, style: styles.heading3),
               ),
-              Text(
-                s.todayDiversityTastings(diversity.tastingCount),
-                style: styles.small.copyWith(color: secondary),
+              Flexible(
+                child: Text(
+                  s.todayDiversityTastings(diversity.tastingCount),
+                  textAlign: .end,
+                  style: styles.small.copyWith(color: secondary),
+                ),
               ),
             ],
           ),
@@ -70,8 +73,12 @@ class _GroupChip extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final color = context.appColor(
-      covered ? AppColors.success : AppColors.textSecondary,
+    // Le texte reste en `onSurface` même sur la puce couverte : `success` sur
+    // `primaryContainer` n'atteint pas le contraste WCOG requis pour du texte
+    // (3,89:1) ; l'icône, elle, reste `success` (décorative, pas de texte).
+    final iconColor = context.appColor(AppColors.success);
+    final textColor = context.appColor(
+      covered ? AppColors.onSurface : AppColors.textSecondary,
     );
     return Container(
       padding: AppSpacing.symmetric(
@@ -87,11 +94,12 @@ class _GroupChip extends StatelessWidget {
         mainAxisSize: .min,
         spacing: AppSpacing.xxs.value,
         children: [
-          if (covered) Icon(Icons.check, size: AppSize.xs.value, color: color),
+          if (covered)
+            Icon(Icons.check, size: AppSize.xs.value, color: iconColor),
           Text(
             label,
             style: Theme.of(context).coletteTextStyles.small
-                .copyWith(color: color),
+                .copyWith(color: textColor),
           ),
         ],
       ),
