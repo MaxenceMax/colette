@@ -8,6 +8,7 @@ import 'package:colette/features/household/presentation/pages/create_household_p
 import 'package:colette/features/household/presentation/pages/join_household_page.dart';
 import 'package:colette/features/household/presentation/pages/onboarding_page.dart';
 import 'package:colette/features/household/presentation/providers/household_providers.dart';
+import 'package:colette/features/sleep/presentation/pages/sleep_page.dart';
 import 'package:go_router/go_router.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
@@ -22,6 +23,9 @@ abstract final class AppRoutes {
 
   /// Courbe de poids, imbriquée sous Aujourd'hui pour garder la barre d'onglets.
   static const weights = '/today/weights';
+
+  /// Page Sommeil, imbriquée sous Aujourd'hui pour garder la barre d'onglets.
+  static const sleep = '/today/sleep';
   static const journal = '/journal';
   static const settings = '/settings';
 
@@ -82,6 +86,7 @@ GoRouter appRouter(Ref ref) {
                     path: 'weights',
                     builder: (_, _) => const WeightCurvePage(),
                   ),
+                  GoRoute(path: 'sleep', builder: (_, _) => const SleepPage()),
                   GoRoute(
                     path: 'documents',
                     builder: (_, state) => DocumentsPage(
