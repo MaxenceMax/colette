@@ -5,6 +5,7 @@ App iOS privée pour suivre les soins quotidiens de notre nouveau-né, à deux.
 ## Fonctionnalités
 
 - Documents : consultation du dossier iCloud Drive partagé (choisi une fois par iPhone), aperçu Quick Look, scan et import dans le dossier.
+- Croissance : mesures de poids, taille et périmètre crânien, courbes avec repères OMS.
 
 ## Prérequis
 

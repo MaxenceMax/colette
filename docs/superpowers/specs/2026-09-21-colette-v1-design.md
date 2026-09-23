@@ -180,9 +180,11 @@ households/{code}
     alertThreshold: 10                0 = alerte désactivée
     lastPackSize: 44
 
-households/{code}/weights/{id}
+households/{code}/weights/{id}      mesures de croissance (poids, taille, périmètre crânien) ; nom historique, détail dans 2026-09-23-growth-measurements-design.md
   measuredAt: Timestamp
-  grams: number
+  grams: number | null               au moins une des trois valeurs présente
+  lengthMm: number | null
+  headCircumferenceMm: number | null
 
 households/{code}/events/{id}
   startAt: Timestamp
@@ -331,7 +333,7 @@ Use case `ValidateCareEvent` pur, testé : refuse un événement vide, une fin a
 Sections :
 
 - Bébé : prénom, date de naissance, date de chute du cordon (renseigner cette date désactive le soin du nombril).
-- Pesées : liste des pesées, ajout (date + grammes), suppression. La plus récente sert au calcul.
+- Mesures : liste des mesures de croissance (date + poids, taille, périmètre crânien facultatifs), ajout, modification, suppression. La plus récente qui contient un poids sert au calcul. Détail dans `2026-09-23-growth-measurements-design.md`.
 - Soins attendus : Adrigyl / jour, yeux / jour, nez / jour, bain tous les N jours, nombril / jour, prises de biberon / jour.
 - Couches : stock restant, « Recompter », « + paquet », seuil d'alerte (0 à 30, 0 = désactivé).
 - Notifications de cet appareil : événements ajoutés par l'autre, rappel biberon, digest du matin avec son heure. Demande de permission iOS au premier passage à « activé ».
