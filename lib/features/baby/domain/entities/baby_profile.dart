@@ -1,3 +1,4 @@
+import 'package:colette/features/baby/domain/entities/baby_sex.dart';
 import 'package:colette/features/baby/domain/entities/care_settings.dart';
 import 'package:freezed_annotation/freezed_annotation.dart';
 
@@ -10,6 +11,9 @@ abstract class BabyProfile with _$BabyProfile {
     required String name,
     required DateTime birthDate,
     DateTime? cordFallenAt,
+
+    /// `null` tant que non renseigné : pas de courbes OMS.
+    BabySex? sex,
     @Default(CareSettings()) CareSettings careSettings,
   }) = _BabyProfile;
 }

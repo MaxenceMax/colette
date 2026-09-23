@@ -1,5 +1,6 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:colette/features/baby/domain/entities/baby_profile.dart';
+import 'package:colette/features/baby/domain/entities/baby_sex.dart';
 import 'package:colette/features/baby/domain/entities/care_settings.dart';
 
 /// Conversion `CareSettings` ↔ map Firestore.
@@ -82,6 +83,7 @@ abstract final class BabyProfileDto {
       null => null,
       final date => Timestamp.fromDate(date),
     },
+    'sex': profile.sex?.name,
     'careSettings': CareSettingsDto.toMap(profile.careSettings),
   };
 
@@ -89,6 +91,7 @@ abstract final class BabyProfileDto {
     name: map['name'] as String? ?? '',
     birthDate: (map['birthDate'] as Timestamp).toDate(),
     cordFallenAt: (map['cordFallenAt'] as Timestamp?)?.toDate(),
+    sex: BabySex.values.where((sex) => sex.name == map['sex']).firstOrNull,
     careSettings: CareSettingsDto.fromMap(
       (map['careSettings'] as Map<String, dynamic>?) ?? const {},
     ),

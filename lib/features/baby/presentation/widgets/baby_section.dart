@@ -4,6 +4,7 @@ import 'package:colette/core/theme/design_tokens.dart';
 import 'package:colette/core/theme/text_styles.dart';
 import 'package:colette/core/ui/date_time_picker.dart';
 import 'package:colette/features/baby/domain/entities/baby_profile.dart';
+import 'package:colette/features/baby/domain/entities/baby_sex.dart';
 import 'package:colette/features/baby/presentation/providers/baby_settings_controller.dart';
 import 'package:colette/l10n/generated/app_localizations.dart';
 import 'package:colette/shared/ui/widgets/colette_card_surface.dart';
@@ -13,7 +14,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
 
-/// Prénom, date de naissance, chute du cordon.
+/// Prénom, date de naissance, sexe, chute du cordon.
 class BabySection extends ConsumerWidget {
   const BabySection({super.key, required this.profile});
 
@@ -99,6 +100,7 @@ class BabySection extends ConsumerWidget {
             value: dateFormat.format(profile.birthDate),
             onTap: () => _pickBirthDate(context, ref),
           ),
+          _SexField(profile: profile),
           Row(
             spacing: AppSpacing.sm.value,
             children: [
@@ -123,6 +125,41 @@ class BabySection extends ConsumerWidget {
           ),
         ],
       ),
+    );
+  }
+}
+
+/// Fille ou garçon ; retoucher le choix courant l'efface.
+class _SexField extends ConsumerWidget {
+  const _SexField({required this.profile});
+
+  final BabyProfile profile;
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final s = S.of(context);
+    return Row(
+      spacing: AppSpacing.md.value,
+      children: [
+        Expanded(
+          child: Text(
+            s.fieldBabySex,
+            style: Theme.of(context).coletteTextStyles.label,
+          ),
+        ),
+        SegmentedButton<BabySex>(
+          segments: [
+            ButtonSegment(value: BabySex.female, label: Text(s.babySexFemale)),
+            ButtonSegment(value: BabySex.male, label: Text(s.babySexMale)),
+          ],
+          selected: {?profile.sex},
+          emptySelectionAllowed: true,
+          showSelectedIcon: false,
+          onSelectionChanged: (selection) => ref
+              .read(babySettingsControllerProvider.notifier)
+              .saveProfile(profile.copyWith(sex: selection.firstOrNull)),
+        ),
+      ],
     );
   }
 }
