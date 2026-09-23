@@ -4,7 +4,6 @@ import 'package:colette/features/baby/domain/entities/baby_profile.dart';
 import 'package:colette/features/baby/domain/entities/care_settings.dart';
 import 'package:colette/features/baby/domain/entities/feeding_plan_snapshot.dart';
 import 'package:colette/features/baby/domain/entities/growth_measurement.dart';
-import 'package:colette/features/baby/domain/entities/weight_entry.dart';
 import 'package:fake_cloud_firestore/fake_cloud_firestore.dart';
 import 'package:flutter_test/flutter_test.dart';
 
@@ -32,33 +31,6 @@ void main() {
     final withCord = profile.copyWith(cordFallenAt: DateTime(2026, 9, 12));
     await repo.saveProfile(code, withCord);
     expect(await repo.watchProfile(code).first, withCord);
-  });
-
-  test(
-    'les pesées sont triées de la plus récente à la plus ancienne',
-    () async {
-      final repo = FirestoreBabyRepository(FakeFirebaseFirestore());
-      await repo.addWeight(
-        code,
-        WeightEntry(id: 'w1', measuredAt: DateTime(2026, 9, 2), grams: 3200),
-      );
-      await repo.addWeight(
-        code,
-        WeightEntry(id: 'w2', measuredAt: DateTime(2026, 9, 10), grams: 3600),
-      );
-      final weights = await repo.watchWeights(code).first;
-      expect(weights.map((w) => w.id), ['w2', 'w1']);
-    },
-  );
-
-  test('deleteWeight retire la pesée', () async {
-    final repo = FirestoreBabyRepository(FakeFirebaseFirestore());
-    await repo.addWeight(
-      code,
-      WeightEntry(id: 'w1', measuredAt: DateTime(2026, 9, 2), grams: 3200),
-    );
-    await repo.deleteWeight(code, 'w1');
-    expect(await repo.watchWeights(code).first, isEmpty);
   });
 
   test('saveFeedingPlan écrit feedingPlan sans effacer baby', () async {
@@ -96,6 +68,28 @@ void main() {
     CollectionReference<Map<String, dynamic>> weights(
       FakeFirebaseFirestore db,
     ) => db.collection('households').doc(code).collection('weights');
+
+    test('triées de la plus récente à la plus ancienne', () async {
+      final repo = FirestoreBabyRepository(FakeFirebaseFirestore());
+      await repo.saveMeasurement(
+        code,
+        GrowthMeasurement(
+          id: 'm1',
+          measuredAt: DateTime(2026, 9, 2),
+          grams: 3200,
+        ),
+      );
+      await repo.saveMeasurement(
+        code,
+        GrowthMeasurement(
+          id: 'm2',
+          measuredAt: DateTime(2026, 9, 10),
+          grams: 3600,
+        ),
+      );
+      final measurements = await repo.watchMeasurements(code).first;
+      expect(measurements.map((m) => m.id), ['m2', 'm1']);
+    });
 
     test('relit une ancienne pesée sans taille ni périmètre', () async {
       final db = FakeFirebaseFirestore();

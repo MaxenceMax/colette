@@ -177,7 +177,7 @@ void main() {
     tester,
   ) async {
     final repo = MockBabyRepository();
-    when(() => repo.deleteWeight(any(), any()))
+    when(() => repo.deleteMeasurement(any(), any()))
         .thenAnswer((_) async => left(const NetworkFailure()));
     await pumpSheet(
       tester,
@@ -189,7 +189,7 @@ void main() {
               builder: (_, ref, _) => TextButton(
                 onPressed: () => ref
                     .read(babySettingsControllerProvider.notifier)
-                    .deleteWeight('w'),
+                    .deleteMeasurement('w'),
                 child: const Text('boom'),
               ),
             ),

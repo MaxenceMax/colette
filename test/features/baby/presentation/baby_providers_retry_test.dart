@@ -1,5 +1,5 @@
 import 'package:colette/features/baby/domain/entities/baby_profile.dart';
-import 'package:colette/features/baby/domain/entities/weight_entry.dart';
+import 'package:colette/features/baby/domain/entities/growth_measurement.dart';
 import 'package:colette/features/baby/domain/repositories/baby_repository.dart';
 import 'package:colette/features/baby/presentation/providers/baby_providers.dart';
 import 'package:colette/features/household/presentation/providers/household_providers.dart';
@@ -34,8 +34,8 @@ void main() {
     repo = MockBabyRepository();
     when(() => repo.watchProfile(any()))
         .thenAnswer((_) => Stream<BabyProfile?>.error(_failure));
-    when(() => repo.watchWeights(any()))
-        .thenAnswer((_) => Stream<List<WeightEntry>>.error(_failure));
+    when(() => repo.watchMeasurements(any()))
+        .thenAnswer((_) => Stream<List<GrowthMeasurement>>.error(_failure));
   });
 
   test('babyProfile remonte la failure en AsyncError sans relance', () async {
@@ -48,13 +48,13 @@ void main() {
     expect(state.retrying, isFalse);
   });
 
-  test('weights remonte la failure en AsyncError sans relance', () async {
+  test('measurements remonte la failure en AsyncError sans relance', () async {
     final container = containerWith(repo);
-    final sub = container.listen(weightsProvider, (_, _) {});
+    final sub = container.listen(measurementsProvider, (_, _) {});
     addTearDown(sub.close);
     await pumpEventQueue();
-    final state = container.read(weightsProvider);
-    expect(state, isA<AsyncError<List<WeightEntry>>>());
+    final state = container.read(measurementsProvider);
+    expect(state, isA<AsyncError<List<GrowthMeasurement>>>());
     expect(state.retrying, isFalse);
   });
 }

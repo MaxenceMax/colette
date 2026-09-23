@@ -4,11 +4,9 @@ import 'package:colette/core/result/failure.dart';
 import 'package:colette/core/result/failure_mapper.dart';
 import 'package:colette/features/baby/data/dtos/baby_profile_dto.dart';
 import 'package:colette/features/baby/data/dtos/growth_measurement_dto.dart';
-import 'package:colette/features/baby/data/dtos/weight_entry_dto.dart';
 import 'package:colette/features/baby/domain/entities/baby_profile.dart';
 import 'package:colette/features/baby/domain/entities/feeding_plan_snapshot.dart';
 import 'package:colette/features/baby/domain/entities/growth_measurement.dart';
-import 'package:colette/features/baby/domain/entities/weight_entry.dart';
 import 'package:colette/features/baby/domain/repositories/baby_repository.dart';
 import 'package:fpdart/fpdart.dart';
 
@@ -39,28 +37,6 @@ class FirestoreBabyRepository implements BabyRepository {
     () => _household(householdCode)
         .set({'baby': BabyProfileDto.toMap(profile)}, SetOptions(merge: true)),
   );
-
-  @override
-  Stream<List<WeightEntry>> watchWeights(String householdCode) =>
-      _weights(householdCode)
-          .orderBy('measuredAt', descending: true)
-          .snapshots()
-          .map((snap) => snap.docs.map(WeightEntryDto.fromDoc).toList());
-
-  @override
-  Future<Either<Failure, void>> addWeight(
-    String householdCode,
-    WeightEntry entry,
-  ) => guard(
-    () =>
-        _weights(householdCode).doc(entry.id).set(WeightEntryDto.toMap(entry)),
-  );
-
-  @override
-  Future<Either<Failure, void>> deleteWeight(
-    String householdCode,
-    String weightId,
-  ) => guard(() => _weights(householdCode).doc(weightId).delete());
 
   @override
   Stream<List<GrowthMeasurement>> watchMeasurements(String householdCode) =>

@@ -5,7 +5,6 @@ import 'package:colette/core/result/failure.dart';
 import 'package:colette/features/baby/domain/entities/baby_profile.dart';
 import 'package:colette/features/baby/domain/entities/care_settings.dart';
 import 'package:colette/features/baby/domain/entities/growth_measurement.dart';
-import 'package:colette/features/baby/domain/entities/weight_entry.dart';
 import 'package:colette/features/baby/domain/use_cases/validate_growth_measurement.dart';
 import 'package:colette/features/baby/presentation/providers/baby_providers.dart';
 import 'package:colette/features/dashboard/presentation/providers/feeding_plan_sync.dart';
@@ -18,9 +17,6 @@ part 'baby_settings_controller.g.dart';
 /// Actions de l'onglet Réglages sur le profil, les mesures de croissance et les soins attendus.
 @riverpod
 class BabySettingsController extends _$BabySettingsController {
-  static const minWeightGrams = 1000;
-  static const maxWeightGrams = 20000;
-
   @override
   FutureOr<void> build() {}
 
@@ -43,23 +39,6 @@ class BabySettingsController extends _$BabySettingsController {
           ),
         ),
       );
-
-  Future<bool> addWeight({required DateTime measuredAt, required int grams}) =>
-      _run((code) async {
-        if (grams < minWeightGrams || grams > maxWeightGrams) {
-          return left(const ValidationFailure(ValidationReason.invalidWeight));
-        }
-        final entry = WeightEntry(
-          id: ref.read(idGeneratorProvider).newId(),
-          measuredAt: measuredAt,
-          grams: grams,
-        );
-        return ref.read(babyRepositoryProvider).addWeight(code, entry);
-      });
-
-  Future<bool> deleteWeight(String weightId) => _run(
-    (code) => ref.read(babyRepositoryProvider).deleteWeight(code, weightId),
-  );
 
   /// Crée ([id] nul) ou remplace une mesure après validation, puis resynchronise le plan.
   Future<bool> saveMeasurement({
