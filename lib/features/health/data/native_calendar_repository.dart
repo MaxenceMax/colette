@@ -42,7 +42,7 @@ class NativeCalendarRepository implements CalendarRepository {
   }
 
   static DateTime _date(Object? millis) =>
-      DateTime.fromMillisecondsSinceEpoch(millis! as int);
+      DateTime.fromMillisecondsSinceEpoch((millis! as num).toInt());
 
   @override
   Future<Either<Failure, bool>> requestAccess() => _call(

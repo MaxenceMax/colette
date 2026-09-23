@@ -122,6 +122,51 @@ void main() {
     });
   });
 
+  test('findEvents accepte une fenêtre envoyée en double', () async {
+    final start = DateTime(2026, 11, 3, 10);
+    mock(
+      (_) => [
+        {
+          'eventId': 'e1',
+          'url': 'colette://rdv/m2',
+          'title': 'Examen',
+          'start': start.millisecondsSinceEpoch.toDouble(),
+          'end': start
+              .add(const Duration(minutes: 30))
+              .millisecondsSinceEpoch
+              .toDouble(),
+          'notes': 'Dr Martin',
+          'externalId': 'uid-1',
+        },
+      ],
+    );
+    final from = DateTime(2026, 10, 19);
+    final to = DateTime(2028, 10, 20);
+    final events = (await repo.findEvents(
+      'c1',
+      from: from,
+      to: to,
+    )).getRight().toNullable()!;
+    expect(
+      events.single,
+      CalendarEvent(
+        eventId: 'e1',
+        url: 'colette://rdv/m2',
+        title: 'Examen',
+        start: start,
+        end: start.add(const Duration(minutes: 30)),
+        notes: 'Dr Martin',
+        externalId: 'uid-1',
+      ),
+    );
+  });
+
+  test('code d\'erreur natif inconnu donne une UnknownFailure', () async {
+    mock((_) => throw PlatformException(code: 'bizarre'));
+    final result = await repo.deleteEvent('c1', 'e1');
+    expect(result.leftOrNull, isA<UnknownFailure>());
+  });
+
   test('codes d\'erreur natifs traduits en CalendarFailure', () async {
     for (final (code, reason) in [
       ('accessDenied', CalendarReason.accessDenied),
