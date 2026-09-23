@@ -523,5 +523,15 @@
   "healthSheetMarkDone": "Marquer comme faite",
   "healthSheetCancelDone": "Annuler la visite",
   "healthSheetDoneOn": "Date de la visite",
-  "healthSheetNote": "Note (facultatif)"
+  "healthSheetNote": "Note (facultatif)",
+  "healthAddAppointment": "Ajouter un rendez-vous",
+  "healthNewAppointment": "Nouveau rendez-vous",
+  "healthChipCustom": "RDV libre",
+  "healthSheetTitle": "Titre (ostéopathe, ORL, pédiatre…)",
+  "healthSheetOtherVaccine": "Autre vaccin",
+  "healthSheetAddOtherVaccine": "Ajouter un autre vaccin",
+  "healthSheetVaccineName": "Nom du vaccin",
+  "healthSheetRemoveVaccine": "Retirer ce vaccin",
+  "healthDeleteAppointmentTitle": "Supprimer ce rendez-vous ?",
+  "healthDeleteAppointmentBody": "Il sera aussi retiré du Calendrier."
 }

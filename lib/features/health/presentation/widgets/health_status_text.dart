@@ -19,29 +19,62 @@ String healthStatusText(S s, MedicalTimelineEntry entry) {
     formatShortDate(lastDay),
   );
   return switch (entry.status) {
-    MedicalStageStatus.done => switch (visit?.doneAt) {
-      final doneAt? => s.healthDoneOn(formatShortDate(doneAt)),
-      null => fallback,
-    },
-    MedicalStageStatus.appointmentPassed => switch (visit?.appointmentAt) {
-      final appointmentAt? => s.healthAppointmentPassed(
-        formatShortDate(appointmentAt),
-      ),
-      null => fallback,
-    },
-    MedicalStageStatus.scheduled => switch (visit?.appointmentAt) {
-      final appointmentAt? => switch (visit?.practitioner) {
-        final name? when name.trim().isNotEmpty => s.healthScheduledWith(
-          formatDayAndTime(appointmentAt),
-          name,
-        ),
-        _ => s.healthScheduled(formatDayAndTime(appointmentAt)),
-      },
-      null => fallback,
-    },
+    MedicalStageStatus.done ||
+    MedicalStageStatus.appointmentPassed ||
+    MedicalStageStatus.scheduled =>
+      _appointmentPhrase(
+            s,
+            entry.status,
+            appointmentAt: visit?.appointmentAt,
+            practitioner: visit?.practitioner,
+            doneAt: visit?.doneAt,
+          ) ??
+          fallback,
     MedicalStageStatus.late => s.healthLateSince(
       formatShortDate(entry.dueUntil),
     ),
     MedicalStageStatus.due || MedicalStageStatus.upcoming => fallback,
   };
 }
+
+/// Phrase de statut d'un RDV libre : fait, RDV passé ou programmé.
+String healthAppointmentStatusText(S s, AppointmentItem item) {
+  final a = item.appointment;
+  return _appointmentPhrase(
+        s,
+        item.status,
+        appointmentAt: a.appointmentAt,
+        practitioner: a.practitioner,
+        doneAt: a.doneAt,
+      ) ??
+      s.healthScheduled(formatDayAndTime(a.appointmentAt));
+}
+
+/// `null` si les données ne permettent pas la phrase attendue par [status].
+String? _appointmentPhrase(
+  S s,
+  MedicalStageStatus status, {
+  required DateTime? appointmentAt,
+  required String? practitioner,
+  required DateTime? doneAt,
+}) => switch (status) {
+  MedicalStageStatus.done => switch (doneAt) {
+    final doneAt? => s.healthDoneOn(formatShortDate(doneAt)),
+    null => null,
+  },
+  MedicalStageStatus.appointmentPassed => switch (appointmentAt) {
+    final at? => s.healthAppointmentPassed(formatShortDate(at)),
+    null => null,
+  },
+  MedicalStageStatus.scheduled => switch (appointmentAt) {
+    final at? => switch (practitioner) {
+      final name? when name.trim().isNotEmpty => s.healthScheduledWith(
+        formatDayAndTime(at),
+        name,
+      ),
+      _ => s.healthScheduled(formatDayAndTime(at)),
+    },
+    null => null,
+  },
+  _ => null,
+};
