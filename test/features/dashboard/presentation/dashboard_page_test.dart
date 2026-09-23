@@ -3,6 +3,7 @@ import 'package:colette/core/clock/now_providers.dart';
 import 'package:colette/core/ids/id_generator.dart';
 import 'package:colette/features/baby/domain/entities/baby_profile.dart';
 import 'package:colette/features/baby/domain/entities/care_settings.dart';
+import 'package:colette/features/baby/domain/entities/growth_measurement.dart';
 import 'package:colette/features/baby/domain/entities/weight_entry.dart';
 import 'package:colette/features/baby/presentation/providers/baby_providers.dart';
 import 'package:colette/features/dashboard/presentation/pages/dashboard_page.dart';
@@ -52,12 +53,16 @@ void main() {
     bottleMl: 90,
   );
 
+  final defaultMeasurements = [
+    GrowthMeasurement(id: 'w', measuredAt: DateTime(2026, 9, 9), grams: 3600),
+  ];
+
   List<Override> overridesFor(
     MockEventsRepository repo, {
     List<CareEvent>? recent,
     AsyncValue<DiaperStockStatus?> diaperStatus = const AsyncData(null),
     BabyProfile? baby,
-    List<WeightEntry>? weights,
+    List<GrowthMeasurement>? measurements,
   }) => [
     documentsRepositoryOverride(),
     clockProvider.overrideWithValue(FixedClock(now)),
@@ -66,17 +71,15 @@ void main() {
       InMemoryHouseholdLocalStore(householdCode: 'ABCDEFGH'),
     ),
     babyProfileProvider.overrideWith((ref) => Stream.value(baby ?? profile)),
+    measurementsProvider.overrideWith(
+      (ref) => Stream.value(measurements ?? defaultMeasurements),
+    ),
+    // La carte poids lit encore weightsProvider jusqu'à la tâche 7.
     weightsProvider.overrideWith(
-      (ref) => Stream.value(
-        weights ??
-            [
-              WeightEntry(
-                id: 'w',
-                measuredAt: DateTime(2026, 9, 9),
-                grams: 3600,
-              ),
-            ],
-      ),
+      (ref) => Stream.value([
+        for (final m in measurements ?? defaultMeasurements)
+          WeightEntry(id: m.id, measuredAt: m.measuredAt, grams: m.grams!),
+      ]),
     ),
     todayEventsProvider.overrideWith((ref) => Stream.value([adrigyl, bottle])),
     recentEventsProvider.overrideWith(
@@ -233,7 +236,7 @@ void main() {
         const DashboardPage(),
         overrides: overridesFor(
           repo,
-          weights: const [],
+          measurements: const [],
           baby: profile.copyWith(
             careSettings: const CareSettings(dailyTargetMl: 600),
           ),

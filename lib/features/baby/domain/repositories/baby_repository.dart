@@ -36,6 +36,7 @@ abstract interface class BabyRepository {
     GrowthMeasurement measurement,
   );
 
+  /// Supprime la mesure [measurementId].
   Future<Either<Failure, void>> deleteMeasurement(
     String householdCode,
     String measurementId,

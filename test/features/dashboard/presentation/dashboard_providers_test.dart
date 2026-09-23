@@ -2,7 +2,7 @@ import 'package:colette/core/clock/app_clock.dart';
 import 'package:colette/core/clock/now_providers.dart';
 import 'package:colette/features/baby/domain/entities/baby_profile.dart';
 import 'package:colette/features/baby/domain/entities/care_settings.dart';
-import 'package:colette/features/baby/domain/entities/weight_entry.dart';
+import 'package:colette/features/baby/domain/entities/growth_measurement.dart';
 import 'package:colette/features/baby/presentation/providers/baby_providers.dart';
 import 'package:colette/features/dashboard/domain/entities/feeding_age_band.dart';
 import 'package:colette/features/dashboard/presentation/providers/dashboard_providers.dart';
@@ -19,7 +19,7 @@ void main() {
 
   List<Override> baseOverrides({
     required BabyProfile? profile,
-    List<WeightEntry> weights = const [],
+    List<GrowthMeasurement> measurements = const [],
   }) => [
     clockProvider.overrideWithValue(FixedClock(now)),
     minuteTickerProvider.overrideWith((ref) => const Stream.empty()),
@@ -27,7 +27,7 @@ void main() {
       InMemoryHouseholdLocalStore(householdCode: 'ABCDEFGH'),
     ),
     babyProfileProvider.overrideWith((ref) => Stream.value(profile)),
-    weightsProvider.overrideWith((ref) => Stream.value(weights)),
+    measurementsProvider.overrideWith((ref) => Stream.value(measurements)),
     todayEventsProvider.overrideWith((ref) => const Stream.empty()),
     recentEventsProvider.overrideWith((ref) => const Stream.empty()),
     latestBottleProvider.overrideWith((ref) => Stream.value(null)),
@@ -43,17 +43,21 @@ void main() {
     final container = ProviderContainer(
       overrides: baseOverrides(
         profile: profile,
-        weights: [
-          WeightEntry(id: 'w', measuredAt: DateTime(2026, 9, 9), grams: 3600),
+        measurements: [
+          GrowthMeasurement(
+            id: 'w',
+            measuredAt: DateTime(2026, 9, 9),
+            grams: 3600,
+          ),
         ],
       ),
     );
     addTearDown(container.dispose);
     container.listen(babyProfileProvider, (_, _) {});
-    container.listen(weightsProvider, (_, _) {});
+    container.listen(measurementsProvider, (_, _) {});
 
     await container.read(babyProfileProvider.future);
-    await container.read(weightsProvider.future);
+    await container.read(measurementsProvider.future);
 
     final plan = container.read(feedingPlanProvider);
 
@@ -82,17 +86,21 @@ void main() {
     final container = ProviderContainer(
       overrides: baseOverrides(
         profile: profile,
-        weights: [
-          WeightEntry(id: 'w', measuredAt: DateTime(2026, 9, 9), grams: 4200),
+        measurements: [
+          GrowthMeasurement(
+            id: 'w',
+            measuredAt: DateTime(2026, 9, 9),
+            grams: 4200,
+          ),
         ],
       ),
     );
     addTearDown(container.dispose);
     container.listen(babyProfileProvider, (_, _) {});
-    container.listen(weightsProvider, (_, _) {});
+    container.listen(measurementsProvider, (_, _) {});
 
     await container.read(babyProfileProvider.future);
-    await container.read(weightsProvider.future);
+    await container.read(measurementsProvider.future);
 
     final reference = container.read(feedingReferenceProvider);
 
@@ -101,5 +109,33 @@ void main() {
     expect(reference.mlPerKg, 150);
     expect(reference.weightGrams, 4200);
     expect(reference.weightTargetMl, 630);
+  });
+
+  test('latestWeight ignore une mesure plus récente sans poids', () async {
+    final container = ProviderContainer(
+      overrides: baseOverrides(
+        profile: BabyProfile(name: 'Colette', birthDate: DateTime(2026, 9, 1)),
+        measurements: [
+          GrowthMeasurement(
+            id: 'l',
+            measuredAt: DateTime(2026, 9, 10),
+            lengthMm: 530,
+          ),
+          GrowthMeasurement(
+            id: 'w',
+            measuredAt: DateTime(2026, 9, 9),
+            grams: 4200,
+          ),
+        ],
+      ),
+    );
+    addTearDown(container.dispose);
+    container.listen(babyProfileProvider, (_, _) {});
+    container.listen(measurementsProvider, (_, _) {});
+    await container.read(babyProfileProvider.future);
+    await container.read(measurementsProvider.future);
+
+    expect(container.read(latestWeightProvider)?.id, 'w');
+    expect(container.read(feedingReferenceProvider)!.weightGrams, 4200);
   });
 }

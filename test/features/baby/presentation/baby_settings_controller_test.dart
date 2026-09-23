@@ -4,6 +4,7 @@ import 'package:colette/core/ids/id_generator.dart';
 import 'package:colette/core/result/failure.dart';
 import 'package:colette/features/baby/domain/entities/baby_profile.dart';
 import 'package:colette/features/baby/domain/entities/care_settings.dart';
+import 'package:colette/features/baby/domain/entities/growth_measurement.dart';
 import 'package:colette/features/baby/domain/entities/weight_entry.dart';
 import 'package:colette/features/baby/domain/repositories/baby_repository.dart';
 import 'package:colette/features/baby/presentation/providers/baby_providers.dart';
@@ -31,6 +32,9 @@ void main() {
     registerFallbackValue(profile);
     registerFallbackValue(
       WeightEntry(id: 'x', measuredAt: DateTime(2026), grams: 3000),
+    );
+    registerFallbackValue(
+      GrowthMeasurement(id: 'x', measuredAt: DateTime(2026)),
     );
   });
 
@@ -82,6 +86,69 @@ void main() {
             as WeightEntry;
     expect(saved.id, 'w-new');
     expect(saved.grams, 3600);
+    verify(() => sync.sync()).called(1);
+  });
+
+  test('saveMeasurement refuse une mesure vide', () async {
+    final ok = await controller().saveMeasurement(
+      measuredAt: DateTime(2026, 9, 10),
+    );
+    expect(ok, isFalse);
+    final error = container.read(babySettingsControllerProvider).error;
+    expect(
+      (error! as ValidationFailure).reason,
+      ValidationReason.emptyMeasurement,
+    );
+    verifyNever(() => repo.saveMeasurement(any(), any()));
+  });
+
+  test('saveMeasurement crée une mesure puis synchronise le plan', () async {
+    when(() => repo.saveMeasurement(any(), any()))
+        .thenAnswer((_) async => right(null));
+    final ok = await controller().saveMeasurement(
+      measuredAt: DateTime(2026, 9, 10),
+      lengthMm: 545,
+      headCircumferenceMm: 370,
+    );
+    expect(ok, isTrue);
+    final saved =
+        verify(() => repo.saveMeasurement('ABCDEFGH', captureAny()))
+                .captured
+                .single
+            as GrowthMeasurement;
+    expect(
+      saved,
+      GrowthMeasurement(
+        id: 'w-new',
+        measuredAt: DateTime(2026, 9, 10),
+        lengthMm: 545,
+        headCircumferenceMm: 370,
+      ),
+    );
+    verify(() => sync.sync()).called(1);
+  });
+
+  test('saveMeasurement avec un id modifie la mesure existante', () async {
+    when(() => repo.saveMeasurement(any(), any()))
+        .thenAnswer((_) async => right(null));
+    await controller().saveMeasurement(
+      id: 'm1',
+      measuredAt: DateTime(2026, 9, 10),
+      grams: 3600,
+    );
+    final saved =
+        verify(() => repo.saveMeasurement('ABCDEFGH', captureAny()))
+                .captured
+                .single
+            as GrowthMeasurement;
+    expect(saved.id, 'm1');
+  });
+
+  test('deleteMeasurement supprime puis synchronise le plan', () async {
+    when(() => repo.deleteMeasurement(any(), any()))
+        .thenAnswer((_) async => right(null));
+    expect(await controller().deleteMeasurement('m1'), isTrue);
+    verify(() => repo.deleteMeasurement('ABCDEFGH', 'm1')).called(1);
     verify(() => sync.sync()).called(1);
   });
 
