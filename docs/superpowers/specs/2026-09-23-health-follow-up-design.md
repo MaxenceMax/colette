@@ -49,12 +49,12 @@ Calcul des dates : `birthDate + N mois` avec le jour borné à la fin du mois (3
 | Élément | Rôle |
 | --- | --- |
 | `MedicalStage` (freezed) | Définition d'une étape : `id`, `window` (`fromAge`, `untilAge` en `AgeOffset` = jours ou mois), `hasExam`, `hasCertificate`, `vaccines: List<ScheduledVaccine>`. |
-| `MedicalVisit` (freezed) | État saisi pour une étape : `stageId`, `appointmentAt?`, `practitioner?`, `doneAt?`, `note?`, `vaccines: Map<VaccineCode, GivenVaccine>`, `updatedAt`, `updatedByDeviceId`. |
+| `MedicalVisit` (freezed) | État saisi pour une étape : `stageId: MedicalStageId`, `appointmentAt?`, `practitioner?`, `doneAt?`, `note?`, `vaccines: Map<VaccineCode, GivenVaccine>`, `updatedAt`, `updatedByDeviceId`. |
 | `GivenVaccine` (freezed) | `givenAt`, `brand?`, `lot?`. Présent = injection reçue. |
 | `MedicalStageStatus` (enum) | `done`, `appointmentPassed` (RDV passé, visite non marquée faite), `scheduled`, `late`, `due`, `upcoming`. |
 | `ComputeMedicalStageStatus` (pur) | Pour une étape, sa visite éventuelle, la date de naissance et `now` : `done` si `doneAt` ; sinon `appointmentPassed` si `appointmentAt < now` ; sinon `scheduled` si `appointmentAt` ; sinon `late` si `now ≥ fin de fenêtre` ; sinon `due` si `now ≥ début − 14 jours` ; sinon `upcoming`. Les vaccins recommandés non reçus n'influent jamais sur le statut. |
 | `ComputeMedicalTimeline` (pur) | Toutes les étapes avec dates absolues (`dueFrom`, `dueUntil`), statut et visite, triées par âge ; plus `next` = première étape non `done`. |
-| `ComputeMedicalReminderSnapshot` (pur) | Les 3 premières étapes non faites et sans RDV : `{stageId, dueFrom, dueUntil, hasAppointment}` ; sert au digest (§6). |
+| `ComputeMedicalReminderSnapshot` (pur) | Les 3 premières étapes non faites et sans RDV : `{stageId: MedicalStageId, dueFrom, dueUntil, hasAppointment}` ; sert au digest (§6). |
 | `ReconcileCalendar` (pur) | Voir §5. |
 | `MedicalRepository` | `watchVisits`, `saveVisit` (`set` complet), `deleteVisit`, `saveReminderSnapshot`. |
 | `CalendarRepository` | Pont vers EventKit (§5). |
@@ -120,6 +120,8 @@ Erreurs remontées en codes : `accessDenied`, `calendarNotFound`, `io`. `Info.pl
 `CalendarSyncController` (présentation) lit le calendrier choisi, appelle `findEvents`, calcule les actions et les exécute une par une. Déclenchée après chaque écriture de visite par cet iPhone, au démarrage de l'app et à l'ouverture de la page Santé. Sans calendrier choisi : rien. `calendarNotFound` : choix local effacé, message « Calendrier introuvable, choisis-en un autre ». `accessDenied` : message qui indique le chemin Réglages iOS › Colette › Calendriers (pas de lien direct, comme pour les notifications). Tout autre échec : journalisé (`log(..., name: 'colette')`), jamais bloquant ; Firestore reste la source de vérité.
 
 Limites assumées : si les deux iPhones créent l'événement avant la synchronisation iCloud, un doublon existe jusqu'à la prochaine réconciliation, qui le supprime (déterministe grâce à l'`externalId`, une fois l'UID iCloud répliqué). Un événement plus ancien que `windowStart(now)` (RDV reporté à une date antérieure à la fenêtre lue) n'est jamais relu par `findEvents` ni nettoyé : il reste dans le calendrier.
+
+Les notes (praticien) font partie de la comparaison qui déclenche `update`, au même titre que le titre et les horaires à la minute.
 
 ## 6. Rappels
 
