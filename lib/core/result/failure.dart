@@ -18,6 +18,8 @@ enum ValidationReason {
   emptyMeasurement,
   invalidLength,
   invalidHeadCircumference,
+  medicalDateBeforeBirth,
+  medicalDateInFuture,
 }
 
 /// Erreur remontée par les repositories et les use cases via `Either`.

@@ -26,6 +26,8 @@ String failureMessage(Object failure, S s) => switch (failure) {
     ValidationReason.invalidLength => s.errorInvalidLength,
     ValidationReason.invalidHeadCircumference =>
       s.errorInvalidHeadCircumference,
+    ValidationReason.medicalDateBeforeBirth => s.errorMedicalDateBeforeBirth,
+    ValidationReason.medicalDateInFuture => s.errorMedicalDateInFuture,
   },
   SleepOverlapFailure(:final startAt, :final endAt) => switch (endAt) {
     null => s.errorSleepOverlapOngoing(formatHourMinute(startAt)),

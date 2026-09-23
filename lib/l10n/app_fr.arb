@@ -439,5 +439,7 @@
   "@errorSleepOverlapOngoing": { "placeholders": { "start": { "type": "String" } } },
   "errorSleepInFuture": "Le début et la fin ne peuvent pas être dans le futur.",
   "errorSleepTooLong": "Un sommeil ne peut pas dépasser 24 h.",
-  "errorSleepBeforeBirth": "Ce sommeil commence avant la naissance."
+  "errorSleepBeforeBirth": "Ce sommeil commence avant la naissance.",
+  "errorMedicalDateBeforeBirth": "Cette date précède la naissance.",
+  "errorMedicalDateInFuture": "Une visite ou une injection ne peut pas être datée dans le futur."
 }

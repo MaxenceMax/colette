@@ -116,5 +116,7 @@ const medicalSchedule = <MedicalStage>[
   ),
 ];
 
+final _stagesById = {for (final stage in medicalSchedule) stage.id: stage};
+
 /// Étape de [id].
-MedicalStage stageById(MedicalStageId id) => medicalSchedule[id.index];
+MedicalStage stageById(MedicalStageId id) => _stagesById[id]!;
