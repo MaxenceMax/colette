@@ -4,8 +4,10 @@ import 'package:colette/core/theme/text_styles.dart';
 import 'package:colette/core/ui/failure_message.dart';
 import 'package:colette/features/baby/domain/entities/weight_entry.dart';
 import 'package:colette/features/baby/domain/entities/weight_trend.dart';
+import 'package:colette/features/baby/domain/entities/who_weight_percentiles.dart';
 import 'package:colette/features/baby/presentation/providers/baby_providers.dart';
 import 'package:colette/features/baby/presentation/providers/baby_settings_controller.dart';
+import 'package:colette/features/baby/presentation/providers/who_curves_visibility.dart';
 import 'package:colette/features/baby/presentation/widgets/add_weight_sheet.dart';
 import 'package:colette/features/baby/presentation/widgets/weight_chart.dart';
 import 'package:colette/features/baby/presentation/widgets/weight_trend_summary.dart';
@@ -17,7 +19,8 @@ import 'package:colette/shared/ui/widgets/section_header.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-/// Courbe de poids : dernière pesée, évolution, courbe et liste des pesées.
+/// Courbe de poids : dernière pesée, évolution, courbe (avec repères OMS
+/// optionnels) et liste des pesées.
 class WeightCurvePage extends ConsumerWidget {
   const WeightCurvePage({super.key});
 
@@ -76,15 +79,22 @@ class _EmptySection extends StatelessWidget {
   }
 }
 
-class _ChartSection extends StatelessWidget {
+class _ChartSection extends ConsumerWidget {
   const _ChartSection({required this.weights, required this.trend});
 
   final List<WeightEntry> weights;
   final WeightTrend trend;
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     final s = S.of(context);
+    final hasSex = ref.watch(babyProfileProvider).value?.sex != null;
+    final showWho = hasSex && ref.watch(whoCurvesVisibilityProvider);
+    final reference = showWho
+        ? ref.watch(whoWeightReferenceProvider)
+        : const <WhoWeightPercentiles>[];
+    final small = Theme.of(context).coletteTextStyles.small
+        .copyWith(color: context.appColor(AppColors.textSecondary));
     return ColetteCardSurface(
       child: Column(
         crossAxisAlignment: .start,
@@ -93,15 +103,47 @@ class _ChartSection extends StatelessWidget {
           WeightTrendSummary(trend: trend),
           AspectRatio(
             aspectRatio: WeightChart.aspectRatio,
-            child: WeightChart(weights: weights),
+            child: WeightChart(weights: weights, reference: reference),
           ),
-          Text(
-            s.weightCurveHint,
-            style: Theme.of(context).coletteTextStyles.small
-                .copyWith(color: context.appColor(AppColors.textSecondary)),
-          ),
+          Text(s.weightCurveHint, style: small),
+          _WhoToggle(hasSex: hasSex, visible: showWho),
+          if (showWho)
+            Text(
+              reference.isEmpty ? s.whoCurvesOutOfRange : s.whoCurvesLegend,
+              style: small,
+            ),
         ],
       ),
+    );
+  }
+}
+
+/// Interrupteur des courbes OMS, inactif tant que le sexe n'est pas renseigné.
+class _WhoToggle extends ConsumerWidget {
+  const _WhoToggle({required this.hasSex, required this.visible});
+
+  final bool hasSex;
+  final bool visible;
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final s = S.of(context);
+    final styles = Theme.of(context).coletteTextStyles;
+    return SwitchListTile.adaptive(
+      contentPadding: EdgeInsets.zero,
+      title: Text(s.whoCurvesToggle, style: styles.bodyMedium),
+      subtitle: hasSex
+          ? null
+          : Text(
+              s.whoCurvesNeedsSex,
+              style: styles.small.copyWith(
+                color: context.appColor(AppColors.textSecondary),
+              ),
+            ),
+      value: visible,
+      onChanged: hasSex
+          ? (value) => ref.read(whoCurvesVisibilityProvider.notifier).set(value)
+          : null,
     );
   }
 }

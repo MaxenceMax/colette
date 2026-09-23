@@ -2,15 +2,23 @@ import 'package:colette/core/theme/app_colors.dart';
 import 'package:colette/core/theme/design_tokens.dart';
 import 'package:colette/core/theme/text_styles.dart';
 import 'package:colette/features/baby/domain/entities/weight_entry.dart';
+import 'package:colette/features/baby/domain/entities/who_weight_percentiles.dart';
 import 'package:colette/features/baby/presentation/widgets/weight_chart_scale.dart';
+import 'package:colette/features/baby/presentation/widgets/who_reference_bars.dart';
 import 'package:colette/l10n/generated/app_localizations.dart';
 import 'package:fl_chart/fl_chart.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 
-/// Courbe des pesées ; `compact` masque axes, grille et infobulle.
+/// Courbe des pesées, avec référence OMS optionnelle ; `compact` masque axes,
+/// grille et infobulle.
 class WeightChart extends StatelessWidget {
-  const WeightChart({super.key, required this.weights, this.compact = false});
+  const WeightChart({
+    super.key,
+    required this.weights,
+    this.reference = const [],
+    this.compact = false,
+  });
 
   /// Proportions de la courbe pleine taille.
   static const aspectRatio = 1.6;
@@ -20,13 +28,26 @@ class WeightChart extends StatelessWidget {
 
   /// Pesées à tracer, au moins une, dans n'importe quel ordre.
   final List<WeightEntry> weights;
+
+  /// Percentiles OMS à tracer derrière les pesées ; vide pour les masquer.
+  final List<WhoWeightPercentiles> reference;
   final bool compact;
 
   @override
   Widget build(BuildContext context) {
     final sorted = [...weights]
       ..sort((a, b) => a.measuredAt.compareTo(b.measuredAt));
-    final scale = WeightChartScale.fromWeights(sorted);
+    final firstScale = WeightChartScale.fromWeights(sorted);
+    final shown = WhoReferenceBars.visible(reference, firstScale);
+    final scale = shown.isEmpty
+        ? firstScale
+        : WeightChartScale.fromWeights(
+            sorted,
+            extraGrams: [
+              for (final p in shown) ...[p.p3Grams, p.p97Grams],
+            ],
+          );
+    final weightBarIndex = shown.isEmpty ? 0 : WhoReferenceBars.count;
     final primary = context.appColor(AppColors.primary);
     final surface = context.appColor(AppColors.surface);
     return LineChart(
@@ -51,8 +72,10 @@ class WeightChart extends StatelessWidget {
             : _titles(context, sorted, scale),
         lineTouchData: compact
             ? const LineTouchData(enabled: false)
-            : _touch(context, sorted),
+            : _touch(context, sorted, weightBarIndex),
+        betweenBarsData: [if (shown.isNotEmpty) WhoReferenceBars.band(context)],
         lineBarsData: [
+          if (shown.isNotEmpty) ...WhoReferenceBars.bars(context, shown, scale),
           LineChartBarData(
             spots: [
               for (final w in sorted)
@@ -63,7 +86,8 @@ class WeightChart extends StatelessWidget {
             isStrokeCapRound: true,
             isStrokeJoinRound: true,
             belowBarData: BarAreaData(
-              show: true,
+              // La zone OMS remplace le remplissage sous la courbe.
+              show: shown.isEmpty,
               color: AppOpacity.veryLight.applyTo(primary),
             ),
             dotData: FlDotData(
@@ -139,7 +163,11 @@ class WeightChart extends StatelessWidget {
     );
   }
 
-  LineTouchData _touch(BuildContext context, List<WeightEntry> sorted) {
+  LineTouchData _touch(
+    BuildContext context,
+    List<WeightEntry> sorted,
+    int weightBarIndex,
+  ) {
     final s = S.of(context);
     final dateFormat = DateFormat.yMMMd(
       Localizations.localeOf(context).toString(),
@@ -150,17 +178,21 @@ class WeightChart extends StatelessWidget {
     return LineTouchData(
       getTouchedSpotIndicator: (bar, indexes) => [
         for (final _ in indexes)
-          TouchedSpotIndicatorData(
-            FlLine(color: border, strokeWidth: AppStroke.regular.value),
-            FlDotData(
-              getDotPainter: (_, _, _, _) => FlDotCirclePainter(
-                radius: AppSpacing.sm.value - AppSpacing.xxs.value,
-                color: context.appColor(AppColors.primary),
-                strokeColor: context.appColor(AppColors.surface),
-                strokeWidth: AppStroke.thick.value,
+          // Traits OMS (sans points) : pas d'indicateur.
+          if (!bar.dotData.show)
+            null
+          else
+            TouchedSpotIndicatorData(
+              FlLine(color: border, strokeWidth: AppStroke.regular.value),
+              FlDotData(
+                getDotPainter: (_, _, _, _) => FlDotCirclePainter(
+                  radius: AppSpacing.sm.value - AppSpacing.xxs.value,
+                  color: context.appColor(AppColors.primary),
+                  strokeColor: context.appColor(AppColors.surface),
+                  strokeWidth: AppStroke.thick.value,
+                ),
               ),
             ),
-          ),
       ],
       touchTooltipData: LineTouchTooltipData(
         getTooltipColor: (_) => context.appColor(AppColors.primary),
@@ -173,17 +205,20 @@ class WeightChart extends StatelessWidget {
         fitInsideVertically: true,
         getTooltipItems: (spots) => [
           for (final spot in spots)
-            LineTooltipItem(
-              s.weightGrams(sorted[spot.spotIndex].grams),
-              styles.bodyMedium.copyWith(color: onPrimary),
-              children: [
-                TextSpan(
-                  text:
-                      '\n${dateFormat.format(sorted[spot.spotIndex].measuredAt)}',
-                  style: styles.small.copyWith(color: onPrimary),
-                ),
-              ],
-            ),
+            if (spot.barIndex != weightBarIndex)
+              null
+            else
+              LineTooltipItem(
+                s.weightGrams(sorted[spot.spotIndex].grams),
+                styles.bodyMedium.copyWith(color: onPrimary),
+                children: [
+                  TextSpan(
+                    text:
+                        '\n${dateFormat.format(sorted[spot.spotIndex].measuredAt)}',
+                    style: styles.small.copyWith(color: onPrimary),
+                  ),
+                ],
+              ),
         ],
       ),
     );

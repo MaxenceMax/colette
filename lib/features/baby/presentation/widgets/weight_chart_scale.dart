@@ -11,11 +11,15 @@ class WeightChartScale {
     required this.stepGrams,
   });
 
-  /// Construit l'échelle de [weights], qui ne doit pas être vide.
-  factory WeightChartScale.fromWeights(List<WeightEntry> weights) {
+  /// Construit l'échelle de [weights], qui ne doit pas être vide ;
+  /// [extraGrams] élargit l'axe vertical (courbes de référence).
+  factory WeightChartScale.fromWeights(
+    List<WeightEntry> weights, {
+    Iterable<int> extraGrams = const [],
+  }) {
     assert(weights.isNotEmpty, 'Aucune pesée à tracer');
     final dates = weights.map((w) => w.measuredAt).toList()..sort();
-    final grams = weights.map((w) => w.grams);
+    final grams = [...weights.map((w) => w.grams), ...extraGrams];
     final low = grams.reduce((a, b) => a < b ? a : b);
     final high = grams.reduce((a, b) => a > b ? a : b);
     final step = _steps.firstWhere(

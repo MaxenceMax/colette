@@ -62,4 +62,13 @@ void main() {
     expect(scale.stepGrams, 2000);
     expect(scale.ticks, [2000, 4000, 6000, 8000, 10000]);
   });
+
+  test('extraGrams élargit l\'axe vertical', () {
+    final scale = WeightChartScale.fromWeights(
+      [weight(DateTime(2026, 9, 1), 3500)],
+      extraGrams: const [2600, 4400],
+    );
+    expect(scale.minGrams, lessThanOrEqualTo(2600));
+    expect(scale.maxGrams, greaterThanOrEqualTo(4400));
+  });
 }
