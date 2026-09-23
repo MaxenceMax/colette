@@ -52,6 +52,7 @@ void main() {
       await container.read(documentsFolderProvider('Ordonnances').future);
 
       await controller('Ordonnances').scan();
+      await container.pump();
 
       // Le relistage vient du flux natif, pas d'une invalidation Flutter.
       verify(() => repo.watch('Ordonnances')).called(1);

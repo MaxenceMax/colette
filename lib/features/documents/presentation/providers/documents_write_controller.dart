@@ -40,8 +40,8 @@ class DocumentsWriteController extends _$DocumentsWriteController {
         _ => AsyncError(failure, StackTrace.current),
       },
       // Pas d'invalidation : Swift force le relistage du flux du dossier
-      // après chaque écriture réussie. Une invalidation créerait un second
-      // abonnement concurrent.
+      // après chaque écriture réussie. Une invalidation fermerait puis
+      // rouvrirait inutilement le flux natif (canal, requête, portée).
       (_) => const AsyncData(null),
     );
   }
