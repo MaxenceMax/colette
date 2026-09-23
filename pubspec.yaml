@@ -41,3 +41,6 @@ dev_dependencies:
 flutter:
   generate: true
   uses-material-design: true
+  assets:
+    - assets/brand/splash.png
+    - assets/brand/splash_dark.png

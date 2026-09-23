@@ -137,7 +137,10 @@ enum AppFontSize {
 enum AppDuration {
   fast(Duration(milliseconds: 150)),
   normal(Duration(milliseconds: 250)),
-  slow(Duration(milliseconds: 350));
+  slow(Duration(milliseconds: 350)),
+
+  /// Intro du démarrage à froid (respiration, glissement, fondu).
+  splash(Duration(milliseconds: 1100));
 
   const AppDuration(this.value);
 
