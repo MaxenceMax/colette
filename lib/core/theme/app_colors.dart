@@ -56,7 +56,10 @@ enum AppColors {
   /// Lilas pâle : siestes sur la frise du sommeil (fond uniquement, jamais en texte).
   sleepNap(light: Color(0xFFD6C8E0), dark: Color(0xFF5E4F70)),
 
-  shadow(light: Color(0xFF000000), dark: Color(0xFFFFFFFF));
+  shadow(light: Color(0xFF000000), dark: Color(0xFFFFFFFF)),
+
+  /// Transparent : fond d'un élément sans couleur propre (ex. ligne non sélectionnée).
+  transparent(light: Color(0x00000000), dark: Color(0x00000000));
 
   const AppColors({required this.light, required this.dark});
 
