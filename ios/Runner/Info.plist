@@ -28,6 +28,10 @@
 	<true/>
 	<key>NSCameraUsageDescription</key>
 	<string>Colette utilise l'appareil photo pour scanner vos documents.</string>
+	<key>NSCalendarsFullAccessUsageDescription</key>
+	<string>Colette ajoute les rendez-vous médicaux de votre bébé au calendrier que vous choisissez.</string>
+	<key>NSCalendarsUsageDescription</key>
+	<string>Colette ajoute les rendez-vous médicaux de votre bébé au calendrier que vous choisissez.</string>
 	<key>UIApplicationSceneManifest</key>
 	<dict>
 		<key>UIApplicationSupportsMultipleScenes</key>
