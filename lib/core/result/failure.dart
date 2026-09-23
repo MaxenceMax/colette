@@ -8,6 +8,7 @@ enum ValidationReason {
   emptyName,
   unknownHouseholdCode,
   notificationsDenied,
+  invalidDiaperCount,
 }
 
 /// Erreur remontée par les repositories et les use cases via `Either`.

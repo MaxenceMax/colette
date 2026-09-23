@@ -30,7 +30,7 @@ Spec : `docs/superpowers/specs/2026-09-22-diaper-stock-design.md`.
 - Test: `test/features/diapers/domain/diaper_stock_test.dart`
 - Test: `test/features/diapers/domain/compute_diaper_stock_status_test.dart`
 
-- [ ] **Step 1 : Écrire les tests rouges**
+- [x] **Step 1 : Écrire les tests rouges**
 
 `test/features/diapers/domain/diaper_stock_test.dart` :
 
@@ -118,12 +118,12 @@ void main() {
 }
 ```
 
-- [ ] **Step 2 : Vérifier qu'ils échouent**
+- [x] **Step 2 : Vérifier qu'ils échouent**
 
 Run: `flutter test test/features/diapers/domain`
 Expected: FAIL, imports introuvables (`diaper_stock.dart` n'existe pas).
 
-- [ ] **Step 3 : Implémenter les entités et le use case**
+- [x] **Step 3 : Implémenter les entités et le use case**
 
 `lib/features/diapers/domain/entities/diaper_stock.dart` :
 
@@ -200,12 +200,12 @@ class ComputeDiaperStockStatus {
 }
 ```
 
-- [ ] **Step 4 : Générer et vérifier**
+- [x] **Step 4 : Générer et vérifier**
 
 Run: `dart run build_runner build -d && flutter test test/features/diapers/domain`
 Expected: PASS, 7 tests.
 
-- [ ] **Step 5 : Commit**
+- [x] **Step 5 : Commit**
 
 ```bash
 git add lib/features/diapers/domain test/features/diapers/domain
@@ -223,7 +223,7 @@ git commit -m "feat: entité DiaperStock et calcul du stock restant"
 - Test: `test/features/diapers/data/diaper_stock_dto_test.dart`
 - Test: `test/features/diapers/data/firestore_diaper_stock_repository_test.dart`
 
-- [ ] **Step 1 : Écrire les tests rouges**
+- [x] **Step 1 : Écrire les tests rouges**
 
 `test/features/diapers/data/diaper_stock_dto_test.dart` :
 
@@ -307,12 +307,12 @@ void main() {
 }
 ```
 
-- [ ] **Step 2 : Vérifier qu'ils échouent**
+- [x] **Step 2 : Vérifier qu'ils échouent**
 
 Run: `flutter test test/features/diapers/data`
 Expected: FAIL, imports introuvables.
 
-- [ ] **Step 3 : Implémenter interface, DTO et repository**
+- [x] **Step 3 : Implémenter interface, DTO et repository**
 
 `lib/features/diapers/domain/repositories/diaper_stock_repository.dart` :
 
@@ -410,12 +410,12 @@ class FirestoreDiaperStockRepository implements DiaperStockRepository {
 }
 ```
 
-- [ ] **Step 4 : Vérifier**
+- [x] **Step 4 : Vérifier**
 
 Run: `flutter test test/features/diapers/data`
 Expected: PASS, 7 tests.
 
-- [ ] **Step 5 : Commit**
+- [x] **Step 5 : Commit**
 
 ```bash
 git add lib/features/diapers/domain/repositories lib/features/diapers/data test/features/diapers/data
@@ -435,7 +435,7 @@ git commit -m "feat: repository Firestore du stock de couches"
 
 Les tests existants utilisent des `Mock` mocktail pour `EventsRepository` : ajouter une méthode à l'interface ne les casse pas.
 
-- [ ] **Step 1 : Écrire le test rouge**
+- [x] **Step 1 : Écrire le test rouge**
 
 À la fin de `main()` dans `test/features/events/data/firestore_events_repository_test.dart` :
 
@@ -475,12 +475,12 @@ Les tests existants utilisent des `Mock` mocktail pour `EventsRepository` : ajou
   });
 ```
 
-- [ ] **Step 2 : Vérifier qu'il échoue**
+- [x] **Step 2 : Vérifier qu'il échoue**
 
 Run: `flutter test test/features/events/data/firestore_events_repository_test.dart`
 Expected: FAIL, `watchDiaperChangeCountSince` n'est pas défini.
 
-- [ ] **Step 3 : Ajouter la méthode à l'interface et à l'implémentation**
+- [x] **Step 3 : Ajouter la méthode à l'interface et à l'implémentation**
 
 Dans `lib/features/events/domain/repositories/events_repository.dart`, après `watchLatestBottle` :
 
@@ -507,12 +507,12 @@ Dans `lib/features/events/data/repositories/firestore_events_repository.dart`, a
           .map((snap) => snap.docs.length);
 ```
 
-- [ ] **Step 4 : Vérifier**
+- [x] **Step 4 : Vérifier**
 
 Run: `flutter test test/features/events/data/firestore_events_repository_test.dart`
 Expected: PASS.
 
-- [ ] **Step 5 : Ajouter le provider public et l'index**
+- [x] **Step 5 : Ajouter le provider public et l'index**
 
 Dans `lib/features/events/presentation/providers/events_providers.dart`, après `latestBottle` :
 
@@ -541,12 +541,12 @@ Dans `firestore.indexes.json`, ajouter dans le tableau `indexes` après l'index 
     }
 ```
 
-- [ ] **Step 6 : Générer et vérifier**
+- [x] **Step 6 : Générer et vérifier**
 
 Run: `dart run build_runner build -d && dart analyze && flutter test test/features/events`
 Expected: aucune erreur, tests verts.
 
-- [ ] **Step 7 : Commit**
+- [x] **Step 7 : Commit**
 
 ```bash
 git add lib/features/events/domain/repositories/events_repository.dart lib/features/events/data/repositories/firestore_events_repository.dart lib/features/events/presentation/providers/events_providers.dart lib/features/events/presentation/providers/events_providers.g.dart firestore.indexes.json test/features/events/data/firestore_events_repository_test.dart
@@ -563,7 +563,7 @@ git commit -m "feat: comptage des changes depuis une date (events)"
 - Modify: `lib/l10n/app_fr.arb`
 - Test: `test/core/ui/failure_message_test.dart` (existant, couvre déjà toutes les raisons)
 
-- [ ] **Step 1 : Ajouter la raison**
+- [x] **Step 1 : Ajouter la raison**
 
 Dans `lib/core/result/failure.dart`, ajouter à la fin de `enum ValidationReason` :
 
@@ -571,12 +571,12 @@ Dans `lib/core/result/failure.dart`, ajouter à la fin de `enum ValidationReason
   invalidDiaperCount,
 ```
 
-- [ ] **Step 2 : Vérifier que le test existant échoue**
+- [x] **Step 2 : Vérifier que le test existant échoue**
 
 Run: `dart analyze`
 Expected: erreur `non_exhaustive_switch` dans `failure_message.dart` (le switch sur `reason` ne couvre plus toutes les valeurs).
 
-- [ ] **Step 3 : Ajouter le message et toutes les chaînes de la feature**
+- [x] **Step 3 : Ajouter le message et toutes les chaînes de la feature**
 
 Dans `lib/core/ui/failure_message.dart`, dans le `switch (reason)`, après la ligne `notificationsDenied` :
 
@@ -587,14 +587,14 @@ Dans `lib/core/ui/failure_message.dart`, dans le `switch (reason)`, après la li
 Dans `lib/l10n/app_fr.arb`, après la ligne `"errorInvalidWeight": …` :
 
 ```json
-  "errorInvalidDiaperCount": "Le nombre de couches doit être entre 0 et 9 999.",
+  "errorInvalidDiaperCount": "Nombre de couches invalide.",
 ```
 
 Et avant la ligne `"settingsNotificationsSection": …` :
 
 ```json
   "settingsDiapersSection": "Couches",
-  "diapersRemaining": "{count, plural, =0{Plus de couches} =1{Il reste 1 couche} other{Il reste {count} couches}}",
+  "diapersRemaining": "{count, plural, =0{Aucune couche en stock} =1{Il reste 1 couche} other{Il reste {count} couches}}",
   "@diapersRemaining": { "placeholders": { "count": { "type": "int" } } },
   "diapersNotSet": "Stock non renseigné",
   "diapersRecount": "Recompter",
@@ -602,17 +602,18 @@ Et avant la ligne `"settingsNotificationsSection": …` :
   "diapersAlertThreshold": "Alerte sous N couches",
   "diapersRecountTitle": "Couches en stock",
   "diapersAddPackTitle": "Taille du paquet",
-  "diapersFieldCount": "Nombre de couches",
-  "diapersAlertLow": "{count, plural, =0{Plus de couches !} =1{Plus que 1 couche} other{Plus que {count} couches}}",
+  "fieldDiaperCount": "Nombre de couches",
+  "fieldPackSize": "Couches dans le paquet",
+  "diapersAlertLow": "{count, plural, =0{Plus aucune couche} =1{Plus que 1 couche} other{Plus que {count} couches}}",
   "@diapersAlertLow": { "placeholders": { "count": { "type": "int" } } },
 ```
 
-- [ ] **Step 4 : Régénérer les localisations et vérifier**
+- [x] **Step 4 : Régénérer les localisations et vérifier**
 
 Run: `flutter gen-l10n && dart analyze && flutter test test/core/ui/failure_message_test.dart`
 Expected: aucune erreur, test vert (chaque raison a un message distinct non vide).
 
-- [ ] **Step 5 : Commit**
+- [x] **Step 5 : Commit**
 
 ```bash
 git add lib/core/result/failure.dart lib/core/ui/failure_message.dart lib/l10n/app_fr.arb
@@ -625,13 +626,15 @@ git commit -m "feat: chaînes et raison de validation du stock de couches"
 
 ### Task 5 : Providers et contrôleur
 
+> Révisé après revue : `diaperStockStatus` renvoie `AsyncValue<DiaperStockStatus?>` (voir commit de correction), pas `DiaperStockStatus?`. Les tâches 7 et 8 ci-dessous consomment cette forme.
+
 **Files:**
 - Create: `lib/features/diapers/presentation/providers/diaper_stock_providers.dart`
 - Create: `lib/features/diapers/presentation/providers/diaper_stock_controller.dart`
 - Test: `test/features/diapers/presentation/diaper_stock_providers_test.dart`
 - Test: `test/features/diapers/presentation/diaper_stock_controller_test.dart`
 
-- [ ] **Step 1 : Écrire les tests rouges**
+- [x] **Step 1 : Écrire les tests rouges**
 
 `test/features/diapers/presentation/diaper_stock_providers_test.dart` :
 
@@ -826,12 +829,12 @@ void main() {
 }
 ```
 
-- [ ] **Step 2 : Vérifier qu'ils échouent**
+- [x] **Step 2 : Vérifier qu'ils échouent**
 
 Run: `flutter test test/features/diapers/presentation`
 Expected: FAIL, imports introuvables.
 
-- [ ] **Step 3 : Implémenter les providers**
+- [x] **Step 3 : Implémenter les providers**
 
 `lib/features/diapers/presentation/providers/diaper_stock_providers.dart` :
 
@@ -951,12 +954,12 @@ class DiaperStockController extends _$DiaperStockController {
 }
 ```
 
-- [ ] **Step 4 : Générer et vérifier**
+- [x] **Step 4 : Générer et vérifier**
 
 Run: `dart run build_runner build -d && dart analyze && flutter test test/features/diapers`
 Expected: aucune erreur, tous les tests verts (10 nouveaux).
 
-- [ ] **Step 5 : Commit**
+- [x] **Step 5 : Commit**
 
 ```bash
 git add lib/features/diapers/presentation/providers test/features/diapers/presentation
@@ -967,11 +970,13 @@ git commit -m "feat: providers et contrôleur du stock de couches"
 
 ### Task 6 : Bottom sheet « Recompter » / « + paquet »
 
+> Révisé après revue (voir commit de correction) : le bouton est désactivé pendant l'écriture (`isSaving = ref.watch(diaperStockControllerProvider) is AsyncLoading`), le libellé du champ dépend du mode (`fieldDiaperCount` en recomptage, nouvelle clé `fieldPackSize` = « Couches dans le paquet » en ajout de paquet), la taille de paquet par défaut vient de `DiaperStock.defaultPackSize`, et les tests couvrent le champ vide, le préremplissage par défaut, l'échec du repository et le bouton désactivé.
+
 **Files:**
 - Create: `lib/features/diapers/presentation/widgets/diaper_stock_sheet.dart`
 - Test: `test/features/diapers/presentation/diaper_stock_sheet_test.dart`
 
-- [ ] **Step 1 : Écrire les tests rouges**
+- [x] **Step 1 : Écrire les tests rouges**
 
 ```dart
 import 'package:colette/core/clock/app_clock.dart';
@@ -1093,12 +1098,12 @@ void main() {
 }
 ```
 
-- [ ] **Step 2 : Vérifier qu'ils échouent**
+- [x] **Step 2 : Vérifier qu'ils échouent**
 
 Run: `flutter test test/features/diapers/presentation/diaper_stock_sheet_test.dart`
 Expected: FAIL, import introuvable.
 
-- [ ] **Step 3 : Implémenter la feuille**
+- [x] **Step 3 : Implémenter la feuille**
 
 `lib/features/diapers/presentation/widgets/diaper_stock_sheet.dart` :
 
@@ -1195,7 +1200,7 @@ class _DiaperStockSheetState extends ConsumerState<DiaperStockSheet> {
           AppSpacing.md.verticalSpace,
           TextField(
             controller: _controller,
-            decoration: InputDecoration(labelText: s.diapersFieldCount),
+            decoration: InputDecoration(labelText: s.fieldDiaperCount),
             keyboardType: TextInputType.number,
             autofocus: true,
           ),
@@ -1208,12 +1213,12 @@ class _DiaperStockSheetState extends ConsumerState<DiaperStockSheet> {
 }
 ```
 
-- [ ] **Step 4 : Vérifier**
+- [x] **Step 4 : Vérifier**
 
 Run: `dart analyze && flutter test test/features/diapers/presentation/diaper_stock_sheet_test.dart`
 Expected: PASS, 3 tests.
 
-- [ ] **Step 5 : Commit**
+- [x] **Step 5 : Commit**
 
 ```bash
 git add lib/features/diapers/presentation/widgets/diaper_stock_sheet.dart test/features/diapers/presentation/diaper_stock_sheet_test.dart
@@ -1224,13 +1229,15 @@ git commit -m "feat: feuille de saisie du stock de couches"
 
 ### Task 7 : Section « Couches » dans les Réglages
 
+> Révisé après revue (voir commit de correction) : `_ThresholdStepper._update` relit le stock le plus frais (`ref.read(diaperStockProvider).value ?? widget.stock`) avant `setThreshold`, pour qu'un tap sur le seuil n'écrase pas un recomptage dont le snapshot n'est pas encore arrivé ; `Column` en `crossAxisAlignment: .start` ; indicateur de chargement borné par `AppSize` ; test supplémentaire « + paquet » ajoute au restant (40 + 10 = 50), pas au comptage (44).
+
 **Files:**
 - Create: `lib/features/diapers/presentation/widgets/diaper_stock_section.dart`
 - Modify: `lib/features/baby/presentation/pages/settings_page.dart`
 - Test: `test/features/diapers/presentation/diaper_stock_section_test.dart`
 - Test: `test/features/baby/presentation/settings_page_test.dart`
 
-- [ ] **Step 1 : Écrire les tests rouges**
+- [x] **Step 1 : Écrire les tests rouges**
 
 `test/features/diapers/presentation/diaper_stock_section_test.dart` :
 
@@ -1321,6 +1328,36 @@ void main() {
     await tester.pumpAndSettle();
     expect(find.text('Couches en stock'), findsOneWidget);
   });
+
+  testWidgets('comptage en erreur : message et « + paquet » désactivé', (
+    tester,
+  ) async {
+    final repo = MockDiaperStockRepository();
+    await pumpApp(
+      tester,
+      const Scaffold(body: SingleChildScrollView(child: DiaperStockSection())),
+      overrides: [
+        diaperStockRepositoryProvider.overrideWithValue(repo),
+        diaperStockProvider.overrideWith((ref) => Stream.value(stock)),
+        diaperChangesSinceProvider.overrideWith(
+          (ref, from) => Stream<int>.error(Exception('index manquant')),
+        ),
+        clockProvider.overrideWithValue(FixedClock(DateTime(2026, 9, 22, 15))),
+        householdLocalStoreProvider.overrideWithValue(
+          InMemoryHouseholdLocalStore(householdCode: 'ABCDEFGH'),
+        ),
+      ],
+    );
+    expect(find.text('Une erreur est survenue.'), findsOneWidget);
+    expect(
+      tester.widget<TextButton>(find.widgetWithText(TextButton, '+ paquet')).enabled,
+      isFalse,
+    );
+    expect(
+      tester.widget<TextButton>(find.widgetWithText(TextButton, 'Recompter')).enabled,
+      isTrue,
+    );
+  });
 }
 ```
 
@@ -1343,12 +1380,12 @@ et après `expect(find.text('Soins attendus'), findsOneWidget);` :
     expect(find.text('Stock non renseigné'), findsOneWidget);
 ```
 
-- [ ] **Step 2 : Vérifier qu'ils échouent**
+- [x] **Step 2 : Vérifier qu'ils échouent**
 
 Run: `flutter test test/features/diapers/presentation/diaper_stock_section_test.dart test/features/baby/presentation/settings_page_test.dart`
 Expected: FAIL (import introuvable ; page Réglages sans « Couches »).
 
-- [ ] **Step 3 : Implémenter la section**
+- [x] **Step 3 : Implémenter la section**
 
 `lib/features/diapers/presentation/widgets/diaper_stock_section.dart` :
 
@@ -1356,6 +1393,7 @@ Expected: FAIL (import introuvable ; page Réglages sans « Couches »).
 import 'package:colette/core/theme/app_colors.dart';
 import 'package:colette/core/theme/design_tokens.dart';
 import 'package:colette/core/theme/text_styles.dart';
+import 'package:colette/core/ui/failure_message.dart';
 import 'package:colette/features/diapers/domain/entities/diaper_stock.dart';
 import 'package:colette/features/diapers/presentation/providers/diaper_stock_controller.dart';
 import 'package:colette/features/diapers/presentation/providers/diaper_stock_providers.dart';
@@ -1376,23 +1414,36 @@ class DiaperStockSection extends ConsumerWidget {
     final styles = Theme.of(context).coletteTextStyles;
     final stock = ref.watch(diaperStockProvider).value;
     final status = ref.watch(diaperStockStatusProvider);
-    final remaining = status?.remaining ?? 0;
+    // Restant fiable uniquement quand le comptage est chargé ; `null` désactive « + paquet ».
+    final remaining = switch (status) {
+      AsyncData(:final value) => value?.remaining ?? 0,
+      _ => null,
+    };
     return ColetteCardSurface(
       padding: AppSpacing.sm.all,
       child: Column(
         children: [
           Padding(
             padding: AppSpacing.sm.all,
-            child: Text(
-              status == null
-                  ? s.diapersNotSet
-                  : s.diapersRemaining(status.remaining),
-              style: status == null
-                  ? styles.body.copyWith(
-                      color: context.appColor(AppColors.textSecondary),
-                    )
-                  : styles.bodyMedium,
-            ),
+            child: switch (status) {
+              AsyncData(value: null) => Text(
+                s.diapersNotSet,
+                style: styles.body.copyWith(
+                  color: context.appColor(AppColors.textSecondary),
+                ),
+              ),
+              AsyncData(value: final value?) => Text(
+                s.diapersRemaining(value.remaining),
+                style: styles.bodyMedium,
+              ),
+              AsyncError(:final error) => Text(
+                failureMessage(error, s),
+                style: styles.body.copyWith(
+                  color: context.appColor(AppColors.error),
+                ),
+              ),
+              _ => const Center(child: CircularProgressIndicator()),
+            },
           ),
           Row(
             children: [
@@ -1402,7 +1453,7 @@ class DiaperStockSection extends ConsumerWidget {
                     context,
                     mode: DiaperStockSheetMode.recount,
                     current: stock,
-                    remaining: remaining,
+                    remaining: remaining ?? 0,
                   ),
                   icon: const Icon(Icons.edit_outlined),
                   label: Text(s.diapersRecount),
@@ -1410,12 +1461,14 @@ class DiaperStockSection extends ConsumerWidget {
               ),
               Expanded(
                 child: TextButton.icon(
-                  onPressed: () => showDiaperStockSheet(
-                    context,
-                    mode: DiaperStockSheetMode.addPack,
-                    current: stock,
-                    remaining: remaining,
-                  ),
+                  onPressed: remaining == null
+                      ? null
+                      : () => showDiaperStockSheet(
+                          context,
+                          mode: DiaperStockSheetMode.addPack,
+                          current: stock,
+                          remaining: remaining,
+                        ),
                   icon: const Icon(Icons.inventory_2_outlined),
                   label: Text(s.diapersAddPack),
                 ),
@@ -1501,12 +1554,12 @@ Et dans la `ListView`, juste après `CareSettingsSection(profile: profile),` mai
           const DiaperStockSection(),
 ```
 
-- [ ] **Step 4 : Vérifier**
+- [x] **Step 4 : Vérifier**
 
 Run: `dart analyze && flutter test test/features/diapers test/features/baby/presentation/settings_page_test.dart`
-Expected: PASS.
+Expected: PASS. Note : ne jamais laisser le statut en `AsyncLoading` dans un test avec `pumpAndSettle` (le `CircularProgressIndicator` anime indéfiniment) ; les tests ci-dessus fournissent toujours des données ou une erreur.
 
-- [ ] **Step 5 : Commit**
+- [x] **Step 5 : Commit**
 
 ```bash
 git add lib/features/diapers/presentation/widgets/diaper_stock_section.dart lib/features/baby/presentation/pages/settings_page.dart test/features/diapers/presentation/diaper_stock_section_test.dart test/features/baby/presentation/settings_page_test.dart
@@ -1517,15 +1570,17 @@ git commit -m "feat: section Couches dans les Réglages"
 
 ### Task 8 : Carte d'alerte sur l'accueil
 
+> Révisé après revue (voir commit de correction) : navigation par `context.go(AppRoutes.settings)` (pas `GoRouter.maybeOf`, qui rendait un tap silencieux hors routeur) avec un test monté dans un vrai `GoRouter` ; fond `AppColors.warning` (sémantique d'alerte, valeurs identiques à `categoryDiaper`) et paire `(onPrimary, warning)` ajoutée au test de contraste.
+
 **Files:**
 - Create: `lib/features/diapers/presentation/widgets/diaper_stock_alert_card.dart`
 - Modify: `lib/features/dashboard/presentation/pages/dashboard_page.dart`
 - Test: `test/features/diapers/presentation/diaper_stock_alert_card_test.dart`
 - Test: `test/features/dashboard/presentation/dashboard_page_test.dart`
 
-Couleurs : fond `AppColors.categoryDiaper`, texte `AppColors.onPrimary`. Cette paire est déjà validée par `app_colors_contrast_test.dart` en clair et en sombre ; aucun token à ajouter.
+Couleurs : fond `AppColors.warning`, texte `AppColors.onPrimary` ; la paire est ajoutée à `app_colors_contrast_test.dart` (validée en clair et en sombre). Aucun token à ajouter.
 
-- [ ] **Step 1 : Écrire les tests rouges**
+- [x] **Step 1 : Écrire les tests rouges**
 
 `test/features/diapers/presentation/diaper_stock_alert_card_test.dart` :
 
@@ -1535,48 +1590,66 @@ import 'package:colette/features/diapers/presentation/providers/diaper_stock_pro
 import 'package:colette/features/diapers/presentation/widgets/diaper_stock_alert_card.dart';
 import 'package:colette/shared/ui/widgets/colette_card_surface.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 import '../../../helpers/pump_app.dart';
 
 void main() {
-  Future<void> pumpCard(WidgetTester tester, DiaperStockStatus? status) =>
-      pumpApp(
-        tester,
-        const Scaffold(body: DiaperStockAlertCard()),
-        overrides: [diaperStockStatusProvider.overrideWithValue(status)],
-      );
+  Future<void> pumpCard(
+    WidgetTester tester,
+    AsyncValue<DiaperStockStatus?> status,
+  ) => pumpApp(
+    tester,
+    const Scaffold(body: DiaperStockAlertCard()),
+    overrides: [diaperStockStatusProvider.overrideWithValue(status)],
+  );
 
   testWidgets('rien sans stock renseigné', (tester) async {
-    await pumpCard(tester, null);
+    await pumpCard(tester, const AsyncData(null));
     expect(find.byType(ColetteCardSurface), findsNothing);
     expect(find.textContaining('couche'), findsNothing);
   });
 
   testWidgets('rien au-dessus du seuil', (tester) async {
-    await pumpCard(tester, const DiaperStockStatus(remaining: 20, isLow: false));
+    await pumpCard(
+      tester,
+      const AsyncData(DiaperStockStatus(remaining: 20, isLow: false)),
+    );
+    expect(find.byType(ColetteCardSurface), findsNothing);
+  });
+
+  testWidgets('rien en erreur', (tester) async {
+    await pumpCard(tester, AsyncError(Exception('x'), StackTrace.empty));
     expect(find.byType(ColetteCardSurface), findsNothing);
   });
 
   testWidgets('alerte sous le seuil', (tester) async {
-    await pumpCard(tester, const DiaperStockStatus(remaining: 7, isLow: true));
+    await pumpCard(
+      tester,
+      const AsyncData(DiaperStockStatus(remaining: 7, isLow: true)),
+    );
     expect(find.text('Plus que 7 couches'), findsOneWidget);
   });
 
   testWidgets('texte à zéro', (tester) async {
-    await pumpCard(tester, const DiaperStockStatus(remaining: 0, isLow: true));
-    expect(find.text('Plus de couches !'), findsOneWidget);
+    await pumpCard(
+      tester,
+      const AsyncData(DiaperStockStatus(remaining: 0, isLow: true)),
+    );
+    expect(find.text('Plus aucune couche'), findsOneWidget);
   });
 }
 ```
 
 Dans `test/features/dashboard/presentation/dashboard_page_test.dart` :
 
-Ajouter les imports :
+Ajouter les imports (`AsyncData` / `AsyncValue` ; le fichier importe déjà `Override` depuis `flutter_riverpod/misc.dart`) :
 
 ```dart
 import 'package:colette/features/diapers/domain/entities/diaper_stock_status.dart';
 import 'package:colette/features/diapers/presentation/providers/diaper_stock_providers.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart' show AsyncData, AsyncValue;
 ```
 
 Remplacer la signature de `overridesFor` et ajouter la surcharge à la fin de sa liste :
@@ -1584,7 +1657,7 @@ Remplacer la signature de `overridesFor` et ajouter la surcharge à la fin de sa
 ```dart
   List<Override> overridesFor(
     MockEventsRepository repo, {
-    DiaperStockStatus? diaperStatus,
+    AsyncValue<DiaperStockStatus?> diaperStatus = const AsyncData(null),
   }) => [
     // … surcharges existantes inchangées …
     diaperStockStatusProvider.overrideWithValue(diaperStatus),
@@ -1603,19 +1676,19 @@ Les deux tests existants appellent `overridesFor(repo)` sans argument : ils cont
       const DashboardPage(),
       overrides: overridesFor(
         repo,
-        diaperStatus: const DiaperStockStatus(remaining: 4, isLow: true),
+        diaperStatus: const AsyncData(DiaperStockStatus(remaining: 4, isLow: true)),
       ),
     );
     expect(find.text('Plus que 4 couches'), findsOneWidget);
   });
 ```
 
-- [ ] **Step 2 : Vérifier qu'ils échouent**
+- [x] **Step 2 : Vérifier qu'ils échouent**
 
 Run: `flutter test test/features/diapers/presentation/diaper_stock_alert_card_test.dart test/features/dashboard/presentation/dashboard_page_test.dart`
 Expected: FAIL (import introuvable ; pas d'alerte sur l'accueil).
 
-- [ ] **Step 3 : Implémenter la carte**
+- [x] **Step 3 : Implémenter la carte**
 
 `lib/features/diapers/presentation/widgets/diaper_stock_alert_card.dart` :
 
@@ -1638,8 +1711,23 @@ class DiaperStockAlertCard extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final status = ref.watch(diaperStockStatusProvider);
-    if (status == null || !status.isLow) return const SizedBox.shrink();
+    // Uniquement sur des données chargées : ni pendant le chargement, ni en erreur.
+    if (ref.watch(diaperStockStatusProvider)
+        case AsyncData(value: final status?) when status.isLow) {
+      return _AlertCard(remaining: status.remaining);
+    }
+    return const SizedBox.shrink();
+  }
+}
+
+/// Corps de la carte, sur fond `categoryDiaper` (paire de contraste validée avec `onPrimary`).
+class _AlertCard extends StatelessWidget {
+  const _AlertCard({required this.remaining});
+
+  final int remaining;
+
+  @override
+  Widget build(BuildContext context) {
     final color = context.appColor(AppColors.onPrimary);
     return Padding(
       padding: AppSpacing.md.bottom,
@@ -1653,7 +1741,7 @@ class DiaperStockAlertCard extends ConsumerWidget {
             AppSpacing.sm.horizontalSpace,
             Expanded(
               child: Text(
-                S.of(context).diapersAlertLow(status.remaining),
+                S.of(context).diapersAlertLow(remaining),
                 style: Theme.of(context).coletteTextStyles.bodyMedium
                     .copyWith(color: color),
               ),
@@ -1696,12 +1784,12 @@ par :
 
 (La carte porte son propre espacement bas, et rend `SizedBox.shrink()` quand il n'y a rien à dire : la mise en page reste identique hors alerte.)
 
-- [ ] **Step 4 : Vérifier**
+- [x] **Step 4 : Vérifier**
 
 Run: `dart analyze && flutter test test/features/diapers test/features/dashboard`
 Expected: PASS.
 
-- [ ] **Step 5 : Commit**
+- [x] **Step 5 : Commit**
 
 ```bash
 git add lib/features/diapers/presentation/widgets/diaper_stock_alert_card.dart lib/features/dashboard/presentation/pages/dashboard_page.dart test/features/diapers/presentation/diaper_stock_alert_card_test.dart test/features/dashboard/presentation/dashboard_page_test.dart
@@ -1716,7 +1804,7 @@ git commit -m "feat: alerte de stock de couches sur l'accueil"
 - Modify: `docs/superpowers/specs/2026-09-21-colette-v1-design.md`
 - Modify: `docs/superpowers/specs/2026-09-22-diaper-stock-design.md`
 
-- [ ] **Step 1 : Mettre à jour la spec v1**
+- [x] **Step 1 : Mettre à jour la spec v1**
 
 Section 5 (« Données Firestore »), dans le bloc `households/{code}`, après le bloc `feedingPlan:` :
 
@@ -1742,7 +1830,7 @@ Section 6.6, dans la liste des sections, après « Soins attendus » :
 - Couches : stock restant, « Recompter », « + paquet », seuil d'alerte (0 à 30, 0 = désactivé).
 ```
 
-- [ ] **Step 2 : Aligner la spec du stock sur les signatures réelles**
+- [x] **Step 2 : Aligner la spec du stock sur les signatures réelles**
 
 Dans `docs/superpowers/specs/2026-09-22-diaper-stock-design.md`, section 5.4, remplacer les trois puces d'actions du contrôleur par :
 
@@ -1754,11 +1842,13 @@ Dans `docs/superpowers/specs/2026-09-22-diaper-stock-design.md`, section 5.4, re
 Le stock courant et le restant sont passés par le widget appelant, comme `BabySettingsController.updateCareSettings(profile, settings)`, plutôt que relus depuis un provider pendant l'`await`.
 ```
 
-Et dans la section 5.4 « Widgets », puce de la carte : remplacer « `ColetteCardSurface` sur fond `AppColors.warning` » par « `ColetteCardSurface` sur fond `AppColors.categoryDiaper`, texte `AppColors.onPrimary` (paire déjà validée par le test de contraste) ».
+Et dans la section 5.4 « Widgets », puce de la carte : compléter « `ColetteCardSurface` sur fond `AppColors.warning` » par « , texte `AppColors.onPrimary` (paire ajoutée au test de contraste), tap par `context.go(AppRoutes.settings)` ».
 
-Dans la section 5.5, supprimer la clé `diapersAlertEmpty` : le cas « Plus de couches » est porté par la forme `=0` des pluriels `diapersRemaining` et `diapersAlertLow`.
+Dans la section 5.4, puce `diaperStockStatus` : « `AsyncValue<DiaperStockStatus?>` : `AsyncData(null)` si le stock n'est pas renseigné, `AsyncLoading` / `AsyncError` tant que le stock ou le comptage des changes n'est pas disponible (un comptage non chargé ne doit jamais être affiché ni persisté comme `0`) ; sinon `AsyncData` du calcul ». Puce `DiaperStockSection` : ajouter « `+ paquet` désactivé tant que le statut n'est pas en `AsyncData` ; en erreur, le message d'échec est affiché ». Puce `DiaperStockAlertCard` : « visible uniquement sur `AsyncData` avec `isLow` ».
 
-- [ ] **Step 3 : Vérification complète**
+Dans la section 5.5, supprimer la clé `diapersAlertEmpty` (le cas zéro est porté par la forme `=0` des pluriels : « Aucune couche en stock » pour `diapersRemaining`, « Plus aucune couche » pour `diapersAlertLow`), renommer `diapersFieldCount` en `fieldDiaperCount`, ajouter `fieldPackSize` = « Couches dans le paquet » (libellé du champ en mode « + paquet »), et préciser que le message `errorInvalidDiaperCount` est « Nombre de couches invalide. » (sans plage, car la même raison couvre le comptage, la taille de paquet et le seuil). Dans la section 3, ligne « Accueil », remplacer « Plus de couches » par « Plus aucune couche ».
+
+- [x] **Step 3 : Vérification complète**
 
 Run:
 
@@ -1780,7 +1870,7 @@ Lancer l'app, puis :
 6. Stepper de seuil à 0 → la carte disparaît.
 7. Vérifier la carte et la section en thème sombre.
 
-- [ ] **Step 5 : Commit**
+- [x] **Step 5 : Commit**
 
 ```bash
 git add docs/superpowers/specs/2026-09-21-colette-v1-design.md docs/superpowers/specs/2026-09-22-diaper-stock-design.md

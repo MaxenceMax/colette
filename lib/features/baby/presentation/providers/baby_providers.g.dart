@@ -74,7 +74,7 @@ final class BabyProfileProvider
     : super(
         from: null,
         argument: null,
-        retry: null,
+        retry: noRetry,
         name: r'babyProfileProvider',
         isAutoDispose: true,
         dependencies: null,
@@ -96,7 +96,7 @@ final class BabyProfileProvider
   }
 }
 
-String _$babyProfileHash() => r'e8ac72c64d29a0776c6ae015d1f697d94ad7e5ab';
+String _$babyProfileHash() => r'7ff12b0325173288e7813bffae05a5b327992c77';
 
 /// Pesées du foyer courant, de la plus récente à la plus ancienne.
 
@@ -120,7 +120,7 @@ final class WeightsProvider
     : super(
         from: null,
         argument: null,
-        retry: null,
+        retry: noRetry,
         name: r'weightsProvider',
         isAutoDispose: true,
         dependencies: null,
@@ -142,7 +142,7 @@ final class WeightsProvider
   }
 }
 
-String _$weightsHash() => r'8a9634588c2e5480383bc287b4d9cef911c16a92';
+String _$weightsHash() => r'53476379617c8179dbdb8dd2528a8d579cc76650';
 
 /// Pesée la plus récente, ou `null`.
 

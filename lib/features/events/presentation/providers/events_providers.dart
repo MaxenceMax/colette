@@ -1,6 +1,7 @@
 import 'package:colette/core/clock/now_providers.dart';
 import 'package:colette/core/dates/date_extensions.dart';
 import 'package:colette/core/firebase/firebase_providers.dart';
+import 'package:colette/core/result/no_retry.dart';
 import 'package:colette/features/events/data/repositories/firestore_events_repository.dart';
 import 'package:colette/features/events/domain/entities/care_event.dart';
 import 'package:colette/features/events/domain/repositories/events_repository.dart';
@@ -18,7 +19,7 @@ EventsRepository eventsRepository(Ref ref) =>
     FirestoreEventsRepository(ref.watch(firestoreProvider));
 
 /// Événements du jour civil courant, du plus récent au plus ancien.
-@riverpod
+@Riverpod(retry: noRetry)
 Stream<List<CareEvent>> todayEvents(Ref ref) {
   final code = ref.watch(currentHouseholdCodeProvider);
   if (code == null) return Stream.value(const []);
@@ -29,7 +30,7 @@ Stream<List<CareEvent>> todayEvents(Ref ref) {
 }
 
 /// Événements d'hier et d'aujourd'hui (couvre toujours les 24 h glissantes).
-@riverpod
+@Riverpod(retry: noRetry)
 Stream<List<CareEvent>> recentEvents(Ref ref) {
   final code = ref.watch(currentHouseholdCodeProvider);
   if (code == null) return Stream.value(const []);
@@ -44,7 +45,7 @@ Stream<List<CareEvent>> recentEvents(Ref ref) {
 }
 
 /// Dernier bain enregistré, toutes dates confondues.
-@riverpod
+@Riverpod(retry: noRetry)
 Stream<CareEvent?> latestBath(Ref ref) {
   final code = ref.watch(currentHouseholdCodeProvider);
   if (code == null) return Stream.value(null);
@@ -52,11 +53,23 @@ Stream<CareEvent?> latestBath(Ref ref) {
 }
 
 /// Dernier biberon enregistré, toutes dates confondues.
-@riverpod
+@Riverpod(retry: noRetry)
 Stream<CareEvent?> latestBottle(Ref ref) {
   final code = ref.watch(currentHouseholdCodeProvider);
   if (code == null) return Stream.value(null);
   return ref.watch(eventsRepositoryProvider).watchLatestBottle(code);
+}
+
+/// Nombre de changes enregistrés depuis [from] ; `0` sans foyer.
+/// [from] doit être une valeur stable (`stock.countedAt`), jamais `DateTime.now()` :
+/// chaque valeur distincte ouvre un listener Firestore séparé.
+@Riverpod(retry: noRetry)
+Stream<int> diaperChangesSince(Ref ref, DateTime from) {
+  final code = ref.watch(currentHouseholdCodeProvider);
+  if (code == null) return Stream.value(0);
+  return ref
+      .watch(eventsRepositoryProvider)
+      .watchDiaperChangeCountSince(code, from: from);
 }
 
 /// Nombre d'événements demandés au journal ; grandit par pages.
@@ -69,7 +82,7 @@ class TimelineLimit extends _$TimelineLimit {
 }
 
 /// Événements du journal, limités par [TimelineLimit].
-@riverpod
+@Riverpod(retry: noRetry)
 Stream<List<CareEvent>> timelineEvents(Ref ref) {
   final code = ref.watch(currentHouseholdCodeProvider);
   if (code == null) return Stream.value(const []);

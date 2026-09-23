@@ -7,12 +7,16 @@ import 'package:colette/features/baby/domain/entities/weight_entry.dart';
 import 'package:colette/features/baby/presentation/providers/baby_providers.dart';
 import 'package:colette/features/dashboard/presentation/pages/dashboard_page.dart';
 import 'package:colette/features/dashboard/presentation/providers/feeding_plan_sync.dart';
+import 'package:colette/features/diapers/domain/entities/diaper_stock_status.dart';
+import 'package:colette/features/diapers/presentation/providers/diaper_stock_providers.dart';
 import 'package:colette/features/events/domain/entities/care_event.dart';
 import 'package:colette/features/events/domain/repositories/events_repository.dart';
 import 'package:colette/features/events/presentation/providers/events_providers.dart';
 import 'package:colette/features/events/presentation/widgets/event_form_sheet.dart';
 import 'package:colette/features/household/presentation/providers/household_providers.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart'
+    show AsyncData, AsyncValue;
 import 'package:flutter_riverpod/misc.dart' show Override;
 import 'package:flutter_test/flutter_test.dart';
 import 'package:fpdart/fpdart.dart';
@@ -50,6 +54,7 @@ void main() {
   List<Override> overridesFor(
     MockEventsRepository repo, {
     List<CareEvent>? recent,
+    AsyncValue<DiaperStockStatus?> diaperStatus = const AsyncData(null),
     BabyProfile? baby,
     List<WeightEntry>? weights,
   }) => [
@@ -80,6 +85,7 @@ void main() {
     eventsRepositoryProvider.overrideWithValue(repo),
     idGeneratorProvider.overrideWithValue(const FixedIdGenerator('e-new')),
     feedingPlanSyncProvider.overrideWithValue(const NoopFeedingPlanSync()),
+    diaperStockStatusProvider.overrideWithValue(diaperStatus),
   ];
 
   testWidgets(
@@ -145,6 +151,23 @@ void main() {
       find.text('0 biberon · 0 ml sur les dernières 24 h'),
       findsOneWidget,
     );
+  });
+
+  testWidgets('affiche l\'alerte de stock de couches sous le seuil', (
+    tester,
+  ) async {
+    final repo = MockEventsRepository();
+    await pumpApp(
+      tester,
+      const DashboardPage(),
+      overrides: overridesFor(
+        repo,
+        diaperStatus: const AsyncData(
+          DiaperStockStatus(remaining: 4, isLow: true),
+        ),
+      ),
+    );
+    expect(find.text('Plus que 4 couches'), findsOneWidget);
   });
 
   testWidgets(

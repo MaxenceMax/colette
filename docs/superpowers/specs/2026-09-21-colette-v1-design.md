@@ -174,6 +174,11 @@ households/{code}
     suggestedMl: number
     computedAt: Timestamp
   lastBottleNotifiedFor: Timestamp | null   écrit par la fonction de rappel biberon
+  diaperStock:                        stock de couches, renseigné depuis les Réglages
+    count: number                     couches comptées à countedAt
+    countedAt: Timestamp              restant = count − changes dont startAt ≥ countedAt
+    alertThreshold: 10                0 = alerte désactivée
+    lastPackSize: 44
 
 households/{code}/weights/{id}
   measuredAt: Timestamp
@@ -249,9 +254,10 @@ Persistance Firestore activée. Les écritures en file d'attente partent à la r
 Contenu, de haut en bas :
 
 1. En-tête : date du jour, « {prénom} a {âge} » (jours jusqu'à 2 semaines, puis semaines jusqu'à 2 mois, puis mois).
-2. Carte « Prochain biberon » : quantité suggérée en ml, heure estimée, texte « X sur Y donnés · A / B ml », barre de progression. Si aucune pesée n'est enregistrée : mention « Repères par âge, ajoute une pesée pour un calcul au poids ». Tap : ouvre le formulaire avec la quantité suggérée préremplie.
-3. Section « Reste à faire » : une `CareTaskRow` par soin attendu non fait. Tap : crée immédiatement un événement pré-rempli (heure = maintenant, soin coché) puis affiche une snackbar « Enregistré » avec « Annuler ». Les soins faits passent en bas, grisés, avec l'heure.
-4. Compteurs du jour : couches, pipis, cacas.
+2. Carte d'alerte « Plus que N couches », uniquement si le stock restant est strictement inférieur au seuil (voir `2026-09-22-diaper-stock-design.md`). Tap : ouvre les Réglages.
+3. Carte « Prochain biberon » : quantité suggérée en ml, heure estimée, texte « X sur Y donnés · A / B ml », barre de progression. Si aucune pesée n'est enregistrée : mention « Repères par âge, ajoute une pesée pour un calcul au poids ». Tap : ouvre le formulaire avec la quantité suggérée préremplie.
+4. Section « Reste à faire » : une `CareTaskRow` par soin attendu non fait. Tap : crée immédiatement un événement pré-rempli (heure = maintenant, soin coché) puis affiche une snackbar « Enregistré » avec « Annuler ». Les soins faits passent en bas, grisés, avec l'heure.
+5. Compteurs du jour : couches, pipis, cacas.
 
 Soins attendus (depuis `careSettings`) :
 
@@ -327,6 +333,7 @@ Sections :
 - Bébé : prénom, date de naissance, date de chute du cordon (renseigner cette date désactive le soin du nombril).
 - Pesées : liste des pesées, ajout (date + grammes), suppression. La plus récente sert au calcul.
 - Soins attendus : Adrigyl / jour, yeux / jour, nez / jour, bain tous les N jours, nombril / jour, prises de biberon / jour.
+- Couches : stock restant, « Recompter », « + paquet », seuil d'alerte (0 à 30, 0 = désactivé).
 - Notifications de cet appareil : événements ajoutés par l'autre, rappel biberon, digest du matin avec son heure. Demande de permission iOS au premier passage à « activé ».
 - Foyer : code affiché en grand avec bouton copier, nom de l'appareil, bouton « Quitter ce foyer » (avec confirmation : supprime `devices/{deviceId}` du foyer, avec un délai maximal de 5 s, puis efface le code local ; le foyer est quitté même si la suppression échoue, l'écriture restant en file Firestore).
 

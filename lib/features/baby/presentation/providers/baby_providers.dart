@@ -1,5 +1,6 @@
 import 'package:colette/core/dates/date_extensions.dart';
 import 'package:colette/core/firebase/firebase_providers.dart';
+import 'package:colette/core/result/no_retry.dart';
 import 'package:colette/features/baby/data/repositories/firestore_baby_repository.dart';
 import 'package:colette/features/baby/domain/entities/baby_profile.dart';
 import 'package:colette/features/baby/domain/entities/weight_entry.dart';
@@ -19,7 +20,7 @@ BabyRepository babyRepository(Ref ref) =>
     FirestoreBabyRepository(ref.watch(firestoreProvider));
 
 /// Profil du bébé du foyer courant.
-@riverpod
+@Riverpod(retry: noRetry)
 Stream<BabyProfile?> babyProfile(Ref ref) {
   final code = ref.watch(currentHouseholdCodeProvider);
   if (code == null) return Stream.value(null);
@@ -27,7 +28,7 @@ Stream<BabyProfile?> babyProfile(Ref ref) {
 }
 
 /// Pesées du foyer courant, de la plus récente à la plus ancienne.
-@riverpod
+@Riverpod(retry: noRetry)
 Stream<List<WeightEntry>> weights(Ref ref) {
   final code = ref.watch(currentHouseholdCodeProvider);
   if (code == null) return Stream.value(const []);
