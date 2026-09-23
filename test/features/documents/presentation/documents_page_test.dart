@@ -28,6 +28,7 @@ DocumentEntry entry(
   String? path,
   bool isDirectory = false,
   DownloadStatus status = DownloadStatus.downloaded,
+  double? progress,
 }) => DocumentEntry(
   name: name,
   path: path ?? name,
@@ -35,6 +36,7 @@ DocumentEntry entry(
   size: 0,
   modifiedAt: DateTime(2026, 9, 22),
   downloadStatus: status,
+  downloadProgress: progress,
 );
 
 void main() {
@@ -144,19 +146,59 @@ void main() {
     expect(find.byType(SnackBar), findsNothing);
   });
 
-  testWidgets('fichier nuage : icône, et échec io → SnackBar', (tester) async {
-    when(() => repo.watch('')).thenAnswer(
-      (_) => Stream.value(
-        right([entry('a.pdf', status: DownloadStatus.notDownloaded)]),
-      ),
-    );
-    when(
-      () => repo.preview('a.pdf'),
-    ).thenAnswer((_) async => left(const DocumentsFailure(DocumentsReason.io)));
-    await pumpPage(tester);
-    expect(find.byIcon(Icons.cloud_download_outlined), findsOneWidget);
+  testWidgets(
+    'fichier nuage : download, progression, puis aperçu automatique',
+    (tester) async {
+      final events = StreamController<Either<Failure, List<DocumentEntry>>>();
+      addTearDown(events.close);
+      when(() => repo.watch('')).thenAnswer((_) => events.stream);
+      when(() => repo.download('a.pdf')).thenAnswer((_) async => right(null));
+      when(() => repo.preview('a.pdf')).thenAnswer((_) async => right(null));
+      await pumpPage(tester, settle: false);
+      events.add(right([entry('a.pdf', status: DownloadStatus.notDownloaded)]));
+      await tester.pump();
+      expect(find.byIcon(Icons.cloud_download_outlined), findsOneWidget);
+
+      await tester.tap(find.text('a.pdf'));
+      await tester.pump();
+      verify(() => repo.download('a.pdf')).called(1);
+
+      events.add(
+        right([
+          entry('a.pdf', status: DownloadStatus.downloading, progress: 0.25),
+        ]),
+      );
+      await tester.pump();
+      final indicator = tester.widget<CircularProgressIndicator>(
+        find.byType(CircularProgressIndicator),
+      );
+      expect(indicator.value, 0.25);
+      verifyNever(() => repo.preview(any()));
+
+      events.add(right([entry('a.pdf')]));
+      await tester.pump();
+      await tester.pump();
+      verify(() => repo.preview('a.pdf')).called(1);
+    },
+  );
+
+  testWidgets('fichier nuage : téléchargement retombé → SnackBar', (
+    tester,
+  ) async {
+    final events = StreamController<Either<Failure, List<DocumentEntry>>>();
+    addTearDown(events.close);
+    when(() => repo.watch('')).thenAnswer((_) => events.stream);
+    when(() => repo.download('a.pdf')).thenAnswer((_) async => right(null));
+    await pumpPage(tester, settle: false);
+    events.add(right([entry('a.pdf', status: DownloadStatus.notDownloaded)]));
+    await tester.pump();
     await tester.tap(find.text('a.pdf'));
-    await tester.pumpAndSettle();
+    await tester.pump();
+    events.add(right([entry('a.pdf', status: DownloadStatus.downloading)]));
+    await tester.pump();
+    events.add(right([entry('a.pdf', status: DownloadStatus.notDownloaded)]));
+    await tester.pump();
+    await tester.pump();
     expect(
       find.text("Ce document n'est pas encore téléchargé sur cet iPhone"),
       findsOneWidget,

@@ -8,15 +8,21 @@ part of 'documents_preview_controller.dart';
 
 // GENERATED CODE - DO NOT MODIFY BY HAND
 // ignore_for_file: type=lint, type=warning
-/// Aperçu d'un fichier, une instance par chemin : chaque ligne suit la sienne.
+/// Ouverture d'un fichier, une instance par chemin : chaque ligne suit la
+/// sienne. Un fichier non téléchargé est d'abord téléchargé ; l'aperçu
+/// s'ouvre seul dès que le flux du dossier le dit téléchargé.
 
 @ProviderFor(DocumentsPreviewController)
 final documentsPreviewControllerProvider = DocumentsPreviewControllerFamily._();
 
-/// Aperçu d'un fichier, une instance par chemin : chaque ligne suit la sienne.
+/// Ouverture d'un fichier, une instance par chemin : chaque ligne suit la
+/// sienne. Un fichier non téléchargé est d'abord téléchargé ; l'aperçu
+/// s'ouvre seul dès que le flux du dossier le dit téléchargé.
 final class DocumentsPreviewControllerProvider
     extends $AsyncNotifierProvider<DocumentsPreviewController, void> {
-  /// Aperçu d'un fichier, une instance par chemin : chaque ligne suit la sienne.
+  /// Ouverture d'un fichier, une instance par chemin : chaque ligne suit la
+  /// sienne. Un fichier non téléchargé est d'abord téléchargé ; l'aperçu
+  /// s'ouvre seul dès que le flux du dossier le dit téléchargé.
   DocumentsPreviewControllerProvider._({
     required DocumentsPreviewControllerFamily super.from,
     required String super.argument,
@@ -55,9 +61,11 @@ final class DocumentsPreviewControllerProvider
 }
 
 String _$documentsPreviewControllerHash() =>
-    r'bd989de6c123be64f8f7ae8f3feacc901dde0aaa';
+    r'66808d19205ccaab14489d97d883ebf5059371dd';
 
-/// Aperçu d'un fichier, une instance par chemin : chaque ligne suit la sienne.
+/// Ouverture d'un fichier, une instance par chemin : chaque ligne suit la
+/// sienne. Un fichier non téléchargé est d'abord téléchargé ; l'aperçu
+/// s'ouvre seul dès que le flux du dossier le dit téléchargé.
 
 final class DocumentsPreviewControllerFamily extends $Family
     with
@@ -77,7 +85,9 @@ final class DocumentsPreviewControllerFamily extends $Family
         isAutoDispose: true,
       );
 
-  /// Aperçu d'un fichier, une instance par chemin : chaque ligne suit la sienne.
+  /// Ouverture d'un fichier, une instance par chemin : chaque ligne suit la
+  /// sienne. Un fichier non téléchargé est d'abord téléchargé ; l'aperçu
+  /// s'ouvre seul dès que le flux du dossier le dit téléchargé.
 
   DocumentsPreviewControllerProvider call(String path) =>
       DocumentsPreviewControllerProvider._(argument: path, from: this);
@@ -86,7 +96,9 @@ final class DocumentsPreviewControllerFamily extends $Family
   String toString() => r'documentsPreviewControllerProvider';
 }
 
-/// Aperçu d'un fichier, une instance par chemin : chaque ligne suit la sienne.
+/// Ouverture d'un fichier, une instance par chemin : chaque ligne suit la
+/// sienne. Un fichier non téléchargé est d'abord téléchargé ; l'aperçu
+/// s'ouvre seul dès que le flux du dossier le dit téléchargé.
 
 abstract class _$DocumentsPreviewController extends $AsyncNotifier<void> {
   late final _$args = ref.$arg as String;

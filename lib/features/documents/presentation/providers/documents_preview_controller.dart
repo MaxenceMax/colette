@@ -1,20 +1,81 @@
 import 'dart:async';
 
 import 'package:colette/core/result/failure.dart';
+import 'package:colette/features/documents/domain/entities/document_entry.dart';
+import 'package:colette/features/documents/domain/entities/download_status.dart';
+import 'package:colette/features/documents/domain/use_cases/parent_path.dart';
 import 'package:colette/features/documents/presentation/providers/documents_providers.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:fpdart/fpdart.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
 part 'documents_preview_controller.g.dart';
 
-/// Aperçu d'un fichier, une instance par chemin : chaque ligne suit la sienne.
+/// Ouverture d'un fichier, une instance par chemin : chaque ligne suit la
+/// sienne. Un fichier non téléchargé est d'abord téléchargé ; l'aperçu
+/// s'ouvre seul dès que le flux du dossier le dit téléchargé.
 @riverpod
 class DocumentsPreviewController extends _$DocumentsPreviewController {
-  @override
-  FutureOr<void> build(String path) {}
+  ProviderSubscription<AsyncValue<List<DocumentEntry>>>? _waiting;
 
-  /// Ouvre l'aperçu Quick Look du fichier ; une annulation n'est pas une erreur.
-  Future<void> preview() async {
+  @override
+  FutureOr<void> build(String path) {
+    ref.onDispose(_stopWaiting);
+  }
+
+  /// Aperçu direct si [entry] est téléchargée, sinon téléchargement puis
+  /// aperçu automatique. Ignoré si une ouverture est déjà en vol.
+  Future<void> open(DocumentEntry entry) async {
+    if (state.isLoading) return;
     state = const AsyncLoading();
+    if (entry.downloadStatus == DownloadStatus.downloaded) {
+      return _preview();
+    }
+    final started = await ref.read(documentsRepositoryProvider).download(path);
+    switch (started) {
+      case Left(:final value):
+        state = AsyncError(value, StackTrace.current);
+      case Right():
+        _waitForDownload();
+    }
+  }
+
+  /// Suit le dossier parent jusqu'à ce que l'entrée soit téléchargée
+  /// (→ aperçu) ou que le téléchargement retombe (→ `io`).
+  void _waitForDownload() {
+    var seenDownloading = false;
+    _stopWaiting();
+    _waiting = ref.listen(documentsFolderProvider(parentPath(path)), (_, next) {
+      final entries = next.value;
+      if (entries == null) return;
+      final current = entries.where((e) => e.path == path).firstOrNull;
+      switch (current?.downloadStatus) {
+        case DownloadStatus.downloaded:
+          _stopWaiting();
+          unawaited(_preview());
+        case DownloadStatus.downloading:
+          seenDownloading = true;
+        case DownloadStatus.notDownloaded when !seenDownloading:
+          // iCloud n'a pas encore pris le téléchargement en compte.
+          break;
+        case DownloadStatus.notDownloaded || null:
+          _stopWaiting();
+          state = AsyncError(
+            const DocumentsFailure(DocumentsReason.io),
+            StackTrace.current,
+          );
+      }
+    }, fireImmediately: true);
+  }
+
+  void _stopWaiting() {
+    _waiting?.close();
+    _waiting = null;
+  }
+
+  /// Ouvre Quick Look ; une annulation (ou un refus pour verrou pris) n'est
+  /// pas une erreur.
+  Future<void> _preview() async {
     final result = await ref.read(documentsRepositoryProvider).preview(path);
     state = result.fold(
       (failure) => switch (failure) {

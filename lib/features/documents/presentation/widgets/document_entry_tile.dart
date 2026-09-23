@@ -60,10 +60,14 @@ class DocumentEntryTile extends ConsumerWidget {
 
   Widget? _trailing(BuildContext context, bool previewing) {
     if (entry.isDirectory) return const Icon(Icons.chevron_right);
-    if (previewing || entry.downloadStatus == DownloadStatus.downloading) {
+    final downloading = entry.downloadStatus == DownloadStatus.downloading;
+    if (previewing || downloading) {
       return SizedBox.square(
         dimension: AppSize.sm.value,
-        child: CircularProgressIndicator(strokeWidth: AppSpacing.xxs.value),
+        child: CircularProgressIndicator(
+          strokeWidth: AppSpacing.xxs.value,
+          value: downloading ? entry.downloadProgress : null,
+        ),
       );
     }
     if (entry.downloadStatus == DownloadStatus.notDownloaded) {
@@ -78,7 +82,7 @@ class DocumentEntryTile extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final controller = documentsPreviewControllerProvider(entry.path);
-    // Garde le contrôleur autoDispose vivant pendant l'await de preview().
+    // Garde le contrôleur autoDispose vivant pendant l'await de open().
     final previewing = ref.watch(controller).isLoading;
     ref.listen(controller, (_, next) {
       if (next case AsyncError(:final error)) {
@@ -95,7 +99,7 @@ class DocumentEntryTile extends ConsumerWidget {
       onTap: switch (entry.isDirectory) {
         true => () => context.push(AppRoutes.documentsLocation(entry.path)),
         false when previewing => null,
-        false => () => ref.read(controller.notifier).preview(),
+        false => () => ref.read(controller.notifier).open(entry),
       },
     );
   }
