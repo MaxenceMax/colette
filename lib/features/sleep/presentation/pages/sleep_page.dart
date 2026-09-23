@@ -10,6 +10,7 @@ import 'package:colette/features/sleep/presentation/widgets/sleep_form_sheet.dar
 import 'package:colette/features/sleep/presentation/widgets/sleep_week_chart.dart';
 import 'package:colette/l10n/generated/app_localizations.dart';
 import 'package:colette/shared/ui/widgets/colette_card_surface.dart';
+import 'package:colette/shared/ui/widgets/empty_state.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
@@ -28,6 +29,7 @@ class _SleepPageState extends ConsumerState<SleepPage> {
   @override
   Widget build(BuildContext context) {
     final s = S.of(context);
+    final weekSleeps = ref.watch(weekSleepsProvider);
     final days = ref.watch(sleepWeekProvider);
     return Scaffold(
       appBar: AppBar(title: Text(s.sleepPageTitle)),
@@ -36,9 +38,13 @@ class _SleepPageState extends ConsumerState<SleepPage> {
         tooltip: s.sleepAddPast,
         child: const Icon(Icons.add),
       ),
-      body: switch (days) {
-        null => const Center(child: CircularProgressIndicator()),
-        final days => ListView(
+      body: switch ((days, weekSleeps)) {
+        (null, AsyncError()) => EmptyState(
+          icon: Icons.error_outline,
+          message: s.errorUnknown,
+        ),
+        (null, _) => const Center(child: CircularProgressIndicator()),
+        (final days?, _) => ListView(
           padding: AppSpacing.md.all,
           children: [
             _SummarySection(days: days),

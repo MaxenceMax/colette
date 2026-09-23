@@ -7,6 +7,8 @@ import 'package:colette/features/sleep/domain/entities/sleep_kind.dart';
 import 'package:colette/features/sleep/presentation/pages/sleep_page.dart';
 import 'package:colette/features/sleep/presentation/providers/sleep_providers.dart';
 import 'package:colette/features/sleep/presentation/widgets/sleep_week_chart.dart';
+import 'package:colette/shared/ui/widgets/empty_state.dart';
+import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 import '../../../helpers/fake_sleep_repository.dart';
@@ -83,4 +85,33 @@ void main() {
     await pump(tester, FakeSleepRepository());
     expect(find.textContaining('Moyenne'), findsNothing);
   });
+
+  testWidgets(
+    'weekSleepsProvider en erreur : état vide plutôt qu\'un chargement infini',
+    (tester) async {
+      await pumpApp(
+        tester,
+        const SleepPage(),
+        overrides: [
+          sleepRepositoryProvider.overrideWithValue(FakeSleepRepository()),
+          weekSleepsProvider.overrideWith(
+            (ref) => Stream.error(Exception('boom')),
+          ),
+          clockProvider.overrideWithValue(FixedClock(now)),
+          minuteTickerProvider.overrideWith((ref) => const Stream.empty()),
+          householdLocalStoreProvider.overrideWithValue(
+            InMemoryHouseholdLocalStore(householdCode: 'ABCDEFGH'),
+          ),
+          babyProfileProvider.overrideWith(
+            (ref) => Stream.value(
+              BabyProfile(name: 'C', birthDate: DateTime(2026, 9, 1)),
+            ),
+          ),
+        ],
+      );
+      expect(find.byType(CircularProgressIndicator), findsNothing);
+      expect(find.byType(EmptyState), findsOneWidget);
+      expect(find.byIcon(Icons.error_outline), findsOneWidget);
+    },
+  );
 }

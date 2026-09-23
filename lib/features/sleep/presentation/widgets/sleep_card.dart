@@ -118,7 +118,11 @@ class _StatusSection extends ConsumerWidget {
             onPressed: isLoading
                 ? null
                 : () => ref.read(sleepControllerProvider.notifier).wakeUp(),
-            child: Text(s.sleepWakeUpAction),
+            child: isLoading
+                ? _ButtonLoadingIndicator(
+                    color: context.appColor(AppColors.onPrimary),
+                  )
+                : Text(s.sleepWakeUpAction),
           ),
         ],
         ForgottenWake(:final session) => [
@@ -154,12 +158,32 @@ class _StatusSection extends ConsumerWidget {
             onPressed: isLoading
                 ? null
                 : () => ref.read(sleepControllerProvider.notifier).fallAsleep(),
-            child: Text(s.sleepFallAsleepAction),
+            child: isLoading
+                ? _ButtonLoadingIndicator(
+                    color: context.appColor(AppColors.primary),
+                  )
+                : Text(s.sleepFallAsleepAction),
           ),
         ],
       },
     );
   }
+}
+
+/// Petit indicateur de chargement remplaçant le texte d'un bouton désactivé.
+class _ButtonLoadingIndicator extends StatelessWidget {
+  const _ButtonLoadingIndicator({required this.color});
+
+  final Color color;
+
+  @override
+  Widget build(BuildContext context) => SizedBox.square(
+    dimension: AppSize.xs.value,
+    child: CircularProgressIndicator(
+      strokeWidth: AppSpacing.xxs.value,
+      color: color,
+    ),
+  );
 }
 
 class _TotalLine extends ConsumerWidget {

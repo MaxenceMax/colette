@@ -223,6 +223,8 @@
   "@sleepReference": { "placeholders": { "min": { "type": "int" }, "max": { "type": "int" } } },
   "sleepAverage": "Moyenne des jours précédents : {duration}",
   "@sleepAverage": { "placeholders": { "duration": { "type": "String" } } },
+  "sleepRowSemantics": "{day} : {total}",
+  "@sleepRowSemantics": { "placeholders": { "day": { "type": "String" }, "total": { "type": "String" } } },
   "sleepKindNap": "Sieste",
   "sleepKindNight": "Nuit",
   "sleepFormNewTitle": "Nouveau sommeil",

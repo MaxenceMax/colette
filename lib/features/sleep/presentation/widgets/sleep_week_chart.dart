@@ -74,7 +74,7 @@ class SleepWeekRow extends StatelessWidget {
     final styles = Theme.of(context).coletteTextStyles;
     final total = formatSleepDuration(day.total, s);
     return Semantics(
-      label: '${formatLongDate(day.day)} : $total',
+      label: s.sleepRowSemantics(formatLongDate(day.day), total),
       button: true,
       selected: selected,
       child: Material(

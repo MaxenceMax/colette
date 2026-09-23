@@ -148,17 +148,20 @@ final class LatestSleepProvider
 
 String _$latestSleepHash() => r'd639caa71f9e108e625441bb65aa7b23d00439e3';
 
-/// État actuel et total sur 24 h ; `null` tant que les flux chargent.
+/// État actuel et total sur 24 h ; `null` tant que les flux chargent ou sont
+/// en erreur (l'erreur reste exposée via `recentSleepsProvider`/`latestSleepProvider`).
 
 @ProviderFor(sleepSummary)
 final sleepSummaryProvider = SleepSummaryProvider._();
 
-/// État actuel et total sur 24 h ; `null` tant que les flux chargent.
+/// État actuel et total sur 24 h ; `null` tant que les flux chargent ou sont
+/// en erreur (l'erreur reste exposée via `recentSleepsProvider`/`latestSleepProvider`).
 
 final class SleepSummaryProvider
     extends $FunctionalProvider<SleepSummary?, SleepSummary?, SleepSummary?>
     with $Provider<SleepSummary?> {
-  /// État actuel et total sur 24 h ; `null` tant que les flux chargent.
+  /// État actuel et total sur 24 h ; `null` tant que les flux chargent ou sont
+  /// en erreur (l'erreur reste exposée via `recentSleepsProvider`/`latestSleepProvider`).
   SleepSummaryProvider._()
     : super(
         from: null,
@@ -192,7 +195,7 @@ final class SleepSummaryProvider
   }
 }
 
-String _$sleepSummaryHash() => r'239d10c7e2bdee0b302da887ff901cd6c07d0647';
+String _$sleepSummaryHash() => r'926ff0c0f400572f9d5f5e957284059ba9d5f743';
 
 /// Repère OMS selon l'âge ; `null` sans profil ou à partir de 2 ans.
 
@@ -289,18 +292,21 @@ final class WeekSleepsProvider
 
 String _$weekSleepsHash() => r'4ee60b97fd90bf2e4da785c962c84d3a48d86982';
 
-/// Les 7 jours de la page Sommeil ; `null` tant que le flux charge.
+/// Les 7 jours de la page Sommeil ; `null` tant que le flux charge ou est en
+/// erreur (l'erreur reste exposée via `weekSleepsProvider`, pour la page).
 
 @ProviderFor(sleepWeek)
 final sleepWeekProvider = SleepWeekProvider._();
 
-/// Les 7 jours de la page Sommeil ; `null` tant que le flux charge.
+/// Les 7 jours de la page Sommeil ; `null` tant que le flux charge ou est en
+/// erreur (l'erreur reste exposée via `weekSleepsProvider`, pour la page).
 
 final class SleepWeekProvider
     extends
         $FunctionalProvider<List<SleepDay>?, List<SleepDay>?, List<SleepDay>?>
     with $Provider<List<SleepDay>?> {
-  /// Les 7 jours de la page Sommeil ; `null` tant que le flux charge.
+  /// Les 7 jours de la page Sommeil ; `null` tant que le flux charge ou est en
+  /// erreur (l'erreur reste exposée via `weekSleepsProvider`, pour la page).
   SleepWeekProvider._()
     : super(
         from: null,
@@ -334,4 +340,4 @@ final class SleepWeekProvider
   }
 }
 
-String _$sleepWeekHash() => r'eeaf902d13ac3447273473a662a9b783b98cc7ce';
+String _$sleepWeekHash() => r'bcf27b15aa7f6a8b4c374d89272dc376c022a19b';

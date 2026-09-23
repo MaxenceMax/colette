@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:colette/core/clock/app_clock.dart';
 import 'package:colette/core/clock/now_providers.dart';
 import 'package:colette/core/ids/id_generator.dart';
@@ -108,4 +110,60 @@ void main() {
     await pump(tester, FakeSleepRepository(), birth: DateTime(2024, 1, 1));
     expect(find.text('Sur 24 h : 0 min'), findsOneWidget);
   });
+
+  testWidgets(
+    'bouton Réveillé·e affiche un indicateur de chargement et reste désactivé',
+    (tester) async {
+      final repo = FakeSleepRepository([
+        makeSleep(id: 'o', startAt: DateTime(2026, 9, 23, 14, 5)),
+      ])..writeGate = Completer<void>();
+      await pump(tester, repo);
+      await tester.tap(find.text('Réveillé·e'));
+      await tester.pump();
+      expect(find.text('Réveillé·e'), findsNothing);
+      expect(
+        find.descendant(
+          of: find.byType(FilledButton),
+          matching: find.byType(CircularProgressIndicator),
+        ),
+        findsOneWidget,
+      );
+      expect(
+        tester.widget<FilledButton>(find.byType(FilledButton)).onPressed,
+        isNull,
+      );
+      repo.writeGate!.complete();
+      await tester.pumpAndSettle();
+    },
+  );
+
+  testWidgets(
+    'bouton Endormi·e affiche un indicateur de chargement et reste désactivé',
+    (tester) async {
+      final repo = FakeSleepRepository([
+        makeSleep(
+          id: 'a',
+          startAt: DateTime(2026, 9, 23, 12),
+          endAt: DateTime(2026, 9, 23, 13, 37),
+        ),
+      ])..writeGate = Completer<void>();
+      await pump(tester, repo);
+      await tester.tap(find.text('Endormi·e'));
+      await tester.pump();
+      expect(find.text('Endormi·e'), findsNothing);
+      expect(
+        find.descendant(
+          of: find.byType(OutlinedButton),
+          matching: find.byType(CircularProgressIndicator),
+        ),
+        findsOneWidget,
+      );
+      expect(
+        tester.widget<OutlinedButton>(find.byType(OutlinedButton)).onPressed,
+        isNull,
+      );
+      repo.writeGate!.complete();
+      await tester.pumpAndSettle();
+    },
+  );
 }

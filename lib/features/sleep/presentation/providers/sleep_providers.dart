@@ -1,3 +1,5 @@
+import 'dart:developer' as developer;
+
 import 'package:colette/core/clock/now_providers.dart';
 import 'package:colette/core/firebase/firebase_providers.dart';
 import 'package:colette/core/result/no_retry.dart';
@@ -43,11 +45,22 @@ Stream<SleepSession?> latestSleep(Ref ref) {
   return ref.watch(sleepRepositoryProvider).watchLatest(code);
 }
 
-/// État actuel et total sur 24 h ; `null` tant que les flux chargent.
+/// État actuel et total sur 24 h ; `null` tant que les flux chargent ou sont
+/// en erreur (l'erreur reste exposée via `recentSleepsProvider`/`latestSleepProvider`).
 @riverpod
 SleepSummary? sleepSummary(Ref ref) {
   final recent = ref.watch(recentSleepsProvider);
   final latest = ref.watch(latestSleepProvider);
+  for (final source in [recent, latest]) {
+    if (source case AsyncError(:final error, :final stackTrace)) {
+      developer.log(
+        'sleepSummary : flux en erreur',
+        error: error,
+        stackTrace: stackTrace,
+        name: 'colette',
+      );
+    }
+  }
   if (!recent.hasValue || !latest.hasValue) return null;
   return computeSleepSummary(
     recent: recent.requireValue,
@@ -82,10 +95,20 @@ Stream<List<SleepSession>> weekSleeps(Ref ref) {
       );
 }
 
-/// Les 7 jours de la page Sommeil ; `null` tant que le flux charge.
+/// Les 7 jours de la page Sommeil ; `null` tant que le flux charge ou est en
+/// erreur (l'erreur reste exposée via `weekSleepsProvider`, pour la page).
 @riverpod
 List<SleepDay>? sleepWeek(Ref ref) {
-  final sleeps = ref.watch(weekSleepsProvider).value;
+  final weekSleeps = ref.watch(weekSleepsProvider);
+  if (weekSleeps case AsyncError(:final error, :final stackTrace)) {
+    developer.log(
+      'sleepWeek : flux en erreur',
+      error: error,
+      stackTrace: stackTrace,
+      name: 'colette',
+    );
+  }
+  final sleeps = weekSleeps.value;
   if (sleeps == null) return null;
   return computeSleepDays(
     sleeps,
