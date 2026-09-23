@@ -1,9 +1,11 @@
+import 'dart:async';
 import 'dart:developer' as developer;
 
 import 'package:colette/core/clock/app_clock.dart';
 import 'package:colette/core/result/failure.dart';
 import 'package:colette/features/baby/presentation/providers/baby_providers.dart';
 import 'package:colette/features/health/domain/entities/calendar_action.dart';
+import 'package:colette/features/health/domain/entities/calendar_choice.dart';
 import 'package:colette/features/health/domain/entities/medical_visit.dart';
 import 'package:colette/features/health/domain/use_cases/compute_medical_reminder_snapshot.dart';
 import 'package:colette/features/health/domain/use_cases/compute_medical_timeline.dart';
@@ -34,13 +36,40 @@ final class NoopHealthSync implements HealthSync {
 
 /// Relit Firestore (pas les providers, qui peuvent être détruits pendant l'attente).
 /// Best-effort : une erreur est journalisée, jamais propagée.
+///
+/// Coalesce les appels concurrents : une sync déjà en cours absorbe les
+/// suivants et relance exactement une fois à la fin, sans jamais laisser deux
+/// passes s'exécuter en parallèle (double création d'événements sinon).
 final class FirestoreHealthSync implements HealthSync {
-  const FirestoreHealthSync(this._ref);
+  FirestoreHealthSync(this._ref);
 
   final Ref _ref;
 
+  Future<void>? _running;
+  bool _again = false;
+
   @override
-  Future<void> sync() async {
+  Future<void> sync() {
+    final running = _running;
+    if (running != null) {
+      _again = true;
+      return running;
+    }
+    final future = _runExclusive();
+    _running = future;
+    return future;
+  }
+
+  Future<void> _runExclusive() async {
+    await _doSync();
+    if (_again) {
+      _again = false;
+      await _doSync();
+    }
+    _running = null;
+  }
+
+  Future<void> _doSync() async {
     final code = _ref.read(currentHouseholdCodeProvider);
     if (code == null) return;
     try {
@@ -57,9 +86,20 @@ final class FirestoreHealthSync implements HealthSync {
         visits: visits,
         now: now,
       );
-      await medical.saveReminderSnapshot(
-        code,
-        const ComputeMedicalReminderSnapshot()(timeline: timeline, now: now),
+      final snapshot = const ComputeMedicalReminderSnapshot()(
+        timeline: timeline,
+        now: now,
+      );
+      // Le calendrier ne doit pas attendre l'accusé serveur du snapshot.
+      unawaited(
+        medical.saveReminderSnapshot(code, snapshot).then((result) {
+          if (result case Left(:final value)) {
+            developer.log(
+              'Failed to save reminder snapshot: $value',
+              name: 'colette',
+            );
+          }
+        }),
       );
       await _syncCalendar(visits, profile.name, now);
     } catch (e, stackTrace) {
@@ -86,7 +126,7 @@ final class FirestoreHealthSync implements HealthSync {
       to: ReconcileCalendar.windowEnd(now),
     );
     if (found case Left(:final value)) {
-      await _failed(value);
+      await _handleFailure(choice, value);
       return;
     }
     final events = found.getOrElse((_) => const []);
@@ -111,18 +151,30 @@ final class FirestoreHealthSync implements HealthSync {
         ),
       };
       if ((await pending) case Left(:final value)) {
-        await _failed(value);
-        return;
+        final stop = await _handleFailure(choice, value);
+        if (stop) return;
       }
     }
   }
 
-  /// Calendrier disparu : on oublie le choix. Autre échec : journalisé.
-  Future<void> _failed(Failure failure) async {
-    if (failure == const CalendarFailure(CalendarReason.calendarNotFound)) {
-      await _ref.read(selectedCalendarProvider.notifier).clear();
-    } else {
-      developer.log('Calendar sync failed: $failure', name: 'colette');
+  /// Calendrier disparu : on oublie le choix, s'il n'a pas changé entre-temps.
+  /// Accès refusé : on journalise et on arrête. Autre échec (`io`, inconnu) :
+  /// on journalise et on continue avec les actions suivantes.
+  ///
+  /// Renvoie `true` si la boucle des actions doit s'arrêter.
+  Future<bool> _handleFailure(CalendarChoice choice, Failure failure) async {
+    switch (failure) {
+      case CalendarFailure(reason: CalendarReason.calendarNotFound):
+        if (_ref.read(selectedCalendarProvider)?.id == choice.id) {
+          await _ref.read(selectedCalendarProvider.notifier).clear();
+        }
+        return true;
+      case CalendarFailure(reason: CalendarReason.accessDenied):
+        developer.log('Calendar sync failed: $failure', name: 'colette');
+        return true;
+      default:
+        developer.log('Calendar sync failed: $failure', name: 'colette');
+        return false;
     }
   }
 }

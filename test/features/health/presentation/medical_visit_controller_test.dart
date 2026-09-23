@@ -86,6 +86,8 @@ void main() {
   });
 
   test('refuse une visite invalide sans écrire ni synchroniser', () async {
+    final sub = container.listen(medicalVisitControllerProvider, (_, _) {});
+    addTearDown(sub.close);
     final ok = await controller().save(
       makeVisit(MedicalStageId.m2, doneAt: DateTime(2026, 12, 1)),
       birthDate: birth,
