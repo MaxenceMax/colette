@@ -7,8 +7,10 @@ import 'package:colette/features/dashboard/domain/entities/feeding_plan.dart';
 import 'package:colette/features/dashboard/presentation/providers/dashboard_providers.dart';
 import 'package:colette/features/dashboard/presentation/widgets/bottle_schedule_sheet.dart';
 import 'package:colette/features/dashboard/presentation/widgets/feeding_reference_sheet.dart';
+import 'package:colette/features/events/presentation/providers/events_providers.dart';
 import 'package:colette/features/events/presentation/widgets/event_form_sheet.dart';
 import 'package:colette/l10n/generated/app_localizations.dart';
+import 'package:colette/shared/ui/duration_format.dart';
 import 'package:colette/shared/ui/widgets/colette_card_surface.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -34,6 +36,7 @@ class NextBottleCard extends ConsumerWidget {
     }
     final now = ref.watch(currentMinuteProvider);
     final rolling = ref.watch(rollingIntakeProvider);
+    final lastBottleAt = ref.watch(latestBottleProvider).value?.startAt;
     return ColetteCardSurface(
       // Haut réduit : l'IconButton du titre apporte déjà son propre padding.
       padding: AppSpacing.only(
@@ -88,6 +91,15 @@ class NextBottleCard extends ConsumerWidget {
               ),
             ],
           ),
+          if (lastBottleAt != null)
+            Text(
+              s.sinceLastBottle(
+                formatDuration(now.difference(lastBottleAt), s),
+              ),
+              style: styles.small.copyWith(
+                color: context.appColor(AppColors.textSecondary),
+              ),
+            ),
           Text(
             s.bottleProgress(
               plan.bottlesGiven,
@@ -156,10 +168,16 @@ class _WhenText extends StatelessWidget {
       );
     }
     final end = formatHourMinute(plan.windowEnd);
-    final text = now.isBefore(plan.windowStart)
+    if (plan.isOpen(now)) {
+      return Text(
+        s.nextBottleGo(end),
+        style: styles.bodyMedium.copyWith(
+          color: context.appColor(AppColors.success),
+        ),
+      );
+    }
+    final text = plan.hasWindow
         ? s.nextBottleWindow(formatHourMinute(plan.windowStart), end)
-        : plan.hasWindow
-        ? s.nextBottleNowUntil(end)
         : s.nextBottleNow;
     return Text(
       text,

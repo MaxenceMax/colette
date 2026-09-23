@@ -65,6 +65,7 @@ void main() {
     BabyProfile? baby,
     List<GrowthMeasurement>? measurements,
     CareEvent? latest,
+    bool noBottle = false,
   }) => [
     documentsRepositoryOverride(),
     clockProvider.overrideWithValue(FixedClock(now)),
@@ -80,7 +81,9 @@ void main() {
     recentEventsProvider.overrideWith(
       (ref) => Stream.value(recent ?? [adrigyl, bottle, lateBottle]),
     ),
-    latestBottleProvider.overrideWith((ref) => Stream.value(latest ?? bottle)),
+    latestBottleProvider.overrideWith(
+      (ref) => Stream.value(noBottle ? null : latest ?? bottle),
+    ),
     latestBathProvider.overrideWith((ref) => Stream.value(null)),
     eventsRepositoryProvider.overrideWithValue(repo),
     idGeneratorProvider.overrideWithValue(const FixedIdGenerator('e-new')),
@@ -103,7 +106,8 @@ void main() {
       expect(find.text('Colette a 9 jours'), findsOneWidget);
       expect(find.text('Prochain biberon'), findsOneWidget);
       expect(find.text('70 ml'), findsOneWidget);
-      expect(find.text('en retard de 35 min'), findsOneWidget);
+      expect(find.text('Go pour un biberon, jusqu\'à 13h00'), findsOneWidget);
+      expect(find.text('4 h depuis le dernier biberon'), findsOneWidget);
       expect(find.text('fait à 09h00'), findsOneWidget);
       expect(
         find.text('2 biberons · 150 ml sur les dernières 24 h'),
@@ -165,7 +169,18 @@ void main() {
         ),
       ),
     );
-    expect(find.text('entre 13h35 et 14h25'), findsOneWidget);
+    expect(find.text('entre 13h30 et 16h00'), findsOneWidget);
+  });
+
+  testWidgets('sans biberon connu, la carte ne montre pas de délai', (
+    tester,
+  ) async {
+    await pumpApp(
+      tester,
+      const DashboardPage(),
+      overrides: overridesFor(MockEventsRepository(), noBottle: true),
+    );
+    expect(find.textContaining('depuis le dernier biberon'), findsNothing);
   });
 
   testWidgets('dans la fourchette, la carte affiche sa fin', (tester) async {
@@ -181,7 +196,27 @@ void main() {
         ),
       ),
     );
-    expect(find.text('maintenant, jusqu\'à 12h35'), findsOneWidget);
+    expect(find.text('Go pour un biberon, jusqu\'à 14h10'), findsOneWidget);
+    expect(find.text('2 h 50 depuis le dernier biberon'), findsOneWidget);
+  });
+
+  testWidgets('après la fourchette, la carte affiche le retard', (
+    tester,
+  ) async {
+    await pumpApp(
+      tester,
+      const DashboardPage(),
+      overrides: overridesFor(
+        MockEventsRepository(),
+        latest: makeEvent(
+          id: 'r',
+          startAt: DateTime(2026, 9, 10, 6, 25),
+          bottleMl: 60,
+        ),
+      ),
+    );
+    expect(find.text('en retard de 35 min'), findsOneWidget);
+    expect(find.text('5 h 35 depuis le dernier biberon'), findsOneWidget);
   });
 
   testWidgets('le bouton horloge ouvre la feuille des 24 prochaines heures', (

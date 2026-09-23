@@ -43,9 +43,8 @@ class ProjectBottleSchedule {
       at.isBefore(end);
       at = at.add(interval)
     ) {
-      final (windowStart, windowEnd) = ComputeFeedingPlan.windowAround(
-        at,
-        interval,
+      final (windowStart, windowEnd) = ComputeFeedingPlan.windowAfter(
+        at.subtract(interval),
       );
       bottles.add(
         ProjectedBottle(
