@@ -11,10 +11,12 @@ import 'package:colette/features/health/domain/entities/medical_visit.dart';
 import 'package:colette/features/health/domain/entities/vaccine_code.dart';
 import 'package:colette/features/health/domain/reference/medical_schedule.dart';
 import 'package:colette/features/health/domain/repositories/medical_repository.dart';
+import 'package:colette/features/health/domain/use_cases/reconcile_calendar.dart';
 import 'package:colette/features/health/presentation/providers/health_providers.dart';
 import 'package:colette/features/health/presentation/providers/health_sync.dart';
 import 'package:colette/features/health/presentation/widgets/medical_stage_sheet.dart';
 import 'package:colette/features/household/presentation/providers/household_providers.dart';
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/misc.dart' show Override;
 import 'package:flutter_test/flutter_test.dart';
@@ -90,6 +92,20 @@ void main() {
     expect(find.text('Hexavalent (DTCaP-Hib-HépB)'), findsOneWidget);
     expect(find.text('Pneumocoque'), findsOneWidget);
     expect(find.textContaining('recommandé'), findsOneWidget);
+  });
+
+  testWidgets('le RDV ne dépasse pas la fenêtre du calendrier', (tester) async {
+    await pumpApp(
+      tester,
+      Scaffold(body: MedicalStageSheet(entry: m2Entry())),
+      overrides: overrides(),
+    );
+    await tester.tap(find.text('Choisir la date du RDV'));
+    await tester.pumpAndSettle();
+    final picker = tester.widget<CupertinoDatePicker>(
+      find.byType(CupertinoDatePicker),
+    );
+    expect(picker.maximumDate, ReconcileCalendar.windowEnd(now));
   });
 
   testWidgets('cocher un vaccin avec son lot puis marquer faite', (

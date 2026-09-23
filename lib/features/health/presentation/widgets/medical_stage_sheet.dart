@@ -6,6 +6,7 @@ import 'package:colette/features/health/domain/entities/given_vaccine.dart';
 import 'package:colette/features/health/domain/entities/medical_timeline.dart';
 import 'package:colette/features/health/domain/entities/medical_visit.dart';
 import 'package:colette/features/health/domain/entities/vaccine_code.dart';
+import 'package:colette/features/health/domain/use_cases/reconcile_calendar.dart';
 import 'package:colette/features/health/presentation/providers/medical_visit_controller.dart';
 import 'package:colette/features/health/presentation/widgets/health_labels.dart';
 import 'package:colette/features/health/presentation/widgets/stage_appointment_fields.dart';
@@ -103,6 +104,7 @@ class _MedicalStageSheetState extends ConsumerState<MedicalStageSheet> {
             appointmentAt: _appointmentAt,
             practitioner: _practitioner,
             minimum: minimum,
+            maximum: ReconcileCalendar.windowEnd(now),
             initialPick: widget.entry.dueFrom.isAfter(now)
                 ? widget.entry.dueFrom
                 : now,

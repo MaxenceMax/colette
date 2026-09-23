@@ -13,6 +13,7 @@ class StageAppointmentFields extends StatelessWidget {
     required this.appointmentAt,
     required this.practitioner,
     required this.minimum,
+    required this.maximum,
     required this.initialPick,
     required this.onChanged,
   });
@@ -22,6 +23,9 @@ class StageAppointmentFields extends StatelessWidget {
 
   /// Borne basse du sélecteur (naissance).
   final DateTime minimum;
+
+  /// Borne haute du sélecteur (fenêtre de synchronisation du calendrier).
+  final DateTime maximum;
 
   /// Date proposée quand aucun RDV n'est posé.
   final DateTime initialPick;
@@ -33,6 +37,7 @@ class StageAppointmentFields extends StatelessWidget {
       initial: appointmentAt ?? initialPick,
       mode: CupertinoDatePickerMode.dateAndTime,
       minimum: minimum,
+      maximum: maximum,
     );
     if (picked != null) onChanged(picked);
   }
