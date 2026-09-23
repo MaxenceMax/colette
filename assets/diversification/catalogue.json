@@ -46,6 +46,12 @@
             ]
           },
           {
+            "text": "Si la diversification commence avant 6 mois : purées et compotes lisses, à la cuillère.",
+            "sources": [
+              "spf"
+            ]
+          },
+          {
             "text": "Prématuré : demander l'avis du pédiatre pour le bon moment.",
             "sources": [
               "spf"
@@ -229,6 +235,12 @@
       }
     ],
     "safety": [
+      {
+        "text": "La laisser manger selon sa faim et l'encourager à manger seule, à son rythme.",
+        "sources": [
+          "oms"
+        ]
+      },
       {
         "text": "Proposer sans jamais forcer, ne pas obliger à finir.",
         "sources": [
@@ -794,7 +806,7 @@
           "sources": [
             "anses"
           ],
-          "text": "Cru ou peu cuit : risque de bactéries (Listeria, E. coli…). Bien cuire à cœur avant 3 ans."
+          "text": "Viande crue : risque de Listeria et de toxoplasmose, pas avant 3 ans."
         }
       ]
     },
@@ -900,7 +912,7 @@
     },
     {
       "id": "espadon",
-      "name": "Espadon, marlin, requin, lamproie",
+      "name": "Espadon, marlin, siki, requin, lamproie",
       "group": "fleshFoods",
       "allergens": [
         "fish"
@@ -1467,7 +1479,8 @@
           "untilMonths": 36,
           "sources": [
             "oms",
-            "spf"
+            "spf",
+            "anses"
           ],
           "text": "À proscrire : l'eau est la seule boisson à proposer en plus du lait."
         }
@@ -1519,7 +1532,7 @@
     },
     {
       "id": "boisson-vegetale",
-      "name": "Boisson végétale (soja, amande, avoine, riz)",
+      "name": "Boisson végétale (amande, avoine, riz)",
       "group": "outsideGroups",
       "rules": [
         {
@@ -1530,6 +1543,34 @@
             "spf"
           ],
           "text": "Ne remplace pas le lait maternel ou infantile avant 1 an : risque de carences."
+        }
+      ]
+    },
+    {
+      "id": "boisson-soja",
+      "name": "Boisson au soja",
+      "group": "outsideGroups",
+      "allergens": [
+        "soy"
+      ],
+      "rules": [
+        {
+          "kind": "avoid",
+          "untilMonths": 12,
+          "sources": [
+            "anses",
+            "spf"
+          ],
+          "text": "Ne remplace pas le lait maternel ou infantile avant 1 an : risque de carences."
+        },
+        {
+          "kind": "avoid",
+          "untilMonths": 36,
+          "sources": [
+            "anses",
+            "spf"
+          ],
+          "text": "Produits au soja déconseillés avant 3 ans (phyto-œstrogènes)."
         }
       ]
     },
