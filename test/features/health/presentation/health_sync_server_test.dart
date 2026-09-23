@@ -46,6 +46,8 @@ void main() {
       final medical = MockMedicalRepository();
       when(() => medical.fetchVisitsFromServer(code))
           .thenAnswer((_) async => left(const NetworkFailure()));
+      when(() => medical.fetchAppointmentsFromServer(code))
+          .thenAnswer((_) async => right(const []));
       final c = ProviderContainer(
         overrides: [
           firestoreProvider.overrideWithValue(db),

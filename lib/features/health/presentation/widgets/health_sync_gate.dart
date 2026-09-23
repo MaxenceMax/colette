@@ -5,7 +5,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 /// Rafraîchit rappels santé et calendrier au lancement, dès qu'un foyer existe,
-/// puis à chaque nouvel état des visites (retour du réseau, saisie de l'autre iPhone).
+/// puis à chaque nouvel état des visites ou des RDV libres (retour du réseau,
+/// saisie de l'autre iPhone).
 class HealthSyncGate extends ConsumerStatefulWidget {
   const HealthSyncGate({super.key, required this.child});
 
@@ -31,6 +32,9 @@ class _HealthSyncGateState extends ConsumerState<HealthSyncGate> {
     // La sync relit le serveur et ne fait rien hors ligne : la relancer sur
     // chaque émission, cache compris, suffit (les appels sont fusionnés).
     ref.listenManual(medicalVisitsProvider, (_, next) {
+      if (next is AsyncData) ref.read(healthSyncProvider).sync();
+    });
+    ref.listenManual(medicalAppointmentsProvider, (_, next) {
       if (next is AsyncData) ref.read(healthSyncProvider).sync();
     });
   }
