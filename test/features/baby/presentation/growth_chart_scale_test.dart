@@ -97,4 +97,16 @@ void main() {
     expect(scale.step, 5);
     expect(scale.ticks, [340, 345, 350]);
   });
+
+  test('taille : plusieurs mois avec courbes OMS, pas de 100 mm', () {
+    final scale = GrowthChartScale.fromPoints([
+      point(DateTime(2026, 3, 1), 460),
+      point(DateTime(2026, 9, 1), 720),
+    ], metric: GrowthMetric.length);
+    expect(scale.step, 100);
+    expect(
+      scale.ticks.length - 1,
+      lessThanOrEqualTo(GrowthChartScale.maxIntervals),
+    );
+  });
 }

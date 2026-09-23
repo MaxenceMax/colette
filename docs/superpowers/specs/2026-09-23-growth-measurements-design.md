@@ -86,7 +86,7 @@ Formatage des centimètres : `NumberFormat('0.0', 'fr')` sur `mm / 10` (virgule 
 
 `WeightChart` et `WeightChartScale` deviennent `GrowthChart` et `GrowthChartScale`, qui prennent des points `(DateTime date, int value)` et un `GrowthMetric` :
 
-- Pas de graduation : poids `[100, 250, 500, 1000, 2000]` g ; taille et périmètre `[5, 10, 20, 50]` mm. Même règle de choix (au plus 4 intervalles).
+- Pas de graduation : poids `[100, 250, 500, 1000, 2000]` g ; taille et périmètre `[5, 10, 20, 50, 100]` mm. Même règle de choix (au plus 4 intervalles).
 - Libellés d'axe : grammes pour le poids (format actuel), centimètres sans décimale pour la taille et le périmètre si le pas est un multiple de 10 mm, sinon avec une décimale.
 - Mode `compact` inchangé (carte d'accueil).
 

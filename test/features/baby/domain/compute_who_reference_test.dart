@@ -43,6 +43,22 @@ void main() {
     );
   });
 
+  test('taille, fille à 365 jours', () {
+    final p = at(GrowthMetric.length, BabySex.female, DateTime(2027, 9, 1));
+    expect(p.ageDays, 365);
+    expect(values(p), (692, 740, 788));
+  });
+
+  test('périmètre crânien, garçon à 365 jours', () {
+    final p = at(
+      GrowthMetric.headCircumference,
+      BabySex.male,
+      DateTime(2027, 9, 1),
+    );
+    expect(p.ageDays, 365);
+    expect(values(p), (436, 461, 485));
+  });
+
   test('périmètre crânien en millimètres : garçon à la naissance, fille à 730 jours', () {
     expect(values(at(GrowthMetric.headCircumference, BabySex.male, birth)), (
       321,

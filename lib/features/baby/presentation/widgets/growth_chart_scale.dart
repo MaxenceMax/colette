@@ -53,7 +53,7 @@ class GrowthChartScale {
   static List<int> stepsFor(GrowthMetric metric) => switch (metric) {
     GrowthMetric.weight => const [100, 250, 500, 1000, 2000],
     GrowthMetric.length ||
-    GrowthMetric.headCircumference => const [5, 10, 20, 50],
+    GrowthMetric.headCircumference => const [5, 10, 20, 50, 100],
   };
 
   /// Date de la première mesure, abscisse 0.
