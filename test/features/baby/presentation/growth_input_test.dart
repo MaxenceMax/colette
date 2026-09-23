@@ -15,6 +15,10 @@ void main() {
     expect(GrowthInput.millimetres('54,5'), 545);
     expect(GrowthInput.millimetres('54.5'), 545);
     expect(GrowthInput.millimetres('37'), 370);
+    expect(GrowthInput.millimetres('54, 5'), 545);
+    expect(GrowthInput.millimetres('-5'), -50);
     expect(GrowthInput.millimetres('5a'), GrowthInput.unreadable);
+    expect(GrowthInput.millimetres('Infinity'), GrowthInput.unreadable);
+    expect(GrowthInput.millimetres('NaN'), GrowthInput.unreadable);
   });
 }

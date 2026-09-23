@@ -104,6 +104,9 @@ class _GrowthMeasurementSheetState
     final s = S.of(context);
     // Gardé à l'écoute : `_pickDate` y lit la date de naissance, borne basse.
     ref.watch(babyProfileProvider);
+    // Garde le contrôleur autoDispose vivant pendant l'await de `_save`
+    // et désactive le bouton pendant l'écriture (pas de double enregistrement).
+    final isSaving = ref.watch(babySettingsControllerProvider) is AsyncLoading;
     const decimal = TextInputType.numberWithOptions(decimal: true);
     return Padding(
       padding: EdgeInsets.only(bottom: MediaQuery.viewInsetsOf(context).bottom),
@@ -146,7 +149,7 @@ class _GrowthMeasurementSheetState
           ListenableBuilder(
             listenable: _fields,
             builder: (context, _) => FilledButton(
-              onPressed: _allEmpty ? null : _save,
+              onPressed: _allEmpty || isSaving ? null : _save,
               child: Text(s.actionSave),
             ),
           ),

@@ -1,5 +1,8 @@
+import 'dart:async';
+
 import 'package:colette/core/clock/app_clock.dart';
 import 'package:colette/core/ids/id_generator.dart';
+import 'package:colette/core/result/failure.dart';
 import 'package:colette/features/baby/domain/entities/baby_profile.dart';
 import 'package:colette/features/baby/domain/entities/growth_measurement.dart';
 import 'package:colette/features/baby/domain/repositories/baby_repository.dart';
@@ -152,5 +155,64 @@ void main() {
                 .single
             as GrowthMeasurement;
     expect(saved, initial.copyWith(headCircumferenceMm: null));
+  });
+
+  testWidgets('taille hors bornes : pas d\'enregistrement, la feuille reste', (
+    tester,
+  ) async {
+    await pumpApp(
+      tester,
+      const Scaffold(body: GrowthMeasurementSheet()),
+      overrides: overrides(),
+    );
+    await tester.enterText(
+      find.widgetWithText(TextField, 'Taille (cm)'),
+      '150',
+    );
+    await tester.pump();
+    await tester.tap(find.text('Enregistrer'));
+    await tester.pumpAndSettle();
+    verifyNever(() => repo.saveMeasurement(any(), any()));
+    expect(find.byType(GrowthMeasurementSheet), findsOneWidget);
+  });
+
+  testWidgets('se ferme après un enregistrement réussi', (tester) async {
+    await pumpApp(
+      tester,
+      Scaffold(
+        body: Builder(
+          builder: (context) => ElevatedButton(
+            onPressed: () => showGrowthMeasurementSheet(context),
+            child: const Text('Ouvrir'),
+          ),
+        ),
+      ),
+      overrides: overrides(),
+    );
+    await tester.tap(find.text('Ouvrir'));
+    await tester.pumpAndSettle();
+    await tester.enterText(find.widgetWithText(TextField, 'Poids (g)'), '3000');
+    await tester.pump();
+    await tester.tap(find.text('Enregistrer'));
+    await tester.pumpAndSettle();
+    expect(find.byType(GrowthMeasurementSheet), findsNothing);
+  });
+
+  testWidgets('bouton inactif pendant l\'enregistrement', (tester) async {
+    final completer = Completer<Either<Failure, void>>();
+    when(() => repo.saveMeasurement(any(), any()))
+        .thenAnswer((_) => completer.future);
+    await pumpApp(
+      tester,
+      const Scaffold(body: GrowthMeasurementSheet()),
+      overrides: overrides(),
+    );
+    await tester.enterText(find.widgetWithText(TextField, 'Poids (g)'), '3000');
+    await tester.pump();
+    await tester.tap(find.text('Enregistrer'));
+    await tester.pump();
+    expect(saveButton(tester), isNull);
+    completer.complete(right(null));
+    await tester.pumpAndSettle();
   });
 }

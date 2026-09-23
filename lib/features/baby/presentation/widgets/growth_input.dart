@@ -18,6 +18,6 @@ abstract final class GrowthInput {
     final cleaned = text.replaceAll(_spaces, '').replaceAll(',', '.');
     if (cleaned.isEmpty) return null;
     final cm = double.tryParse(cleaned);
-    return cm == null ? unreadable : (cm * 10).round();
+    return cm == null || !cm.isFinite ? unreadable : (cm * 10).round();
   }
 }
