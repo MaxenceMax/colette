@@ -41,12 +41,23 @@ void main() {
       code,
       FeedingPlanSnapshot(
         nextBottleAt: DateTime(2026, 9, 21, 14),
+        windowStartAt: DateTime(2026, 9, 21, 13, 35),
+        windowEndAt: DateTime(2026, 9, 21, 14, 25),
         suggestedMl: 120,
         computedAt: DateTime(2026, 9, 21, 11),
       ),
     );
     final data = (await db.collection('households').doc(code).get()).data()!;
-    expect((data['feedingPlan'] as Map)['suggestedMl'], 120);
+    final plan = data['feedingPlan'] as Map<String, dynamic>;
+    expect(plan['suggestedMl'], 120);
+    expect(
+      (plan['windowStartAt'] as Timestamp).toDate(),
+      DateTime(2026, 9, 21, 13, 35),
+    );
+    expect(
+      (plan['windowEndAt'] as Timestamp).toDate(),
+      DateTime(2026, 9, 21, 14, 25),
+    );
     expect(data['baby'], isNotNull);
   });
 
