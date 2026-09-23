@@ -43,14 +43,19 @@ class DocumentsPreviewController extends _$DocumentsPreviewController {
   /// Suit le dossier parent jusqu'à ce que l'entrée soit téléchargée
   /// (→ aperçu) ou que le téléchargement retombe (→ `io`).
   void _waitForDownload() {
+    final folder = documentsFolderProvider(parentPath(path));
     var seenDownloading = false;
+    var settled = false;
     _stopWaiting();
-    _waiting = ref.listen(documentsFolderProvider(parentPath(path)), (_, next) {
+
+    void handle(AsyncValue<List<DocumentEntry>> next) {
+      if (settled) return;
       final entries = next.value;
       if (entries == null) return;
       final current = entries.where((e) => e.path == path).firstOrNull;
       switch (current?.downloadStatus) {
         case DownloadStatus.downloaded:
+          settled = true;
           _stopWaiting();
           unawaited(_preview());
         case DownloadStatus.downloading:
@@ -59,13 +64,20 @@ class DocumentsPreviewController extends _$DocumentsPreviewController {
           // iCloud n'a pas encore pris le téléchargement en compte.
           break;
         case DownloadStatus.notDownloaded || null:
+          settled = true;
           _stopWaiting();
           state = AsyncError(
             const DocumentsFailure(DocumentsReason.io),
             StackTrace.current,
           );
       }
-    }, fireImmediately: true);
+    }
+
+    _waiting = ref.listen(folder, (_, next) => handle(next));
+    // Valeur courante, évaluée après l'abonnement pour que `_stopWaiting`
+    // ferme bien la souscription si l'issue est immédiate (tuile périmée :
+    // le fichier est déjà là).
+    handle(ref.read(folder));
   }
 
   void _stopWaiting() {
