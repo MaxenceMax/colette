@@ -1,4 +1,6 @@
+import 'package:colette/core/result/failure.dart';
 import 'package:colette/features/documents/presentation/providers/documents_open_in_files_controller.dart';
+import 'package:colette/features/documents/presentation/providers/documents_providers.dart';
 import 'package:colette/l10n/generated/app_localizations.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -16,9 +18,17 @@ class DocumentsOpenInFilesButton extends ConsumerWidget {
     // Garde le contrôleur autoDispose vivant pendant l'await de open().
     final opening = ref.watch(controller).isLoading;
     ref.listen(controller, (_, next) {
-      if (next is AsyncError) {
-        ScaffoldMessenger.of(context)
-            .showSnackBar(SnackBar(content: Text(s.documentsErrorOpenInFiles)));
+      if (next case AsyncError(:final error)) {
+        switch (error) {
+          case DocumentsFailure(
+            reason: DocumentsReason.noFolder || DocumentsReason.accessDenied,
+          ):
+            ref.invalidate(documentsFolderProvider(path));
+          default:
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(content: Text(s.documentsErrorOpenInFiles)),
+            );
+        }
       }
     });
     return IconButton(

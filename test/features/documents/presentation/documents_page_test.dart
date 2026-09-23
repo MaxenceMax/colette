@@ -732,4 +732,60 @@ void main() {
     expect(find.text("Impossible d'ouvrir Fichiers"), findsOneWidget);
     verify(() => repo.openInFiles('Ordonnances')).called(1);
   });
+
+  testWidgets('bouton Fichiers : disparaît quand une erreur suit la liste', (
+    tester,
+  ) async {
+    final events = StreamController<Either<Failure, List<DocumentEntry>>>();
+    addTearDown(events.close);
+    when(() => repo.watch('')).thenAnswer((_) => events.stream);
+    await pumpPage(tester, settle: false);
+    events.add(right([entry('a.pdf')]));
+    await tester.pump();
+    expect(find.byTooltip('Ouvrir dans Fichiers'), findsOneWidget);
+    events.add(left(const DocumentsFailure(DocumentsReason.accessDenied)));
+    await tester.pump();
+    expect(find.byTooltip('Ouvrir dans Fichiers'), findsNothing);
+    expect(find.text("Colette n'a plus accès au dossier"), findsOneWidget);
+  });
+
+  testWidgets('bouton Fichiers : désactivé pendant l\'ouverture', (
+    tester,
+  ) async {
+    final opening = Completer<Either<Failure, void>>();
+    when(() => repo.watch(''))
+        .thenAnswer((_) => Stream.value(right([entry('a.pdf')])));
+    when(() => repo.openInFiles('')).thenAnswer((_) => opening.future);
+    await pumpPage(tester);
+    final button = find.widgetWithIcon(IconButton, Icons.folder_open_outlined);
+    await tester.tap(button);
+    await tester.pump();
+    expect(tester.widget<IconButton>(button).onPressed, isNull);
+    opening.complete(right(null));
+    await tester.pumpAndSettle();
+    expect(tester.widget<IconButton>(button).onPressed, isNotNull);
+  });
+
+  testWidgets('bouton Fichiers : accès perdu → vue dédiée, pas de SnackBar', (
+    tester,
+  ) async {
+    var watchCalls = 0;
+    when(() => repo.watch('')).thenAnswer((_) {
+      watchCalls++;
+      return Stream.value(
+        watchCalls == 1
+            ? right([entry('a.pdf')])
+            : left(const DocumentsFailure(DocumentsReason.accessDenied)),
+      );
+    });
+    when(() => repo.openInFiles('')).thenAnswer(
+      (_) async => left(const DocumentsFailure(DocumentsReason.accessDenied)),
+    );
+    await pumpPage(tester);
+    await tester.tap(find.byTooltip('Ouvrir dans Fichiers'));
+    await tester.pumpAndSettle();
+    expect(find.text("Colette n'a plus accès au dossier"), findsOneWidget);
+    expect(find.byType(SnackBar), findsNothing);
+    expect(watchCalls, 2);
+  });
 }
