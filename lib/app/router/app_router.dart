@@ -27,8 +27,8 @@ abstract final class AppRoutes {
   /// Page Croissance, imbriquée sous Aujourd'hui pour garder la barre d'onglets.
   static const growth = '/today/growth';
 
-  /// Page Santé, imbriquée sous Aujourd'hui pour garder la barre d'onglets.
-  static const health = '/today/health';
+  /// Onglet Santé.
+  static const health = '/health';
 
   /// Page Sommeil, imbriquée sous Aujourd'hui pour garder la barre d'onglets.
   static const sleep = '/today/sleep';
@@ -90,16 +90,35 @@ GoRouter appRouter(Ref ref) {
           StatefulShellBranch(
             routes: [
               GoRoute(
+                path: AppRoutes.journal,
+                builder: (_, _) => const TimelinePage(),
+              ),
+            ],
+          ),
+          StatefulShellBranch(
+            routes: [
+              GoRoute(
+                path: AppRoutes.plate,
+                builder: (_, _) => const PlatePage(),
+                routes: [
+                  GoRoute(
+                    path: 'food/:foodId',
+                    builder: (_, state) =>
+                        FoodDetailPage(foodId: state.pathParameters['foodId']!),
+                  ),
+                ],
+              ),
+            ],
+          ),
+          StatefulShellBranch(
+            routes: [
+              GoRoute(
                 path: AppRoutes.today,
                 builder: (_, _) => const DashboardPage(),
                 routes: [
                   GoRoute(
                     path: 'growth',
                     builder: (_, _) => const GrowthPage(),
-                  ),
-                  GoRoute(
-                    path: 'health',
-                    builder: (_, _) => const HealthPage(),
                   ),
                   GoRoute(path: 'sleep', builder: (_, _) => const SleepPage()),
                   GoRoute(
@@ -118,23 +137,8 @@ GoRouter appRouter(Ref ref) {
           StatefulShellBranch(
             routes: [
               GoRoute(
-                path: AppRoutes.journal,
-                builder: (_, _) => const TimelinePage(),
-              ),
-            ],
-          ),
-          StatefulShellBranch(
-            routes: [
-              GoRoute(
-                path: AppRoutes.plate,
-                builder: (_, _) => const PlatePage(),
-                routes: [
-                  GoRoute(
-                    path: 'food/:foodId',
-                    builder: (_, state) =>
-                        FoodDetailPage(foodId: state.pathParameters['foodId']!),
-                  ),
-                ],
+                path: AppRoutes.health,
+                builder: (_, _) => const HealthPage(),
               ),
             ],
           ),
