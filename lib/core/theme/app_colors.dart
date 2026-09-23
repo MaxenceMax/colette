@@ -50,6 +50,12 @@ enum AppColors {
   /// Eucalyptus : courbes et zone de référence OMS, distinctes des pesées cannelle.
   growthReference(light: Color(0xFF57795D), dark: Color(0xFF9DBBA2)),
 
+  /// Prune : nuits sur la frise du sommeil, icône lune.
+  sleepNight(light: Color(0xFF6B5B7B), dark: Color(0xFFB7A6C9)),
+
+  /// Lilas pâle : siestes sur la frise du sommeil (fond uniquement, jamais en texte).
+  sleepNap(light: Color(0xFFD6C8E0), dark: Color(0xFF5E4F70)),
+
   shadow(light: Color(0xFF000000), dark: Color(0xFFFFFFFF));
 
   const AppColors({required this.light, required this.dark});

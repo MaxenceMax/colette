@@ -4,4 +4,5 @@ abstract final class FirestorePaths {
   static const events = 'events';
   static const weights = 'weights';
   static const devices = 'devices';
+  static const sleeps = 'sleeps';
 }
