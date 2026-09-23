@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:colette/core/clock/app_clock.dart';
 import 'package:colette/core/clock/now_providers.dart';
 import 'package:colette/core/ids/id_generator.dart';
@@ -17,12 +19,17 @@ import '../../../helpers/sleep_session_factory.dart';
 
 void main() {
   final now = DateTime(2026, 9, 23, 21);
+  final profile = BabyProfile(name: 'Colette', birthDate: DateTime(2026, 9, 1));
 
-  ProviderContainer containerWith(FakeSleepRepository repo) {
+  ProviderContainer containerWith(
+    FakeSleepRepository repo, {
+    DateTime? clockNow,
+    Stream<BabyProfile?>? profileStream,
+  }) {
     final container = ProviderContainer(
       overrides: [
         sleepRepositoryProvider.overrideWithValue(repo),
-        clockProvider.overrideWithValue(FixedClock(now)),
+        clockProvider.overrideWithValue(FixedClock(clockNow ?? now)),
         minuteTickerProvider.overrideWith((ref) => const Stream.empty()),
         idGeneratorProvider.overrideWithValue(const FixedIdGenerator('new')),
         householdLocalStoreProvider.overrideWithValue(
@@ -32,9 +39,7 @@ void main() {
           ),
         ),
         babyProfileProvider.overrideWith(
-          (ref) => Stream.value(
-            BabyProfile(name: 'Colette', birthDate: DateTime(2026, 9, 1)),
-          ),
+          (ref) => profileStream ?? Stream.value(profile),
         ),
       ],
     );
@@ -64,6 +69,14 @@ void main() {
     expect(saved.createdByDeviceId, 'dev');
   });
 
+  test('fallAsleep à 14h classe le sommeil en sieste', () async {
+    final repo = FakeSleepRepository();
+    final c = containerWith(repo, clockNow: DateTime(2026, 9, 23, 14));
+    await settle(c);
+    expect(await c.read(sleepControllerProvider.notifier).fallAsleep(), isTrue);
+    expect(repo.saved.single.kind, SleepKind.nap);
+  });
+
   test('fallAsleep ne fait rien si un sommeil est déjà en cours', () async {
     final repo = FakeSleepRepository([
       makeSleep(id: 'o', startAt: DateTime(2026, 9, 23, 20)),
@@ -77,6 +90,51 @@ void main() {
     expect(repo.saved, isEmpty);
   });
 
+  test('fallAsleep renvoie false et expose l\'échec du dépôt', () async {
+    final repo = FakeSleepRepository()..failure = const NetworkFailure();
+    final c = containerWith(repo);
+    await settle(c);
+    expect(
+      await c.read(sleepControllerProvider.notifier).fallAsleep(),
+      isFalse,
+    );
+    expect(c.read(sleepControllerProvider).error, isA<NetworkFailure>());
+  });
+
+  test('un appel concurrent à fallAsleep est ignoré', () async {
+    final repo = FakeSleepRepository()..writeGate = Completer<void>();
+    final c = containerWith(repo);
+    await settle(c);
+    final notifier = c.read(sleepControllerProvider.notifier);
+    final first = notifier.fallAsleep();
+    expect(c.read(sleepControllerProvider), isA<AsyncLoading>());
+    expect(await notifier.fallAsleep(), isFalse);
+    repo.writeGate!.complete();
+    expect(await first, isTrue);
+    expect(repo.saved, hasLength(1));
+  });
+
+  test(
+    'le profil qui émet pendant une écriture ne remet pas l\'état à AsyncData',
+    () async {
+      final repo = FakeSleepRepository()..writeGate = Completer<void>();
+      final profileController = StreamController<BabyProfile?>.broadcast();
+      final c = containerWith(repo, profileStream: profileController.stream);
+      addTearDown(profileController.close);
+      profileController.add(profile);
+      await settle(c);
+      final future = c.read(sleepControllerProvider.notifier).fallAsleep();
+      await Future<void>.delayed(Duration.zero);
+      expect(c.read(sleepControllerProvider), isA<AsyncLoading>());
+      profileController.add(profile);
+      await Future<void>.delayed(Duration.zero);
+      expect(c.read(sleepControllerProvider), isA<AsyncLoading>());
+      repo.writeGate!.complete();
+      expect(await future, isTrue);
+      expect(c.read(sleepControllerProvider), isA<AsyncData<void>>());
+    },
+  );
+
   test('wakeUp ferme le plus ancien et supprime les doublons', () async {
     final first = makeSleep(id: 'a', startAt: DateTime(2026, 9, 23, 20));
     final dup = makeSleep(id: 'b', startAt: DateTime(2026, 9, 23, 20, 1));
@@ -89,53 +147,10 @@ void main() {
     expect(repo.lastWakeUp!.deleteIds, ['b']);
   });
 
-  test('save refuse un chevauchement et expose l\'échec', () async {
-    final other = makeSleep(
-      id: 'o',
-      startAt: DateTime(2026, 9, 23, 14),
-      endAt: DateTime(2026, 9, 23, 15),
-    );
-    final repo = FakeSleepRepository([other]);
+  test('wakeUp sans sommeil ouvert renvoie false', () async {
+    final repo = FakeSleepRepository();
     final c = containerWith(repo);
     await settle(c);
-    final draft = makeSleep(
-      id: 'n',
-      startAt: DateTime(2026, 9, 23, 14, 30),
-      endAt: DateTime(2026, 9, 23, 16),
-    );
-    expect(await c.read(sleepControllerProvider.notifier).save(draft), isNull);
-    expect(c.read(sleepControllerProvider).error, isA<SleepOverlapFailure>());
-    expect(repo.saved, isEmpty);
-  });
-
-  test(
-    'save enregistre un sommeil valide avec updatedAt = maintenant',
-    () async {
-      final repo = FakeSleepRepository();
-      final c = containerWith(repo);
-      await settle(c);
-      final draft = makeSleep(
-        id: 'n',
-        startAt: DateTime(2026, 9, 23, 14),
-        endAt: DateTime(2026, 9, 23, 15),
-      );
-      final saved = await c.read(sleepControllerProvider.notifier).save(draft);
-      expect(saved, draft.copyWith(updatedAt: now));
-      expect(repo.saved.single, draft.copyWith(updatedAt: now));
-    },
-  );
-
-  test('delete supprime et renvoie true', () async {
-    final repo = FakeSleepRepository([
-      makeSleep(
-        id: 'x',
-        startAt: DateTime(2026, 9, 23, 14),
-        endAt: DateTime(2026, 9, 23, 15),
-      ),
-    ]);
-    final c = containerWith(repo);
-    await settle(c);
-    expect(await c.read(sleepControllerProvider.notifier).delete('x'), isTrue);
-    expect(repo.deleted, ['x']);
+    expect(await c.read(sleepControllerProvider.notifier).wakeUp(), isFalse);
   });
 }

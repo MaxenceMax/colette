@@ -8,15 +8,15 @@ part of 'sleep_controller.dart';
 
 // GENERATED CODE - DO NOT MODIFY BY HAND
 // ignore_for_file: type=lint, type=warning
-/// Endormissement, réveil, saisie et suppression d'un sommeil.
+/// Endormissement et réveil, déclenchés depuis la carte d'accueil.
 
 @ProviderFor(SleepController)
 final sleepControllerProvider = SleepControllerProvider._();
 
-/// Endormissement, réveil, saisie et suppression d'un sommeil.
+/// Endormissement et réveil, déclenchés depuis la carte d'accueil.
 final class SleepControllerProvider
     extends $AsyncNotifierProvider<SleepController, void> {
-  /// Endormissement, réveil, saisie et suppression d'un sommeil.
+  /// Endormissement et réveil, déclenchés depuis la carte d'accueil.
   SleepControllerProvider._()
     : super(
         from: null,
@@ -36,9 +36,9 @@ final class SleepControllerProvider
   SleepController create() => SleepController();
 }
 
-String _$sleepControllerHash() => r'aad268891dc8fe6ae6005f8f19a83874c0c317a8';
+String _$sleepControllerHash() => r'6bd51e4fc536b593c02db277642a4719fa6e273a';
 
-/// Endormissement, réveil, saisie et suppression d'un sommeil.
+/// Endormissement et réveil, déclenchés depuis la carte d'accueil.
 
 abstract class _$SleepController extends $AsyncNotifier<void> {
   FutureOr<void> build();

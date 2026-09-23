@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:colette/core/result/failure.dart';
 import 'package:colette/features/sleep/domain/entities/sleep_session.dart';
 import 'package:colette/features/sleep/domain/repositories/sleep_repository.dart';
@@ -15,6 +17,10 @@ class FakeSleepRepository implements SleepRepository {
 
   /// Échec renvoyé par toutes les écritures, si renseigné.
   Failure? failure;
+
+  /// Si renseigné, chaque écriture attend cette complétion avant de finir :
+  /// permet de vérifier l'état du contrôleur pendant une écriture en cours.
+  Completer<void>? writeGate;
 
   List<SleepSession> _sorted(Iterable<SleepSession> list) =>
       [...list]..sort((a, b) => b.startAt.compareTo(a.startAt));
@@ -40,14 +46,15 @@ class FakeSleepRepository implements SleepRepository {
     ),
   );
 
-  Either<Failure, void> _write(void Function() action) {
+  Future<Either<Failure, void>> _write(void Function() action) async {
+    if (writeGate case final gate?) await gate.future;
     if (failure case final f?) return left(f);
     action();
     return right(null);
   }
 
   @override
-  Future<Either<Failure, void>> save(String code, SleepSession session) async =>
+  Future<Either<Failure, void>> save(String code, SleepSession session) =>
       _write(() {
         saved.add(session);
         sessions
@@ -56,7 +63,7 @@ class FakeSleepRepository implements SleepRepository {
       });
 
   @override
-  Future<Either<Failure, void>> delete(String code, String sessionId) async =>
+  Future<Either<Failure, void>> delete(String code, String sessionId) =>
       _write(() {
         deleted.add(sessionId);
         sessions.removeWhere((s) => s.id == sessionId);
@@ -67,7 +74,7 @@ class FakeSleepRepository implements SleepRepository {
     String code, {
     required SleepSession close,
     required List<String> deleteIds,
-  }) async => _write(() {
+  }) => _write(() {
     lastWakeUp = (close: close, deleteIds: deleteIds);
     sessions
       ..removeWhere((s) => s.id == close.id || deleteIds.contains(s.id))
