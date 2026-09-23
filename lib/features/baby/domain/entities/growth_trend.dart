@@ -31,7 +31,7 @@ abstract class GrowthTrend with _$GrowthTrend {
 
   /// Écart moyen par jour, arrondi ; affiché pour le poids seulement.
   int? get perDay => switch ((delta, days)) {
-    (final delta?, final days?) => (delta / days).round(),
+    (final delta?, final days?) when days > 0 => (delta / days).round(),
     _ => null,
   };
 }

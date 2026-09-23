@@ -23,7 +23,7 @@ enum GrowthMetric {
     return [for (final m in withValue) (at: m.measuredAt, value: valueOf(m)!)];
   }
 
-  /// Mesure la plus récente qui contient cette grandeur selon [_compare], ou `null`.
+  /// Mesure la plus récente qui contient cette grandeur, départagée par `id` à date égale ; `null` s'il n'y en a pas.
   GrowthMeasurement? latestOf(Iterable<GrowthMeasurement> measurements) {
     final withValue = measurements.where((m) => valueOf(m) != null).toList()
       ..sort(_compare);

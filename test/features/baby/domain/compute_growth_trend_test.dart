@@ -1,5 +1,6 @@
 import 'package:colette/features/baby/domain/entities/growth_measurement.dart';
 import 'package:colette/features/baby/domain/entities/growth_metric.dart';
+import 'package:colette/features/baby/domain/entities/growth_trend.dart';
 import 'package:colette/features/baby/domain/use_cases/compute_growth_trend.dart';
 import 'package:flutter_test/flutter_test.dart';
 
@@ -78,11 +79,22 @@ void main() {
   });
 
   test('compte les jours civils malgré le changement d\'heure', () {
+    // En Europe/Paris, cet intervalle ne fait que 47 h (passage à l'heure
+    // d'été) : un calcul naïf sur la durée donnerait 1 jour au lieu de 2.
     final trend = compute(GrowthMetric.weight, [
-      weight('a', DateTime(2026, 10, 24), 3500),
-      weight('b', DateTime(2026, 10, 26), 3560),
+      weight('a', DateTime(2026, 3, 28), 3500),
+      weight('b', DateTime(2026, 3, 30), 3560),
     ])!;
     expect(trend.days, 2);
+  });
+
+  test('plusieurs mesures le jour précédent : garde la plus récente', () {
+    final trend = compute(GrowthMetric.weight, [
+      weight('a', DateTime(2026, 9, 4, 8), 3500),
+      weight('b', DateTime(2026, 9, 4, 20), 3520),
+      weight('c', DateTime(2026, 9, 5), 3600),
+    ])!;
+    expect(trend.previousValue, 3520);
   });
 
   test('taille : ignore les mesures sans taille', () {
@@ -115,6 +127,23 @@ void main() {
         weight('a', DateTime(2026, 9, 2), 3200),
       ]),
       isNull,
+    );
+  });
+
+  group('GrowthTrend', () {
+    test(
+      'previousAt le même jour civil que latestAt : jours nuls, pas de perDay',
+      () {
+        final trend = GrowthTrend(
+          metric: GrowthMetric.weight,
+          latestValue: 3600,
+          latestAt: DateTime(2026, 9, 5, 18),
+          previousValue: 3500,
+          previousAt: DateTime(2026, 9, 5, 8),
+        );
+        expect(trend.days, 0);
+        expect(trend.perDay, isNull);
+      },
     );
   });
 }
