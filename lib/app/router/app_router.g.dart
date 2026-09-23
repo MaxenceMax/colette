@@ -8,17 +8,17 @@ part of 'app_router.dart';
 
 // GENERATED CODE - DO NOT MODIFY BY HAND
 // ignore_for_file: type=lint, type=warning
-/// Routeur : onboarding tant qu'aucun foyer, sinon shell à trois onglets.
+/// Routeur : onboarding tant qu'aucun foyer, sinon shell à quatre onglets.
 
 @ProviderFor(appRouter)
 final appRouterProvider = AppRouterProvider._();
 
-/// Routeur : onboarding tant qu'aucun foyer, sinon shell à trois onglets.
+/// Routeur : onboarding tant qu'aucun foyer, sinon shell à quatre onglets.
 
 final class AppRouterProvider
     extends $FunctionalProvider<GoRouter, GoRouter, GoRouter>
     with $Provider<GoRouter> {
-  /// Routeur : onboarding tant qu'aucun foyer, sinon shell à trois onglets.
+  /// Routeur : onboarding tant qu'aucun foyer, sinon shell à quatre onglets.
   AppRouterProvider._()
     : super(
         from: null,
@@ -52,4 +52,4 @@ final class AppRouterProvider
   }
 }
 
-String _$appRouterHash() => r'964e78de20235b53af207dfdcf1ccb0d9f62e460';
+String _$appRouterHash() => r'5ac16ae144cfac1acad9cba485038ac078b27519';

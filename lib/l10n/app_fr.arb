@@ -338,5 +338,18 @@
   "catalogFilterAvoid": "À éviter",
   "catalogAllergenFilter": "Contient : {allergen}",
   "@catalogAllergenFilter": { "placeholders": { "allergen": { "type": "String" } } },
-  "catalogClearSearch": "Effacer la recherche"
+  "catalogClearSearch": "Effacer la recherche",
+  "actionEdit": "Modifier",
+  "foodDetailRules": "Repères",
+  "foodDetailNoRules": "Aucun repère particulier pour cet aliment.",
+  "foodDetailAllergens": "Allergènes",
+  "foodDetailNoAllergen": "Aucun allergène majeur.",
+  "foodDetailHistory": "Dégustations",
+  "foodDetailNoTasting": "Pas encore goûté.",
+  "foodDetailCustom": "Aliment ajouté par le foyer.",
+  "foodDetailDeleteFood": "Supprimer cet aliment",
+  "foodDetailDeleteFoodConfirm": "Supprimer « {name} » ?",
+  "@foodDetailDeleteFoodConfirm": { "placeholders": { "name": { "type": "String" } } },
+  "tastingDeleteConfirm": "Supprimer cette dégustation ?",
+  "tastingReactionShort": "réaction"
 }
