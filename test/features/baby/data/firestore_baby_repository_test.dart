@@ -1,7 +1,9 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:colette/features/baby/data/repositories/firestore_baby_repository.dart';
 import 'package:colette/features/baby/domain/entities/baby_profile.dart';
 import 'package:colette/features/baby/domain/entities/care_settings.dart';
 import 'package:colette/features/baby/domain/entities/feeding_plan_snapshot.dart';
+import 'package:colette/features/baby/domain/entities/growth_measurement.dart';
 import 'package:colette/features/baby/domain/entities/weight_entry.dart';
 import 'package:fake_cloud_firestore/fake_cloud_firestore.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -88,5 +90,99 @@ void main() {
     );
     final stored = await repo.watchProfile(code).first;
     expect(stored?.careSettings.dailyTargetMl, isNull);
+  });
+
+  group('mesures de croissance', () {
+    CollectionReference<Map<String, dynamic>> weights(
+      FakeFirebaseFirestore db,
+    ) => db.collection('households').doc(code).collection('weights');
+
+    test('relit une ancienne pesée sans taille ni périmètre', () async {
+      final db = FakeFirebaseFirestore();
+      await weights(db).doc('old').set({
+        'measuredAt': Timestamp.fromDate(DateTime(2026, 9, 2)),
+        'grams': 3200,
+      });
+      final repo = FirestoreBabyRepository(db);
+      expect(await repo.watchMeasurements(code).first, [
+        GrowthMeasurement(
+          id: 'old',
+          measuredAt: DateTime(2026, 9, 2),
+          grams: 3200,
+        ),
+      ]);
+    });
+
+    test(
+      'aller-retour d\'une mesure complète et d\'une mesure sans poids',
+      () async {
+        final repo = FirestoreBabyRepository(FakeFirebaseFirestore());
+        final full = GrowthMeasurement(
+          id: 'm1',
+          measuredAt: DateTime(2026, 9, 2),
+          grams: 3200,
+          lengthMm: 520,
+          headCircumferenceMm: 350,
+        );
+        final lengthOnly = GrowthMeasurement(
+          id: 'm2',
+          measuredAt: DateTime(2026, 9, 10),
+          lengthMm: 530,
+        );
+        await repo.saveMeasurement(code, full);
+        await repo.saveMeasurement(code, lengthOnly);
+        expect(await repo.watchMeasurements(code).first, [lengthOnly, full]);
+      },
+    );
+
+    test('n\'écrit pas de clé nulle', () async {
+      final db = FakeFirebaseFirestore();
+      await FirestoreBabyRepository(db).saveMeasurement(
+        code,
+        GrowthMeasurement(
+          id: 'm',
+          measuredAt: DateTime(2026, 9, 2),
+          lengthMm: 520,
+        ),
+      );
+      final data = (await weights(db).doc('m').get()).data()!;
+      expect(data.keys, unorderedEquals(['measuredAt', 'lengthMm']));
+    });
+
+    test(
+      'une modification qui retire le périmètre le retire du document',
+      () async {
+        final db = FakeFirebaseFirestore();
+        final repo = FirestoreBabyRepository(db);
+        final measurement = GrowthMeasurement(
+          id: 'm',
+          measuredAt: DateTime(2026, 9, 2),
+          grams: 3200,
+          headCircumferenceMm: 350,
+        );
+        await repo.saveMeasurement(code, measurement);
+        await repo.saveMeasurement(
+          code,
+          measurement.copyWith(headCircumferenceMm: null),
+        );
+        final data = (await weights(db).doc('m').get()).data()!;
+        expect(data.containsKey('headCircumferenceMm'), isFalse);
+        expect(data['grams'], 3200);
+      },
+    );
+
+    test('deleteMeasurement retire la mesure', () async {
+      final repo = FirestoreBabyRepository(FakeFirebaseFirestore());
+      await repo.saveMeasurement(
+        code,
+        GrowthMeasurement(
+          id: 'm',
+          measuredAt: DateTime(2026, 9, 2),
+          grams: 3200,
+        ),
+      );
+      await repo.deleteMeasurement(code, 'm');
+      expect(await repo.watchMeasurements(code).first, isEmpty);
+    });
   });
 }
