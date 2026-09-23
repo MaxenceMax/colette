@@ -16,7 +16,7 @@ enum GrowthMetric {
     GrowthMetric.headCircumference => measurement.headCircumferenceMm,
   };
 
-  /// Points des mesures qui contiennent cette grandeur, triés par [_compare] (ordre déterministe même à date égale).
+  /// Points des mesures qui contiennent cette grandeur, du plus ancien au plus récent, départagés par `id` à date égale.
   List<GrowthPoint> seriesOf(Iterable<GrowthMeasurement> measurements) {
     final withValue = measurements.where((m) => valueOf(m) != null).toList()
       ..sort(_compare);
