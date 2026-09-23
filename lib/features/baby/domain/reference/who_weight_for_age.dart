@@ -2,10 +2,9 @@
 // WorldHealthOrganization/anthro (standards de croissance OMS 2006),
 // jours 0 à 730. Ne pas modifier à la main.
 
-/// Paramètres LMS OMS du poids pour l'âge : `(L, M en kg, S)`, indexés par jour de vie.
-typedef WhoLms = (double, double, double);
+import 'package:colette/features/baby/domain/reference/who_lms.dart';
 
-/// Filles, jours 0 à 730.
+/// Filles, jours 0 à 730 : `(L, M en kg, S)` du poids pour l'âge.
 const whoWeightForAgeGirls = <WhoLms>[
   (0.3809, 3.2322, 0.14171),
   (0.3259, 3.1957, 0.14578),
@@ -740,7 +739,7 @@ const whoWeightForAgeGirls = <WhoLms>[
   (-0.294, 11.4741, 0.12389),
 ];
 
-/// Garçons, jours 0 à 730.
+/// Garçons, jours 0 à 730 : `(L, M en kg, S)` du poids pour l'âge.
 const whoWeightForAgeBoys = <WhoLms>[
   (0.3487, 3.3464, 0.14602),
   (0.3127, 3.3174, 0.14693),

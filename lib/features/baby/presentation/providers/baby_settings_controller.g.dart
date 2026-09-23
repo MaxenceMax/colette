@@ -8,15 +8,15 @@ part of 'baby_settings_controller.dart';
 
 // GENERATED CODE - DO NOT MODIFY BY HAND
 // ignore_for_file: type=lint, type=warning
-/// Actions de l'onglet Réglages sur le profil, les pesées et les soins attendus.
+/// Actions de l'onglet Réglages sur le profil, les mesures de croissance et les soins attendus.
 
 @ProviderFor(BabySettingsController)
 final babySettingsControllerProvider = BabySettingsControllerProvider._();
 
-/// Actions de l'onglet Réglages sur le profil, les pesées et les soins attendus.
+/// Actions de l'onglet Réglages sur le profil, les mesures de croissance et les soins attendus.
 final class BabySettingsControllerProvider
     extends $AsyncNotifierProvider<BabySettingsController, void> {
-  /// Actions de l'onglet Réglages sur le profil, les pesées et les soins attendus.
+  /// Actions de l'onglet Réglages sur le profil, les mesures de croissance et les soins attendus.
   BabySettingsControllerProvider._()
     : super(
         from: null,
@@ -37,9 +37,9 @@ final class BabySettingsControllerProvider
 }
 
 String _$babySettingsControllerHash() =>
-    r'682da5531828c8f1d01f18dd88b6a93743fa2ea1';
+    r'5e726ad94b13261c5a47173b1d43fb07f2325c08';
 
-/// Actions de l'onglet Réglages sur le profil, les pesées et les soins attendus.
+/// Actions de l'onglet Réglages sur le profil, les mesures de croissance et les soins attendus.
 
 abstract class _$BabySettingsController extends $AsyncNotifier<void> {
   FutureOr<void> build();

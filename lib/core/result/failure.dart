@@ -9,6 +9,9 @@ enum ValidationReason {
   unknownHouseholdCode,
   notificationsDenied,
   invalidDiaperCount,
+  emptyMeasurement,
+  invalidLength,
+  invalidHeadCircumference,
 }
 
 /// Erreur remontée par les repositories et les use cases via `Either`.

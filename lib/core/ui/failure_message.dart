@@ -15,6 +15,10 @@ String failureMessage(Object failure, S s) => switch (failure) {
     ValidationReason.unknownHouseholdCode => s.errorUnknownCode,
     ValidationReason.notificationsDenied => s.errorNotificationsDenied,
     ValidationReason.invalidDiaperCount => s.errorInvalidDiaperCount,
+    ValidationReason.emptyMeasurement => s.errorEmptyMeasurement,
+    ValidationReason.invalidLength => s.errorInvalidLength,
+    ValidationReason.invalidHeadCircumference =>
+      s.errorInvalidHeadCircumference,
   },
   DocumentsFailure(:final reason) => switch (reason) {
     DocumentsReason.noFolder ||
