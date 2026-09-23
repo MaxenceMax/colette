@@ -21,32 +21,31 @@ Wordmark « Colette » en Fraunces (graisse 600), converti en tracés dans le SV
 
 ## Sources et export
 
-- `assets/brand/logo.svg` : le bébé seul, fond transparent.
-- `assets/brand/icon.svg`, `icon-dark.svg`, `icon-tinted.svg` : icône 1024 × 1024 carrée (iOS applique le masque), fond poudre `#F3E2DA`, cacao `#1C1514` pour la variante sombre ; la variante teintée est le logo en niveaux de gris sur fond transparent (iOS applique la teinte).
-- `assets/brand/splash.svg`, `splash-dark.svg` : logo + wordmark, fond transparent.
-- `tool/export_brand.sh` : exporte tous les PNG avec `rsvg-convert` (`brew install librsvg`), idempotent. Les PNG générés sont versionnés ; le script échoue avec un message clair si `rsvg-convert` est absent.
+- `assets/brand/logo.svg` : le bébé seul sur un carré 1024 transparent (marges incluses pour le masque d'icône).
+- `assets/brand/logo-tinted.svg` : le même en niveaux de gris, pour la variante teintée.
+- `assets/brand/wordmark.svg` : « Colette » en tracés, généré une fois par `tool/brand/wordmark.swift` depuis le TTF Fraunces 600 (chemin passé en argument ; le TTF n'est pas versionné).
+- `tool/brand/export.swift` : rend les SVG avec AppKit (`NSImage`, aucune installation requise) et compose tous les PNG : icônes (fond plein + logo), visuels de lancement (logo + wordmark, recoloré en clair ou sombre). Lancement : `swift tool/brand/export.swift`. Idempotent ; les PNG générés sont versionnés.
 
 PNG produits :
 
 - `ios/Runner/Assets.xcassets/AppIcon.appiconset/` : une seule entrée universelle 1024 px, plus les variantes `dark` et `tinted` (iOS 18 ; ignorées par iOS 15–17). Les anciennes tailles multiples sont supprimées du catalogue.
-- `assets/brand/splash.png`, `splash-dark.png` (@1x, 2.0x, 3.0x) : utilisés à la fois par le launch screen natif et par l'intro Flutter.
+- `ios/Runner/Assets.xcassets/LaunchImage.imageset/` : visuel logo + wordmark @1x/2x/3x, variantes claire et sombre (`appearances` luminosity).
+- `assets/brand/splash.png`, `splash_dark.png` avec variantes `2.0x/` et `3.0x/` : mêmes pixels pour l'intro Flutter.
 
 ## Launch screen natif
 
-Généré par `flutter_native_splash` (dépendance de dev), configuré dans `pubspec.yaml` :
+Édité à la main (pas de `flutter_native_splash`, qui aurait fait bouger 8 dépendances) :
 
-- `color` `#FBF5EF`, `color_dark` `#1C1514` (valeurs de `AppColors.pageBackground`).
-- `image` `assets/brand/splash.png`, `image_dark` `assets/brand/splash-dark.png`, centrés.
-- `android: false`, `web: false` (iOS uniquement).
-- Ni `preserve` ni `remove` : le natif disparaît au premier frame Flutter, comme aujourd'hui.
-
-Le storyboard par défaut et `LaunchImage.imageset` sont remplacés par la sortie du générateur.
+- `LaunchScreen.storyboard` : fond = couleur nommée `LaunchBackground`, `LaunchImage` centrée.
+- `Assets.xcassets/LaunchBackground.colorset` : `#FBF5EF` en clair, `#1C1514` en sombre (valeurs de `AppColors.pageBackground`).
+- `LaunchImage.imageset` : produit par le script d'export (voir plus haut).
+- Le natif disparaît au premier frame Flutter, comme aujourd'hui.
 
 ## Intro Flutter
 
 Widget `SplashIntro` dans `lib/app/splash_intro.dart`, posé en overlay au-dessus du routeur via `MaterialApp.router(builder: …)` dans `ColetteApp`. Il n'existe qu'une fois par processus : l'intro se joue au démarrage à froid seulement, jamais au retour du fond.
 
-Premier frame identique à l'écran natif : fond `context.appColor(AppColors.pageBackground)`, même image (`splash.png` ou `splash-dark.png` selon la luminosité), même taille logique, centrée. Taille logique de l'image : celle du PNG @1x, fixée par l'asset lui-même (pas de `width`/`height` en dur).
+Premier frame identique à l'écran natif : fond `context.appColor(AppColors.pageBackground)`, même image (`splash.png` ou `splash_dark.png` selon la luminosité), même taille logique, centrée. Taille logique de l'image : celle du PNG @1x, fixée par l'asset lui-même (pas de `width`/`height` en dur).
 
 Séquence (≈ 1,1 s), un seul `AnimationController` et des `Interval` :
 
