@@ -20,3 +20,19 @@ int calendarDaysBetween(DateTime from, DateTime to) => DateTime.utc(
   to.month,
   to.day,
 ).difference(DateTime.utc(from.year, from.month, from.day)).inDays;
+
+/// Mois civils révolus de [from] à [to], heure ignorée ; négatif si [to] précède [from].
+int completedMonthsBetween(DateTime from, DateTime to) {
+  final months = (to.year - from.year) * 12 + to.month - from.month;
+  return to.day < from.day ? months - 1 : months;
+}
+
+/// Premier jour civil où [completedMonthsBetween] depuis [from] atteint [months].
+/// Le 31 août + 6 mois donne le 1er mars (février n'a pas de 31).
+DateTime dateAfterCompletedMonths(DateTime from, int months) {
+  final target = DateTime(from.year, from.month + months);
+  final daysInTarget = DateTime(target.year, target.month + 1, 0).day;
+  return from.day <= daysInTarget
+      ? DateTime(target.year, target.month, from.day)
+      : DateTime(target.year, target.month + 1);
+}
