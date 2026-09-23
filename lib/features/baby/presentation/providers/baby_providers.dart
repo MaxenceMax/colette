@@ -2,7 +2,9 @@ import 'package:colette/core/firebase/firebase_providers.dart';
 import 'package:colette/features/baby/data/repositories/firestore_baby_repository.dart';
 import 'package:colette/features/baby/domain/entities/baby_profile.dart';
 import 'package:colette/features/baby/domain/entities/weight_entry.dart';
+import 'package:colette/features/baby/domain/entities/weight_trend.dart';
 import 'package:colette/features/baby/domain/repositories/baby_repository.dart';
+import 'package:colette/features/baby/domain/use_cases/compute_weight_trend.dart';
 import 'package:colette/features/household/presentation/providers/household_providers.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
@@ -35,3 +37,8 @@ WeightEntry? latestWeight(Ref ref) {
   final list = ref.watch(weightsProvider).value;
   return list == null || list.isEmpty ? null : list.first;
 }
+
+/// Dernière pesée et évolution depuis la précédente, ou `null` sans pesée.
+@riverpod
+WeightTrend? weightTrend(Ref ref) =>
+    const ComputeWeightTrend()(ref.watch(weightsProvider).value ?? const []);

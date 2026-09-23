@@ -1,5 +1,6 @@
 import 'package:colette/app/main_shell.dart';
 import 'package:colette/features/baby/presentation/pages/settings_page.dart';
+import 'package:colette/features/baby/presentation/pages/weight_curve_page.dart';
 import 'package:colette/features/dashboard/presentation/pages/dashboard_page.dart';
 import 'package:colette/features/events/presentation/pages/timeline_page.dart';
 import 'package:colette/features/household/presentation/pages/create_household_page.dart';
@@ -17,6 +18,7 @@ abstract final class AppRoutes {
   static const onboardingCreate = '/onboarding/create';
   static const onboardingJoin = '/onboarding/join';
   static const today = '/today';
+  static const weights = '/today/weights';
   static const journal = '/journal';
   static const settings = '/settings';
 
@@ -58,6 +60,12 @@ GoRouter appRouter(Ref ref) {
               GoRoute(
                 path: AppRoutes.today,
                 builder: (_, _) => const DashboardPage(),
+                routes: [
+                  GoRoute(
+                    path: 'weights',
+                    builder: (_, _) => const WeightCurvePage(),
+                  ),
+                ],
               ),
             ],
           ),

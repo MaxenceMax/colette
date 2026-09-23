@@ -189,3 +189,49 @@ final class LatestWeightProvider
 }
 
 String _$latestWeightHash() => r'149e6fb6f54389b1d5a8a0f8b665f8bcd4e12ad1';
+
+/// Dernière pesée et évolution depuis la précédente, ou `null` sans pesée.
+
+@ProviderFor(weightTrend)
+final weightTrendProvider = WeightTrendProvider._();
+
+/// Dernière pesée et évolution depuis la précédente, ou `null` sans pesée.
+
+final class WeightTrendProvider
+    extends $FunctionalProvider<WeightTrend?, WeightTrend?, WeightTrend?>
+    with $Provider<WeightTrend?> {
+  /// Dernière pesée et évolution depuis la précédente, ou `null` sans pesée.
+  WeightTrendProvider._()
+    : super(
+        from: null,
+        argument: null,
+        retry: null,
+        name: r'weightTrendProvider',
+        isAutoDispose: true,
+        dependencies: null,
+        $allTransitiveDependencies: null,
+      );
+
+  @override
+  String debugGetCreateSourceHash() => _$weightTrendHash();
+
+  @$internal
+  @override
+  $ProviderElement<WeightTrend?> $createElement($ProviderPointer pointer) =>
+      $ProviderElement(pointer);
+
+  @override
+  WeightTrend? create(Ref ref) {
+    return weightTrend(ref);
+  }
+
+  /// {@macro riverpod.override_with_value}
+  Override overrideWithValue(WeightTrend? value) {
+    return $ProviderOverride(
+      origin: this,
+      providerOverride: $SyncValueProvider<WeightTrend?>(value),
+    );
+  }
+}
+
+String _$weightTrendHash() => r'9e49640f580b5863ebef9b99544fd3acb848d052';
