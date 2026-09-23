@@ -75,10 +75,18 @@ abstract final class FoodCatalogDto {
     ],
   );
 
-  static FoodRule _rule(Map<String, dynamic> json) => FoodRule(
-    kind: RuleKind.values.byName(json['kind'] as String),
-    untilMonths: json['untilMonths'] as int?,
-    sources: _sources(json['sources']),
-    text: json['text'] as String,
-  );
+  /// `avoid` et `prepare` exigent `untilMonths`, `info` l'interdit.
+  static FoodRule _rule(Map<String, dynamic> json) {
+    final kind = RuleKind.values.byName(json['kind'] as String);
+    final untilMonths = json['untilMonths'] as int?;
+    if ((kind == RuleKind.info) != (untilMonths == null)) {
+      throw FormatException('untilMonths incohérent pour une règle $kind');
+    }
+    return FoodRule(
+      kind: kind,
+      untilMonths: untilMonths,
+      sources: _sources(json['sources']),
+      text: json['text'] as String,
+    );
+  }
 }

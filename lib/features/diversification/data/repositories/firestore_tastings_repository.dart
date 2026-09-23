@@ -27,7 +27,10 @@ class FirestoreTastingsRepository implements TastingsRepository {
         // Tri en Dart plutôt qu'un `orderBy` Firestore : un document dont `at`
         // est invalide (donc écarté par `fromDoc`) ne doit pas empêcher le tri
         // des documents valides.
-        tastings.sort((a, b) => b.at.compareTo(a.at));
+        tastings.sort((a, b) {
+          final byAt = b.at.compareTo(a.at);
+          return byAt != 0 ? byAt : a.id.compareTo(b.id);
+        });
         return tastings;
       });
 

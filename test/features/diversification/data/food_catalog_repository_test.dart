@@ -78,6 +78,12 @@ void main() {
     expect(result.getLeft().toNullable(), isA<UnknownFailure>());
   });
 
+  test('règle avoid sans untilMonths : échec sans exception', () async {
+    final broken = catalogFixtureJson.replaceFirst('"untilMonths": 12, ', '');
+    final result = await _repo(broken).load();
+    expect(result.getLeft().toNullable(), isA<UnknownFailure>());
+  });
+
   test('asset absent : échec sans exception', () async {
     final result = await _repo(null).load();
     expect(result.isLeft(), isTrue);
