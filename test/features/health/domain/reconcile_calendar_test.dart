@@ -342,8 +342,8 @@ void main() {
         start: at,
         end: at,
       );
-      expect(runWith([rdv], [existing]), [CalendarAction.delete('e1')]);
-      expect(runWith([], [existing]), [CalendarAction.delete('e1')]);
+      expect(runWith([rdv], [existing]), [const CalendarAction.delete('e1')]);
+      expect(runWith([], [existing]), [const CalendarAction.delete('e1')]);
     });
 
     test('coexiste avec les étapes : une action par RDV', () {
