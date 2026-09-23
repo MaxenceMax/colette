@@ -32,6 +32,8 @@ class DocumentsPreviewController extends _$DocumentsPreviewController {
       return _preview();
     }
     final started = await ref.read(documentsRepositoryProvider).download(path);
+    // La ligne a pu être démontée pendant l'await (page quittée, défilement).
+    if (!ref.mounted) return;
     switch (started) {
       case Left(:final value):
         state = AsyncError(value, StackTrace.current);
@@ -89,6 +91,7 @@ class DocumentsPreviewController extends _$DocumentsPreviewController {
   /// pas une erreur.
   Future<void> _preview() async {
     final result = await ref.read(documentsRepositoryProvider).preview(path);
+    if (!ref.mounted) return;
     state = result.fold(
       (failure) => switch (failure) {
         DocumentsFailure(reason: DocumentsReason.cancelled) => const AsyncData(

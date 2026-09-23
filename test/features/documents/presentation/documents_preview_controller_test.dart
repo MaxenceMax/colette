@@ -128,27 +128,58 @@ void main() {
     expect(state().error, const DocumentsFailure(DocumentsReason.io));
   });
 
+  test('déjà téléchargé au premier examen : un seul aperçu', () async {
+    when(() => repo.download(path)).thenAnswer((_) async => right(null));
+    when(() => repo.preview(path)).thenAnswer((_) async => right(null));
+    // Le dossier est déjà observé et dit « téléchargé » avant la fin de
+    // download().
+    container.listen(documentsFolderProvider('Ordonnances'), (_, _) {});
+    folder.add(right([entry(DownloadStatus.downloaded)]));
+    await settle();
+
+    await controller().open(entry(DownloadStatus.notDownloaded));
+    await settle();
+    verify(() => repo.preview(path)).called(1);
+
+    folder.add(right([entry(DownloadStatus.downloaded)]));
+    await settle();
+    verifyNever(() => repo.preview(path));
+    expect(state(), const AsyncData<void>(null));
+  });
+
   test(
-    'déjà téléchargé au premier examen : un seul aperçu, écoute fermée',
+    'contrôleur détruit pendant le download : ni exception ni écoute',
     () async {
-      when(() => repo.download(path)).thenAnswer((_) async => right(null));
-      when(() => repo.preview(path)).thenAnswer((_) async => right(null));
-      // Le dossier est déjà observé et dit « téléchargé » avant la fin de
-      // download().
-      container.listen(documentsFolderProvider('Ordonnances'), (_, _) {});
-      folder.add(right([entry(DownloadStatus.downloaded)]));
+      // Conteneur dédié : l'écoute du setUp garderait le contrôleur en vie.
+      final isolated = ProviderContainer(
+        overrides: [documentsRepositoryProvider.overrideWithValue(repo)],
+      );
+      addTearDown(isolated.dispose);
+      final download = Completer<Either<Failure, void>>();
+      when(() => repo.download(path)).thenAnswer((_) => download.future);
+      final subscription = isolated.listen(
+        documentsPreviewControllerProvider(path),
+        (_, _) {},
+      );
+      final opening = isolated
+          .read(documentsPreviewControllerProvider(path).notifier)
+          .open(entry(DownloadStatus.notDownloaded));
+      subscription.close();
       await settle();
-
-      await controller().open(entry(DownloadStatus.notDownloaded));
-      await settle();
-      verify(() => repo.preview(path)).called(1);
-
-      folder.add(right([entry(DownloadStatus.downloaded)]));
-      await settle();
-      verifyNever(() => repo.preview(path));
-      expect(state(), const AsyncData<void>(null));
+      download.complete(right(null));
+      await opening;
+      verifyNever(() => repo.watch(any()));
     },
   );
+
+  test('erreur du flux pendant l\'attente : on continue d\'attendre', () async {
+    when(() => repo.download(path)).thenAnswer((_) async => right(null));
+    await controller().open(entry(DownloadStatus.notDownloaded));
+    folder.add(left(const DocumentsFailure(DocumentsReason.io)));
+    await settle();
+    expect(state().isLoading, isTrue);
+    verifyNever(() => repo.preview(any()));
+  });
 
   test('open est ignoré pendant qu\'un open est en vol', () async {
     when(() => repo.download(path)).thenAnswer((_) async => right(null));
