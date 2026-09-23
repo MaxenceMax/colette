@@ -36,7 +36,7 @@ Spec : `docs/superpowers/specs/2026-09-23-colette-brand-launch-design.md`.
   <path d="M512 330 C724 330 776 530 756 690 C736 836 622 884 512 884 C402 884 288 836 268 690 C248 530 300 330 512 330 Z" fill="#A8573F"/>
   <path d="M250 640 C380 572 644 572 774 640 L774 700 C644 632 380 632 250 700 Z" fill="#D9A441" clip-path="url(#body)"/>
   <circle cx="512" cy="392" r="150" fill="#FBF5EF"/>
-  <path d="M356 402 C356 270 432 222 512 222 C592 222 668 270 668 402 C610 352 414 352 356 402 Z" fill="#E9B9A8"/>
+  <path d="M363 408 C356 272 432 222 512 222 C592 222 668 272 661 408 C606 356 418 356 363 408 Z" fill="#E9B9A8"/>
   <circle cx="512" cy="204" r="30" fill="#E9B9A8"/>
   <path d="M438 446 Q465 472 492 446 M532 446 Q559 472 586 446" stroke="#5C2A1B" stroke-width="15" stroke-linecap="round" fill="none"/>
 </svg>
@@ -57,7 +57,7 @@ Expected: un SVG avec un seul `<path>` et un `viewBox` d'environ 3,5:1.
 
 - [ ] **Step 1 : écrire `tool/brand/export.swift`**. Fonctions : `loadSVG(name, recolor:)` (`NSImage(data:)` après remplacement de couleurs), `write(width:height:scale:opaque:path:draw:)` (`CGContext` RGB, `noneSkipLast` si opaque pour une icône sans canal alpha, sinon `premultipliedLast`, puis `CGImageDestination` PNG). Sorties :
   - `AppIcon.appiconset/icon.png` (fond `#F3E2DA`, opaque), `icon-dark.png` (fond `#1C1514`, opaque), `icon-tinted.png` (logo-tinted, transparent) + `Contents.json` universel 1024 avec `appearances` `dark` et `tinted`.
-  - visuel de lancement 200 × 260 pt : logo dessiné dans `(-20, 20, 240, 240)` pt, wordmark centré en bas sur 150 pt de large ; version sombre = wordmark recoloré `#2E2320 → #F1E6E0`.
+  - visuel de lancement 200 × 240 pt : logo dessiné dans `(-20, 26, 240, 240)` pt, wordmark centré en bas sur 150 pt de large ; version sombre = wordmark recoloré `#2E2320 → #F1E6E0`.
   - `LaunchImage.imageset/LaunchImage{,@2x,@3x}.png` et `LaunchImageDark{,@2x,@3x}.png` + `Contents.json` avec `appearances` luminosity dark.
   - `assets/brand/splash.png`, `2.0x/splash.png`, `3.0x/splash.png`, et idem `splash_dark.png`.
 - [ ] **Step 2 : supprimer les anciens PNG** de `AppIcon.appiconset` (`Icon-App-*.png`) et de `LaunchImage.imageset`.
@@ -67,7 +67,7 @@ Expected: un SVG avec un seul `<path>` et un `viewBox` d'environ 3,5:1.
 ### Task 3 : launch screen natif
 
 - [ ] **Step 1 : créer `LaunchBackground.colorset/Contents.json`** : sRGB `#FBF5EF`, variante `appearances` luminosity dark `#1C1514`.
-- [ ] **Step 2 : modifier `LaunchScreen.storyboard`** : `<color key="backgroundColor" name="LaunchBackground"/>`, ressource `<image name="LaunchImage" width="200" height="260"/>` et `<namedColor name="LaunchBackground">` ; `imageView` `contentMode="center"` inchangé, centré.
+- [ ] **Step 2 : modifier `LaunchScreen.storyboard`** : `<color key="backgroundColor" name="LaunchBackground"/>`, ressource `<image name="LaunchImage" width="200" height="240"/>` et `<namedColor name="LaunchBackground">` ; `imageView` `contentMode="center"` inchangé, centré.
 - [ ] **Step 3 : `flutter build ios --simulator --debug`**, Expected: build OK.
 - [ ] **Step 4 : commit** `feat: écran de lancement natif clair et sombre`
 
