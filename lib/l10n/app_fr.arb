@@ -228,6 +228,7 @@
   "sleepFormNewTitle": "Nouveau sommeil",
   "sleepFormEditTitle": "Modifier le sommeil",
   "sleepOngoing": "En cours",
+  "sleepStillOngoing": "Toujours en cours",
   "sleepOngoingFor": "en cours · {duration}",
   "@sleepOngoingFor": { "placeholders": { "duration": { "type": "String" } } },
   "sleepPageTitle": "Sommeil",

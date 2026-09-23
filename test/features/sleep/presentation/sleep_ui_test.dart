@@ -18,5 +18,6 @@ void main() {
       '13 h 40',
     );
     expect(formatSleepDuration(const Duration(seconds: 30), s), '0 min');
+    expect(formatSleepDuration(const Duration(minutes: -1), s), '0 min');
   });
 }

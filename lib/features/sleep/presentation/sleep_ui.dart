@@ -16,9 +16,9 @@ extension SleepKindUi on SleepKind {
   };
 }
 
-/// « 42 min », « 2 h », « 1 h 05 ».
+/// « 42 min », « 2 h », « 1 h 05 ». Une durée négative est bornée à zéro.
 String formatSleepDuration(Duration duration, S s) {
-  final minutes = duration.inMinutes;
+  final minutes = duration.isNegative ? 0 : duration.inMinutes;
   if (minutes < Duration.minutesPerHour) return s.durationMinutes(minutes);
   final hours = minutes ~/ Duration.minutesPerHour;
   final rest = minutes % Duration.minutesPerHour;
