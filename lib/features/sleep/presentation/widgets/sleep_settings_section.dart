@@ -33,11 +33,13 @@ class _SleepSettingsSectionState extends ConsumerState<SleepSettingsSection> {
     }
   }
 
-  void _update(CareSettings next) {
-    setState(() => _settings = next);
+  /// Fusionne le champ modifié dans le profil frais, pour ne jamais écraser
+  /// un champ écrit entre-temps par `CareSettingsSection`.
+  void _update(CareSettings Function(CareSettings settings) apply) {
+    setState(() => _settings = apply(_settings));
     ref
         .read(babySettingsControllerProvider.notifier)
-        .updateCareSettings(widget.profile, next);
+        .updateCareSettings(widget.profile, apply(widget.profile.careSettings));
   }
 
   @override
@@ -55,7 +57,8 @@ class _SleepSettingsSectionState extends ConsumerState<SleepSettingsSection> {
             min: 0,
             max: 23,
             suffix: s.hourSuffix,
-            onChanged: (v) => _update(_settings.copyWith(nightStartHour: v)),
+            onChanged: (v) =>
+                _update((settings) => settings.copyWith(nightStartHour: v)),
           ),
           IntStepperRow(
             label: s.settingsNightEnd,
@@ -63,7 +66,8 @@ class _SleepSettingsSectionState extends ConsumerState<SleepSettingsSection> {
             min: 0,
             max: 23,
             suffix: s.hourSuffix,
-            onChanged: (v) => _update(_settings.copyWith(nightEndHour: v)),
+            onChanged: (v) =>
+                _update((settings) => settings.copyWith(nightEndHour: v)),
           ),
         ],
       ),
