@@ -151,7 +151,7 @@
   "@measurementHeadCircumferenceShort": { "placeholders": { "value": { "type": "String" } } },
   "measurementMeasuredOn": "Mesure du {date}",
   "@measurementMeasuredOn": { "placeholders": { "date": { "type": "String" } } },
-  "measurementTrendSinceCm": "{delta} cm en {days, plural, =1{1 jour} other{{days} jours}}",
+  "measurementTrendSinceCm": "{delta}\u00A0cm en {days, plural, =1{1\u00A0jour} other{{days}\u00A0jours}}",
   "@measurementTrendSinceCm": { "placeholders": { "delta": { "type": "String" }, "days": { "type": "int" } } },
   "measurementTrendFirst": "Première mesure",
   "weightCardTitle": "Poids",

@@ -109,15 +109,23 @@ class GrowthChart extends StatelessWidget {
     );
   }
 
-  /// Graduation verticale : kilogrammes pour le poids, centimètres sinon.
-  String _axisLabel(S s, String locale, double value) => switch (metric) {
-    GrowthMetric.weight => s.weightKg(
-      NumberFormat('0.0#', locale).format(value / 1000),
-    ),
-    GrowthMetric.length || GrowthMetric.headCircumference => s.measurementCm(
-      NumberFormat('0.#', locale).format(value / 10),
-    ),
-  };
+  /// Graduation verticale : kilogrammes pour le poids, centimètres sinon ;
+  /// sans décimale quand [scale.step] est un multiple de 10 mm.
+  String Function(double value) _axisLabel(
+    S s,
+    String locale,
+    GrowthChartScale scale,
+  ) {
+    switch (metric) {
+      case GrowthMetric.weight:
+        final format = NumberFormat('0.0#', locale);
+        return (value) => s.weightKg(format.format(value / 1000));
+      case GrowthMetric.length:
+      case GrowthMetric.headCircumference:
+        final format = NumberFormat(scale.step % 10 == 0 ? '0' : '0.0', locale);
+        return (value) => s.measurementCm(format.format(value / 10));
+    }
+  }
 
   FlTitlesData _titles(
     BuildContext context,
@@ -126,6 +134,7 @@ class GrowthChart extends StatelessWidget {
   ) {
     final s = S.of(context);
     final locale = Localizations.localeOf(context).toString();
+    final axisLabel = _axisLabel(s, locale, scale);
     final dateFormat = DateFormat.MMMd(locale);
     final style = Theme.of(context).coletteTextStyles.small
         .copyWith(color: context.appColor(AppColors.textSecondary));
@@ -147,7 +156,7 @@ class GrowthChart extends StatelessWidget {
           reservedSize: AppSize.xxl.value,
           getTitlesWidget: (value, meta) => SideTitleWidget(
             meta: meta,
-            child: Text(_axisLabel(s, locale, value), style: style),
+            child: Text(axisLabel(value), style: style),
           ),
         ),
       ),

@@ -45,10 +45,13 @@ class GrowthTrendSummary extends StatelessWidget {
 
   String _evolution(S s, {required bool isWeight}) {
     String signed(int value) => GrowthFormat.signedDelta(trend.metric, value);
-    return switch ((trend.delta, trend.days, trend.perDay)) {
-      (final delta?, final days?, final perDay?) when isWeight =>
-        s.weightTrendSince(signed(delta), days, signed(perDay)),
-      (final delta?, final days?, _) => s.measurementTrendSinceCm(
+    return switch ((isWeight, trend.delta, trend.days, trend.perDay)) {
+      (true, final delta?, final days?, final perDay?) => s.weightTrendSince(
+        signed(delta),
+        days,
+        signed(perDay),
+      ),
+      (false, final delta?, final days?, _) => s.measurementTrendSinceCm(
         signed(delta),
         days,
       ),
