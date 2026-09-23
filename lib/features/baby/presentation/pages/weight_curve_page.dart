@@ -2,15 +2,15 @@ import 'package:colette/core/theme/app_colors.dart';
 import 'package:colette/core/theme/design_tokens.dart';
 import 'package:colette/core/theme/text_styles.dart';
 import 'package:colette/core/ui/failure_message.dart';
-import 'package:colette/features/baby/domain/entities/weight_entry.dart';
-import 'package:colette/features/baby/domain/entities/weight_trend.dart';
-import 'package:colette/features/baby/domain/entities/who_weight_percentiles.dart';
+import 'package:colette/features/baby/domain/entities/growth_metric.dart';
+import 'package:colette/features/baby/domain/entities/growth_trend.dart';
+import 'package:colette/features/baby/domain/entities/who_percentiles.dart';
 import 'package:colette/features/baby/presentation/providers/baby_providers.dart';
 import 'package:colette/features/baby/presentation/providers/baby_settings_controller.dart';
 import 'package:colette/features/baby/presentation/providers/who_curves_visibility.dart';
 import 'package:colette/features/baby/presentation/widgets/add_weight_sheet.dart';
-import 'package:colette/features/baby/presentation/widgets/weight_chart.dart';
-import 'package:colette/features/baby/presentation/widgets/weight_trend_summary.dart';
+import 'package:colette/features/baby/presentation/widgets/growth_chart.dart';
+import 'package:colette/features/baby/presentation/widgets/growth_trend_summary.dart';
 import 'package:colette/features/baby/presentation/widgets/weights_section.dart';
 import 'package:colette/l10n/generated/app_localizations.dart';
 import 'package:colette/shared/ui/widgets/colette_card_surface.dart';
@@ -35,8 +35,10 @@ class WeightCurvePage extends ConsumerWidget {
             .showSnackBar(SnackBar(content: Text(failureMessage(error, s))));
       }
     });
-    final weights = ref.watch(weightsProvider).value ?? const <WeightEntry>[];
-    final trend = ref.watch(weightTrendProvider);
+    final points = GrowthMetric.weight.seriesOf(
+      ref.watch(measurementsProvider).value ?? const [],
+    );
+    final trend = ref.watch(growthTrendProvider(GrowthMetric.weight));
     return Scaffold(
       appBar: AppBar(title: Text(s.weightCurveTitle)),
       body: ListView(
@@ -46,7 +48,7 @@ class WeightCurvePage extends ConsumerWidget {
             const _EmptySection()
           else ...[
             AppSpacing.md.verticalSpace,
-            _ChartSection(weights: weights, trend: trend),
+            _ChartSection(points: points, trend: trend),
             SectionHeader(title: s.settingsWeightsSection),
             const WeightsSection(),
           ],
@@ -80,10 +82,10 @@ class _EmptySection extends StatelessWidget {
 }
 
 class _ChartSection extends ConsumerWidget {
-  const _ChartSection({required this.weights, required this.trend});
+  const _ChartSection({required this.points, required this.trend});
 
-  final List<WeightEntry> weights;
-  final WeightTrend trend;
+  final List<GrowthPoint> points;
+  final GrowthTrend trend;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -91,8 +93,8 @@ class _ChartSection extends ConsumerWidget {
     final hasSex = ref.watch(babyProfileProvider).value?.sex != null;
     final showWho = hasSex && ref.watch(whoCurvesVisibilityProvider);
     final reference = showWho
-        ? ref.watch(whoWeightReferenceProvider)
-        : const <WhoWeightPercentiles>[];
+        ? ref.watch(whoReferenceProvider(GrowthMetric.weight))
+        : const <WhoPercentiles>[];
     final small = Theme.of(context).coletteTextStyles.small
         .copyWith(color: context.appColor(AppColors.textSecondary));
     return ColetteCardSurface(
@@ -100,10 +102,14 @@ class _ChartSection extends ConsumerWidget {
         crossAxisAlignment: .start,
         spacing: AppSpacing.md.value,
         children: [
-          WeightTrendSummary(trend: trend),
+          GrowthTrendSummary(trend: trend),
           AspectRatio(
-            aspectRatio: WeightChart.aspectRatio,
-            child: WeightChart(weights: weights, reference: reference),
+            aspectRatio: GrowthChart.aspectRatio,
+            child: GrowthChart(
+              metric: GrowthMetric.weight,
+              points: points,
+              reference: reference,
+            ),
           ),
           Text(s.weightCurveHint, style: small),
           _WhoToggle(hasSex: hasSex, visible: showWho),

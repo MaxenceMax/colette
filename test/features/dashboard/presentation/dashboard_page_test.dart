@@ -4,7 +4,6 @@ import 'package:colette/core/ids/id_generator.dart';
 import 'package:colette/features/baby/domain/entities/baby_profile.dart';
 import 'package:colette/features/baby/domain/entities/care_settings.dart';
 import 'package:colette/features/baby/domain/entities/growth_measurement.dart';
-import 'package:colette/features/baby/domain/entities/weight_entry.dart';
 import 'package:colette/features/baby/presentation/providers/baby_providers.dart';
 import 'package:colette/features/dashboard/presentation/pages/dashboard_page.dart';
 import 'package:colette/features/dashboard/presentation/providers/feeding_plan_sync.dart';
@@ -73,13 +72,6 @@ void main() {
     babyProfileProvider.overrideWith((ref) => Stream.value(baby ?? profile)),
     measurementsProvider.overrideWith(
       (ref) => Stream.value(measurements ?? defaultMeasurements),
-    ),
-    // La carte poids lit encore weightsProvider jusqu'à la tâche 7.
-    weightsProvider.overrideWith(
-      (ref) => Stream.value([
-        for (final m in measurements ?? defaultMeasurements)
-          WeightEntry(id: m.id, measuredAt: m.measuredAt, grams: m.grams!),
-      ]),
     ),
     todayEventsProvider.overrideWith((ref) => Stream.value([adrigyl, bottle])),
     recentEventsProvider.overrideWith(

@@ -2,6 +2,7 @@ import 'package:colette/core/clock/app_clock.dart';
 import 'package:colette/core/firebase/firebase_providers.dart';
 import 'package:colette/features/baby/domain/entities/baby_profile.dart';
 import 'package:colette/features/baby/domain/entities/baby_sex.dart';
+import 'package:colette/features/baby/domain/entities/growth_measurement.dart';
 import 'package:colette/features/baby/domain/entities/weight_entry.dart';
 import 'package:colette/features/baby/presentation/pages/weight_curve_page.dart';
 import 'package:colette/features/baby/presentation/providers/baby_providers.dart';
@@ -20,9 +21,9 @@ import '../../../helpers/pump_app.dart';
 
 void main() {
   final weights = [
-    WeightEntry(id: 'a', measuredAt: DateTime(2026, 9, 2), grams: 3200),
-    WeightEntry(id: 'c', measuredAt: DateTime(2026, 9, 14), grams: 3650),
-    WeightEntry(id: 'b', measuredAt: DateTime(2026, 9, 10), grams: 3470),
+    GrowthMeasurement(id: 'a', measuredAt: DateTime(2026, 9, 2), grams: 3200),
+    GrowthMeasurement(id: 'c', measuredAt: DateTime(2026, 9, 14), grams: 3650),
+    GrowthMeasurement(id: 'b', measuredAt: DateTime(2026, 9, 10), grams: 3470),
   ];
 
   late SharedPreferences prefs;
@@ -32,7 +33,7 @@ void main() {
     prefs = await SharedPreferences.getInstance();
   });
 
-  List<Override> overrides(List<WeightEntry> list, {BabySex? sex}) => [
+  List<Override> overrides(List<GrowthMeasurement> list, {BabySex? sex}) => [
     sharedPreferencesProvider.overrideWithValue(prefs),
     babyProfileProvider.overrideWith(
       (ref) => Stream.value(
@@ -43,7 +44,14 @@ void main() {
     householdLocalStoreProvider.overrideWithValue(
       InMemoryHouseholdLocalStore(householdCode: 'ABCDEFGH'),
     ),
-    weightsProvider.overrideWith((ref) => Stream.value(list)),
+    measurementsProvider.overrideWith((ref) => Stream.value(list)),
+    // La liste des pesées lit encore `weightsProvider` jusqu'à la tâche 8.
+    weightsProvider.overrideWith(
+      (ref) => Stream.value([
+        for (final m in list)
+          WeightEntry(id: m.id, measuredAt: m.measuredAt, grams: m.grams!),
+      ]),
+    ),
     feedingPlanSyncProvider.overrideWithValue(const NoopFeedingPlanSync()),
   ];
 
