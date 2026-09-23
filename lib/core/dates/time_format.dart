@@ -17,3 +17,7 @@ String formatLongDate(DateTime day) {
 /// « 22 sept. 2026 ».
 String formatShortDate(DateTime day) =>
     DateFormat('d MMM yyyy', 'fr').format(day);
+
+/// « mer. 23 ».
+String formatShortWeekday(DateTime day) =>
+    DateFormat('EEE d', 'fr').format(day);

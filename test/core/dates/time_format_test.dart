@@ -8,4 +8,8 @@ void main() {
   test('formatShortDate : « 22 sept. 2026 »', () {
     expect(formatShortDate(DateTime(2026, 9, 22)), '22 sept. 2026');
   });
+
+  test('formatShortWeekday donne le jour abrégé et son numéro', () {
+    expect(formatShortWeekday(DateTime(2026, 9, 23)), 'mer. 23');
+  });
 }

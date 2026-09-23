@@ -20,3 +20,10 @@ int calendarDaysBetween(DateTime from, DateTime to) => DateTime.utc(
   to.month,
   to.day,
 ).difference(DateTime.utc(from.year, from.month, from.day)).inDays;
+
+/// Mois civils révolus entre [from] et [to] ; `0` si [to] précède [from].
+int completedMonthsBetween(DateTime from, DateTime to) {
+  final months = (to.year - from.year) * 12 + to.month - from.month;
+  final completed = to.day < from.day ? months - 1 : months;
+  return completed < 0 ? 0 : completed;
+}

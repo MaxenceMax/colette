@@ -38,4 +38,28 @@ void main() {
       220,
     );
   });
+
+  group('completedMonthsBetween', () {
+    test('compte les mois révolus', () {
+      expect(
+        completedMonthsBetween(DateTime(2026, 1, 15), DateTime(2026, 5, 14)),
+        3,
+      );
+      expect(
+        completedMonthsBetween(DateTime(2026, 1, 15), DateTime(2026, 5, 15)),
+        4,
+      );
+    });
+
+    test('0 avant la naissance ou le jour même', () {
+      expect(
+        completedMonthsBetween(DateTime(2026, 1, 15), DateTime(2026, 1, 15)),
+        0,
+      );
+      expect(
+        completedMonthsBetween(DateTime(2026, 1, 15), DateTime(2026, 1, 1)),
+        0,
+      );
+    });
+  });
 }
