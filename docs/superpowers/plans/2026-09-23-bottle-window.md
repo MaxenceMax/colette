@@ -26,7 +26,7 @@ Commandes de vérification (depuis la racine du worktree) :
 - Modify : `lib/features/dashboard/domain/use_cases/compute_feeding_plan.dart`
 - Test : `test/features/dashboard/domain/compute_feeding_plan_test.dart`
 
-- [ ] **Step 1 : tests rouges.** Ajouter un groupe `fourchette` et adapter le test de retard :
+- [x] **Step 1 : tests rouges.** Ajouter un groupe `fourchette` et adapter le test de retard :
 
 ```dart
   group('fourchette', () {
@@ -118,9 +118,9 @@ Remplacer le test « le retard est calculé depuis le dernier biberon + interval
   });
 ```
 
-- [ ] **Step 2 :** `flutter test test/features/dashboard/domain/compute_feeding_plan_test.dart` → échec de compilation (`roundTo5Minutes`, `windowStart`, `hasWindow` inconnus).
+- [x] **Step 2 :** `flutter test test/features/dashboard/domain/compute_feeding_plan_test.dart` → échec de compilation (`roundTo5Minutes`, `windowStart`, `hasWindow` inconnus).
 
-- [ ] **Step 3 : implémentation.** Dans `FeedingPlan`, après `nextBottleAt` :
+- [x] **Step 3 : implémentation.** Dans `FeedingPlan`, après `nextBottleAt` :
 
 ```dart
     /// Heure centrale du prochain biberon.
@@ -203,8 +203,8 @@ et passer `windowStart`, `windowEnd` au constructeur. Helpers statiques :
   };
 ```
 
-- [ ] **Step 4 :** `dart run build_runner build -d` puis relancer le test → vert.
-- [ ] **Step 5 :** commit `feat: fourchette de ±15 % autour du prochain biberon`.
+- [x] **Step 4 :** `dart run build_runner build -d` puis relancer le test → vert.
+- [x] **Step 5 :** commit `feat: fourchette de ±15 % autour du prochain biberon`.
 
 ## Task 2 : projection des 24 prochaines heures
 
@@ -213,7 +213,7 @@ et passer `windowStart`, `windowEnd` au constructeur. Helpers statiques :
 - Create : `lib/features/dashboard/domain/use_cases/project_bottle_schedule.dart`
 - Test : `test/features/dashboard/domain/project_bottle_schedule_test.dart`
 
-- [ ] **Step 1 : tests rouges.**
+- [x] **Step 1 : tests rouges.**
 
 ```dart
 import 'package:colette/features/dashboard/domain/use_cases/compute_feeding_plan.dart';
@@ -340,9 +340,9 @@ void main() {
 }
 ```
 
-- [ ] **Step 2 :** `flutter test test/features/dashboard/domain/project_bottle_schedule_test.dart` → échec (fichiers absents).
+- [x] **Step 2 :** `flutter test test/features/dashboard/domain/project_bottle_schedule_test.dart` → échec (fichiers absents).
 
-- [ ] **Step 3 : implémentation.** `projected_bottle.dart` :
+- [x] **Step 3 : implémentation.** `projected_bottle.dart` :
 
 ```dart
 import 'package:freezed_annotation/freezed_annotation.dart';
@@ -450,8 +450,8 @@ class ProjectBottleSchedule {
 }
 ```
 
-- [ ] **Step 4 :** build_runner puis test → vert.
-- [ ] **Step 5 :** commit `feat: projection des biberons sur les 24 prochaines heures`.
+- [x] **Step 4 :** build_runner puis test → vert.
+- [x] **Step 5 :** commit `feat: projection des biberons sur les 24 prochaines heures`.
 
 ## Task 3 : bornes dans le snapshot Firestore
 
@@ -461,7 +461,7 @@ class ProjectBottleSchedule {
 - Modify : `lib/features/dashboard/presentation/providers/feeding_plan_sync.dart:63-70`
 - Test : `test/features/baby/data/firestore_baby_repository_test.dart`, `test/features/dashboard/presentation/feeding_plan_sync_test.dart`
 
-- [ ] **Step 1 : tests rouges.** Dans le test repository `saveFeedingPlan`, passer `windowStartAt: DateTime(2026, 9, 21, 13, 35)`, `windowEndAt: DateTime(2026, 9, 21, 14, 25)` et ajouter :
+- [x] **Step 1 : tests rouges.** Dans le test repository `saveFeedingPlan`, passer `windowStartAt: DateTime(2026, 9, 21, 13, 35)`, `windowEndAt: DateTime(2026, 9, 21, 14, 25)` et ajouter :
 
 ```dart
     final plan = data['feedingPlan'] as Map<String, dynamic>;
@@ -488,8 +488,8 @@ Dans le premier test de `feeding_plan_sync_test.dart` (biberon 9h, maintenant 12
       );
 ```
 
-- [ ] **Step 2 :** tests → rouges.
-- [ ] **Step 3 : implémentation.** Snapshot :
+- [x] **Step 2 :** tests → rouges.
+- [x] **Step 3 : implémentation.** Snapshot :
 
 ```dart
     required DateTime nextBottleAt,
@@ -499,8 +499,8 @@ Dans le premier test de `feeding_plan_sync_test.dart` (biberon 9h, maintenant 12
 
 Repository : ajouter `'windowStartAt': Timestamp.fromDate(snapshot.windowStartAt)` et `'windowEndAt': Timestamp.fromDate(snapshot.windowEndAt)`. Sync : `windowStartAt: plan.windowStart, windowEndAt: plan.windowEnd`.
 
-- [ ] **Step 4 :** build_runner, tests → verts.
-- [ ] **Step 5 :** commit `feat: bornes de la fourchette dans le snapshot feedingPlan`.
+- [x] **Step 4 :** build_runner, tests → verts.
+- [x] **Step 5 :** commit `feat: bornes de la fourchette dans le snapshot feedingPlan`.
 
 ## Task 4 : rappel à l'ouverture de la fourchette (Cloud Functions)
 
@@ -508,7 +508,7 @@ Repository : ajouter `'windowStartAt': Timestamp.fromDate(snapshot.windowStartAt
 - Modify : `functions/src/lib/types.ts`, `functions/src/lib/reminder.ts`, `functions/src/bottle-reminder.ts`
 - Test : `functions/src/lib/reminder.test.ts`, `functions/src/bottle-reminder.test.ts`
 
-- [ ] **Step 1 : tests rouges.** `reminder.test.ts`, nouveau bloc :
+- [x] **Step 1 : tests rouges.** `reminder.test.ts`, nouveau bloc :
 
 ```ts
 describe('isReminderDue avec fourchette', () => {
@@ -567,8 +567,8 @@ describe('isReminderDue avec fourchette', () => {
 
 (importer `formatHourMinute` depuis `./lib/paris-time`).
 
-- [ ] **Step 2 :** `cd functions && npm test` → rouges.
-- [ ] **Step 3 : implémentation.** `types.ts` : `windowStartAt?: Timestamp; windowEndAt?: Timestamp;` dans `FeedingPlanDoc`. `reminder.ts` :
+- [x] **Step 2 :** `cd functions && npm test` → rouges.
+- [x] **Step 3 : implémentation.** `types.ts` : `windowStartAt?: Timestamp; windowEndAt?: Timestamp;` dans `FeedingPlanDoc`. `reminder.ts` :
 
 ```ts
 type Input = {
@@ -609,8 +609,8 @@ export function bottleMessage(suggestedMl: number, nextBottleAt: Date, windowEnd
 }
 ```
 
-- [ ] **Step 4 :** `npm test && npm run build` → verts.
-- [ ] **Step 5 :** commit `feat: rappel biberon à l'ouverture de la fourchette`.
+- [x] **Step 4 :** `npm test && npm run build` → verts.
+- [x] **Step 5 :** commit `feat: rappel biberon à l'ouverture de la fourchette`.
 
 ## Task 5 : carte « Prochain biberon », feuille « Prochaines 24 h »
 
@@ -621,7 +621,7 @@ export function bottleMessage(suggestedMl: number, nextBottleAt: Date, windowEnd
 - Create : `lib/features/dashboard/presentation/widgets/bottle_schedule_sheet.dart`
 - Test : `test/features/dashboard/presentation/dashboard_page_test.dart`, `test/features/dashboard/presentation/bottle_schedule_sheet_test.dart`
 
-- [ ] **Step 1 : l10n.** Remplacer `nextBottleAt` par :
+- [x] **Step 1 : l10n.** Remplacer `nextBottleAt` par :
 
 ```json
   "nextBottleWindow": "entre {start} et {end}",
@@ -639,7 +639,7 @@ export function bottleMessage(suggestedMl: number, nextBottleAt: Date, windowEnd
 
 puis `flutter gen-l10n`.
 
-- [ ] **Step 2 : tests rouges.** Dans `dashboard_page_test.dart` : le premier test attend désormais `en retard de 35 min` (biberon 8h, fourchette 10h35–11h25, maintenant 12h). Ajouter :
+- [x] **Step 2 : tests rouges.** Dans `dashboard_page_test.dart` : le premier test attend désormais `en retard de 35 min` (biberon 8h, fourchette 10h35–11h25, maintenant 12h). Ajouter :
 
 ```dart
   testWidgets('avant la fourchette, la carte affiche ses bornes', (
@@ -762,9 +762,9 @@ void main() {
 }
 ```
 
-- [ ] **Step 3 :** tests → rouges.
+- [x] **Step 3 :** tests → rouges.
 
-- [ ] **Step 4 : provider.** Dans `dashboard_providers.dart` :
+- [x] **Step 4 : provider.** Dans `dashboard_providers.dart` :
 
 ```dart
 /// Biberons prévus sur les 24 prochaines heures ; `null` sans plan.
@@ -783,7 +783,7 @@ List<ProjectedBottle>? bottleSchedule(Ref ref) {
 }
 ```
 
-- [ ] **Step 5 : carte.** Dans l'en-tête, avant le bouton ⓘ :
+- [x] **Step 5 : carte.** Dans l'en-tête, avant le bouton ⓘ :
 
 ```dart
               IconButton(
@@ -805,7 +805,7 @@ List<ProjectedBottle>? bottleSchedule(Ref ref) {
         : s.nextBottleNow;
 ```
 
-- [ ] **Step 6 : feuille** `bottle_schedule_sheet.dart` :
+- [x] **Step 6 : feuille** `bottle_schedule_sheet.dart` :
 
 ```dart
 import 'package:colette/core/clock/now_providers.dart';
@@ -1017,15 +1017,15 @@ class _BottleRow extends StatelessWidget {
 
 (Vérifier le nom du type de couleur exposé par `app_colors.dart` et l'adapter.)
 
-- [ ] **Step 7 :** build_runner, `flutter test test/features/dashboard` → vert.
-- [ ] **Step 8 :** commit `feat: fourchette sur la carte biberon et feuille des 24 prochaines heures`.
+- [x] **Step 7 :** build_runner, `flutter test test/features/dashboard` → vert.
+- [x] **Step 8 :** commit `feat: fourchette sur la carte biberon et feuille des 24 prochaines heures`.
 
 ## Task 6 : documentation et vérification finale
 
 **Files :**
 - Modify : `docs/superpowers/specs/2026-09-21-colette-v1-design.md` (lignes 173, 260, 300, 349), `README.md` si le prochain biberon y est décrit.
 
-- [ ] **Step 1 :** mettre à jour la spec v1 : schéma `feedingPlan` (`windowStartAt`, `windowEndAt`), carte (fourchette + bouton timeline), règle de retard (depuis `windowEnd`), `bottleReminder` (ouverture de la fourchette, repli).
-- [ ] **Step 2 :** `dart format lib test`, `dart analyze`, `flutter test`, `cd functions && npm test && npm run build`.
-- [ ] **Step 3 :** rendu PNG clair/sombre de la carte et de la feuille en test ponctuel (non commité) ou simulateur si un foyer est disponible.
-- [ ] **Step 4 :** commit `docs: fourchette du prochain biberon dans la spec v1`.
+- [x] **Step 1 :** mettre à jour la spec v1 : schéma `feedingPlan` (`windowStartAt`, `windowEndAt`), carte (fourchette + bouton timeline), règle de retard (depuis `windowEnd`), `bottleReminder` (ouverture de la fourchette, repli).
+- [x] **Step 2 :** `dart format lib test`, `dart analyze`, `flutter test`, `cd functions && npm test && npm run build`.
+- [x] **Step 3 :** rendu PNG clair/sombre de la carte et de la feuille en test ponctuel (non commité) ou simulateur si un foyer est disponible.
+- [x] **Step 4 :** commit `docs: fourchette du prochain biberon dans la spec v1`.
