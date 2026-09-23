@@ -13,7 +13,9 @@ class ValidateCustomFood {
   }) {
     final trimmed = name.trim();
     if (trimmed.isEmpty) return ValidationReason.emptyName;
-    if (trimmed.length > maxNameLength) return ValidationReason.foodNameTooLong;
+    if (trimmed.runes.length > maxNameLength) {
+      return ValidationReason.foodNameTooLong;
+    }
     final normalized = normalizeFoodName(trimmed);
     final duplicate = existingNames.any(
       (existing) => normalizeFoodName(existing) == normalized,

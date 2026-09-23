@@ -33,11 +33,13 @@ class FilterFoods {
       };
     }
 
-    final kept = foods.where(keep).toList()
-      ..sort(
-        (a, b) =>
-            normalizeFoodName(a.name).compareTo(normalizeFoodName(b.name)),
-      );
+    final kept = foods.where(keep).toList();
+    final normalizedNames = {
+      for (final food in kept) food.id: normalizeFoodName(food.name),
+    };
+    kept.sort(
+      (a, b) => normalizedNames[a.id]!.compareTo(normalizedNames[b.id]!),
+    );
     return [
       for (final group in FoodGroup.values)
         if (kept.where((food) => food.group == group).toList()

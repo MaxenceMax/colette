@@ -2,8 +2,10 @@ import 'package:colette/features/diversification/domain/entities/diversification
 import 'package:colette/features/diversification/domain/entities/food.dart';
 import 'package:colette/features/diversification/domain/entities/food_rule.dart';
 import 'package:colette/features/diversification/domain/entities/food_status.dart';
+import 'package:colette/features/diversification/domain/entities/rule_source.dart';
 
-/// Statut d'un aliment : règle `avoid` la plus prudente, puis « dès 6 mois »,
+/// Statut d'un aliment : règle(s) `avoid` la plus prudente (union des sources,
+/// dans l'ordre de première apparition, en cas d'égalité), puis « dès 6 mois »,
 /// puis goûté / pas encore. Sans âge ([ageMonths] `null`), seules les
 /// dégustations comptent et toute règle `prepare` est considérée active.
 class ComputeFoodStatus {
@@ -40,13 +42,28 @@ class ComputeFoodStatus {
   }
 
   static FoodRule? _strictestActiveAvoid(List<FoodRule> rules, int ageMonths) {
-    FoodRule? strictest;
-    for (final rule in rules) {
-      if (rule.kind != RuleKind.avoid || !rule.isActiveAt(ageMonths)) continue;
-      if (strictest == null || rule.untilMonths! > strictest.untilMonths!) {
-        strictest = rule;
+    final active = [
+      for (final rule in rules)
+        if (rule.kind == RuleKind.avoid && rule.isActiveAt(ageMonths)) rule,
+    ];
+    if (active.isEmpty) return null;
+    final strictestUntil = active
+        .map((rule) => rule.untilMonths!)
+        .reduce((a, b) => a > b ? a : b);
+    final strictestRules = active.where(
+      (rule) => rule.untilMonths == strictestUntil,
+    );
+    final sources = <RuleSource>[];
+    for (final rule in strictestRules) {
+      for (final source in rule.sources) {
+        if (!sources.contains(source)) sources.add(source);
       }
     }
-    return strictest;
+    return FoodRule(
+      kind: RuleKind.avoid,
+      untilMonths: strictestUntil,
+      sources: sources,
+      text: strictestRules.first.text,
+    );
   }
 }

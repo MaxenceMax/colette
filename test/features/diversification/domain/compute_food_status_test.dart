@@ -76,6 +76,44 @@ void main() {
       ),
     ],
   );
+  const twoRulesTiedAt12 = Food(
+    id: 'deux-regles-a-egalite',
+    name: 'Deux règles à égalité',
+    group: FoodGroup.outsideGroups,
+    rules: [
+      FoodRule(
+        kind: RuleKind.avoid,
+        untilMonths: 12,
+        sources: [RuleSource.anses],
+        text: 'Règle 1',
+      ),
+      FoodRule(
+        kind: RuleKind.avoid,
+        untilMonths: 12,
+        sources: [RuleSource.spf, RuleSource.anses],
+        text: 'Règle 2',
+      ),
+    ],
+  );
+  const wholeNutsReversed = Food(
+    id: 'fruits-a-coque-entiers-ordre-inverse',
+    name: 'Fruits à coque entiers (ordre inverse)',
+    group: FoodGroup.legumesNutsSeeds,
+    rules: [
+      FoodRule(
+        kind: RuleKind.avoid,
+        untilMonths: 60,
+        sources: [RuleSource.spf],
+        text: '5 ans',
+      ),
+      FoodRule(
+        kind: RuleKind.avoid,
+        untilMonths: 36,
+        sources: [RuleSource.anses],
+        text: '3 ans',
+      ),
+    ],
+  );
 
   test('règle avoid active : à éviter, avec ses sources', () {
     expect(
@@ -115,6 +153,24 @@ void main() {
     );
     expect(
       compute(food: wholeNuts, ageMonths: 20, tastingCount: 0),
+      const FoodStatus.avoid(untilMonths: 60, sources: [RuleSource.spf]),
+    );
+  });
+
+  test('plusieurs règles avoid à égalité : union des sources, sans doublon, '
+      'dans l\'ordre de première apparition', () {
+    expect(
+      compute(food: twoRulesTiedAt12, ageMonths: 7, tastingCount: 0),
+      const FoodStatus.avoid(
+        untilMonths: 12,
+        sources: [RuleSource.anses, RuleSource.spf],
+      ),
+    );
+  });
+
+  test('règles avoid dans l\'ordre inverse : la plus tardive l\'emporte', () {
+    expect(
+      compute(food: wholeNutsReversed, ageMonths: 20, tastingCount: 0),
       const FoodStatus.avoid(untilMonths: 60, sources: [RuleSource.spf]),
     );
   });
