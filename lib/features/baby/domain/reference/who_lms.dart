@@ -1,3 +1,3 @@
-/// Paramètres LMS OMS : `(L, M, S)`, M dans l'unité de la table (kg ou cm),
-/// indexés par jour de vie.
+/// Paramètres LMS OMS d'un jour de vie : `(L, M, S)`, M dans l'unité de la
+/// table (kg ou cm).
 typedef WhoLms = (double, double, double);
