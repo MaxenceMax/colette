@@ -2508,7 +2508,7 @@ Dans la section 6, paragraphe sur `watch(path)` : remplacer « s'abonne à `Even
 
 Cocher les cases des tâches 1 à 7 de ce plan.
 
-- [ ] **Step 3 : vérification complète**
+- [x] **Step 3 : vérification complète**
 
 Run: `dart format lib test && dart analyze && flutter test && flutter build ios --release 2>&1 | tail -3`
 Expected: 0 changement, 0 problème, suite verte, `✓ Built build/ios/iphoneos/Runner.app`.
@@ -2520,7 +2520,7 @@ git add docs README.md
 git commit -m "docs: spec, README et plans pour le lot 3 des documents iCloud"
 ```
 
-- [ ] **Step 5 : installation par-dessus sur l'iPhone de Maxence** (fait par la session principale, pas par un sous-agent)
+- [x] **Step 5 : installation par-dessus sur l'iPhone de Maxence** (fait par la session principale, pas par un sous-agent)
 
 ```bash
 xcrun devicectl device install app --device 273D8811-664A-58F7-BC07-A83762C233B9 build/ios/iphoneos/Runner.app
@@ -2533,7 +2533,7 @@ Puis liste de contrôle, points 17 à 26 de la spec (section 8), par Maxence. Si
 
 ## Auto-revue du plan
 
-- **Couverture de la spec** : section 3 (flux, téléchargement, aperçu, suppression, Fichiers, verrou) → Tasks 7 et 4 ; section 4 (`downloadProgress`) → Task 1 ; section 5 (canal, méthodes) → Tasks 2, 7, 8 ; section 6 (repository, providers, contrôleurs) → Tasks 2, 3, 4, 5, 6 ; section 7 (tuile, glissement, bouton, erreurs, l10n) → Tasks 4, 5, 6 ; section 8 (tests, liste 17 à 22) → chaque tâche et Task 8 ; section 11 (repli) → Task 8.
+- **Couverture de la spec** : section 3 (flux, téléchargement, aperçu, suppression, Fichiers, verrou) → Tasks 7 et 4 ; section 4 (`downloadProgress`) → Task 1 ; section 5 (canal, méthodes) → Tasks 2, 7, 8 ; section 6 (repository, providers, contrôleurs) → Tasks 2, 3, 4, 5, 6 ; section 7 (tuile, glissement, bouton, erreurs, l10n) → Tasks 4, 5, 6 ; section 8 (tests, liste 17 à 26) → chaque tâche et Task 8 ; section 11 (repli) → Task 8.
 - **Cohérence des noms** : `watch`, `download`, `delete`, `openInFiles`, `openFolderStream` (Dart et Swift) ; `DocumentsPreviewController.open(entry)` ; `DocumentsDeleteController.delete(path)` ; `DocumentsOpenInFilesController.open()` ; `DocumentDeleteDismissible` ; `DocumentsOpenInFilesButton` ; `parentPath` ; `DocumentsLister.startDownload` / `isAvailable` / `realURL` / `locate` ; `DocumentsWriter.delete` ; `DocumentsFolderWatcher.start(sink:)` / `stop()` / `refresh()` / `relativePath`.
 - **Écart connu avec la spec initiale du lot 3** : canal par abonnement via `openFolderStream` au lieu d'un canal unique avec le chemin en argument (Task 8 met la spec à jour).
 
