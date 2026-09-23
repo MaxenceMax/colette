@@ -76,6 +76,83 @@ void main() {
     expect(read.single.vaccines.keys, [VaccineCode.menB]);
   });
 
+  test('ignore un document sans updatedAt, lit le document valide', () async {
+    await visits().doc('m3').set({'practitioner': 'Dr Martin'});
+    await visits().doc('m4').set({
+      'updatedAt': Timestamp.fromDate(DateTime(2026, 9, 1)),
+      'updatedByDeviceId': 'x',
+    });
+    final read = await repo.watchVisits(code).first;
+    expect(read.single.stageId, MedicalStageId.m4);
+  });
+
+  test(
+    'vaccines invalide ou vaccin sans givenAt : visite lue sans ces vaccins',
+    () async {
+      await visits().doc('m3').set({
+        'vaccines': 'x',
+        'updatedAt': Timestamp.fromDate(DateTime(2026, 9, 1)),
+        'updatedByDeviceId': 'x',
+      });
+      await visits().doc('m4').set({
+        'vaccines': {
+          'menB': {'brand': 'Bexsero'},
+        },
+        'updatedAt': Timestamp.fromDate(DateTime(2026, 9, 1)),
+        'updatedByDeviceId': 'x',
+      });
+      final read = await repo.watchVisits(code).first;
+      expect(read, hasLength(2));
+      expect(read.every((v) => v.vaccines.isEmpty), isTrue);
+    },
+  );
+
+  test('saveReminderSnapshot écrase les étapes du précédent appel', () async {
+    await repo.saveReminderSnapshot(
+      code,
+      MedicalReminderSnapshot(
+        stages: [
+          MedicalReminderStage(
+            stageId: MedicalStageId.m2,
+            dueFrom: DateTime(2026, 11, 1),
+            dueUntil: DateTime(2026, 12, 1),
+            hasAppointment: false,
+          ),
+          MedicalReminderStage(
+            stageId: MedicalStageId.m3,
+            dueFrom: DateTime(2026, 11, 1),
+            dueUntil: DateTime(2026, 12, 1),
+            hasAppointment: false,
+          ),
+          MedicalReminderStage(
+            stageId: MedicalStageId.m4,
+            dueFrom: DateTime(2026, 11, 1),
+            dueUntil: DateTime(2026, 12, 1),
+            hasAppointment: false,
+          ),
+        ],
+        computedAt: DateTime(2026, 10, 20),
+      ),
+    );
+    await repo.saveReminderSnapshot(
+      code,
+      MedicalReminderSnapshot(
+        stages: [
+          MedicalReminderStage(
+            stageId: MedicalStageId.m2,
+            dueFrom: DateTime(2026, 11, 1),
+            dueUntil: DateTime(2026, 12, 1),
+            hasAppointment: true,
+          ),
+        ],
+        computedAt: DateTime(2026, 10, 21),
+      ),
+    );
+    final data = (await db.collection('households').doc(code).get()).data()!;
+    final reminder = data['medicalReminder'] as Map<String, dynamic>;
+    expect(reminder['stages'], hasLength(1));
+  });
+
   test('deleteVisit retire la visite', () async {
     await repo.saveVisit(code, makeVisit(MedicalStageId.m2, note: 'x'));
     await repo.deleteVisit(code, MedicalStageId.m2);

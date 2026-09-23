@@ -27,30 +27,51 @@ abstract final class MedicalVisitDto {
     'updatedByDeviceId': v.updatedByDeviceId,
   };
 
-  /// `null` pour un document d'étape inconnue (version plus récente de l'app).
+  /// `null` pour une étape inconnue ou un document illisible (`updatedAt` absent/invalide).
   static MedicalVisit? fromDoc(DocumentSnapshot<Map<String, dynamic>> doc) {
     final stageId = _stages[doc.id];
     final data = doc.data();
     if (stageId == null || data == null) return null;
-    final rawVaccines = data['vaccines'] as Map<String, dynamic>? ?? const {};
+    if (data['updatedAt'] is! Timestamp) return null;
+    final updatedAt = (data['updatedAt'] as Timestamp).toDate();
+    final rawVaccines = data['vaccines'];
     return MedicalVisit(
       stageId: stageId,
-      appointmentAt: (data['appointmentAt'] as Timestamp?)?.toDate(),
-      practitioner: data['practitioner'] as String?,
-      doneAt: (data['doneAt'] as Timestamp?)?.toDate(),
-      note: data['note'] as String?,
-      vaccines: {
-        for (final MapEntry(:key, :value) in rawVaccines.entries)
-          ?_vaccines[key]: _vaccine(value as Map<String, dynamic>),
+      appointmentAt: switch (data['appointmentAt']) {
+        final Timestamp t => t.toDate(),
+        _ => null,
       },
-      updatedAt: (data['updatedAt'] as Timestamp).toDate(),
-      updatedByDeviceId: data['updatedByDeviceId'] as String,
+      practitioner: switch (data['practitioner']) {
+        final String p => p,
+        _ => null,
+      },
+      doneAt: switch (data['doneAt']) {
+        final Timestamp t => t.toDate(),
+        _ => null,
+      },
+      note: switch (data['note']) {
+        final String n => n,
+        _ => null,
+      },
+      vaccines: {
+        if (rawVaccines is Map<String, dynamic>)
+          for (final MapEntry(:key, :value) in rawVaccines.entries)
+            if (_vaccines[key] case final code?)
+              if (value is Map<String, dynamic>) code: ?_vaccine(value),
+      },
+      updatedAt: updatedAt,
+      updatedByDeviceId: data['updatedByDeviceId'] as String? ?? '',
     );
   }
 
-  static GivenVaccine _vaccine(Map<String, dynamic> map) => GivenVaccine(
-    givenAt: (map['givenAt'] as Timestamp).toDate(),
-    brand: map['brand'] as String?,
-    lot: map['lot'] as String?,
-  );
+  /// `null` si `givenAt` est absent ou d'un mauvais type.
+  static GivenVaccine? _vaccine(Map<String, dynamic> map) =>
+      switch (map['givenAt']) {
+        final Timestamp givenAt => GivenVaccine(
+          givenAt: givenAt.toDate(),
+          brand: map['brand'] as String?,
+          lot: map['lot'] as String?,
+        ),
+        _ => null,
+      };
 }
