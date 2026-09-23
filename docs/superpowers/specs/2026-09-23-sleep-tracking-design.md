@@ -168,3 +168,31 @@ Nouvelle section « Sommeil » dans Réglages : « Début de la nuit » et « Fi
 - `lib/l10n/app_fr.arb`.
 - `firestore.rules` : inchangé (la règle générique `households/{code}/{collection}/{docId}` couvre `sleeps`).
 - `functions/` : inchangé.
+
+## 9. Écarts retenus à l'implémentation
+
+Décisions prises pendant les revues, qui complètent ou précisent les sections précédentes :
+
+- **Deux contrôleurs** : `SleepController` (`fallAsleep`, `wakeUp`, utilisé par la carte) et `SleepFormController` (`save`, `delete`, utilisé par le formulaire et le Journal). Une erreur du formulaire ne s'affiche donc pas en SnackBar sur la carte, et un réveil en cours ne bloque pas l'enregistrement. Les deux écoutent le profil (`ref.listen`) sans se reconstruire, et ignorent un appel pendant une écriture.
+- **Validation** : si le sommeil validé est lui-même en cours, les autres sommeils en cours sont ignorés (ce ne peuvent être que des doublons d'appuis simultanés, nettoyés au réveil). La page 7 jours dédoublonne aussi les sommeils ouverts.
+- **Formulaire** :
+  - l'erreur est locale et s'efface dès qu'un champ change ;
+  - le début est borné par la fin ;
+  - un bouton « Toujours en cours » remet la fin à vide pour un sommeil en cours ;
+  - dates empilées, avec le jour affiché quand il diffère d'aujourd'hui ;
+  - « Saisir le réveil » (réveil oublié) ouvre directement le sélecteur de fin ;
+  - le type n'est pas reclassé automatiquement en édition (le type stocké est respecté).
+- **Journal** : le provider `timelineSleepsProvider` vit dans `events/presentation/providers/` et calcule lui-même sa fenêtre depuis les soins chargés, pour éviter un clignotement des sommeils à chaque page chargée. La confirmation de suppression est partagée entre soins et sommeils (`confirmTimelineDelete`).
+- **Réglages** : les sections Soins et Sommeil n'écrivent que le champ modifié, fusionné dans le profil courant, pour ne pas s'écraser mutuellement.
+- **Affichage** :
+  - heures au format de l'app (« 14h05 ») ;
+  - icône lune toujours en `sleepNight` dans le Journal (`sleepNap` est réservé aux fonds) ;
+  - axe de la frise sans suffixe « h » ;
+  - `AppColors.transparent` ajouté pour les lignes non sélectionnées ;
+  - teintes `sleepNap` renforcées pour le contraste sur la piste.
+- **Erreurs de flux** : journalisées (`log`, `name: 'colette'`). La page Sommeil affiche un état d'erreur au lieu d'un chargement infini.
+- **Limites connues, non traitées** :
+  - un réveil oublié qui coexiste avec un doublon ouvert ne peut pas être fermé par le formulaire (le bouton « Réveillé·e » n'étant pas proposé au-delà de 16 h, il faut supprimer le doublon dans le Journal) ;
+  - un sommeil oublié depuis plus de 24 h n'est pas pris en compte dans le contrôle de chevauchement d'une saisie ultérieure ;
+  - un sommeil oublié gonfle les totaux tant qu'il reste ouvert ;
+  - en cas d'édition simultanée d'un même sommeil sur les deux iPhones, le dernier qui enregistre l'emporte.
