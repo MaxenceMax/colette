@@ -18,7 +18,10 @@ mixin _$FeedingPlan {
 /// Cible effective : ajustée si renseignée, sinon OMS.
  int get dailyTargetMl;/// Cible calculée selon l'OMS, toujours disponible.
  int get omsTargetMl;/// Vrai dès qu'une cible ajustée est fournie, même égale à la cible OMS.
- bool get isTargetOverridden; int get feedsPerDay; DateTime get nextBottleAt; int get suggestedMl; int get bottlesGiven; int get givenMl; bool get isEstimatedFromAge;
+ bool get isTargetOverridden; int get feedsPerDay;/// Heure centrale du prochain biberon.
+ DateTime get nextBottleAt;/// Début de la fourchette du prochain biberon.
+ DateTime get windowStart;/// Fin de la fourchette ; égale au début sans biberon enregistré.
+ DateTime get windowEnd; int get suggestedMl; int get bottlesGiven; int get givenMl; bool get isEstimatedFromAge;
 /// Create a copy of FeedingPlan
 /// with the given fields replaced by the non-null parameter values.
 @JsonKey(includeFromJson: false, includeToJson: false)
@@ -30,20 +33,20 @@ $FeedingPlanCopyWith<FeedingPlan> get copyWith => _$FeedingPlanCopyWithImpl<Feed
 @override
 bool operator ==(Object other) {
   final _this = this as FeedingPlan;
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is FeedingPlan&&(identical(other.dailyTargetMl, _this.dailyTargetMl) || other.dailyTargetMl == _this.dailyTargetMl)&&(identical(other.omsTargetMl, _this.omsTargetMl) || other.omsTargetMl == _this.omsTargetMl)&&(identical(other.isTargetOverridden, _this.isTargetOverridden) || other.isTargetOverridden == _this.isTargetOverridden)&&(identical(other.feedsPerDay, _this.feedsPerDay) || other.feedsPerDay == _this.feedsPerDay)&&(identical(other.nextBottleAt, _this.nextBottleAt) || other.nextBottleAt == _this.nextBottleAt)&&(identical(other.suggestedMl, _this.suggestedMl) || other.suggestedMl == _this.suggestedMl)&&(identical(other.bottlesGiven, _this.bottlesGiven) || other.bottlesGiven == _this.bottlesGiven)&&(identical(other.givenMl, _this.givenMl) || other.givenMl == _this.givenMl)&&(identical(other.isEstimatedFromAge, _this.isEstimatedFromAge) || other.isEstimatedFromAge == _this.isEstimatedFromAge));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is FeedingPlan&&(identical(other.dailyTargetMl, _this.dailyTargetMl) || other.dailyTargetMl == _this.dailyTargetMl)&&(identical(other.omsTargetMl, _this.omsTargetMl) || other.omsTargetMl == _this.omsTargetMl)&&(identical(other.isTargetOverridden, _this.isTargetOverridden) || other.isTargetOverridden == _this.isTargetOverridden)&&(identical(other.feedsPerDay, _this.feedsPerDay) || other.feedsPerDay == _this.feedsPerDay)&&(identical(other.nextBottleAt, _this.nextBottleAt) || other.nextBottleAt == _this.nextBottleAt)&&(identical(other.windowStart, _this.windowStart) || other.windowStart == _this.windowStart)&&(identical(other.windowEnd, _this.windowEnd) || other.windowEnd == _this.windowEnd)&&(identical(other.suggestedMl, _this.suggestedMl) || other.suggestedMl == _this.suggestedMl)&&(identical(other.bottlesGiven, _this.bottlesGiven) || other.bottlesGiven == _this.bottlesGiven)&&(identical(other.givenMl, _this.givenMl) || other.givenMl == _this.givenMl)&&(identical(other.isEstimatedFromAge, _this.isEstimatedFromAge) || other.isEstimatedFromAge == _this.isEstimatedFromAge));
 }
 
 
 @override
 int get hashCode {
   final _this = this as FeedingPlan;
-  return Object.hash(runtimeType,_this.dailyTargetMl,_this.omsTargetMl,_this.isTargetOverridden,_this.feedsPerDay,_this.nextBottleAt,_this.suggestedMl,_this.bottlesGiven,_this.givenMl,_this.isEstimatedFromAge);
+  return Object.hash(runtimeType,_this.dailyTargetMl,_this.omsTargetMl,_this.isTargetOverridden,_this.feedsPerDay,_this.nextBottleAt,_this.windowStart,_this.windowEnd,_this.suggestedMl,_this.bottlesGiven,_this.givenMl,_this.isEstimatedFromAge);
 }
 
 @override
 String toString() {
   final _this = this as FeedingPlan;
-  return 'FeedingPlan(dailyTargetMl: ${_this.dailyTargetMl}, omsTargetMl: ${_this.omsTargetMl}, isTargetOverridden: ${_this.isTargetOverridden}, feedsPerDay: ${_this.feedsPerDay}, nextBottleAt: ${_this.nextBottleAt}, suggestedMl: ${_this.suggestedMl}, bottlesGiven: ${_this.bottlesGiven}, givenMl: ${_this.givenMl}, isEstimatedFromAge: ${_this.isEstimatedFromAge})';
+  return 'FeedingPlan(dailyTargetMl: ${_this.dailyTargetMl}, omsTargetMl: ${_this.omsTargetMl}, isTargetOverridden: ${_this.isTargetOverridden}, feedsPerDay: ${_this.feedsPerDay}, nextBottleAt: ${_this.nextBottleAt}, windowStart: ${_this.windowStart}, windowEnd: ${_this.windowEnd}, suggestedMl: ${_this.suggestedMl}, bottlesGiven: ${_this.bottlesGiven}, givenMl: ${_this.givenMl}, isEstimatedFromAge: ${_this.isEstimatedFromAge})';
 }
 
 
@@ -54,7 +57,7 @@ abstract mixin class $FeedingPlanCopyWith<$Res>  {
   factory $FeedingPlanCopyWith(FeedingPlan value, $Res Function(FeedingPlan) _then) = _$FeedingPlanCopyWithImpl;
 @useResult
 $Res call({
- int dailyTargetMl, int omsTargetMl, bool isTargetOverridden, int feedsPerDay, DateTime nextBottleAt, int suggestedMl, int bottlesGiven, int givenMl, bool isEstimatedFromAge
+ int dailyTargetMl, int omsTargetMl, bool isTargetOverridden, int feedsPerDay, DateTime nextBottleAt, DateTime windowStart, DateTime windowEnd, int suggestedMl, int bottlesGiven, int givenMl, bool isEstimatedFromAge
 });
 
 
@@ -71,13 +74,15 @@ class _$FeedingPlanCopyWithImpl<$Res>
 
 /// Create a copy of FeedingPlan
 /// with the given fields replaced by the non-null parameter values.
-@pragma('vm:prefer-inline') @override $Res call({Object? dailyTargetMl = null,Object? omsTargetMl = null,Object? isTargetOverridden = null,Object? feedsPerDay = null,Object? nextBottleAt = null,Object? suggestedMl = null,Object? bottlesGiven = null,Object? givenMl = null,Object? isEstimatedFromAge = null,}) {
+@pragma('vm:prefer-inline') @override $Res call({Object? dailyTargetMl = null,Object? omsTargetMl = null,Object? isTargetOverridden = null,Object? feedsPerDay = null,Object? nextBottleAt = null,Object? windowStart = null,Object? windowEnd = null,Object? suggestedMl = null,Object? bottlesGiven = null,Object? givenMl = null,Object? isEstimatedFromAge = null,}) {
   return _then(FeedingPlan(
 dailyTargetMl: null == dailyTargetMl ? _self.dailyTargetMl : dailyTargetMl // ignore: cast_nullable_to_non_nullable
 as int,omsTargetMl: null == omsTargetMl ? _self.omsTargetMl : omsTargetMl // ignore: cast_nullable_to_non_nullable
 as int,isTargetOverridden: null == isTargetOverridden ? _self.isTargetOverridden : isTargetOverridden // ignore: cast_nullable_to_non_nullable
 as bool,feedsPerDay: null == feedsPerDay ? _self.feedsPerDay : feedsPerDay // ignore: cast_nullable_to_non_nullable
 as int,nextBottleAt: null == nextBottleAt ? _self.nextBottleAt : nextBottleAt // ignore: cast_nullable_to_non_nullable
+as DateTime,windowStart: null == windowStart ? _self.windowStart : windowStart // ignore: cast_nullable_to_non_nullable
+as DateTime,windowEnd: null == windowEnd ? _self.windowEnd : windowEnd // ignore: cast_nullable_to_non_nullable
 as DateTime,suggestedMl: null == suggestedMl ? _self.suggestedMl : suggestedMl // ignore: cast_nullable_to_non_nullable
 as int,bottlesGiven: null == bottlesGiven ? _self.bottlesGiven : bottlesGiven // ignore: cast_nullable_to_non_nullable
 as int,givenMl: null == givenMl ? _self.givenMl : givenMl // ignore: cast_nullable_to_non_nullable
@@ -167,10 +172,10 @@ return $default(_that);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( int dailyTargetMl,  int omsTargetMl,  bool isTargetOverridden,  int feedsPerDay,  DateTime nextBottleAt,  int suggestedMl,  int bottlesGiven,  int givenMl,  bool isEstimatedFromAge)?  $default,{required TResult orElse(),}) {final _that = this;
+@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( int dailyTargetMl,  int omsTargetMl,  bool isTargetOverridden,  int feedsPerDay,  DateTime nextBottleAt,  DateTime windowStart,  DateTime windowEnd,  int suggestedMl,  int bottlesGiven,  int givenMl,  bool isEstimatedFromAge)?  $default,{required TResult orElse(),}) {final _that = this;
 switch (_that) {
 case _FeedingPlan() when $default != null:
-return $default(_that.dailyTargetMl,_that.omsTargetMl,_that.isTargetOverridden,_that.feedsPerDay,_that.nextBottleAt,_that.suggestedMl,_that.bottlesGiven,_that.givenMl,_that.isEstimatedFromAge);case _:
+return $default(_that.dailyTargetMl,_that.omsTargetMl,_that.isTargetOverridden,_that.feedsPerDay,_that.nextBottleAt,_that.windowStart,_that.windowEnd,_that.suggestedMl,_that.bottlesGiven,_that.givenMl,_that.isEstimatedFromAge);case _:
   return orElse();
 
 }
@@ -188,10 +193,10 @@ return $default(_that.dailyTargetMl,_that.omsTargetMl,_that.isTargetOverridden,_
 /// }
 /// ```
 
-@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( int dailyTargetMl,  int omsTargetMl,  bool isTargetOverridden,  int feedsPerDay,  DateTime nextBottleAt,  int suggestedMl,  int bottlesGiven,  int givenMl,  bool isEstimatedFromAge)  $default,) {final _that = this;
+@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( int dailyTargetMl,  int omsTargetMl,  bool isTargetOverridden,  int feedsPerDay,  DateTime nextBottleAt,  DateTime windowStart,  DateTime windowEnd,  int suggestedMl,  int bottlesGiven,  int givenMl,  bool isEstimatedFromAge)  $default,) {final _that = this;
 switch (_that) {
 case _FeedingPlan():
-return $default(_that.dailyTargetMl,_that.omsTargetMl,_that.isTargetOverridden,_that.feedsPerDay,_that.nextBottleAt,_that.suggestedMl,_that.bottlesGiven,_that.givenMl,_that.isEstimatedFromAge);case _:
+return $default(_that.dailyTargetMl,_that.omsTargetMl,_that.isTargetOverridden,_that.feedsPerDay,_that.nextBottleAt,_that.windowStart,_that.windowEnd,_that.suggestedMl,_that.bottlesGiven,_that.givenMl,_that.isEstimatedFromAge);case _:
   throw StateError('Unexpected subclass');
 
 }
@@ -208,10 +213,10 @@ return $default(_that.dailyTargetMl,_that.omsTargetMl,_that.isTargetOverridden,_
 /// }
 /// ```
 
-@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( int dailyTargetMl,  int omsTargetMl,  bool isTargetOverridden,  int feedsPerDay,  DateTime nextBottleAt,  int suggestedMl,  int bottlesGiven,  int givenMl,  bool isEstimatedFromAge)?  $default,) {final _that = this;
+@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( int dailyTargetMl,  int omsTargetMl,  bool isTargetOverridden,  int feedsPerDay,  DateTime nextBottleAt,  DateTime windowStart,  DateTime windowEnd,  int suggestedMl,  int bottlesGiven,  int givenMl,  bool isEstimatedFromAge)?  $default,) {final _that = this;
 switch (_that) {
 case _FeedingPlan() when $default != null:
-return $default(_that.dailyTargetMl,_that.omsTargetMl,_that.isTargetOverridden,_that.feedsPerDay,_that.nextBottleAt,_that.suggestedMl,_that.bottlesGiven,_that.givenMl,_that.isEstimatedFromAge);case _:
+return $default(_that.dailyTargetMl,_that.omsTargetMl,_that.isTargetOverridden,_that.feedsPerDay,_that.nextBottleAt,_that.windowStart,_that.windowEnd,_that.suggestedMl,_that.bottlesGiven,_that.givenMl,_that.isEstimatedFromAge);case _:
   return null;
 
 }
@@ -223,7 +228,7 @@ return $default(_that.dailyTargetMl,_that.omsTargetMl,_that.isTargetOverridden,_
 
 
 class _FeedingPlan extends FeedingPlan {
-  const _FeedingPlan({required this.dailyTargetMl, required this.omsTargetMl, required this.isTargetOverridden, required this.feedsPerDay, required this.nextBottleAt, required this.suggestedMl, required this.bottlesGiven, required this.givenMl, required this.isEstimatedFromAge}): super._();
+  const _FeedingPlan({required this.dailyTargetMl, required this.omsTargetMl, required this.isTargetOverridden, required this.feedsPerDay, required this.nextBottleAt, required this.windowStart, required this.windowEnd, required this.suggestedMl, required this.bottlesGiven, required this.givenMl, required this.isEstimatedFromAge}): super._();
   
 
 /// Cible effective : ajustée si renseignée, sinon OMS.
@@ -233,7 +238,12 @@ class _FeedingPlan extends FeedingPlan {
 /// Vrai dès qu'une cible ajustée est fournie, même égale à la cible OMS.
 @override final  bool isTargetOverridden;
 @override final  int feedsPerDay;
+/// Heure centrale du prochain biberon.
 @override final  DateTime nextBottleAt;
+/// Début de la fourchette du prochain biberon.
+@override final  DateTime windowStart;
+/// Fin de la fourchette ; égale au début sans biberon enregistré.
+@override final  DateTime windowEnd;
 @override final  int suggestedMl;
 @override final  int bottlesGiven;
 @override final  int givenMl;
@@ -249,18 +259,18 @@ _$FeedingPlanCopyWith<_FeedingPlan> get copyWith => __$FeedingPlanCopyWithImpl<_
 
 @override
 bool operator ==(Object other) {
-    return identical(this, other) || (other.runtimeType == runtimeType&&other is _FeedingPlan&&(identical(other.dailyTargetMl, dailyTargetMl) || other.dailyTargetMl == dailyTargetMl)&&(identical(other.omsTargetMl, omsTargetMl) || other.omsTargetMl == omsTargetMl)&&(identical(other.isTargetOverridden, isTargetOverridden) || other.isTargetOverridden == isTargetOverridden)&&(identical(other.feedsPerDay, feedsPerDay) || other.feedsPerDay == feedsPerDay)&&(identical(other.nextBottleAt, nextBottleAt) || other.nextBottleAt == nextBottleAt)&&(identical(other.suggestedMl, suggestedMl) || other.suggestedMl == suggestedMl)&&(identical(other.bottlesGiven, bottlesGiven) || other.bottlesGiven == bottlesGiven)&&(identical(other.givenMl, givenMl) || other.givenMl == givenMl)&&(identical(other.isEstimatedFromAge, isEstimatedFromAge) || other.isEstimatedFromAge == isEstimatedFromAge));
+    return identical(this, other) || (other.runtimeType == runtimeType&&other is _FeedingPlan&&(identical(other.dailyTargetMl, dailyTargetMl) || other.dailyTargetMl == dailyTargetMl)&&(identical(other.omsTargetMl, omsTargetMl) || other.omsTargetMl == omsTargetMl)&&(identical(other.isTargetOverridden, isTargetOverridden) || other.isTargetOverridden == isTargetOverridden)&&(identical(other.feedsPerDay, feedsPerDay) || other.feedsPerDay == feedsPerDay)&&(identical(other.nextBottleAt, nextBottleAt) || other.nextBottleAt == nextBottleAt)&&(identical(other.windowStart, windowStart) || other.windowStart == windowStart)&&(identical(other.windowEnd, windowEnd) || other.windowEnd == windowEnd)&&(identical(other.suggestedMl, suggestedMl) || other.suggestedMl == suggestedMl)&&(identical(other.bottlesGiven, bottlesGiven) || other.bottlesGiven == bottlesGiven)&&(identical(other.givenMl, givenMl) || other.givenMl == givenMl)&&(identical(other.isEstimatedFromAge, isEstimatedFromAge) || other.isEstimatedFromAge == isEstimatedFromAge));
 }
 
 
 @override
 int get hashCode {
-    return Object.hash(runtimeType,dailyTargetMl,omsTargetMl,isTargetOverridden,feedsPerDay,nextBottleAt,suggestedMl,bottlesGiven,givenMl,isEstimatedFromAge);
+    return Object.hash(runtimeType,dailyTargetMl,omsTargetMl,isTargetOverridden,feedsPerDay,nextBottleAt,windowStart,windowEnd,suggestedMl,bottlesGiven,givenMl,isEstimatedFromAge);
 }
 
 @override
 String toString() {
-    return 'FeedingPlan(dailyTargetMl: $dailyTargetMl, omsTargetMl: $omsTargetMl, isTargetOverridden: $isTargetOverridden, feedsPerDay: $feedsPerDay, nextBottleAt: $nextBottleAt, suggestedMl: $suggestedMl, bottlesGiven: $bottlesGiven, givenMl: $givenMl, isEstimatedFromAge: $isEstimatedFromAge)';
+    return 'FeedingPlan(dailyTargetMl: $dailyTargetMl, omsTargetMl: $omsTargetMl, isTargetOverridden: $isTargetOverridden, feedsPerDay: $feedsPerDay, nextBottleAt: $nextBottleAt, windowStart: $windowStart, windowEnd: $windowEnd, suggestedMl: $suggestedMl, bottlesGiven: $bottlesGiven, givenMl: $givenMl, isEstimatedFromAge: $isEstimatedFromAge)';
 }
 
 
@@ -271,7 +281,7 @@ abstract mixin class _$FeedingPlanCopyWith<$Res> implements $FeedingPlanCopyWith
   factory _$FeedingPlanCopyWith(_FeedingPlan value, $Res Function(_FeedingPlan) _then) = __$FeedingPlanCopyWithImpl;
 @override @useResult
 $Res call({
- int dailyTargetMl, int omsTargetMl, bool isTargetOverridden, int feedsPerDay, DateTime nextBottleAt, int suggestedMl, int bottlesGiven, int givenMl, bool isEstimatedFromAge
+ int dailyTargetMl, int omsTargetMl, bool isTargetOverridden, int feedsPerDay, DateTime nextBottleAt, DateTime windowStart, DateTime windowEnd, int suggestedMl, int bottlesGiven, int givenMl, bool isEstimatedFromAge
 });
 
 
@@ -288,13 +298,15 @@ class __$FeedingPlanCopyWithImpl<$Res>
 
 /// Create a copy of FeedingPlan
 /// with the given fields replaced by the non-null parameter values.
-@override @pragma('vm:prefer-inline') $Res call({Object? dailyTargetMl = null,Object? omsTargetMl = null,Object? isTargetOverridden = null,Object? feedsPerDay = null,Object? nextBottleAt = null,Object? suggestedMl = null,Object? bottlesGiven = null,Object? givenMl = null,Object? isEstimatedFromAge = null,}) {
+@override @pragma('vm:prefer-inline') $Res call({Object? dailyTargetMl = null,Object? omsTargetMl = null,Object? isTargetOverridden = null,Object? feedsPerDay = null,Object? nextBottleAt = null,Object? windowStart = null,Object? windowEnd = null,Object? suggestedMl = null,Object? bottlesGiven = null,Object? givenMl = null,Object? isEstimatedFromAge = null,}) {
   return _then(_FeedingPlan(
 dailyTargetMl: null == dailyTargetMl ? _self.dailyTargetMl : dailyTargetMl // ignore: cast_nullable_to_non_nullable
 as int,omsTargetMl: null == omsTargetMl ? _self.omsTargetMl : omsTargetMl // ignore: cast_nullable_to_non_nullable
 as int,isTargetOverridden: null == isTargetOverridden ? _self.isTargetOverridden : isTargetOverridden // ignore: cast_nullable_to_non_nullable
 as bool,feedsPerDay: null == feedsPerDay ? _self.feedsPerDay : feedsPerDay // ignore: cast_nullable_to_non_nullable
 as int,nextBottleAt: null == nextBottleAt ? _self.nextBottleAt : nextBottleAt // ignore: cast_nullable_to_non_nullable
+as DateTime,windowStart: null == windowStart ? _self.windowStart : windowStart // ignore: cast_nullable_to_non_nullable
+as DateTime,windowEnd: null == windowEnd ? _self.windowEnd : windowEnd // ignore: cast_nullable_to_non_nullable
 as DateTime,suggestedMl: null == suggestedMl ? _self.suggestedMl : suggestedMl // ignore: cast_nullable_to_non_nullable
 as int,bottlesGiven: null == bottlesGiven ? _self.bottlesGiven : bottlesGiven // ignore: cast_nullable_to_non_nullable
 as int,givenMl: null == givenMl ? _self.givenMl : givenMl // ignore: cast_nullable_to_non_nullable
