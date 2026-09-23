@@ -43,11 +43,11 @@ Alternatives écartées :
 | Endormi·e | Crée un sommeil `startAt = now`, `endAt = null`, `kind` classé. Proposé seulement si aucun sommeil n'est en cours. |
 | Réveillé·e | `planWakeUp(openSessions, now)` : ferme le plus ancien sommeil ouvert à `now`, supprime les autres ouverts (doublons nés de deux appuis simultanés sur les deux iPhones). Une seule écriture en lot (`WriteBatch`). |
 | Réveil oublié | Sommeil en cours depuis plus de 16 h : la carte affiche « Réveil oublié ? » et son bouton ouvre le formulaire pour saisir la fin. |
-| Validation | `ValidateSleepSession` refuse : fin avant ou égale au début ; début ou fin dans le futur (tolérance 1 min) ; durée supérieure à 24 h ; début avant la naissance ; chevauchement d'un autre sommeil (l'erreur porte les heures du sommeil en conflit). Un sommeil en cours chevauche tout sommeil qui commence après son début. |
+| Validation | `ValidateSleepSession` refuse : fin avant ou égale au début ; début ou fin dans le futur (tolérance 1 min) ; durée supérieure à 24 h ; début avant la naissance ; chevauchement d'un autre sommeil (l'erreur porte les heures du sommeil en conflit, format de l'app « 14h10 »). Un sommeil en cours chevauche tout sommeil qui commence après son début. |
 | Total sur 24 h | Fenêtre glissante `[now − 24 h, now]`. Chaque sommeil compte pour sa partie dans la fenêtre ; un sommeil en cours compte jusqu'à `now`. |
 | Éveillé·e depuis | `endAt` du dernier sommeil terminé. Sans aucun sommeil enregistré : « Aucun sommeil noté », sans durée. |
 | Jour de la page | Jour civil 0 h → 24 h. Un sommeil qui passe minuit est découpé en deux segments. Total du jour = somme des segments du jour. Nombre de siestes = `nap` dont `startAt` est dans le jour. Plus longue période = plus longue durée complète (non découpée) parmi les sommeils dont `startAt` est dans le jour ; un sommeil en cours compte jusqu'à `now`. |
-| Moyenne | « Moyenne des 6 derniers jours » : moyenne des totaux des 6 jours complets précédant aujourd'hui (aujourd'hui est incomplet). Masquée tant qu'aucun de ces 6 jours n'a de sommeil. |
+| Moyenne | « Moyenne des jours précédents » : moyenne des totaux des 6 jours complets précédant aujourd'hui (aujourd'hui est incomplet), en ne retenant que les jours où un sommeil est noté (un premier usage en cours de semaine ne fait pas chuter la moyenne). Masquée tant qu'aucun de ces jours n'a de sommeil. |
 | Repère OMS | `SleepAgeBand.forAge(birthDate, now)` d'après l'âge en mois révolus : moins de 4 mois → 14 à 17 h ; 4 à 11 mois → 12 à 16 h ; 12 à 23 mois → 11 à 14 h ; 24 mois et plus → aucun repère (`null`), ligne masquée. Texte neutre : « Repère OMS à son âge : 14 à 17 h sur 24 h ». Aucun code couleur selon l'écart. |
 | Notifications | Aucune. La collection `sleeps` ne déclenche pas `onEventCreated`. Aucune modification des Cloud Functions. |
 | Hors ligne | Persistance Firestore existante : le chrono démarre et s'arrête hors ligne, synchronisé au retour du réseau. |
@@ -60,7 +60,7 @@ Placée juste sous « Prochain biberon ». Titre « Sommeil » avec icône lune,
 
 | État | Contenu |
 | --- | --- |
-| Endormi·e | « Dort depuis 42 min », sous-ligne « Sieste · depuis 14 h 05 » (ou « Nuit »), bouton plein « Réveillé·e ». |
+| Endormi·e | « Dort depuis 42 min », sous-ligne « Sieste · depuis 14h05 » (ou « Nuit »), bouton plein « Réveillé·e ». |
 | Éveillé·e | « Éveillé·e depuis 1 h 10 » (ou « Aucun sommeil noté »), bouton contour « Endormi·e ». |
 | Réveil oublié | « Dort depuis 17 h 20 · Réveil oublié ? », bouton « Saisir le réveil » qui ouvre le formulaire. |
 
@@ -72,7 +72,7 @@ Dernière ligne, dans tous les états : « Sur 24 h : 13 h 40 · repère OMS 14 
 
 ### 5.3 Journal
 
-Les sommeils sont mêlés aux soins, triés par `startAt` décroissant, dans les mêmes en-têtes de jour. Tuile : icône lune (couleur `sleepNight` ou `sleepNap`), « 10 h 20 → 12 h 00 · Sieste », sous-ligne « 1 h 40 » ou « en cours · 42 min ». Tap : formulaire du sommeil. Balayage : suppression après confirmation, comme les soins. Le `+` du Journal reste réservé aux soins.
+Les sommeils sont mêlés aux soins, triés par `startAt` décroissant, dans les mêmes en-têtes de jour. Tuile : icône lune (couleur `sleepNight` ou `sleepNap`), « 10h20 → 12h00 · Sieste », sous-ligne « 1 h 40 » ou « en cours · 42 min ». Tap : formulaire du sommeil. Balayage : suppression après confirmation, comme les soins. Le `+` du Journal reste réservé aux soins.
 
 Fenêtre des sommeils affichés : depuis le `startAt` du plus ancien soin chargé ; sans soin chargé, depuis 7 jours. Quand le Journal charge une page de soins de plus, la fenêtre des sommeils s'élargit.
 
@@ -80,7 +80,7 @@ Fenêtre des sommeils affichés : depuis le `startAt` du plus ancien soin charg�
 
 AppBar « Sommeil », bouton flottant `+` (formulaire). Contenu :
 
-1. En-tête : « Moyenne des 6 derniers jours : 14 h 50 » et le repère OMS.
+1. En-tête : « Moyenne des jours précédents : 14 h 50 » et le repère OMS.
 2. Frise : une ligne par jour, les 7 derniers jours (aujourd'hui en bas), axe 0 / 6 / 12 / 18 / 24 h. Segments `sleepNight` et `sleepNap`, total du jour à droite. Un tap sur une ligne la sélectionne (aujourd'hui par défaut, ligne sélectionnée surlignée). Dessinée par `SleepWeekChart` (`CustomPainter` dans un `LayoutBuilder`), sans hauteur fixe hors `AppSize`.
 3. Détail du jour sélectionné : total, nombre de siestes, plus longue période.
 
