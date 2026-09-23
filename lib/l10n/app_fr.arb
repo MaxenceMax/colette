@@ -330,5 +330,13 @@
   "retryTitle": "À reproposer",
   "retryHint": "Il faut souvent 8 à 10 essais avant qu'un aliment soit accepté.",
   "retryItem": "{liking} · {count, plural, =1{1 essai} other{{count} essais}}",
-  "@retryItem": { "placeholders": { "liking": { "type": "String" }, "count": { "type": "int" } } }
+  "@retryItem": { "placeholders": { "liking": { "type": "String" }, "count": { "type": "int" } } },
+  "catalogTitle": "Aliments · {count, plural, =0{aucun goûté} =1{1 goûté} other{{count} goûtés}}",
+  "@catalogTitle": { "placeholders": { "count": { "type": "int" } } },
+  "catalogFilterAll": "Tous",
+  "catalogFilterNotTasted": "Pas goûtés",
+  "catalogFilterAvoid": "À éviter",
+  "catalogAllergenFilter": "Contient : {allergen}",
+  "@catalogAllergenFilter": { "placeholders": { "allergen": { "type": "String" } } },
+  "catalogClearSearch": "Effacer la recherche"
 }
