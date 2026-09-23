@@ -46,6 +46,15 @@ void main() {
     expect(await repo.watchVisits(code).first, [day8, m2]);
   });
 
+  test('fetchVisitsFromServer relit les visites, triées par étape', () async {
+    final m2 = makeVisit(MedicalStageId.m2, note: 'x');
+    final day8 = makeVisit(MedicalStageId.day8, doneAt: DateTime(2026, 9, 4));
+    await repo.saveVisit(code, m2);
+    await repo.saveVisit(code, day8);
+    final result = await repo.fetchVisitsFromServer(code);
+    expect(result.getRight().toNullable(), [day8, m2]);
+  });
+
   test('n\'écrit pas les clés absentes', () async {
     await repo.saveVisit(
       code,

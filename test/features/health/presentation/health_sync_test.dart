@@ -401,8 +401,8 @@ void main() {
         MedicalStageId.m2,
         appointmentAt: DateTime(2026, 11, 3, 10),
       );
-      when(() => repo.watchVisits(code))
-          .thenAnswer((_) => Stream.value([visit]));
+      when(() => repo.fetchVisitsFromServer(code))
+          .thenAnswer((_) async => right([visit]));
       when(() => repo.saveReminderSnapshot(any(), any()))
           .thenAnswer((_) => Completer<Either<Failure, void>>().future);
       final c = await container(calendarId: 'c1', medicalRepository: repo);

@@ -9,6 +9,11 @@ abstract interface class MedicalRepository {
   /// Visites saisies, dans l'ordre du calendrier.
   Stream<List<MedicalVisit>> watchVisits(String householdCode);
 
+  /// Visites lues sur le serveur, jamais dans le cache local ; échoue hors ligne.
+  Future<Either<Failure, List<MedicalVisit>>> fetchVisitsFromServer(
+    String householdCode,
+  );
+
   /// Remplace entièrement la visite de son étape.
   Future<Either<Failure, void>> saveVisit(
     String householdCode,

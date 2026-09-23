@@ -22,13 +22,22 @@ class FirestoreMedicalRepository implements MedicalRepository {
   CollectionReference<Map<String, dynamic>> _visits(String code) =>
       _household(code).collection(FirestorePaths.medicalVisits);
 
+  static List<MedicalVisit> _decode(QuerySnapshot<Map<String, dynamic>> snap) =>
+      snap.docs.map(MedicalVisitDto.fromDoc).nonNulls.toList()
+        ..sort((a, b) => a.stageId.index.compareTo(b.stageId.index));
+
   @override
   Stream<List<MedicalVisit>> watchVisits(String householdCode) =>
-      _visits(householdCode).snapshots().map(
-        (snap) =>
-            snap.docs.map(MedicalVisitDto.fromDoc).nonNulls.toList()
-              ..sort((a, b) => a.stageId.index.compareTo(b.stageId.index)),
-      );
+      _visits(householdCode).snapshots().map(_decode);
+
+  @override
+  Future<Either<Failure, List<MedicalVisit>>> fetchVisitsFromServer(
+    String householdCode,
+  ) => guard(
+    () async => _decode(
+      await _visits(householdCode).get(const GetOptions(source: Source.server)),
+    ),
+  );
 
   @override
   Future<Either<Failure, void>> saveVisit(

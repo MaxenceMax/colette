@@ -35,6 +35,7 @@ final class NoopHealthSync implements HealthSync {
 }
 
 /// Relit Firestore (pas les providers, qui peuvent être détruits pendant l'attente).
+/// Les visites viennent du serveur : hors ligne, rien n'est écrit.
 /// Best-effort : une erreur est journalisée, jamais propagée.
 ///
 /// Coalesce les appels concurrents : une sync déjà en cours absorbe les
@@ -79,7 +80,17 @@ final class FirestoreHealthSync implements HealthSync {
           .first;
       if (profile == null) return;
       final medical = _ref.read(medicalRepositoryProvider);
-      final visits = await medical.watchVisits(code).first;
+      // Jamais le cache : au démarrage à froid, il ignorerait un RDV posé ou
+      // déplacé par l'autre iPhone, et la sync l'effacerait du calendrier.
+      final fetched = await medical.fetchVisitsFromServer(code);
+      if (fetched case Left(:final value)) {
+        developer.log(
+          'Health sync skipped, server unreachable: ${value.runtimeType}',
+          name: 'colette',
+        );
+        return;
+      }
+      final visits = fetched.getOrElse((_) => const []);
       final now = _ref.read(clockProvider).now();
       final timeline = const ComputeMedicalTimeline()(
         birthDate: profile.birthDate,
