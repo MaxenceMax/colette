@@ -51,9 +51,23 @@ class _CustomAppointmentSheetState
   late DateTime? _appointmentAt = widget.initial?.appointmentAt;
   late DateTime? _doneAt = widget.initial?.doneAt;
   late List<CustomVaccine> _vaccines = [...?widget.initial?.vaccines];
+  final _titleFocus = FocusNode();
+
+  @override
+  void initState() {
+    super.initState();
+    // Une seule demande de focus à la création : `autofocus` sur le champ
+    // relancerait le clavier à chaque reconstruction du champ par la liste.
+    if (widget.initial == null) {
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (mounted) _titleFocus.requestFocus();
+      });
+    }
+  }
 
   @override
   void dispose() {
+    _titleFocus.dispose();
     _title.dispose();
     _practitioner.dispose();
     _note.dispose();
@@ -148,7 +162,7 @@ class _CustomAppointmentSheetState
           AppSpacing.md.verticalSpace,
           TextField(
             controller: _title,
-            autofocus: initial == null,
+            focusNode: _titleFocus,
             decoration: InputDecoration(labelText: s.healthSheetTitle),
             textCapitalization: .sentences,
           ),
