@@ -1,23 +1,34 @@
 import 'package:colette/core/clock/app_clock.dart';
 import 'package:colette/core/clock/now_providers.dart';
+import 'package:colette/core/result/failure.dart';
 import 'package:colette/features/baby/domain/entities/baby_profile.dart';
 import 'package:colette/features/baby/presentation/providers/baby_providers.dart';
 import 'package:colette/features/diversification/domain/entities/allergen.dart';
 import 'package:colette/features/diversification/domain/entities/allergen_state.dart';
 import 'package:colette/features/diversification/domain/entities/diversification_phase.dart';
 import 'package:colette/features/diversification/domain/entities/food.dart';
+import 'package:colette/features/diversification/domain/entities/food_catalog.dart';
 import 'package:colette/features/diversification/domain/entities/food_filter.dart';
 import 'package:colette/features/diversification/domain/entities/food_group.dart';
 import 'package:colette/features/diversification/domain/entities/food_status.dart';
 import 'package:colette/features/diversification/domain/entities/liking.dart';
 import 'package:colette/features/diversification/domain/entities/tasting.dart';
+import 'package:colette/features/diversification/domain/repositories/food_catalog_repository.dart';
 import 'package:colette/features/diversification/presentation/providers/catalog_filter.dart';
 import 'package:colette/features/diversification/presentation/providers/diversification_overview_providers.dart';
 import 'package:colette/features/diversification/presentation/providers/diversification_providers.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:fpdart/fpdart.dart';
 
 import '../helpers/catalog_fixture.dart';
+
+/// Repository de test : échoue toujours au chargement.
+class _FailingFoodCatalogRepository implements FoodCatalogRepository {
+  @override
+  Future<Either<Failure, FoodCatalog>> load() async =>
+      left(const UnknownFailure('x'));
+}
 
 void main() {
   final now = DateTime(2027, 4, 10, 18);
@@ -162,6 +173,43 @@ void main() {
     c.listen(foodsProvider, (_, _) {});
     await expectLater(c.read(foodCatalogProvider.future), throwsStateError);
     await c.read(customFoodsProvider.future);
+    expect(c.read(foodsProvider), isA<AsyncError<Map<String, Food>>>());
+  });
+
+  test('erreur du repository catalogue propagée par foods', () async {
+    final c = ProviderContainer(
+      overrides: [
+        foodCatalogRepositoryProvider.overrideWithValue(
+          _FailingFoodCatalogRepository(),
+        ),
+        customFoodsProvider.overrideWith((ref) => Stream.value(const [])),
+      ],
+    );
+    addTearDown(c.dispose);
+    c.listen(foodsProvider, (_, _) {});
+    await expectLater(
+      c.read(foodCatalogProvider.future),
+      throwsA(isA<Failure>()),
+    );
+    await c.read(customFoodsProvider.future);
+    final result = c.read(foodsProvider);
+    expect(result, isA<AsyncError<Map<String, Food>>>());
+    expect((result as AsyncError<Map<String, Food>>).error, isA<Failure>());
+  });
+
+  test('erreur du flux customFoods propagée par foods', () async {
+    final c = ProviderContainer(
+      overrides: [
+        foodCatalogProvider.overrideWith((ref) async => catalogFixture()),
+        customFoodsProvider.overrideWith(
+          (ref) => Stream<List<Food>>.error(StateError('KO')),
+        ),
+      ],
+    );
+    addTearDown(c.dispose);
+    c.listen(foodsProvider, (_, _) {});
+    await c.read(foodCatalogProvider.future);
+    await expectLater(c.read(customFoodsProvider.future), throwsStateError);
     expect(c.read(foodsProvider), isA<AsyncError<Map<String, Food>>>());
   });
 }

@@ -37,7 +37,7 @@ final class TastingFormControllerProvider
 }
 
 String _$tastingFormControllerHash() =>
-    r'e0c6ce9837f0061a5b0c496312ad3c86a98a5bd0';
+    r'ee6e6b7d167dd60d98a47f38a28e854bcdc7e576';
 
 /// Enregistrement et suppression d'une dégustation. L'état porte l'échec éventuel.
 

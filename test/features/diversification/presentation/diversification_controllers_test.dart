@@ -71,11 +71,13 @@ void main() {
       ],
     );
     addTearDown(container.dispose);
+    // Ne pas écouter foodsProvider/tastingsProvider directement : on reproduit
+    // la situation d'une feuille (CustomFoodSheet/TastingFormSheet) ouverte
+    // depuis un Scaffold nu, où seuls les contrôleurs sont watchés. C'est aux
+    // contrôleurs eux-mêmes de garder leurs sources en vie.
     container
-      ..listen(foodsProvider, (_, _) {})
       ..listen(tastingFormControllerProvider, (_, _) {})
-      ..listen(customFoodControllerProvider, (_, _) {})
-      ..listen(tastingsProvider, (_, _) {});
+      ..listen(customFoodControllerProvider, (_, _) {});
     await container.read(foodCatalogProvider.future);
     await container.read(customFoodsProvider.future);
     await container.read(tastingsProvider.future);
@@ -174,6 +176,21 @@ void main() {
       final ok = await controller().save(
         name: 'carotte',
         group: FoodGroup.dairy,
+        allergens: const {},
+      );
+      expect(ok, isFalse);
+      expect(
+        (container.read(customFoodControllerProvider).error!
+                as ValidationFailure)
+            .reason,
+        ValidationReason.duplicateFoodName,
+      );
+    });
+
+    test('doublon avec un autre aliment perso refusé', () async {
+      final ok = await controller().save(
+        name: 'kaki',
+        group: FoodGroup.otherFruitsVeg,
         allergens: const {},
       );
       expect(ok, isFalse);

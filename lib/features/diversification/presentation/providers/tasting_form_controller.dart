@@ -48,10 +48,12 @@ class TastingFormController extends _$TastingFormController {
     if (code == null) return false;
     state = const AsyncLoading();
     final result = await action(code);
-    state = result.fold(
-      (failure) => AsyncError(failure, StackTrace.current),
-      (_) => const AsyncData(null),
-    );
+    if (ref.mounted) {
+      state = result.fold(
+        (failure) => AsyncError(failure, StackTrace.current),
+        (_) => const AsyncData(null),
+      );
+    }
     return result.isRight();
   }
 }

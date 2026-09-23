@@ -18,7 +18,14 @@ part 'custom_food_controller.g.dart';
 @riverpod
 class CustomFoodController extends _$CustomFoodController {
   @override
-  FutureOr<void> build() {}
+  FutureOr<void> build() {
+    // Garde les sources en vie tant que le contrôleur est écouté : `save` et
+    // `delete` en ont besoin même quand rien d'autre ne les watch (ex. feuille
+    // ouverte depuis un Scaffold nu, cf. `CustomFoodSheet`).
+    ref
+      ..listen(customFoodsProvider, (_, _) {})
+      ..listen(tastingsProvider, (_, _) {});
+  }
 
   /// Crée ([id] `null`) ou remplace l'aliment ; le nom doit être unique parmi
   /// le catalogue et les autres aliments perso.
@@ -28,13 +35,21 @@ class CustomFoodController extends _$CustomFoodController {
     required FoodGroup group,
     required Set<Allergen> allergens,
   }) async {
-    final foods = ref.read(foodsProvider).value ?? const <String, Food>{};
+    final List<String> existingNames;
+    try {
+      final catalog = await ref.read(foodCatalogProvider.future);
+      final custom = await ref.read(customFoodsProvider.future);
+      existingNames = [
+        for (final food in [...catalog.foods, ...custom])
+          if (food.id != id && !food.isUnknown) food.name,
+      ];
+    } on Object catch (e, st) {
+      if (ref.mounted) state = AsyncError(e, st);
+      return false;
+    }
     final reason = const ValidateCustomFood()(
       name: name,
-      existingNames: [
-        for (final food in foods.values)
-          if (food.id != id && !food.isUnknown) food.name,
-      ],
+      existingNames: existingNames,
     );
     if (reason != null) return _reject(reason);
     final food = Food(
@@ -51,7 +66,13 @@ class CustomFoodController extends _$CustomFoodController {
 
   /// Supprime l'aliment ; refusé s'il a au moins une dégustation.
   Future<bool> delete(String foodId) async {
-    final tastings = ref.read(tastingsProvider).value ?? const <Tasting>[];
+    final List<Tasting> tastings;
+    try {
+      tastings = await ref.read(tastingsProvider.future);
+    } on Object catch (e, st) {
+      if (ref.mounted) state = AsyncError(e, st);
+      return false;
+    }
     if (tastings.any((tasting) => tasting.foodId == foodId)) {
       return _reject(ValidationReason.customFoodInUse);
     }
@@ -61,7 +82,9 @@ class CustomFoodController extends _$CustomFoodController {
   }
 
   bool _reject(ValidationReason reason) {
-    state = AsyncError(ValidationFailure(reason), StackTrace.current);
+    if (ref.mounted) {
+      state = AsyncError(ValidationFailure(reason), StackTrace.current);
+    }
     return false;
   }
 
@@ -72,10 +95,12 @@ class CustomFoodController extends _$CustomFoodController {
     if (code == null) return false;
     state = const AsyncLoading();
     final result = await action(code);
-    state = result.fold(
-      (failure) => AsyncError(failure, StackTrace.current),
-      (_) => const AsyncData(null),
-    );
+    if (ref.mounted) {
+      state = result.fold(
+        (failure) => AsyncError(failure, StackTrace.current),
+        (_) => const AsyncData(null),
+      );
+    }
     return result.isRight();
   }
 }
