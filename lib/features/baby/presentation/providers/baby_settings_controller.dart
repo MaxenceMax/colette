@@ -84,6 +84,7 @@ class BabySettingsController extends _$BabySettingsController {
         );
   });
 
+  /// Supprime une mesure puis resynchronise le plan.
   Future<bool> deleteMeasurement(String measurementId) => _run(
     (code) =>
         ref.read(babyRepositoryProvider).deleteMeasurement(code, measurementId),

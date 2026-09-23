@@ -100,6 +100,7 @@ void main() {
       ValidationReason.emptyMeasurement,
     );
     verifyNever(() => repo.saveMeasurement(any(), any()));
+    verifyNever(() => sync.sync());
   });
 
   test('saveMeasurement crée une mesure puis synchronise le plan', () async {
@@ -131,17 +132,19 @@ void main() {
   test('saveMeasurement avec un id modifie la mesure existante', () async {
     when(() => repo.saveMeasurement(any(), any()))
         .thenAnswer((_) async => right(null));
-    await controller().saveMeasurement(
+    final ok = await controller().saveMeasurement(
       id: 'm1',
       measuredAt: DateTime(2026, 9, 10),
       grams: 3600,
     );
+    expect(ok, isTrue);
     final saved =
         verify(() => repo.saveMeasurement('ABCDEFGH', captureAny()))
                 .captured
                 .single
             as GrowthMeasurement;
     expect(saved.id, 'm1');
+    verify(() => sync.sync()).called(1);
   });
 
   test('deleteMeasurement supprime puis synchronise le plan', () async {
