@@ -82,3 +82,32 @@ describe('isReminderDue', () => {
     ).toBe(true);
   });
 });
+
+describe('isReminderDue avec fourchette', () => {
+  const next = new Date('2026-09-21T12:30:00Z');
+  const windowStartAt = new Date('2026-09-21T12:05:00Z');
+  const windowEndAt = new Date('2026-09-21T12:55:00Z');
+  const computedAt = new Date('2026-09-21T09:30:00Z');
+  const base = { nextBottleAt: next, windowStartAt, windowEndAt, computedAt, lastNotifiedFor: null };
+
+  it('pas avant l’ouverture de la fourchette', () => {
+    expect(isReminderDue({ ...base, now: new Date('2026-09-21T12:00:00Z') })).toBe(false);
+  });
+
+  it('dû dès l’ouverture', () => {
+    expect(isReminderDue({ ...base, now: windowStartAt })).toBe(true);
+  });
+
+  it('encore dû à la fermeture, plus après', () => {
+    expect(isReminderDue({ ...base, now: windowEndAt })).toBe(true);
+    expect(isReminderDue({ ...base, now: new Date(windowEndAt.getTime() + 60 * 1000) })).toBe(false);
+  });
+
+  it('jamais deux fois pour la même échéance', () => {
+    expect(isReminderDue({ ...base, lastNotifiedFor: next, now: windowStartAt })).toBe(false);
+  });
+
+  it('plan calculé fourchette ouverte : rien à rappeler', () => {
+    expect(isReminderDue({ ...base, computedAt: windowStartAt, now: windowStartAt })).toBe(false);
+  });
+});

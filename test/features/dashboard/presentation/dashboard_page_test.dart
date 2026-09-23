@@ -62,6 +62,7 @@ void main() {
     AsyncValue<DiaperStockStatus?> diaperStatus = const AsyncData(null),
     BabyProfile? baby,
     List<GrowthMeasurement>? measurements,
+    CareEvent? latest,
   }) => [
     documentsRepositoryOverride(),
     clockProvider.overrideWithValue(FixedClock(now)),
@@ -77,7 +78,7 @@ void main() {
     recentEventsProvider.overrideWith(
       (ref) => Stream.value(recent ?? [adrigyl, bottle, lateBottle]),
     ),
-    latestBottleProvider.overrideWith((ref) => Stream.value(bottle)),
+    latestBottleProvider.overrideWith((ref) => Stream.value(latest ?? bottle)),
     latestBathProvider.overrideWith((ref) => Stream.value(null)),
     eventsRepositoryProvider.overrideWithValue(repo),
     idGeneratorProvider.overrideWithValue(const FixedIdGenerator('e-new')),
@@ -99,7 +100,7 @@ void main() {
       expect(find.text('Colette a 9 jours'), findsOneWidget);
       expect(find.text('Prochain biberon'), findsOneWidget);
       expect(find.text('70 ml'), findsOneWidget);
-      expect(find.text('en retard de 60 min'), findsOneWidget);
+      expect(find.text('en retard de 35 min'), findsOneWidget);
       expect(find.text('fait à 09h00'), findsOneWidget);
       expect(
         find.text('2 biberons · 150 ml sur les dernières 24 h'),
@@ -134,6 +135,54 @@ void main() {
       expect(find.widgetWithText(SnackBarAction, 'Annuler'), findsOneWidget);
     },
   );
+
+  testWidgets('avant la fourchette, la carte affiche ses bornes', (
+    tester,
+  ) async {
+    await pumpApp(
+      tester,
+      const DashboardPage(),
+      overrides: overridesFor(
+        MockEventsRepository(),
+        latest: makeEvent(
+          id: 'r',
+          startAt: DateTime(2026, 9, 10, 11),
+          bottleMl: 60,
+        ),
+      ),
+    );
+    expect(find.text('entre 13h35 et 14h25'), findsOneWidget);
+  });
+
+  testWidgets('dans la fourchette, la carte affiche sa fin', (tester) async {
+    await pumpApp(
+      tester,
+      const DashboardPage(),
+      overrides: overridesFor(
+        MockEventsRepository(),
+        latest: makeEvent(
+          id: 'r',
+          startAt: DateTime(2026, 9, 10, 9, 10),
+          bottleMl: 60,
+        ),
+      ),
+    );
+    expect(find.text('maintenant, jusqu\'à 12h35'), findsOneWidget);
+  });
+
+  testWidgets('le bouton horloge ouvre la feuille des 24 prochaines heures', (
+    tester,
+  ) async {
+    await pumpApp(
+      tester,
+      const DashboardPage(),
+      overrides: overridesFor(MockEventsRepository()),
+    );
+    await tester.tap(find.byTooltip('Prochaines 24 h'));
+    await tester.pumpAndSettle();
+    expect(find.text('Prochaines 24 h'), findsOneWidget);
+    expect(find.text('Demain'), findsOneWidget);
+  });
 
   testWidgets('affiche zéro biberon sur 24 h sans événement récent', (
     tester,

@@ -170,7 +170,9 @@ households/{code}
       bathEveryDays: 2
       feedsPerDay: 8
   feedingPlan:                        écrit par le client à chaque sauvegarde d'événement biberon
-    nextBottleAt: Timestamp
+    nextBottleAt: Timestamp           heure centrale du prochain biberon
+    windowStartAt: Timestamp          début de la fourchette (absent avant la fourchette, voir 2026-09-23-bottle-window-design.md)
+    windowEndAt: Timestamp            fin de la fourchette
     suggestedMl: number
     computedAt: Timestamp
   lastBottleNotifiedFor: Timestamp | null   écrit par la fonction de rappel biberon
@@ -257,7 +259,7 @@ Contenu, de haut en bas :
 
 1. En-tête : date du jour, « {prénom} a {âge} » (jours jusqu'à 2 semaines, puis semaines jusqu'à 2 mois, puis mois).
 2. Carte d'alerte « Plus que N couches », uniquement si le stock restant est strictement inférieur au seuil (voir `2026-09-22-diaper-stock-design.md`). Tap : ouvre les Réglages.
-3. Carte « Prochain biberon » : quantité suggérée en ml, heure estimée, texte « X sur Y donnés · A / B ml », barre de progression. Si aucune pesée n'est enregistrée : mention « Repères par âge, ajoute une pesée pour un calcul au poids ». Tap : ouvre le formulaire avec la quantité suggérée préremplie.
+3. Carte « Prochain biberon » : quantité suggérée en ml, fourchette (« entre 7h45 et 8h35 », « maintenant, jusqu'à 8h35 »), texte « X sur Y donnés · A / B ml », barre de progression. Si aucune pesée n'est enregistrée : mention « Repères par âge, ajoute une pesée pour un calcul au poids ». Tap : ouvre le formulaire avec la quantité suggérée préremplie. Bouton horloge : feuille « Prochaines 24 h » (fourchettes et quantités prévues, voir `2026-09-23-bottle-window-design.md`).
 4. Section « Reste à faire » : une `CareTaskRow` par soin attendu non fait. Tap : crée immédiatement un événement pré-rempli (heure = maintenant, soin coché) puis affiche une snackbar « Enregistré » avec « Annuler ». Les soins faits passent en bas, grisés, avec l'heure.
 5. Compteurs du jour : couches, pipis, cacas.
 
@@ -297,7 +299,8 @@ Cible journalière selon l'OMS (*Infant and young child feeding: model chapter*,
 Sorties :
 
 - `intervalle = 24 h / feedsPerDay` (3 h pour 8 prises).
-- `nextBottleAt = dernierBiberon.startAt + intervalle`, ou `now` si aucun biberon. Si `nextBottleAt < now`, le dashboard affiche « en retard de N min » en `warning`.
+- `nextBottleAt = dernierBiberon.startAt + intervalle`, ou `now` si aucun biberon.
+- Fourchette : `nextBottleAt ± round(0,15 × intervalle)`, bornes arrondies aux 5 min ; réduite à `now` sans biberon. Après `windowEnd`, le dashboard affiche « en retard de N min » (compté depuis `windowEnd`) en `warning`.
 - `bottlesGiven = nombre de biberons du jour`, `bottlesRemaining = max(0, feedsPerDay − bottlesGiven)`.
 - `givenMl = somme des ml du jour`, `remainingMl = max(0, dailyTargetMl − givenMl)`.
 - `suggestedMl = bottlesRemaining > 0 ? arrondi10(remainingMl / bottlesRemaining) : arrondi10(dailyTargetMl / feedsPerDay)`, borné entre 30 ml et 240 ml.
@@ -346,7 +349,7 @@ Dossier `functions/` TypeScript, Firebase Functions v2, région `europe-west1`, 
 | Fonction | Déclencheur | Comportement |
 | --- | --- | --- |
 | `onEventCreated` | Firestore `onDocumentCreated` sur `households/{code}/events/{id}` | Envoie un push à chaque appareil du foyer dont `deviceId ≠ createdByDeviceId` et `notifyOnOthersEvents` est vrai ; sans `createdByDeviceId`, personne n'est notifié. Titre : « {label appareil} a ajouté un événement ». Corps : résumé (ex. « Biberon 120 ml · Couche · Adrigyl à 14h32 »). |
-| `bottleReminder` | `onSchedule('every 5 minutes')` | Pour chaque foyer dont `feedingPlan.nextBottleAt − 10 min ≤ now ≤ nextBottleAt + 15 min`, `lastBottleNotifiedFor ≠ nextBottleAt` et `computedAt < nextBottleAt` (un plan calculé à ou après son échéance, c'est-à-dire sans biberon enregistré ou avec un dernier biberon trop ancien, ne déclenche rien) : push « Biberon dans 10 min · env. {suggestedMl} ml » aux appareils avec `notifyBottleReminder`. `lastBottleNotifiedFor` n'est écrit que si au moins un push est parti ou si aucun appareil n'est abonné ; sinon le tick suivant réessaie, dans la limite de la fenêtre. Chaque foyer est traité dans son propre `try/catch`. |
+| `bottleReminder` | `onSchedule('every 5 minutes')` | Pour chaque foyer dont `feedingPlan` porte une fourchette : rappel dû si `windowStartAt ≤ now ≤ windowEndAt`, `lastBottleNotifiedFor ≠ nextBottleAt` et `computedAt < windowStartAt` (un plan calculé fourchette déjà ouverte, sans biberon enregistré ou avec un dernier biberon trop ancien, ne déclenche rien) : push « Biberon possible dès maintenant · Environ {suggestedMl} ml, d'ici {windowEnd} » aux appareils avec `notifyBottleReminder`. Sans fourchette (snapshot d'une version antérieure de l'app) : ancienne règle, `nextBottleAt − 10 min ≤ now ≤ nextBottleAt + 15 min` et `computedAt < nextBottleAt`, push « Biberon dans 10 min ». `lastBottleNotifiedFor` n'est écrit que si au moins un push est parti ou si aucun appareil n'est abonné ; sinon le tick suivant réessaie, dans la limite de la fenêtre. Chaque foyer est traité dans son propre `try/catch`. |
 | `morningDigest` | `onSchedule('every 60 minutes')` | Pour chaque appareil dont `morningDigestHour` correspond à l'heure Europe/Paris la plus proche de l'exécution, `notifyMorningDigest` est vrai et `lastDigestSentOn` ≠ la date du jour (Paris) : calcule les soins attendus non faits ce jour, sur les événements de `[minuit, minuit + 1 j)` Paris (même règle que §6.2, réimplémentée en TypeScript avec ses tests) et envoie « Aujourd'hui pour {prénom} : Adrigyl, soin des yeux, bain », puis écrit `lastDigestSentOn`. Rien n'est envoyé si tout est déjà fait ou si le foyer n'a pas de profil bébé. Chaque foyer est traité dans son propre `try/catch`. |
 
 Le tap sur une notification ouvre le dashboard (événement, digest) ou le formulaire biberon prérempli (rappel).

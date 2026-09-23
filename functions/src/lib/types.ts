@@ -28,6 +28,9 @@ export type BabyDoc = {
 
 export type FeedingPlanDoc = {
   nextBottleAt: Timestamp;
+  /** Absents dans les snapshots écrits par une version de l'app antérieure à la fourchette. */
+  windowStartAt?: Timestamp;
+  windowEndAt?: Timestamp;
   suggestedMl: number;
   computedAt?: Timestamp;
 };

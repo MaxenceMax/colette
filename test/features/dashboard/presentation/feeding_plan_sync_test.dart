@@ -53,6 +53,14 @@ void main() {
         (plan['nextBottleAt'] as Timestamp).toDate(),
         DateTime(2026, 9, 10, 12),
       );
+      expect(
+        (plan['windowStartAt'] as Timestamp).toDate(),
+        DateTime(2026, 9, 10, 11, 35),
+      );
+      expect(
+        (plan['windowEndAt'] as Timestamp).toDate(),
+        DateTime(2026, 9, 10, 12, 25),
+      );
       expect(plan['suggestedMl'], 60);
     },
   );

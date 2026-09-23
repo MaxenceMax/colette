@@ -3,7 +3,7 @@ import 'package:colette/shared/ui/widgets/offline_banner.dart';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 
-/// Scaffold commun aux trois onglets : bandeau hors ligne + `NavigationBar`.
+/// Scaffold commun aux quatre onglets : bandeau hors ligne + `NavigationBar`.
 class MainShell extends StatelessWidget {
   const MainShell({super.key, required this.navigationShell});
 
@@ -35,6 +35,11 @@ class MainShell extends StatelessWidget {
             icon: const Icon(Icons.view_timeline_outlined),
             selectedIcon: const Icon(Icons.view_timeline),
             label: s.tabJournal,
+          ),
+          NavigationDestination(
+            icon: const Icon(Icons.rice_bowl_outlined),
+            selectedIcon: const Icon(Icons.rice_bowl),
+            label: s.tabPlate,
           ),
           NavigationDestination(
             icon: const Icon(Icons.tune_outlined),

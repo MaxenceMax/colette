@@ -64,6 +64,8 @@ final class FirestoreFeedingPlanSync implements FeedingPlanSync {
         code,
         FeedingPlanSnapshot(
           nextBottleAt: plan.nextBottleAt,
+          windowStartAt: plan.windowStart,
+          windowEndAt: plan.windowEnd,
           suggestedMl: plan.suggestedMl,
           computedAt: now,
         ),

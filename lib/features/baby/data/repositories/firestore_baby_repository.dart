@@ -71,6 +71,8 @@ class FirestoreBabyRepository implements BabyRepository {
     () => _household(householdCode).set({
       'feedingPlan': {
         'nextBottleAt': Timestamp.fromDate(snapshot.nextBottleAt),
+        'windowStartAt': Timestamp.fromDate(snapshot.windowStartAt),
+        'windowEndAt': Timestamp.fromDate(snapshot.windowEndAt),
         'suggestedMl': snapshot.suggestedMl,
         'computedAt': Timestamp.fromDate(snapshot.computedAt),
       },

@@ -5,6 +5,7 @@ import 'package:colette/core/theme/design_tokens.dart';
 import 'package:colette/core/theme/text_styles.dart';
 import 'package:colette/features/dashboard/domain/entities/feeding_plan.dart';
 import 'package:colette/features/dashboard/presentation/providers/dashboard_providers.dart';
+import 'package:colette/features/dashboard/presentation/widgets/bottle_schedule_sheet.dart';
 import 'package:colette/features/dashboard/presentation/widgets/feeding_reference_sheet.dart';
 import 'package:colette/features/events/presentation/widgets/event_form_sheet.dart';
 import 'package:colette/l10n/generated/app_localizations.dart';
@@ -12,7 +13,7 @@ import 'package:colette/shared/ui/widgets/colette_card_surface.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-/// Carte « Prochain biberon » : quantité suggérée, heure, progression du jour.
+/// Carte « Prochain biberon » : quantité suggérée, fourchette, progression du jour.
 class NextBottleCard extends ConsumerWidget {
   const NextBottleCard({super.key});
 
@@ -56,6 +57,12 @@ class NextBottleCard extends ConsumerWidget {
                     color: context.appColor(AppColors.primary),
                   ),
                 ),
+              ),
+              IconButton(
+                onPressed: () => showBottleScheduleSheet(context),
+                icon: const Icon(Icons.schedule),
+                color: context.appColor(AppColors.textSecondary),
+                tooltip: s.bottleScheduleTooltip,
               ),
               IconButton(
                 onPressed: () => showFeedingReferenceSheet(context),
@@ -148,8 +155,11 @@ class _WhenText extends StatelessWidget {
         ),
       );
     }
-    final text = plan.nextBottleAt.isAfter(now)
-        ? s.nextBottleAt(formatHourMinute(plan.nextBottleAt))
+    final end = formatHourMinute(plan.windowEnd);
+    final text = now.isBefore(plan.windowStart)
+        ? s.nextBottleWindow(formatHourMinute(plan.windowStart), end)
+        : plan.hasWindow
+        ? s.nextBottleNowUntil(end)
         : s.nextBottleNow;
     return Text(
       text,
