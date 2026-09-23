@@ -3,11 +3,10 @@ import 'package:colette/core/firebase/firebase_providers.dart';
 import 'package:colette/features/baby/domain/entities/baby_profile.dart';
 import 'package:colette/features/baby/domain/entities/baby_sex.dart';
 import 'package:colette/features/baby/domain/entities/growth_measurement.dart';
-import 'package:colette/features/baby/domain/entities/weight_entry.dart';
 import 'package:colette/features/baby/presentation/pages/weight_curve_page.dart';
 import 'package:colette/features/baby/presentation/providers/baby_providers.dart';
 import 'package:colette/features/baby/presentation/providers/who_curves_visibility.dart';
-import 'package:colette/features/baby/presentation/widgets/add_weight_sheet.dart';
+import 'package:colette/features/baby/presentation/widgets/growth_measurement_sheet.dart';
 import 'package:colette/features/dashboard/presentation/providers/feeding_plan_sync.dart';
 import 'package:colette/features/household/presentation/providers/household_providers.dart';
 import 'package:fl_chart/fl_chart.dart';
@@ -45,13 +44,6 @@ void main() {
       InMemoryHouseholdLocalStore(householdCode: 'ABCDEFGH'),
     ),
     measurementsProvider.overrideWith((ref) => Stream.value(list)),
-    // La liste des pesées lit encore `weightsProvider` jusqu'à la tâche 8.
-    weightsProvider.overrideWith(
-      (ref) => Stream.value([
-        for (final m in list)
-          WeightEntry(id: m.id, measuredAt: m.measuredAt, grams: m.grams!),
-      ]),
-    ),
     feedingPlanSyncProvider.overrideWithValue(const NoopFeedingPlanSync()),
   ];
 
@@ -72,9 +64,9 @@ void main() {
     );
     expect(find.byType(LineChart), findsNothing);
 
-    await tester.tap(find.text('Ajouter une pesée'));
+    await tester.tap(find.widgetWithText(FilledButton, 'Ajouter une mesure'));
     await tester.pumpAndSettle();
-    expect(find.byType(AddWeightSheet), findsOneWidget);
+    expect(find.byType(GrowthMeasurementSheet), findsOneWidget);
   });
 
   testWidgets('avec pesées : dernière pesée, évolution, courbe et liste', (

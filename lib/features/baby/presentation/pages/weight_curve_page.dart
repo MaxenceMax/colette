@@ -8,10 +8,10 @@ import 'package:colette/features/baby/domain/entities/who_percentiles.dart';
 import 'package:colette/features/baby/presentation/providers/baby_providers.dart';
 import 'package:colette/features/baby/presentation/providers/baby_settings_controller.dart';
 import 'package:colette/features/baby/presentation/providers/who_curves_visibility.dart';
-import 'package:colette/features/baby/presentation/widgets/add_weight_sheet.dart';
 import 'package:colette/features/baby/presentation/widgets/growth_chart.dart';
+import 'package:colette/features/baby/presentation/widgets/growth_measurement_sheet.dart';
 import 'package:colette/features/baby/presentation/widgets/growth_trend_summary.dart';
-import 'package:colette/features/baby/presentation/widgets/weights_section.dart';
+import 'package:colette/features/baby/presentation/widgets/measurements_section.dart';
 import 'package:colette/l10n/generated/app_localizations.dart';
 import 'package:colette/shared/ui/widgets/colette_card_surface.dart';
 import 'package:colette/shared/ui/widgets/empty_state.dart';
@@ -28,7 +28,7 @@ class WeightCurvePage extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final s = S.of(context);
     // Écoute aussi pour garder le contrôleur autoDispose en vie pendant
-    // les suppressions lancées depuis `WeightsSection`.
+    // les suppressions lancées depuis `MeasurementsSection`.
     ref.listen(babySettingsControllerProvider, (_, next) {
       if (next case AsyncError(:final error)) {
         ScaffoldMessenger.of(context)
@@ -49,8 +49,8 @@ class WeightCurvePage extends ConsumerWidget {
           else ...[
             AppSpacing.md.verticalSpace,
             _ChartSection(points: points, trend: trend),
-            SectionHeader(title: s.settingsWeightsSection),
-            const WeightsSection(),
+            SectionHeader(title: s.settingsMeasurementsSection),
+            const MeasurementsSection(),
           ],
           AppSpacing.xl.verticalSpace,
         ],
@@ -72,9 +72,9 @@ class _EmptySection extends StatelessWidget {
           message: s.weightCurveEmpty,
         ),
         FilledButton.icon(
-          onPressed: () => showAddWeightSheet(context),
+          onPressed: () => showGrowthMeasurementSheet(context),
           icon: const Icon(Icons.add),
-          label: Text(s.settingsAddWeight),
+          label: Text(s.actionAddMeasurement),
         ),
       ],
     );
