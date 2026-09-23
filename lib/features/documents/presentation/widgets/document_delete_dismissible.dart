@@ -38,18 +38,19 @@ class DocumentDeleteDismissible extends ConsumerWidget {
             onPressed: () => Navigator.of(dialogContext).pop(true),
             child: Text(
               s.actionDelete,
-              style: Theme.of(context).coletteTextStyles.bodyMedium
-                  .copyWith(color: context.appColor(AppColors.error)),
+              style: Theme.of(dialogContext).coletteTextStyles.bodyMedium
+                  .copyWith(color: dialogContext.appColor(AppColors.error)),
             ),
           ),
         ],
       ),
     );
-    if (confirmed == true) {
-      await ref
-          .read(documentsDeleteControllerProvider(folderPath).notifier)
-          .delete(entry.path);
-    }
+    // La ligne a pu être démontée pendant la boîte de dialogue (fichier
+    // supprimé par l'autre parent, accès perdu) : ne plus toucher à `ref`.
+    if (confirmed != true || !context.mounted) return false;
+    await ref
+        .read(documentsDeleteControllerProvider(folderPath).notifier)
+        .delete(entry.path);
     return false;
   }
 
@@ -62,7 +63,7 @@ class DocumentDeleteDismissible extends ConsumerWidget {
         .isLoading;
     return Dismissible(
       key: ValueKey(entry.path),
-      direction: deleting ? DismissDirection.none : DismissDirection.endToStart,
+      direction: deleting ? .none : .endToStart,
       confirmDismiss: (_) => _confirm(context, ref),
       background: Container(
         alignment: .centerRight,

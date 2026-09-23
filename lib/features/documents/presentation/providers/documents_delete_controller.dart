@@ -15,6 +15,7 @@ class DocumentsDeleteController extends _$DocumentsDeleteController {
   /// Supprime le fichier [path]. Pas d'invalidation : le flux natif renvoie
   /// la liste sans lui.
   Future<void> delete(String path) async {
+    if (state.isLoading) return;
     state = const AsyncLoading();
     final result = await ref.read(documentsRepositoryProvider).delete(path);
     // Le widget appelant a pu être démonté pendant l'await.

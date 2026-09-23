@@ -135,6 +135,51 @@ void main() {
     expect(find.text('Impossible de supprimer ce document'), findsOneWidget);
   });
 
+  testWidgets('suppression refusée (accessDenied) → vue accès perdu', (
+    tester,
+  ) async {
+    var watchCalls = 0;
+    when(() => repo.watch('')).thenAnswer((_) {
+      watchCalls++;
+      return Stream.value(
+        watchCalls == 1
+            ? right([entry('a.pdf')])
+            : left(const DocumentsFailure(DocumentsReason.accessDenied)),
+      );
+    });
+    when(() => repo.delete('a.pdf')).thenAnswer(
+      (_) async => left(const DocumentsFailure(DocumentsReason.accessDenied)),
+    );
+    await pumpPage(tester);
+    await swipeLeft(tester, 'a.pdf');
+    await tester.tap(find.text('Supprimer'));
+    await tester.pumpAndSettle();
+    expect(find.text("Colette n'a plus accès au dossier"), findsOneWidget);
+    expect(watchCalls, 2);
+  });
+
+  testWidgets('pas de second glissement pendant une suppression', (
+    tester,
+  ) async {
+    final deleting = Completer<Either<Failure, void>>();
+    when(() => repo.watch(''))
+        .thenAnswer((_) => Stream.value(right([entry('a.pdf')])));
+    when(() => repo.delete('a.pdf')).thenAnswer((_) => deleting.future);
+    await pumpPage(tester);
+    await swipeLeft(tester, 'a.pdf');
+    await tester.tap(find.text('Supprimer'));
+    await tester.pump();
+    await tester.pump();
+    final dismissible = tester.widget<Dismissible>(find.byType(Dismissible));
+    expect(dismissible.direction, DismissDirection.none);
+    deleting.complete(right(null));
+    await tester.pumpAndSettle();
+    expect(
+      tester.widget<Dismissible>(find.byType(Dismissible)).direction,
+      DismissDirection.endToStart,
+    );
+  });
+
   testWidgets('un dossier ne se glisse pas', (tester) async {
     when(() => repo.watch('')).thenAnswer(
       (_) => Stream.value(right([entry('Ordonnances', isDirectory: true)])),
