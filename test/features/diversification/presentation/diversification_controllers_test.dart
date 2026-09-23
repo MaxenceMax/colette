@@ -5,8 +5,6 @@ import 'package:colette/features/diversification/domain/entities/allergen.dart';
 import 'package:colette/features/diversification/domain/entities/food.dart';
 import 'package:colette/features/diversification/domain/entities/food_group.dart';
 import 'package:colette/features/diversification/domain/entities/tasting.dart';
-import 'package:colette/features/diversification/domain/repositories/custom_foods_repository.dart';
-import 'package:colette/features/diversification/domain/repositories/tastings_repository.dart';
 import 'package:colette/features/diversification/presentation/providers/custom_food_controller.dart';
 import 'package:colette/features/diversification/presentation/providers/diversification_providers.dart';
 import 'package:colette/features/diversification/presentation/providers/tasting_form_controller.dart';
@@ -18,10 +16,7 @@ import 'package:mocktail/mocktail.dart';
 
 import '../../../helpers/in_memory_household_local_store.dart';
 import '../helpers/catalog_fixture.dart';
-
-class MockTastingsRepository extends Mock implements TastingsRepository {}
-
-class MockCustomFoodsRepository extends Mock implements CustomFoodsRepository {}
+import '../helpers/diversification_overrides.dart';
 
 void main() {
   const code = 'ABCDEFGH';
