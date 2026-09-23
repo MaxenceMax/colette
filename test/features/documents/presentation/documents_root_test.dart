@@ -19,7 +19,8 @@ void main() {
 
   setUp(() {
     repo = MockDocumentsRepository();
-    when(() => repo.list(any())).thenAnswer((_) async => right(const []));
+    when(() => repo.watch(any()))
+        .thenAnswer((_) => Stream.value(right(const [])));
     container = ProviderContainer(
       overrides: [documentsRepositoryProvider.overrideWithValue(repo)],
     );
@@ -70,7 +71,7 @@ void main() {
 
     expect(container.read(documentsRootProvider).value, root);
     await container.read(documentsFolderProvider('').future);
-    verify(() => repo.list('')).called(2);
+    verify(() => repo.watch('')).called(2);
   });
 
   test('pick annulé restaure l\'état précédent', () async {
@@ -153,7 +154,7 @@ void main() {
       expect(container.read(documentsRootProvider), previous);
       // L'échec ne doit pas invalider les listes déjà chargées.
       await container.read(documentsFolderProvider('').future);
-      verify(() => repo.list('')).called(1);
+      verify(() => repo.watch('')).called(1);
     },
   );
 }

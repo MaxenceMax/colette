@@ -16,7 +16,8 @@ void main() {
 
   setUp(() {
     repo = MockDocumentsRepository();
-    when(() => repo.list(any())).thenAnswer((_) async => right(const []));
+    when(() => repo.watch(any()))
+        .thenAnswer((_) => Stream.value(right(const [])));
     container = ProviderContainer(
       overrides: [
         documentsRepositoryProvider.overrideWithValue(repo),
@@ -40,7 +41,7 @@ void main() {
       container.read(documentsWriteControllerProvider(folderPath).notifier);
 
   test(
-    'scan nomme le fichier avec l\'horloge et rafraîchit la liste',
+    'scan nomme le fichier avec l\'horloge, sans réabonner la liste',
     () async {
       when(
         () => repo.scan(
@@ -51,9 +52,10 @@ void main() {
       await container.read(documentsFolderProvider('Ordonnances').future);
 
       await controller('Ordonnances').scan();
+      await container.pump();
 
-      await container.read(documentsFolderProvider('Ordonnances').future);
-      verify(() => repo.list('Ordonnances')).called(2);
+      // Le relistage vient du flux natif, pas d'une invalidation Flutter.
+      verify(() => repo.watch('Ordonnances')).called(1);
       expect(
         container
             .read(documentsWriteControllerProvider('Ordonnances'))
@@ -63,25 +65,22 @@ void main() {
     },
   );
 
-  test('importFile transmet le dossier et rafraîchit la liste', () async {
+  test('importFile transmet le dossier', () async {
     when(() => repo.importFile(folderPath: 'Ordonnances'))
         .thenAnswer((_) async => right('facture.pdf'));
-    await container.read(documentsFolderProvider('Ordonnances').future);
-
     await controller('Ordonnances').importFile();
-
-    await container.read(documentsFolderProvider('Ordonnances').future);
-    verify(() => repo.list('Ordonnances')).called(2);
+    verify(() => repo.importFile(folderPath: 'Ordonnances')).called(1);
+    expect(
+      container.read(documentsWriteControllerProvider('Ordonnances')).hasError,
+      isFalse,
+    );
   });
 
-  test('cancelled ne rafraîchit pas et ne produit pas d\'erreur', () async {
+  test('cancelled ne produit pas d\'erreur', () async {
     when(() => repo.importFile(folderPath: '')).thenAnswer(
       (_) async => left(const DocumentsFailure(DocumentsReason.cancelled)),
     );
     await controller('').importFile();
-    await container.read(documentsFolderProvider('Ordonnances').future);
-    // Invalidation uniquement en cas de succès : un seul appel initial.
-    verify(() => repo.list(any())).called(1);
     expect(
       container.read(documentsWriteControllerProvider('')).hasError,
       isFalse,
@@ -93,9 +92,6 @@ void main() {
       () => repo.importFile(folderPath: ''),
     ).thenAnswer((_) async => left(const DocumentsFailure(DocumentsReason.io)));
     await controller('').importFile();
-    await container.read(documentsFolderProvider('Ordonnances').future);
-    // Invalidation uniquement en cas de succès : un seul appel initial.
-    verify(() => repo.list(any())).called(1);
     expect(
       container.read(documentsWriteControllerProvider('')).error,
       const DocumentsFailure(DocumentsReason.io),
