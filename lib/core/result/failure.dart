@@ -20,6 +20,8 @@ enum ValidationReason {
   invalidHeadCircumference,
   medicalDateBeforeBirth,
   medicalDateInFuture,
+  medicalTitleRequired,
+  medicalVaccineNameRequired,
 }
 
 /// Erreur remontée par les repositories et les use cases via `Either`.

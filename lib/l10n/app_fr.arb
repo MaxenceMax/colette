@@ -445,6 +445,8 @@
   "errorSleepBeforeBirth": "Ce sommeil commence avant la naissance.",
   "errorMedicalDateBeforeBirth": "Cette date précède la naissance.",
   "errorMedicalDateInFuture": "Une visite ou une injection ne peut pas être datée dans le futur.",
+  "errorMedicalTitleRequired": "Donne un titre au rendez-vous.",
+  "errorMedicalVaccineNameRequired": "Indique le nom de chaque vaccin ajouté.",
   "calendarErrorAccessDenied": "Colette n'a pas accès au Calendrier. Autorise-le dans Réglages iOS › Colette › Calendriers.",
   "calendarErrorNotFound": "Calendrier introuvable, choisis-en un autre.",
   "calendarErrorIo": "Le Calendrier n'a pas pu être mis à jour.",
