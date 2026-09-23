@@ -181,6 +181,11 @@ households/{code}
     countedAt: Timestamp              restant = count − changes dont startAt ≥ countedAt
     alertThreshold: 10                0 = alerte désactivée
     lastPackSize: 44
+  medicalReminder:                    écrit par le client après chaque écriture santé ; lu par le digest du matin, détail dans 2026-09-23-health-follow-up-design.md
+    stages: [ { stageId, dueFrom: Timestamp, dueUntil: Timestamp, hasAppointment: bool } ]
+    computedAt: Timestamp
+
+households/{code}/medicalVisits/{stageId}   examens et vaccins, un document par étape du calendrier ; détail dans 2026-09-23-health-follow-up-design.md
 
 households/{code}/weights/{id}      mesures de croissance (poids, taille, périmètre crânien) ; nom historique, détail dans 2026-09-23-growth-measurements-design.md
   measuredAt: Timestamp
@@ -350,7 +355,7 @@ Dossier `functions/` TypeScript, Firebase Functions v2, région `europe-west1`, 
 | --- | --- | --- |
 | `onEventCreated` | Firestore `onDocumentCreated` sur `households/{code}/events/{id}` | Envoie un push à chaque appareil du foyer dont `deviceId ≠ createdByDeviceId` et `notifyOnOthersEvents` est vrai ; sans `createdByDeviceId`, personne n'est notifié. Titre : « {label appareil} a ajouté un événement ». Corps : résumé (ex. « Biberon 120 ml · Couche · Adrigyl à 14h32 »). |
 | `bottleReminder` | `onSchedule('every 5 minutes')` | Pour chaque foyer dont `feedingPlan` porte une fourchette : rappel dû si `windowStartAt ≤ now ≤ windowEndAt`, `lastBottleNotifiedFor ≠ nextBottleAt` et `computedAt < windowStartAt` (un plan calculé fourchette déjà ouverte, sans biberon enregistré ou avec un dernier biberon trop ancien, ne déclenche rien) : push « Biberon possible dès maintenant · Environ {suggestedMl} ml, d'ici {windowEnd} » aux appareils avec `notifyBottleReminder`. Sans fourchette (snapshot d'une version antérieure de l'app) : ancienne règle, `nextBottleAt − 10 min ≤ now ≤ nextBottleAt + 15 min` et `computedAt < nextBottleAt`, push « Biberon dans 10 min ». `lastBottleNotifiedFor` n'est écrit que si au moins un push est parti ou si aucun appareil n'est abonné ; sinon le tick suivant réessaie, dans la limite de la fenêtre. Chaque foyer est traité dans son propre `try/catch`. |
-| `morningDigest` | `onSchedule('every 60 minutes')` | Pour chaque appareil dont `morningDigestHour` correspond à l'heure Europe/Paris la plus proche de l'exécution, `notifyMorningDigest` est vrai et `lastDigestSentOn` ≠ la date du jour (Paris) : calcule les soins attendus non faits ce jour, sur les événements de `[minuit, minuit + 1 j)` Paris (même règle que §6.2, réimplémentée en TypeScript avec ses tests) et envoie « Aujourd'hui pour {prénom} : Adrigyl, soin des yeux, bain », puis écrit `lastDigestSentOn`. Rien n'est envoyé si tout est déjà fait ou si le foyer n'a pas de profil bébé. Chaque foyer est traité dans son propre `try/catch`. |
+| `morningDigest` | `onSchedule('every 60 minutes')` | Pour chaque appareil dont `morningDigestHour` correspond à l'heure Europe/Paris la plus proche de l'exécution, `notifyMorningDigest` est vrai et `lastDigestSentOn` ≠ la date du jour (Paris) : calcule les soins attendus non faits ce jour, sur les événements de `[minuit, minuit + 1 j)` Paris (même règle que §6.2, réimplémentée en TypeScript avec ses tests) et envoie « Aujourd'hui pour {prénom} : Adrigyl, soin des yeux, bain », puis écrit `lastDigestSentOn`. Rien n'est envoyé s'il n'y a ni soin en attente ni RDV santé à prendre (lignes « RDV à prendre » / « En retard » lues dans `medicalReminder`, voir `2026-09-23-health-follow-up-design.md`), ou si le foyer n'a pas de profil bébé. Chaque foyer est traité dans son propre `try/catch`. |
 
 Le tap sur une notification ouvre le dashboard (événement, digest) ou le formulaire biberon prérempli (rappel).
 

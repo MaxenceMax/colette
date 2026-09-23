@@ -48,7 +48,7 @@ Calcul des dates : `birthDate + N mois` avec le jour borné à la fin du mois (3
 
 | Élément | Rôle |
 | --- | --- |
-| `MedicalStage` (freezed) | Définition d'une étape : `id`, `window` (`fromAge`, `untilAge` en `AgeOffset` = jours ou mois), `hasExam`, `hasCertificate`, `vaccines: List<ScheduledVaccine>`. |
+| `MedicalStage` (classe `const`, pas freezed : table embarquée) | Définition d'une étape : `id`, `from` (inclus) et `until` (exclu) en `AgeOffset` (jours ou mois), `hasExam`, `hasCertificate`, `vaccines: List<ScheduledVaccine>`. |
 | `MedicalVisit` (freezed) | État saisi pour une étape : `stageId: MedicalStageId`, `appointmentAt?`, `practitioner?`, `doneAt?`, `note?`, `vaccines: Map<VaccineCode, GivenVaccine>`, `updatedAt`, `updatedByDeviceId`. |
 | `GivenVaccine` (freezed) | `givenAt`, `brand?`, `lot?`. Présent = injection reçue. |
 | `MedicalStageStatus` (enum) | `done`, `appointmentPassed` (RDV passé, visite non marquée faite), `scheduled`, `late`, `due`, `upcoming`. |
@@ -56,7 +56,7 @@ Calcul des dates : `birthDate + N mois` avec le jour borné à la fin du mois (3
 | `ComputeMedicalTimeline` (pur) | Toutes les étapes avec dates absolues (`dueFrom`, `dueUntil`), statut et visite, triées par âge ; plus `next` = première étape non `done`. |
 | `ComputeMedicalReminderSnapshot` (pur) | Les 3 premières étapes non faites et sans RDV : `{stageId: MedicalStageId, dueFrom, dueUntil, hasAppointment}` ; sert au digest (§6). |
 | `ReconcileCalendar` (pur) | Voir §5. |
-| `MedicalRepository` | `watchVisits`, `saveVisit` (`set` complet), `deleteVisit`, `saveReminderSnapshot`. |
+| `MedicalRepository` | `watchVisits`, `fetchVisitsFromServer` (lecture serveur, échoue hors ligne, voir §5.4), `saveVisit` (`set` complet), `deleteVisit`, `saveReminderSnapshot`. |
 | `CalendarRepository` | Pont vers EventKit (§5). |
 
 `ValidationReason` gagne `medicalDateBeforeBirth` (RDV antérieur à la naissance) et `medicalDateInFuture` (visite marquée faite dans le futur, tolérance 5 min comme les événements).
@@ -74,7 +74,7 @@ Calcul des dates : `birthDate + N mois` avec le jour borné à la fin du mois (3
   ```
   { stages: [ { stageId, dueFrom: Timestamp, dueUntil: Timestamp, hasAppointment: bool } ], computedAt: Timestamp }
   ```
-  Réécrit par le client après toute écriture santé et au démarrage de l'app (provider `medicalReminderSyncProvider`, best-effort, erreurs journalisées).
+  Réécrit par le client après toute écriture santé et au démarrage de l'app (`healthSyncProvider`, implémenté par `FirestoreHealthSync`, qui réconcilie aussi le calendrier ; best-effort, erreurs journalisées). Calculé uniquement sur des visites lues sur le serveur (§5.4).
 - `FirestorePaths.medicalVisits`. Règles Firestore inchangées (la règle générique couvre la sous-collection).
 - Préférences locales de l'iPhone (`SharedPreferences`) : `health_calendar_id`, `health_calendar_title`.
 
@@ -82,7 +82,7 @@ Calcul des dates : `birthDate + N mois` avec le jour borné à la fin du mois (3
 
 ### 5.1 Réglage par iPhone
 
-Section « Calendrier » dans Réglages : « Ajouter les RDV santé à : {titre du calendrier} » / « Choisir un calendrier ». Au premier choix : demande d'accès complet, puis liste des calendriers modifiables (titre, couleur, compte). Le choix est local à l'iPhone : les identifiants EventKit diffèrent d'un appareil à l'autre. « Ne plus synchroniser » efface le choix sans toucher aux événements existants.
+Section « Calendrier » dans Réglages : « Ajouter les RDV santé à : {titre du calendrier} » / « Choisir un calendrier ». Au premier choix : demande d'accès complet, puis liste des calendriers modifiables (titre et compte). La couleur du calendrier n'est pas affichée : une pastille en couleur primaire la remplace, car `Color(0x…)` est interdit hors de `app_colors.dart`. Le choix est local à l'iPhone : les identifiants EventKit diffèrent d'un appareil à l'autre. « Ne plus synchroniser » efface le choix sans toucher aux événements existants.
 
 ### 5.2 Pont Swift
 
@@ -108,7 +108,7 @@ Erreurs remontées en codes : `accessDenied`, `calendarNotFound`, `io`. `Info.pl
 
 ### 5.4 Réconciliation
 
-`ReconcileCalendar(visits, stages, babyName, events, now) → List<CalendarAction>` (pur, testé) :
+`ReconcileCalendar(visits, events, titleOf, now) → List<CalendarAction>` (pur, testé ; `titleOf(stageId)` fournit le titre de l'événement, le libellé localisé et le prénom restant côté présentation) :
 
 - **RDV attendus** : visites avec `début d'hier ≤ appointmentAt < now + 2 ans` et sans `doneAt`. Au-delà de la fenêtre, le RDV est ignoré (il serait de toute façon absent de `findEvents`, donc invisible pour le nettoyage).
 - Début, fin et alertes sont calculés sur `appointmentAt` tronqué à la minute (`DateTime(year, month, day, hour, minute)`) : Firestore garde les secondes/microsecondes, EventKit les tronque, la comparaison doit ignorer cet écart.
@@ -117,7 +117,12 @@ Erreurs remontées en codes : `accessDenied`, `calendarNotFound`, `io`. `Info.pl
 - Pour chaque RDV attendu : aucun événement → `create` ; un événement dont début, fin (à la minute) ou titre diffère → `update` ; plusieurs événements → garder celui dont l'`externalId` est le plus petit dans l'ordre lexicographique (les `externalId` nuls passent après, égalité ou absence départagée par `eventId`) — ce critère est identique sur les deux iPhones, contrairement à `eventId` qui est propre à chaque appareil —, mis à jour si besoin, `delete` des autres.
 - Chaque événement dont l'URL ne correspond à aucun RDV attendu → `delete`.
 
-`CalendarSyncController` (présentation) lit le calendrier choisi, appelle `findEvents`, calcule les actions et les exécute une par une. Déclenchée après chaque écriture de visite par cet iPhone, au démarrage de l'app et à l'ouverture de la page Santé. Sans calendrier choisi : rien. `calendarNotFound` : choix local effacé, message « Calendrier introuvable, choisis-en un autre ». `accessDenied` : message qui indique le chemin Réglages iOS › Colette › Calendriers (pas de lien direct, comme pour les notifications). Tout autre échec : journalisé (`log(..., name: 'colette')`), jamais bloquant ; Firestore reste la source de vérité.
+`FirestoreHealthSync` (`healthSyncProvider`, keepAlive, présentation) relit les visites, réécrit le snapshot, lit le calendrier choisi, appelle `findEvents`, calcule les actions et les exécute une par une. Les appels concurrents sont fusionnés : une passe en cours absorbe les suivants et relance une seule fois à la fin.
+
+- **Lecture serveur obligatoire** : les visites sont lues par `fetchVisitsFromServer` (`GetOptions(source: Source.server)`), jamais dans le cache local. Au démarrage à froid, le cache ignore un RDV posé ou déplacé par l'autre iPhone : la réconciliation supprimerait l'événement ou rétablirait l'ancienne heure dans le calendrier partagé. Si la lecture échoue (hors ligne), la passe est abandonnée et journalisée : ni snapshot, ni calendrier. Conséquence : une visite saisie hors ligne n'est reportée dans le calendrier et le snapshot qu'au retour du réseau.
+- **Déclencheurs** : après chaque écriture de visite par cet iPhone, au démarrage de l'app (dès qu'un foyer existe), à l'ouverture de la page Santé et à chaque nouvel état des visites (`HealthSyncGate` écoute `medicalVisitsProvider`) : retour du réseau, saisie de l'autre iPhone.
+- **Alerte de synchronisation** : `calendarSyncIssueProvider` (keepAlive, `CalendarReason?`). `accessDenied` : signalé, choix conservé, message qui indique le chemin Réglages iOS › Colette › Calendriers (pas de lien direct, comme pour les notifications). `calendarNotFound` : choix local effacé, signalé, message « Calendrier introuvable, choisis-en un autre » ; l'alerte reste jusqu'au prochain choix. L'alerte est effacée après une réconciliation complète, au choix d'un calendrier et à « Ne plus synchroniser ». La page Santé l'affiche en `warning` (icône `sync_problem`) à la place de « Synchronisé avec {calendrier} », la section Réglages sous l'état.
+- Sans calendrier choisi : rien. Tout autre échec (`io`, inconnu) : journalisé (`log(..., name: 'colette')`), jamais bloquant, les actions suivantes continuent ; Firestore reste la source de vérité.
 
 Limites assumées : si les deux iPhones créent l'événement avant la synchronisation iCloud, un doublon existe jusqu'à la prochaine réconciliation, qui le supprime (déterministe grâce à l'`externalId`, une fois l'UID iCloud répliqué). Un événement plus ancien que `windowStart(now)` (RDV reporté à une date antérieure à la fenêtre lue) n'est jamais relu par `findEvents` ni nettoyé : il reste dans le calendrier.
 
@@ -131,7 +136,7 @@ Les notes (praticien) font partie de la comparaison qui déclenche `update`, au 
 ## 7. Présentation
 
 - Route `/today/health` (`AppRoutes.health`), page `HealthPage`, imbriquée sous Aujourd'hui comme Croissance, Sommeil et Documents.
-- **Page Santé** : sections « En retard », « À faire », « À venir », « Faites » (repliée, avec le nombre). Ligne d'étape : libellé, pastilles « Examen » / « Vaccins » / « Certificat », statut, date (fenêtre, RDV ou date de visite). Tap : feuille d'étape. En-tête : état de la synchronisation calendrier (« Synchronisé avec {calendrier} » ou « Calendrier non configuré »).
+- **Page Santé** : sections « En retard », « À faire », « À venir », « Faites » (repliée, avec le nombre). Ligne d'étape : libellé, pastilles « Examen » / « Vaccins » / « Certificat », statut, date (fenêtre, RDV ou date de visite). Tap : feuille d'étape. En-tête : état de la synchronisation calendrier (« Synchronisé avec {calendrier} », « Calendrier non configuré » ou l'alerte de synchronisation, §5.4).
 - **Feuille d'étape** (bottom sheet, `isScrollControlled`), sections extraites en widgets privés :
   1. Rendez-vous : date et heure (`CupertinoDatePicker`, borne basse = naissance), praticien (texte libre), « Retirer le RDV ».
   2. Vaccins attendus : une ligne par vaccin (nom générique, « recommandé » si ★). Case cochée → champs date (défaut : date de visite, sinon RDV, sinon aujourd'hui), nom commercial, lot.
@@ -148,14 +153,18 @@ Repositories en `Either<Failure, T>` via `guard()` ; `CalendarFailure(CalendarRe
 
 - **Domaine** (purs) : table du calendrier (identifiants uniques, fenêtres croissantes et non vides, vaccins obligatoires présents aux bons âges) ; `ComputeMedicalStageStatus` (chaque statut, bornes à `début − 14 j`, fin de fenêtre, RDV passé, vaccins recommandés sans effet) ; ajout de mois en fin de mois ; `ComputeMedicalTimeline` (`next`) ; `ComputeMedicalReminderSnapshot` ; `ReconcileCalendar` (création, mise à jour, doublon, suppression d'un RDV retiré, visite faite, calendrier vide, RDV d'hier conservé) ; `ValidateMedicalVisit`.
 - **Données** : DTO de visite (`fake_cloud_firestore`, clés absentes, relecture) ; `NativeCalendarRepository` avec un `MethodChannel` simulé (arguments, décodage, codes d'erreur).
-- **Présentation** (`pumpApp`, `mocktail`) : carte d'accueil pour chaque statut ; page (sections, repli des faites) ; feuille (RDV, vaccins avec lot, visite faite, bouton inactif pendant l'écriture) ; section Calendrier (choix, accès refusé, calendrier introuvable) ; `CalendarSyncController` exécute les actions calculées.
+- **Présentation** (`pumpApp`, `mocktail`) : carte d'accueil pour chaque statut ; page (sections, repli des faites) ; feuille (RDV, vaccins avec lot, visite faite, bouton inactif pendant l'écriture) ; section Calendrier (choix, accès refusé, calendrier introuvable, alerte) ; `FirestoreHealthSync` exécute les actions calculées, n'écrit rien si la lecture serveur échoue et pose puis efface l'alerte ; `HealthSyncGate` relance la sync à chaque émission des visites.
 - **Cloud Functions** : digest avec soins seuls, santé seule, les deux, étape avec RDV (pas de ligne), étape en retard ; table des libellés alignée sur les `stageId` (test Dart qui extrait par expression régulière les clés de `functions/src/lib/medical-stages.ts` et les compare aux `stageId` du calendrier).
-- **Simulateur** : un test `integration_test` (`integration_test/calendar_bridge_test.dart`) appelle `NativeCalendarRepository` sur le simulateur iPhone : accès, création d'un calendrier local de test, `upsertEvent`, `findEvents`, mise à jour, `deleteEvent`. Il n'utilise pas Firestore, donc aucun foyer de test en production. La vérification visuelle de l'app complète (clair et sombre) se fait si Maxence accepte de rejoindre son foyer depuis le simulateur.
+- **Simulateur** : un test `integration_test` (`integration_test/calendar_bridge_test.dart`) appelle `NativeCalendarRepository` sur le simulateur iPhone : accès, premier calendrier modifiable du simulateur (`listCalendars().first`), `upsertEvent`, `findEvents`, mise à jour, `deleteEvent`. Il n'utilise pas Firestore, donc aucun foyer de test en production. La vérification visuelle de l'app complète (clair et sombre) se fait si Maxence accepte de rejoindre son foyer depuis le simulateur.
 
 ## 10. Livraison
 
 - Branche `feat/health-follow-up`, worktree `.claude/worktrees/health-follow-up`, partie de `main` (`1463dea`).
 - Merge `--no-ff` après validation explicite ; redéploiement des Cloud Functions (`morningDigest`) à faire par Maxence après le merge.
+- Mise en service, dans cet ordre :
+  1. Sur chaque iPhone, installer la nouvelle version par-dessus l'ancienne (`xcrun devicectl device install app`, pas `flutter install` qui désinstalle d'abord), puis choisir le calendrier iCloud partagé dans Réglages › Calendrier.
+  2. Saisir comme faites les étapes déjà passées (8 jours, 2e semaine…), pour que le snapshot `medicalReminder` ne les compte plus.
+  3. Redéployer `morningDigest` (`firebase deploy --only functions:morningDigest`). Dans l'autre ordre, le digest annoncerait « En retard : … » chaque matin.
 - Conflits prévisibles avec les branches en cours : `app_fr.arb`, `app_router.dart`, `dashboard_page.dart`, `settings_page.dart`, `Info.plist`, `failure.dart`.
 
 ## 11. Hors périmètre

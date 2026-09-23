@@ -10,7 +10,8 @@ service cloud.firestore {
       allow update: if request.auth != null;
       allow delete: if false;
     }
-    // Sous-collections : events, weights, devices, sleeps, tastings, customFoods.
+    // Sous-collections : events, weights, devices, sleeps, tastings, customFoods,
+    // medicalVisits.
     match /households/{code}/{collection}/{docId} {
       allow read, write: if request.auth != null;
     }
