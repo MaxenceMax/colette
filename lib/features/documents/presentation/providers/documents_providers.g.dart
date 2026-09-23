@@ -61,30 +61,33 @@ final class DocumentsRepositoryProvider
 String _$documentsRepositoryHash() =>
     r'85ff530253486b5adf67353cf5ebf7c84fa8b82c';
 
-/// Contenu trié d'un dossier, [path] relatif à la racine (`''` = racine).
-/// `retry` désactivé : une `DocumentsFailure` doit remonter immédiatement,
-/// pas déclencher des tentatives silencieuses en arrière-plan.
+/// Contenu trié d'un dossier, en direct, [path] relatif à la racine (`''` =
+/// racine). Chaque liste reçue est triée ; un `Left` est relancé pour que
+/// l'UI le reçoive en `AsyncError`. `retry` désactivé : une
+/// `DocumentsFailure` doit remonter immédiatement.
 
 @ProviderFor(documentsFolder)
 final documentsFolderProvider = DocumentsFolderFamily._();
 
-/// Contenu trié d'un dossier, [path] relatif à la racine (`''` = racine).
-/// `retry` désactivé : une `DocumentsFailure` doit remonter immédiatement,
-/// pas déclencher des tentatives silencieuses en arrière-plan.
+/// Contenu trié d'un dossier, en direct, [path] relatif à la racine (`''` =
+/// racine). Chaque liste reçue est triée ; un `Left` est relancé pour que
+/// l'UI le reçoive en `AsyncError`. `retry` désactivé : une
+/// `DocumentsFailure` doit remonter immédiatement.
 
 final class DocumentsFolderProvider
     extends
         $FunctionalProvider<
           AsyncValue<List<DocumentEntry>>,
           List<DocumentEntry>,
-          FutureOr<List<DocumentEntry>>
+          Stream<List<DocumentEntry>>
         >
     with
         $FutureModifier<List<DocumentEntry>>,
-        $FutureProvider<List<DocumentEntry>> {
-  /// Contenu trié d'un dossier, [path] relatif à la racine (`''` = racine).
-  /// `retry` désactivé : une `DocumentsFailure` doit remonter immédiatement,
-  /// pas déclencher des tentatives silencieuses en arrière-plan.
+        $StreamProvider<List<DocumentEntry>> {
+  /// Contenu trié d'un dossier, en direct, [path] relatif à la racine (`''` =
+  /// racine). Chaque liste reçue est triée ; un `Left` est relancé pour que
+  /// l'UI le reçoive en `AsyncError`. `retry` désactivé : une
+  /// `DocumentsFailure` doit remonter immédiatement.
   DocumentsFolderProvider._({
     required DocumentsFolderFamily super.from,
     required String super.argument,
@@ -108,12 +111,12 @@ final class DocumentsFolderProvider
 
   @$internal
   @override
-  $FutureProviderElement<List<DocumentEntry>> $createElement(
+  $StreamProviderElement<List<DocumentEntry>> $createElement(
     $ProviderPointer pointer,
-  ) => $FutureProviderElement(pointer);
+  ) => $StreamProviderElement(pointer);
 
   @override
-  FutureOr<List<DocumentEntry>> create(Ref ref) {
+  Stream<List<DocumentEntry>> create(Ref ref) {
     final argument = this.argument as String;
     return documentsFolder(ref, argument);
   }
@@ -129,14 +132,15 @@ final class DocumentsFolderProvider
   }
 }
 
-String _$documentsFolderHash() => r'559164c456403a9cb558bf6d220708eefce6af42';
+String _$documentsFolderHash() => r'f8599713615773885ebcc1e84528455ad96e5d4b';
 
-/// Contenu trié d'un dossier, [path] relatif à la racine (`''` = racine).
-/// `retry` désactivé : une `DocumentsFailure` doit remonter immédiatement,
-/// pas déclencher des tentatives silencieuses en arrière-plan.
+/// Contenu trié d'un dossier, en direct, [path] relatif à la racine (`''` =
+/// racine). Chaque liste reçue est triée ; un `Left` est relancé pour que
+/// l'UI le reçoive en `AsyncError`. `retry` désactivé : une
+/// `DocumentsFailure` doit remonter immédiatement.
 
 final class DocumentsFolderFamily extends $Family
-    with $FunctionalFamilyOverride<FutureOr<List<DocumentEntry>>, String> {
+    with $FunctionalFamilyOverride<Stream<List<DocumentEntry>>, String> {
   DocumentsFolderFamily._()
     : super(
         retry: noRetry,
@@ -146,9 +150,10 @@ final class DocumentsFolderFamily extends $Family
         isAutoDispose: true,
       );
 
-  /// Contenu trié d'un dossier, [path] relatif à la racine (`''` = racine).
-  /// `retry` désactivé : une `DocumentsFailure` doit remonter immédiatement,
-  /// pas déclencher des tentatives silencieuses en arrière-plan.
+  /// Contenu trié d'un dossier, en direct, [path] relatif à la racine (`''` =
+  /// racine). Chaque liste reçue est triée ; un `Left` est relancé pour que
+  /// l'UI le reçoive en `AsyncError`. `retry` désactivé : une
+  /// `DocumentsFailure` doit remonter immédiatement.
 
   DocumentsFolderProvider call(String path) =>
       DocumentsFolderProvider._(argument: path, from: this);

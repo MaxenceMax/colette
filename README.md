@@ -4,7 +4,7 @@ App iOS privée pour suivre les soins quotidiens de notre nouveau-né, à deux.
 
 ## Fonctionnalités
 
-- Documents : consultation du dossier iCloud Drive partagé (choisi une fois par iPhone), aperçu Quick Look, scan et import dans le dossier.
+- Documents : consultation en direct du dossier iCloud Drive partagé (choisi une fois par iPhone), aperçu Quick Look avec téléchargement automatique, scan et import, suppression, ouverture dans Fichiers.
 - Croissance : mesures de poids, taille et périmètre crânien, courbes avec repères OMS.
 
 ## Prérequis
@@ -25,7 +25,7 @@ La création du projet Firebase et la configuration Apple sont détaillées pas 
 5. `dart run build_runner build -d`
 6. `flutter run`
 
-Les sources Swift de `ios/Runner/Documents/` sont référencées dans le projet Xcode par `ruby ios/scripts/add_documents_sources.rb` (gem `xcodeproj`, livré avec CocoaPods).
+Les sept sources Swift de `ios/Runner/Documents/` (pont `colette/documents` : un canal de méthodes, plus un canal d'événements par abonnement à un dossier) sont référencées dans le projet Xcode par `ruby ios/scripts/add_documents_sources.rb` (gem `xcodeproj`, livré avec CocoaPods).
 
 ## Backend (Cloud Functions, règles, index)
 

@@ -13,5 +13,8 @@ abstract class DocumentEntry with _$DocumentEntry {
     required int size,
     required DateTime modifiedAt,
     required DownloadStatus downloadStatus,
+
+    /// Progression du téléchargement iCloud (0 à 1), `null` hors téléchargement.
+    double? downloadProgress,
   }) = _DocumentEntry;
 }
