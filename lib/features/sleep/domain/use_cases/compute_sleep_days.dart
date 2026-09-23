@@ -1,6 +1,7 @@
 import 'package:colette/features/sleep/domain/entities/sleep_day.dart';
 import 'package:colette/features/sleep/domain/entities/sleep_kind.dart';
 import 'package:colette/features/sleep/domain/entities/sleep_session.dart';
+import 'package:colette/features/sleep/domain/use_cases/compute_sleep_summary.dart';
 
 /// Nombre de jours affichés par la page Sommeil.
 const sleepWeekDayCount = 7;
@@ -12,10 +13,15 @@ List<SleepDay> computeSleepDays(
   List<SleepSession> sleeps, {
   required DateTime today,
   required DateTime now,
-}) => [
-  for (var offset = sleepWeekDayCount - 1; offset >= 0; offset--)
-    _day(sleeps, DateTime(today.year, today.month, today.day - offset), now),
-];
+}) {
+  // Deux appuis simultanés créent deux sommeils ouverts : on ne garde que le
+  // plus ancien pour ne pas compter deux fois le sommeil en cours.
+  final deduped = mergeSleeps(sleeps, null);
+  return [
+    for (var offset = sleepWeekDayCount - 1; offset >= 0; offset--)
+      _day(deduped, DateTime(today.year, today.month, today.day - offset), now),
+  ];
+}
 
 SleepDay _day(List<SleepSession> sleeps, DateTime dayStart, DateTime now) {
   final dayEnd = DateTime(dayStart.year, dayStart.month, dayStart.day + 1);
@@ -51,11 +57,14 @@ SleepDay _day(List<SleepSession> sleeps, DateTime dayStart, DateTime now) {
 /// Moyenne des totaux des jours précédant le dernier, parmi ceux qui ont du
 /// sommeil noté ; `null` s'il n'y en a aucun.
 Duration? averageOfPreviousDays(List<SleepDay> days) {
+  if (days.length < 2) return null;
   final noted = days
       .take(days.length - 1)
       .where((d) => d.total > Duration.zero)
       .toList();
   if (noted.isEmpty) return null;
-  final minutes = noted.fold(0, (sum, d) => sum + d.total.inMinutes);
-  return Duration(minutes: (minutes / noted.length).round());
+  final microseconds = noted.fold(0, (sum, d) => sum + d.total.inMicroseconds);
+  final averageMinutes =
+      microseconds / noted.length / Duration.microsecondsPerMinute;
+  return Duration(minutes: averageMinutes.round());
 }

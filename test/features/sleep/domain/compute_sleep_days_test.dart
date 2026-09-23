@@ -52,6 +52,16 @@ void main() {
     },
   );
 
+  test('deux sommeils ouverts ne comptent qu\'une fois', () {
+    final first = makeSleep(id: 'a', startAt: DateTime(2026, 9, 23, 15));
+    final dup = makeSleep(id: 'b', startAt: DateTime(2026, 9, 23, 15, 1));
+    final days = computeSleepDays([dup, first], today: today, now: now);
+    final todayDay = days.last;
+    expect(todayDay.napCount, 1);
+    expect(todayDay.segments.length, 1);
+    expect(todayDay.total, const Duration(hours: 1));
+  });
+
   test('moyenne des jours précédents ayant du sommeil, sans aujourd\'hui', () {
     final a = makeSleep(
       id: 'a',
@@ -75,5 +85,29 @@ void main() {
   test('moyenne nulle sans jour précédent noté', () {
     final days = computeSleepDays(const [], today: today, now: now);
     expect(averageOfPreviousDays(days), isNull);
+  });
+
+  test('moyenne nulle sur une liste de jours vide', () {
+    expect(averageOfPreviousDays(const []), isNull);
+  });
+
+  test('moyenne arrondie à la minute la plus proche', () {
+    final a = makeSleep(
+      id: 'a',
+      startAt: DateTime(2026, 9, 21, 9),
+      endAt: DateTime(2026, 9, 21, 19, 0, 40),
+    );
+    final b = makeSleep(
+      id: 'b',
+      startAt: DateTime(2026, 9, 22, 9),
+      endAt: DateTime(2026, 9, 22, 19, 0, 40),
+    );
+    final c = makeSleep(
+      id: 'c',
+      startAt: DateTime(2026, 9, 23, 9),
+      endAt: DateTime(2026, 9, 23, 10),
+    );
+    final days = computeSleepDays([a, b, c], today: today, now: now);
+    expect(averageOfPreviousDays(days), const Duration(hours: 10, minutes: 1));
   });
 }
