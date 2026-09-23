@@ -8,6 +8,7 @@ import 'package:colette/features/events/presentation/pages/timeline_page.dart';
 import 'package:colette/features/events/presentation/providers/events_providers.dart';
 import 'package:colette/features/events/presentation/widgets/event_tile.dart';
 import 'package:colette/features/household/presentation/providers/household_providers.dart';
+import 'package:colette/features/sleep/presentation/providers/sleep_providers.dart';
 import 'package:colette/shared/ui/widgets/empty_state.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -16,8 +17,10 @@ import 'package:fpdart/fpdart.dart';
 import 'package:mocktail/mocktail.dart';
 
 import '../../../helpers/care_event_factory.dart';
+import '../../../helpers/fake_sleep_repository.dart';
 import '../../../helpers/in_memory_household_local_store.dart';
 import '../../../helpers/pump_app.dart';
+import '../../../helpers/sleep_session_factory.dart';
 
 class MockEventsRepository extends Mock implements EventsRepository {}
 
@@ -46,6 +49,7 @@ void main() {
       const TimelinePage(),
       overrides: [
         eventsRepositoryProvider.overrideWithValue(repo),
+        sleepRepositoryProvider.overrideWithValue(FakeSleepRepository()),
         clockProvider.overrideWithValue(FixedClock(now)),
         householdLocalStoreProvider.overrideWithValue(
           InMemoryHouseholdLocalStore(householdCode: 'ABCDEFGH'),
@@ -70,6 +74,7 @@ void main() {
       const TimelinePage(),
       overrides: [
         eventsRepositoryProvider.overrideWithValue(repo),
+        sleepRepositoryProvider.overrideWithValue(FakeSleepRepository()),
         clockProvider.overrideWithValue(FixedClock(now)),
         householdLocalStoreProvider.overrideWithValue(
           InMemoryHouseholdLocalStore(householdCode: 'ABCDEFGH'),
@@ -113,6 +118,7 @@ void main() {
         ),
         overrides: [
           eventsRepositoryProvider.overrideWithValue(repo),
+          sleepRepositoryProvider.overrideWithValue(FakeSleepRepository()),
           clockProvider.overrideWithValue(FixedClock(now)),
           householdLocalStoreProvider.overrideWithValue(
             InMemoryHouseholdLocalStore(householdCode: 'ABCDEFGH'),
@@ -151,6 +157,7 @@ void main() {
       const TimelinePage(),
       overrides: [
         eventsRepositoryProvider.overrideWithValue(repo),
+        sleepRepositoryProvider.overrideWithValue(FakeSleepRepository()),
         clockProvider.overrideWithValue(FixedClock(now)),
         householdLocalStoreProvider.overrideWithValue(
           InMemoryHouseholdLocalStore(householdCode: 'ABCDEFGH'),
@@ -163,5 +170,44 @@ void main() {
     await tester.tap(find.widgetWithText(TextButton, 'Supprimer'));
     await tester.pumpAndSettle();
     verify(() => repo.delete('ABCDEFGH', 'e1')).called(1);
+  });
+
+  testWidgets('mêle les sommeils aux soins dans le bon jour', (tester) async {
+    final repo = MockEventsRepository();
+    when(() => repo.watchLatest(any(), limit: any(named: 'limit'))).thenAnswer(
+      (_) => Stream.value([
+        makeEvent(id: 'today', startAt: DateTime(2026, 9, 21, 9, 5), pee: true),
+        makeEvent(
+          id: 'yesterday',
+          startAt: DateTime(2026, 9, 20, 22),
+          bath: true,
+        ),
+      ]),
+    );
+    await pumpApp(
+      tester,
+      const TimelinePage(),
+      overrides: [
+        eventsRepositoryProvider.overrideWithValue(repo),
+        sleepRepositoryProvider.overrideWithValue(
+          FakeSleepRepository([
+            makeSleep(
+              id: 's',
+              startAt: DateTime(2026, 9, 21, 10, 20),
+              endAt: DateTime(2026, 9, 21, 12),
+            ),
+          ]),
+        ),
+        clockProvider.overrideWithValue(FixedClock(now)),
+        householdLocalStoreProvider.overrideWithValue(
+          InMemoryHouseholdLocalStore(householdCode: 'ABCDEFGH'),
+        ),
+      ],
+    );
+    expect(find.text('Sieste'), findsOneWidget);
+    expect(find.text('1 h 40'), findsOneWidget);
+    final sleepY = tester.getTopLeft(find.text('Sieste')).dy;
+    final careY = tester.getTopLeft(find.text('09h05')).dy;
+    expect(sleepY, lessThan(careY));
   });
 }

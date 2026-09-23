@@ -1,18 +1,18 @@
 import 'package:colette/core/dates/date_extensions.dart';
-import 'package:colette/features/events/domain/entities/care_event.dart';
+import 'package:colette/features/events/presentation/timeline_entry.dart';
 
-/// Un jour du journal et ses événements, dans l'ordre reçu.
-typedef TimelineDay = ({DateTime day, List<CareEvent> events});
+/// Un jour du journal et ses lignes, dans l'ordre reçu.
+typedef TimelineDay = ({DateTime day, List<TimelineEntry> entries});
 
-/// Regroupe des événements déjà triés par jour civil.
-List<TimelineDay> groupEventsByDay(List<CareEvent> events) {
+/// Regroupe des lignes déjà triées par jour civil.
+List<TimelineDay> groupEntriesByDay(List<TimelineEntry> entries) {
   final groups = <TimelineDay>[];
-  for (final event in events) {
-    final day = event.startAt.dateOnly;
+  for (final entry in entries) {
+    final day = entry.startAt.dateOnly;
     if (groups.isNotEmpty && groups.last.day == day) {
-      groups.last.events.add(event);
+      groups.last.entries.add(entry);
     } else {
-      groups.add((day: day, events: [event]));
+      groups.add((day: day, entries: [entry]));
     }
   }
   return groups;
