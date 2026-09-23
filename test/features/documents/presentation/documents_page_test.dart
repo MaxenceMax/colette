@@ -683,4 +683,53 @@ void main() {
     completer.complete(right('x.pdf'));
     await tester.pumpAndSettle();
   });
+
+  testWidgets('bouton Fichiers : présent avec une liste, appelle openInFiles', (
+    tester,
+  ) async {
+    when(() => repo.watch(''))
+        .thenAnswer((_) => Stream.value(right([entry('a.pdf')])));
+    when(() => repo.openInFiles('')).thenAnswer((_) async => right(null));
+    await pumpPage(tester);
+    await tester.tap(find.byTooltip('Ouvrir dans Fichiers'));
+    await tester.pumpAndSettle();
+    verify(() => repo.openInFiles('')).called(1);
+  });
+
+  testWidgets('bouton Fichiers : présent sur un dossier vide', (tester) async {
+    when(() => repo.watch('')).thenAnswer((_) => Stream.value(right(const [])));
+    await pumpPage(tester);
+    expect(find.byTooltip('Ouvrir dans Fichiers'), findsOneWidget);
+  });
+
+  testWidgets('bouton Fichiers : absent quand l\'accès est perdu', (
+    tester,
+  ) async {
+    when(() => repo.watch('')).thenAnswer(
+      (_) => Stream.value(
+        left(const DocumentsFailure(DocumentsReason.accessDenied)),
+      ),
+    );
+    await pumpPage(tester);
+    expect(find.byTooltip('Ouvrir dans Fichiers'), findsNothing);
+  });
+
+  testWidgets('bouton Fichiers : échec → SnackBar', (tester) async {
+    when(() => repo.watch('Ordonnances')).thenAnswer(
+      (_) => Stream.value(right([entry('a.pdf', path: 'Ordonnances/a.pdf')])),
+    );
+    when(() => repo.watch('')).thenAnswer(
+      (_) => Stream.value(right([entry('Ordonnances', isDirectory: true)])),
+    );
+    when(
+      () => repo.openInFiles('Ordonnances'),
+    ).thenAnswer((_) async => left(const DocumentsFailure(DocumentsReason.io)));
+    await pumpPage(tester);
+    await tester.tap(find.text('Ordonnances'));
+    await tester.pumpAndSettle();
+    await tester.tap(find.byTooltip('Ouvrir dans Fichiers'));
+    await tester.pumpAndSettle();
+    expect(find.text("Impossible d'ouvrir Fichiers"), findsOneWidget);
+    verify(() => repo.openInFiles('Ordonnances')).called(1);
+  });
 }

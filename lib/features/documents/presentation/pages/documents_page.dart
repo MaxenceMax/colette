@@ -10,6 +10,7 @@ import 'package:colette/features/documents/presentation/providers/documents_writ
 import 'package:colette/features/documents/presentation/widgets/document_entry_tile.dart';
 import 'package:colette/features/documents/presentation/widgets/documents_add_menu.dart';
 import 'package:colette/features/documents/presentation/widgets/documents_lost_access_view.dart';
+import 'package:colette/features/documents/presentation/widgets/documents_open_in_files_button.dart';
 import 'package:colette/l10n/generated/app_localizations.dart';
 import 'package:colette/shared/ui/widgets/empty_state.dart';
 import 'package:flutter/material.dart';
@@ -70,7 +71,13 @@ class DocumentsPage extends ConsumerWidget {
     });
     final folder = ref.watch(documentsFolderProvider(path));
     return Scaffold(
-      appBar: AppBar(title: Text(title)),
+      appBar: AppBar(
+        title: Text(title),
+        actions: [
+          if (folder.hasValue && !folder.hasError)
+            DocumentsOpenInFilesButton(path: path),
+        ],
+      ),
       body: switch (folder) {
         AsyncError(
           error: DocumentsFailure(

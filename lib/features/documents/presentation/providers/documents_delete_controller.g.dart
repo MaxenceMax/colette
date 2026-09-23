@@ -58,7 +58,7 @@ final class DocumentsDeleteControllerProvider
 }
 
 String _$documentsDeleteControllerHash() =>
-    r'892f28a7eec12c084ce32e5597a1aa7de5ed77ba';
+    r'1c1342ce9bcd73254003f5f1f7a8a76163f3d03c';
 
 /// Suppression d'un fichier de [folderPath]. Famille par dossier : la page
 /// racine et une sous-page poussée observent chacune leur instance.

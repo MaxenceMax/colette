@@ -159,5 +159,7 @@
   "documentsDeleteBody": "{name} restera trente jours dans « Récemment supprimés » de l'app Fichiers.",
   "@documentsDeleteBody": { "placeholders": { "name": { "type": "String" } } },
   "documentsErrorDelete": "Impossible de supprimer ce document",
+  "documentsOpenInFiles": "Ouvrir dans Fichiers",
+  "documentsErrorOpenInFiles": "Impossible d'ouvrir Fichiers",
   "copied": "Code copié"
 }
