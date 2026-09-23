@@ -3,7 +3,6 @@ import 'dart:async';
 import 'package:colette/core/result/failure.dart';
 import 'package:colette/features/documents/data/native_documents_repository.dart';
 import 'package:colette/features/documents/domain/entities/document_root.dart';
-import 'package:colette/features/documents/domain/entities/download_status.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
 
@@ -220,26 +219,6 @@ void main() {
     expect(calls.single.arguments, isNull);
   });
 
-  test('list transmet le chemin et mappe les entrées', () async {
-    mock(
-      (_) => [
-        {
-          'name': 'a.pdf',
-          'path': 'Ordonnances/a.pdf',
-          'isDirectory': false,
-          'size': 10,
-          'modifiedAt': 1000,
-          'downloadStatus': 'notDownloaded',
-        },
-      ],
-    );
-    final result = await repo.list('Ordonnances');
-    final entries = result.toNullable()!;
-    expect(calls.single.arguments, {'path': 'Ordonnances'});
-    expect(entries.single.name, 'a.pdf');
-    expect(entries.single.downloadStatus, DownloadStatus.notDownloaded);
-  });
-
   test('preview transmet le chemin', () async {
     mock((_) => null);
     final result = await repo.preview('a.pdf');
@@ -277,35 +256,19 @@ void main() {
   ]) {
     test('code $code → DocumentsFailure.$reason', () async {
       mock((_) => throw PlatformException(code: code));
-      final result = await repo.list('');
+      final result = await repo.download('');
       expect(result.getLeft().toNullable(), DocumentsFailure(reason));
     });
   }
 
   test('code inconnu → UnknownFailure', () async {
     mock((_) => throw PlatformException(code: 'weird'));
-    final result = await repo.list('');
+    final result = await repo.download('');
     expect(result.getLeft().toNullable(), isA<UnknownFailure>());
   });
 
   test('canal absent → UnknownFailure', () async {
-    final result = await repo.list('');
+    final result = await repo.download('');
     expect(result.getLeft().toNullable(), isA<UnknownFailure>());
-  });
-
-  test('entrée malformée → UnknownFailure', () async {
-    mock(
-      (_) => [
-        {'name': 1},
-      ],
-    );
-    final result = await repo.list('');
-    expect(result.getLeft().toNullable(), isA<UnknownFailure>());
-  });
-
-  test('list renvoie une liste vide quand le canal renvoie null', () async {
-    mock((_) => null);
-    final result = await repo.list('');
-    expect(result.toNullable(), isEmpty);
   });
 }

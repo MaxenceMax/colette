@@ -77,15 +77,6 @@ class NativeDocumentsRepository implements DocumentsRepository {
       _call(() => _channel.invokeMethod<void>('forgetRootFolder'));
 
   @override
-  Future<Either<Failure, List<DocumentEntry>>> list(String path) =>
-      _call(() async {
-        final raw = await _channel.invokeListMethod<Object?>('list', {
-          'path': path,
-        });
-        return _entries(raw);
-      });
-
-  @override
   Stream<Either<Failure, List<DocumentEntry>>> watch(String path) async* {
     try {
       final map = await _channel.invokeMapMethod<String, Object?>(

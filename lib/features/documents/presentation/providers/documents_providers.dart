@@ -15,11 +15,14 @@ DocumentsRepository documentsRepository(Ref ref) =>
       MethodChannel(NativeDocumentsRepository.channelName),
     );
 
-/// Contenu trié d'un dossier, [path] relatif à la racine (`''` = racine).
-/// `retry` désactivé : une `DocumentsFailure` doit remonter immédiatement,
-/// pas déclencher des tentatives silencieuses en arrière-plan.
+/// Contenu trié d'un dossier, en direct, [path] relatif à la racine (`''` =
+/// racine). Chaque liste reçue est triée ; un `Left` est relancé pour que
+/// l'UI le reçoive en `AsyncError`. `retry` désactivé : une
+/// `DocumentsFailure` doit remonter immédiatement.
 @Riverpod(retry: noRetry)
-Future<List<DocumentEntry>> documentsFolder(Ref ref, String path) async {
-  final result = await ref.watch(documentsRepositoryProvider).list(path);
-  return result.fold((failure) => throw failure, sortDocumentEntries);
-}
+Stream<List<DocumentEntry>> documentsFolder(Ref ref, String path) => ref
+    .watch(documentsRepositoryProvider)
+    .watch(path)
+    .map(
+      (result) => result.fold((failure) => throw failure, sortDocumentEntries),
+    );

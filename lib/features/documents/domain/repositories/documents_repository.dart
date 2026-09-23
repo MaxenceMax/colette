@@ -15,9 +15,6 @@ abstract interface class DocumentsRepository {
   /// Oublie le dossier : Colette ne l'affiche plus, rien n'est supprimé.
   Future<Either<Failure, void>> forgetRootFolder();
 
-  /// Contenu brut (non trié) d'un dossier.
-  Future<Either<Failure, List<DocumentEntry>>> list(String path);
-
   /// Contenu d'un dossier en direct : une liste complète (non triée) à chaque
   /// changement iCloud. Un `Left` est suivi de la fin du flux.
   Stream<Either<Failure, List<DocumentEntry>>> watch(String path);

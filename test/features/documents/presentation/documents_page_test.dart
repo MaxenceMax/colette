@@ -84,9 +84,10 @@ void main() {
   }
 
   testWidgets('liste triée avec le nom de la racine en titre', (tester) async {
-    when(() => repo.list('')).thenAnswer(
-      (_) async =>
-          right([entry('b.pdf'), entry('Ordonnances', isDirectory: true)]),
+    when(() => repo.watch('')).thenAnswer(
+      (_) => Stream.value(
+        right([entry('b.pdf'), entry('Ordonnances', isDirectory: true)]),
+      ),
     );
     await pumpPage(tester);
     expect(find.text('Colette'), findsOneWidget);
@@ -97,17 +98,33 @@ void main() {
   });
 
   testWidgets('dossier vide', (tester) async {
-    when(() => repo.list('')).thenAnswer((_) async => right(const []));
+    when(() => repo.watch('')).thenAnswer((_) => Stream.value(right(const [])));
     await pumpPage(tester);
     expect(find.text('Aucun document dans ce dossier'), findsOneWidget);
   });
 
+  testWidgets('la liste suit le flux du dossier', (tester) async {
+    final events = StreamController<Either<Failure, List<DocumentEntry>>>();
+    addTearDown(events.close);
+    when(() => repo.watch('')).thenAnswer((_) => events.stream);
+    await pumpPage(tester, settle: false);
+    events.add(right([entry('a.pdf')]));
+    await tester.pump();
+    expect(find.text('a.pdf'), findsOneWidget);
+    events.add(right([entry('a.pdf'), entry('b.pdf')]));
+    await tester.pump();
+    expect(find.text('b.pdf'), findsOneWidget);
+    events.add(right([entry('b.pdf')]));
+    await tester.pump();
+    expect(find.text('a.pdf'), findsNothing);
+  });
+
   testWidgets('un tap sur un dossier ouvre le sous-dossier', (tester) async {
-    when(
-      () => repo.list(''),
-    ).thenAnswer((_) async => right([entry('Ordonnances', isDirectory: true)]));
-    when(() => repo.list('Ordonnances')).thenAnswer(
-      (_) async => right([entry('a.pdf', path: 'Ordonnances/a.pdf')]),
+    when(() => repo.watch('')).thenAnswer(
+      (_) => Stream.value(right([entry('Ordonnances', isDirectory: true)])),
+    );
+    when(() => repo.watch('Ordonnances')).thenAnswer(
+      (_) => Stream.value(right([entry('a.pdf', path: 'Ordonnances/a.pdf')])),
     );
     await pumpPage(tester);
     await tester.tap(find.text('Ordonnances'));
@@ -117,7 +134,8 @@ void main() {
   });
 
   testWidgets('un tap sur un fichier ouvre l\'aperçu', (tester) async {
-    when(() => repo.list('')).thenAnswer((_) async => right([entry('a.pdf')]));
+    when(() => repo.watch(''))
+        .thenAnswer((_) => Stream.value(right([entry('a.pdf')])));
     when(() => repo.preview('a.pdf')).thenAnswer((_) async => right(null));
     await pumpPage(tester);
     await tester.tap(find.text('a.pdf'));
@@ -127,9 +145,10 @@ void main() {
   });
 
   testWidgets('fichier nuage : icône, et échec io → SnackBar', (tester) async {
-    when(() => repo.list('')).thenAnswer(
-      (_) async =>
-          right([entry('a.pdf', status: DownloadStatus.notDownloaded)]),
+    when(() => repo.watch('')).thenAnswer(
+      (_) => Stream.value(
+        right([entry('a.pdf', status: DownloadStatus.notDownloaded)]),
+      ),
     );
     when(
       () => repo.preview('a.pdf'),
@@ -145,7 +164,8 @@ void main() {
   });
 
   testWidgets('aperçu annulé : pas de SnackBar', (tester) async {
-    when(() => repo.list('')).thenAnswer((_) async => right([entry('a.pdf')]));
+    when(() => repo.watch(''))
+        .thenAnswer((_) => Stream.value(right([entry('a.pdf')])));
     when(() => repo.preview('a.pdf')).thenAnswer(
       (_) async => left(const DocumentsFailure(DocumentsReason.cancelled)),
     );
@@ -156,12 +176,14 @@ void main() {
   });
 
   testWidgets('accès perdu : vue dédiée puis re-choix', (tester) async {
-    var listCalls = 0;
-    when(() => repo.list('')).thenAnswer((_) async {
-      listCalls++;
-      return listCalls == 1
-          ? left(const DocumentsFailure(DocumentsReason.accessDenied))
-          : right([entry('a.pdf')]);
+    var watchCalls = 0;
+    when(() => repo.watch('')).thenAnswer((_) {
+      watchCalls++;
+      return Stream.value(
+        watchCalls == 1
+            ? left(const DocumentsFailure(DocumentsReason.accessDenied))
+            : right([entry('a.pdf')]),
+      );
     });
     when(() => repo.pickRootFolder())
         .thenAnswer((_) async => right(const DocumentRoot(name: 'Nouveau')));
@@ -176,8 +198,10 @@ void main() {
   testWidgets(
     'accès perdu : re-choix en échec io → SnackBar, vue dédiée conservée',
     (tester) async {
-      when(() => repo.list('')).thenAnswer(
-        (_) async => left(const DocumentsFailure(DocumentsReason.accessDenied)),
+      when(() => repo.watch('')).thenAnswer(
+        (_) => Stream.value(
+          left(const DocumentsFailure(DocumentsReason.accessDenied)),
+        ),
       );
       when(() => repo.pickRootFolder()).thenAnswer((_) async {
         // Résout après une frame : laisse le temps au provider de passer par
@@ -199,31 +223,34 @@ void main() {
   testWidgets('tirer pour rafraîchir : succès, nouvelle liste affichée', (
     tester,
   ) async {
-    var listCalls = 0;
-    when(() => repo.list('')).thenAnswer((_) async {
-      listCalls++;
-      return listCalls == 1
-          ? right([entry('a.pdf')])
-          : right([entry('a.pdf'), entry('b.pdf')]);
+    var watchCalls = 0;
+    when(() => repo.watch('')).thenAnswer((_) {
+      watchCalls++;
+      return Stream.value(
+        watchCalls == 1
+            ? right([entry('a.pdf')])
+            : right([entry('a.pdf'), entry('b.pdf')]),
+      );
     });
     await pumpPage(tester);
     expect(find.text('b.pdf'), findsNothing);
     await tester.fling(find.byType(ListView), const Offset(0, 300), 1000);
     await tester.pumpAndSettle();
     expect(find.text('b.pdf'), findsOneWidget);
-    expect(listCalls, 2);
+    expect(watchCalls, 2);
   });
 
   testWidgets(
     'tirer pour rafraîchir : la liste reste affichée pendant le chargement',
     (tester) async {
-      final completer = Completer<Either<Failure, List<DocumentEntry>>>();
-      var listCalls = 0;
-      when(() => repo.list('')).thenAnswer((_) {
-        listCalls++;
-        return listCalls == 1
-            ? Future.value(right([entry('a.pdf')]))
-            : completer.future;
+      final second = StreamController<Either<Failure, List<DocumentEntry>>>();
+      addTearDown(second.close);
+      var watchCalls = 0;
+      when(() => repo.watch('')).thenAnswer((_) {
+        watchCalls++;
+        return watchCalls == 1
+            ? Stream.value(right([entry('a.pdf')]))
+            : second.stream;
       });
       await pumpPage(tester);
       expect(find.text('a.pdf'), findsOneWidget);
@@ -235,7 +262,7 @@ void main() {
       // capte aussi l'AsyncLoading avec previousData du rafraîchissement.
       expect(find.text('a.pdf'), findsOneWidget);
 
-      completer.complete(right([entry('a.pdf')]));
+      second.add(right([entry('a.pdf')]));
       await tester.pumpAndSettle();
       expect(find.text('a.pdf'), findsOneWidget);
     },
@@ -244,12 +271,14 @@ void main() {
   testWidgets('tirer pour rafraîchir : échec sans exception non gérée', (
     tester,
   ) async {
-    var listCalls = 0;
-    when(() => repo.list('')).thenAnswer((_) async {
-      listCalls++;
-      return listCalls == 1
-          ? right([entry('a.pdf')])
-          : left(const DocumentsFailure(DocumentsReason.accessDenied));
+    var watchCalls = 0;
+    when(() => repo.watch('')).thenAnswer((_) {
+      watchCalls++;
+      return Stream.value(
+        watchCalls == 1
+            ? right([entry('a.pdf')])
+            : left(const DocumentsFailure(DocumentsReason.accessDenied)),
+      );
     });
     await pumpPage(tester);
     await tester.fling(find.byType(ListView), const Offset(0, 300), 1000);
@@ -263,12 +292,14 @@ void main() {
   testWidgets('erreur d\'accès sur l\'aperçu invalide le dossier', (
     tester,
   ) async {
-    var listCalls = 0;
-    when(() => repo.list('')).thenAnswer((_) async {
-      listCalls++;
-      return listCalls == 1
-          ? right([entry('a.pdf')])
-          : left(const DocumentsFailure(DocumentsReason.noFolder));
+    var watchCalls = 0;
+    when(() => repo.watch('')).thenAnswer((_) {
+      watchCalls++;
+      return Stream.value(
+        watchCalls == 1
+            ? right([entry('a.pdf')])
+            : left(const DocumentsFailure(DocumentsReason.noFolder)),
+      );
     });
     when(() => repo.preview('a.pdf')).thenAnswer(
       (_) async => left(const DocumentsFailure(DocumentsReason.accessDenied)),
@@ -277,12 +308,12 @@ void main() {
     await tester.tap(find.text('a.pdf'));
     await tester.pumpAndSettle();
     expect(find.text("Colette n'a plus accès au dossier"), findsOneWidget);
-    expect(listCalls, 2);
+    expect(watchCalls, 2);
   });
 
   testWidgets('autre erreur : message générique', (tester) async {
-    when(() => repo.list(''))
-        .thenAnswer((_) async => left(UnknownFailure(Exception('x'))));
+    when(() => repo.watch(''))
+        .thenAnswer((_) => Stream.value(left(UnknownFailure(Exception('x')))));
     await pumpPage(tester);
     expect(find.text('Une erreur est survenue.'), findsOneWidget);
   });
@@ -290,8 +321,9 @@ void main() {
   testWidgets('la route réelle porte le chemin et garde la barre d\'onglets', (
     tester,
   ) async {
-    when(() => repo.list('Ordonnances/2026')).thenAnswer(
-      (_) async => right([entry('a.pdf', path: 'Ordonnances/2026/a.pdf')]),
+    when(() => repo.watch('Ordonnances/2026')).thenAnswer(
+      (_) =>
+          Stream.value(right([entry('a.pdf', path: 'Ordonnances/2026/a.pdf')])),
     );
     await tester.pumpWidget(
       ProviderScope(
@@ -321,7 +353,7 @@ void main() {
   testWidgets('« + » puis « Scanner » scanne dans le dossier courant', (
     tester,
   ) async {
-    when(() => repo.list('')).thenAnswer((_) async => right(const []));
+    when(() => repo.watch('')).thenAnswer((_) => Stream.value(right(const [])));
     when(() => repo.scan(folderPath: '', fileName: 'Scan 22-09-2026 14h32.pdf'))
         .thenAnswer((_) async => right('Scan 22-09-2026 14h32.pdf'));
     await pumpPage(tester);
@@ -332,13 +364,13 @@ void main() {
     verify(
       () => repo.scan(folderPath: '', fileName: 'Scan 22-09-2026 14h32.pdf'),
     ).called(1);
-    verify(() => repo.list('')).called(2);
+    verify(() => repo.watch('')).called(1);
   });
 
   testWidgets('« + » puis « Importer » importe ; échec io → SnackBar', (
     tester,
   ) async {
-    when(() => repo.list('')).thenAnswer((_) async => right(const []));
+    when(() => repo.watch('')).thenAnswer((_) => Stream.value(right(const [])));
     when(
       () => repo.importFile(folderPath: ''),
     ).thenAnswer((_) async => left(const DocumentsFailure(DocumentsReason.io)));
@@ -352,11 +384,11 @@ void main() {
 
   testWidgets('« + » dans un sous-dossier : un seul SnackBar '
       '(contrôleur par dossier, pas global)', (tester) async {
-    when(
-      () => repo.list(''),
-    ).thenAnswer((_) async => right([entry('Ordonnances', isDirectory: true)]));
-    when(() => repo.list('Ordonnances'))
-        .thenAnswer((_) async => right(const []));
+    when(() => repo.watch('')).thenAnswer(
+      (_) => Stream.value(right([entry('Ordonnances', isDirectory: true)])),
+    );
+    when(() => repo.watch('Ordonnances'))
+        .thenAnswer((_) => Stream.value(right(const [])));
     when(
       () => repo.importFile(folderPath: 'Ordonnances'),
     ).thenAnswer((_) async => left(const DocumentsFailure(DocumentsReason.io)));
@@ -383,7 +415,7 @@ void main() {
   });
 
   testWidgets('import annulé : pas de SnackBar', (tester) async {
-    when(() => repo.list('')).thenAnswer((_) async => right(const []));
+    when(() => repo.watch('')).thenAnswer((_) => Stream.value(right(const [])));
     when(() => repo.importFile(folderPath: '')).thenAnswer(
       (_) async => left(const DocumentsFailure(DocumentsReason.cancelled)),
     );
@@ -396,22 +428,26 @@ void main() {
   });
 
   testWidgets('pas de « + » quand l\'accès est perdu', (tester) async {
-    when(() => repo.list('')).thenAnswer(
-      (_) async => left(const DocumentsFailure(DocumentsReason.accessDenied)),
+    when(() => repo.watch('')).thenAnswer(
+      (_) => Stream.value(
+        left(const DocumentsFailure(DocumentsReason.accessDenied)),
+      ),
     );
     await pumpPage(tester);
     expect(find.byType(FloatingActionButton), findsNothing);
   });
 
   testWidgets('icônes selon le type et l\'extension', (tester) async {
-    when(() => repo.list('')).thenAnswer(
-      (_) async => right([
-        entry('Dossier', isDirectory: true),
-        entry('a.pdf'),
-        entry('photo.JPG'),
-        entry('scan.heic'),
-        entry('notes.txt'),
-      ]),
+    when(() => repo.watch('')).thenAnswer(
+      (_) => Stream.value(
+        right([
+          entry('Dossier', isDirectory: true),
+          entry('a.pdf'),
+          entry('photo.JPG'),
+          entry('scan.heic'),
+          entry('notes.txt'),
+        ]),
+      ),
     );
     await pumpPage(tester);
     expect(find.byIcon(Icons.folder_outlined), findsOneWidget);
@@ -427,8 +463,10 @@ void main() {
 
   testWidgets('fichier en cours de téléchargement : spinner, pas d\'icône '
       'nuage', (tester) async {
-    when(() => repo.list('')).thenAnswer(
-      (_) async => right([entry('a.pdf', status: DownloadStatus.downloading)]),
+    when(() => repo.watch('')).thenAnswer(
+      (_) => Stream.value(
+        right([entry('a.pdf', status: DownloadStatus.downloading)]),
+      ),
     );
     // Pas de pumpAndSettle : le statut ne change jamais dans ce test, donc le
     // spinner de la ligne reste affiché et son animation ne se termine jamais.
@@ -441,7 +479,8 @@ void main() {
   testWidgets('la ligne reste occupée pendant son propre aperçu', (
     tester,
   ) async {
-    when(() => repo.list('')).thenAnswer((_) async => right([entry('a.pdf')]));
+    when(() => repo.watch(''))
+        .thenAnswer((_) => Stream.value(right([entry('a.pdf')])));
     final completer = Completer<Either<Failure, void>>();
     when(() => repo.preview('a.pdf')).thenAnswer((_) => completer.future);
     await pumpPage(tester);
@@ -461,7 +500,8 @@ void main() {
     tester,
   ) async {
     final completer = Completer<Either<Failure, List<DocumentEntry>>>();
-    when(() => repo.list('')).thenAnswer((_) => completer.future);
+    when(() => repo.watch(''))
+        .thenAnswer((_) => Stream.fromFuture(completer.future));
     // Pas de pumpAndSettle avant complétion : l'indicateur de la page tourne
     // indéfiniment tant que le completer n'est pas résolu.
     await pumpPage(tester, settle: false);
@@ -478,7 +518,7 @@ void main() {
   testWidgets('« + » occupé pendant un import : désactivé, avec spinner', (
     tester,
   ) async {
-    when(() => repo.list('')).thenAnswer((_) async => right(const []));
+    when(() => repo.watch('')).thenAnswer((_) => Stream.value(right(const [])));
     final completer = Completer<Either<Failure, String>>();
     when(() => repo.importFile(folderPath: ''))
         .thenAnswer((_) => completer.future);
