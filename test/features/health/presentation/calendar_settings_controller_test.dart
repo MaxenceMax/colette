@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:colette/core/firebase/firebase_providers.dart';
 import 'package:colette/core/result/failure.dart';
 import 'package:colette/features/health/domain/entities/calendar_choice.dart';
@@ -87,6 +89,30 @@ void main() {
     verify(() => sync.sync()).called(1);
   });
 
+  test('choose passe par AsyncLoading pendant la synchronisation', () async {
+    final completer = Completer<void>();
+    when(() => sync.sync()).thenAnswer((_) => completer.future);
+    final sub = container.listen(calendarSettingsControllerProvider, (_, _) {});
+    addTearDown(sub.close);
+
+    final future = controller().choose(
+      const DeviceCalendar(id: 'c1', title: 'Famille', source: 'iCloud'),
+    );
+
+    expect(
+      container.read(calendarSettingsControllerProvider),
+      isA<AsyncLoading<void>>(),
+    );
+
+    completer.complete();
+    await future;
+
+    expect(
+      container.read(calendarSettingsControllerProvider),
+      const AsyncData<void>(null),
+    );
+  });
+
   test('clear efface le choix', () async {
     await container
         .read(selectedCalendarProvider.notifier)
@@ -95,5 +121,27 @@ void main() {
     await controller().clear();
 
     expect(container.read(selectedCalendarProvider), isNull);
+  });
+
+  test('clear passe par AsyncLoading pendant l\'effacement', () async {
+    await container
+        .read(selectedCalendarProvider.notifier)
+        .choose(const CalendarChoice(id: 'c1', title: 'Famille'));
+    final sub = container.listen(calendarSettingsControllerProvider, (_, _) {});
+    addTearDown(sub.close);
+
+    final future = controller().clear();
+
+    expect(
+      container.read(calendarSettingsControllerProvider),
+      isA<AsyncLoading<void>>(),
+    );
+
+    await future;
+
+    expect(
+      container.read(calendarSettingsControllerProvider),
+      const AsyncData<void>(null),
+    );
   });
 }

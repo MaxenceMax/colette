@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:colette/core/firebase/firebase_providers.dart';
 import 'package:colette/features/health/domain/entities/device_calendar.dart';
 import 'package:colette/features/health/domain/repositories/calendar_repository.dart';
@@ -15,6 +17,15 @@ import 'package:shared_preferences/shared_preferences.dart';
 import '../../../helpers/pump_app.dart';
 
 class MockCalendarRepository extends Mock implements CalendarRepository {}
+
+class _CompleterHealthSync implements HealthSync {
+  _CompleterHealthSync(this._completer);
+
+  final Completer<void> _completer;
+
+  @override
+  Future<void> sync() => _completer.future;
+}
 
 void main() {
   late MockCalendarRepository calendar;
@@ -75,6 +86,57 @@ void main() {
     );
     verifyNever(() => calendar.listCalendars());
   });
+
+  testWidgets(
+    'changer de calendrier désactive les boutons pendant la synchronisation',
+    (tester) async {
+      await prefs.setString(SelectedCalendar.idKey, 'c1');
+      await prefs.setString(SelectedCalendar.titleKey, 'Famille');
+      final completer = Completer<void>();
+      when(() => calendar.requestAccess()).thenAnswer((_) async => right(true));
+      when(() => calendar.listCalendars()).thenAnswer(
+        (_) async => right(const [
+          DeviceCalendar(id: 'c2', title: 'Autre', source: 'iCloud'),
+        ]),
+      );
+      await pumpApp(
+        tester,
+        const Scaffold(body: CalendarSettingsSection()),
+        overrides: [
+          sharedPreferencesProvider.overrideWithValue(prefs),
+          calendarRepositoryProvider.overrideWithValue(calendar),
+          healthSyncProvider.overrideWithValue(_CompleterHealthSync(completer)),
+        ],
+      );
+
+      await tester.tap(find.text('Changer de calendrier'));
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('Autre'));
+      await tester.pump();
+
+      expect(
+        tester
+            .widget<TextButton>(
+              find.widgetWithText(TextButton, 'Changer de calendrier'),
+            )
+            .onPressed,
+        isNull,
+      );
+      expect(
+        tester
+            .widget<TextButton>(
+              find.widgetWithText(TextButton, 'Ne plus synchroniser'),
+            )
+            .onPressed,
+        isNull,
+      );
+
+      completer.complete();
+      await tester.pumpAndSettle();
+
+      expect(find.text('RDV santé ajoutés à : Autre'), findsOneWidget);
+    },
+  );
 
   testWidgets('ne plus synchroniser efface le choix', (tester) async {
     await prefs.setString(SelectedCalendar.idKey, 'c1');

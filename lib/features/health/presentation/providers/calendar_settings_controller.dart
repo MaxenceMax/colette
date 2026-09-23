@@ -40,13 +40,24 @@ class CalendarSettingsController extends _$CalendarSettingsController {
 
   /// Retient [calendar] pour cet iPhone puis synchronise les RDV.
   Future<void> choose(DeviceCalendar calendar) async {
+    // Lu avant l'await : le contrôleur autoDispose peut être détruit pendant la synchronisation.
     final sync = ref.read(healthSyncProvider);
+    state = const AsyncLoading();
     await ref
         .read(selectedCalendarProvider.notifier)
         .choose(CalendarChoice(id: calendar.id, title: calendar.title));
     await sync.sync();
+    if (ref.mounted) {
+      state = const AsyncData(null);
+    }
   }
 
   /// Arrête la synchronisation, sans toucher aux événements existants.
-  Future<void> clear() => ref.read(selectedCalendarProvider.notifier).clear();
+  Future<void> clear() async {
+    state = const AsyncLoading();
+    await ref.read(selectedCalendarProvider.notifier).clear();
+    if (ref.mounted) {
+      state = const AsyncData(null);
+    }
+  }
 }

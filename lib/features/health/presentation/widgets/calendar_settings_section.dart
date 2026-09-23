@@ -62,9 +62,11 @@ class CalendarSettingsSection extends ConsumerWidget {
               ),
               if (choice != null)
                 TextButton(
-                  onPressed: () => ref
-                      .read(calendarSettingsControllerProvider.notifier)
-                      .clear(),
+                  onPressed: loading
+                      ? null
+                      : () => ref
+                            .read(calendarSettingsControllerProvider.notifier)
+                            .clear(),
                   child: Text(s.calendarStop),
                 ),
             ],
