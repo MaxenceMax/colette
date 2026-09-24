@@ -13,6 +13,8 @@ import 'package:colette/features/events/domain/entities/care_event.dart';
 import 'package:colette/features/events/domain/repositories/events_repository.dart';
 import 'package:colette/features/events/presentation/providers/events_providers.dart';
 import 'package:colette/features/events/presentation/widgets/event_form_sheet.dart';
+import 'package:colette/features/health/domain/entities/medical_timeline.dart';
+import 'package:colette/features/health/presentation/providers/health_providers.dart';
 import 'package:colette/features/household/presentation/providers/household_providers.dart';
 import 'package:colette/features/sleep/presentation/providers/sleep_providers.dart';
 import 'package:flutter/material.dart';
@@ -66,6 +68,7 @@ void main() {
     List<GrowthMeasurement>? measurements,
     CareEvent? latest,
     bool noBottle = false,
+    MedicalTimeline? timeline,
   }) => [
     documentsRepositoryOverride(),
     clockProvider.overrideWithValue(FixedClock(now)),
@@ -92,6 +95,7 @@ void main() {
     feedingPlanSyncProvider.overrideWithValue(const NoopFeedingPlanSync()),
     diaperStockStatusProvider.overrideWithValue(diaperStatus),
     sleepRepositoryProvider.overrideWithValue(FakeSleepRepository()),
+    medicalTimelineProvider.overrideWithValue(timeline),
   ];
 
   testWidgets(
@@ -134,6 +138,34 @@ void main() {
     expect(find.text('Aucun sommeil noté'), findsOneWidget);
   });
 
+  testWidgets('affiche la tuile Rendez-vous même sans frise médicale', (
+    tester,
+  ) async {
+    final repo = MockEventsRepository();
+    await pumpApp(tester, const DashboardPage(), overrides: overridesFor(repo));
+    await tester.scrollUntilVisible(find.text('Rendez-vous'), 200);
+    expect(find.text('Rendez-vous'), findsOneWidget);
+  });
+
+  testWidgets('affiche l\'absence de RDV programmé quand la frise est vide', (
+    tester,
+  ) async {
+    final repo = MockEventsRepository();
+    await pumpApp(
+      tester,
+      const DashboardPage(),
+      overrides: overridesFor(
+        repo,
+        timeline: const MedicalTimeline(entries: []),
+      ),
+    );
+    await tester.scrollUntilVisible(
+      find.text('Pas de rendez-vous programmé'),
+      200,
+    );
+    expect(find.text('Pas de rendez-vous programmé'), findsOneWidget);
+  });
+
   testWidgets(
     'taper une tâche à faire enregistre le soin et propose d\'annuler',
     (tester) async {
@@ -144,6 +176,8 @@ void main() {
         const DashboardPage(),
         overrides: overridesFor(repo),
       );
+      await tester.ensureVisible(find.text('Soin des yeux'));
+      await tester.pumpAndSettle();
       await tester.tap(find.text('Soin des yeux'));
       await tester.pumpAndSettle();
       final saved =

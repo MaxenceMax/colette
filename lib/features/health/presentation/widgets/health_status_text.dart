@@ -9,14 +9,9 @@ import 'package:colette/l10n/generated/app_localizations.dart';
 /// rabat sur le texte de fenêtre plutôt que de planter.
 String healthStatusText(S s, MedicalTimelineEntry entry) {
   final visit = entry.visit;
-  final lastDay = DateTime(
-    entry.dueUntil.year,
-    entry.dueUntil.month,
-    entry.dueUntil.day - 1,
-  );
   final fallback = s.healthDueWindow(
     formatShortDate(entry.dueFrom),
-    formatShortDate(lastDay),
+    formatShortDate(entry.lastDueDay),
   );
   return switch (entry.status) {
     MedicalStageStatus.done ||

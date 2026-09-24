@@ -9,6 +9,8 @@ part 'medical_timeline.freezed.dart';
 /// Une étape datée pour ce bébé, avec son statut et sa visite éventuelle.
 @freezed
 abstract class MedicalTimelineEntry with _$MedicalTimelineEntry {
+  const MedicalTimelineEntry._();
+
   const factory MedicalTimelineEntry({
     required MedicalStage stage,
     required DateTime dueFrom,
@@ -16,6 +18,10 @@ abstract class MedicalTimelineEntry with _$MedicalTimelineEntry {
     required MedicalStageStatus status,
     MedicalVisit? visit,
   }) = _MedicalTimelineEntry;
+
+  /// Dernier jour de la fenêtre ([dueUntil] est exclu).
+  DateTime get lastDueDay =>
+      DateTime(dueUntil.year, dueUntil.month, dueUntil.day - 1);
 }
 
 /// Élément de la frise : étape du calendrier ou RDV libre.
@@ -40,6 +46,22 @@ sealed class MedicalTimelineItem with _$MedicalTimelineItem {
     StageItem(:final entry) => entry.dueFrom,
     AppointmentItem(:final appointment) => appointment.appointmentAt,
   };
+
+  /// Date du RDV pris : celle de la visite d'une étape, ou celle du RDV libre.
+  DateTime? get appointmentAt => switch (this) {
+    StageItem(:final entry) => entry.visit?.appointmentAt,
+    AppointmentItem(:final appointment) => appointment.appointmentAt,
+  };
+
+  /// Praticien saisi, `null` s'il est absent ou vide.
+  String? get practitioner {
+    final raw = switch (this) {
+      StageItem(:final entry) => entry.visit?.practitioner,
+      AppointmentItem(:final appointment) => appointment.practitioner,
+    };
+    final trimmed = raw?.trim();
+    return trimmed == null || trimmed.isEmpty ? null : trimmed;
+  }
 }
 
 /// Étapes du calendrier dans l'ordre des âges, plus les RDV libres datés.
@@ -71,6 +93,59 @@ abstract class MedicalTimeline with _$MedicalTimeline {
   /// Premier élément non fait, ou `null`.
   MedicalTimelineItem? get next =>
       items.where((i) => i.status != MedicalStageStatus.done).firstOrNull;
+
+  /// RDV programmés, du plus proche au plus lointain ; à date égale, l'ordre
+  /// de [items] est conservé.
+  List<MedicalTimelineItem> get scheduled =>
+      _byAppointment(_withStatus(MedicalStageStatus.scheduled));
+
+  /// Prochain RDV programmé, ou `null`.
+  MedicalTimelineItem? get nextAppointment => scheduled.firstOrNull;
+
+  /// RDV passés pas encore marqués faits, du plus ancien au plus récent.
+  List<MedicalTimelineItem> get awaitingConfirmation =>
+      _byAppointment(_withStatus(MedicalStageStatus.appointmentPassed));
+
+  /// Étapes à caler : en retard d'abord, puis à faire, chacune dans l'ordre
+  /// de [items].
+  List<MedicalTimelineItem> get toSchedule => [
+    ..._withStatus(MedicalStageStatus.late),
+    ..._withStatus(MedicalStageStatus.due),
+  ];
+
+  /// Étapes à venir, ordre de [items].
+  List<MedicalTimelineItem> get upcoming =>
+      _withStatus(MedicalStageStatus.upcoming);
+
+  /// Étapes faites, ordre de [items].
+  List<MedicalTimelineItem> get done => _withStatus(MedicalStageStatus.done);
+
+  List<MedicalTimelineItem> _withStatus(MedicalStageStatus status) => [
+    for (final item in items)
+      if (item.status == status) item,
+  ];
+
+  /// Tri stable par [MedicalTimelineItem.appointmentAt] ; un élément sans
+  /// date (incohérence de données) passe en dernier.
+  static List<MedicalTimelineItem> _byAppointment(
+    List<MedicalTimelineItem> list,
+  ) {
+    final indexed = list.indexed.toList()
+      ..sort((a, b) {
+        final (ia, itemA) = a;
+        final (ib, itemB) = b;
+        final dateA = itemA.appointmentAt;
+        final dateB = itemB.appointmentAt;
+        final byDate = switch ((dateA, dateB)) {
+          (null, null) => 0,
+          (null, _) => 1,
+          (_, null) => -1,
+          (final da?, final db?) => da.compareTo(db),
+        };
+        return byDate != 0 ? byDate : ia.compareTo(ib);
+      });
+    return [for (final (_, item) in indexed) item];
+  }
 
   static int _compareAppointments(AppointmentItem a, AppointmentItem b) {
     final byDate = a.appointment.appointmentAt.compareTo(

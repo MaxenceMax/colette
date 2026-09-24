@@ -227,8 +227,8 @@ return $default(_that.stage,_that.dueFrom,_that.dueUntil,_that.status,_that.visi
 /// @nodoc
 
 
-class _MedicalTimelineEntry implements MedicalTimelineEntry {
-  const _MedicalTimelineEntry({required this.stage, required this.dueFrom, required this.dueUntil, required this.status, this.visit});
+class _MedicalTimelineEntry extends MedicalTimelineEntry {
+  const _MedicalTimelineEntry({required this.stage, required this.dueFrom, required this.dueUntil, required this.status, this.visit}): super._();
   
 
 @override final  MedicalStage stage;

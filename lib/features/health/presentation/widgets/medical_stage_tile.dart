@@ -20,7 +20,10 @@ class MedicalStageTile extends StatelessWidget {
     final s = S.of(context);
     final styles = Theme.of(context).coletteTextStyles;
     final stage = entry.stage;
-    final late = entry.status == MedicalStageStatus.late;
+    final highlighted = switch (entry.status) {
+      MedicalStageStatus.late || MedicalStageStatus.appointmentPassed => true,
+      _ => false,
+    };
     return ListTile(
       contentPadding: AppSpacing.sm.horizontal,
       onTap: onTap,
@@ -42,7 +45,7 @@ class MedicalStageTile extends StatelessWidget {
             healthStatusText(s, entry),
             style: styles.small.copyWith(
               color: context.appColor(
-                late ? AppColors.warning : AppColors.textSecondary,
+                highlighted ? AppColors.warning : AppColors.textSecondary,
               ),
             ),
           ),
@@ -58,9 +61,16 @@ class MedicalStageTile extends StatelessWidget {
 
 /// Pastille « Examen », « Vaccins », « Certificat » ou « RDV libre ».
 class MedicalChip extends StatelessWidget {
-  const MedicalChip({super.key, required this.label});
+  const MedicalChip({
+    super.key,
+    required this.label,
+    this.backgroundColor = AppColors.surfaceContainer,
+  });
 
   final String label;
+
+  /// Couleur de fond de la pastille.
+  final AppColors backgroundColor;
 
   @override
   Widget build(BuildContext context) => Container(
@@ -69,7 +79,7 @@ class MedicalChip extends StatelessWidget {
       vertical: AppSpacing.xxs,
     ),
     decoration: BoxDecoration(
-      color: context.appColor(AppColors.surfaceContainer),
+      color: context.appColor(backgroundColor),
       borderRadius: AppRadius.sm.circular,
     ),
     child: Text(label, style: Theme.of(context).coletteTextStyles.small),
