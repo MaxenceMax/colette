@@ -6,7 +6,7 @@ App iOS privée pour suivre les soins quotidiens de notre nouveau-né, à deux.
 
 - Documents : consultation en direct du dossier iCloud Drive partagé (choisi une fois par iPhone), aperçu Quick Look avec téléchargement automatique, scan et import, suppression, ouverture dans Fichiers.
 - Croissance : mesures de poids, taille et périmètre crânien, courbes avec repères OMS.
-- Santé (onglet dédié) : examens obligatoires et vaccins, RDV libres (ostéopathe, ORL, vaccin de saison…) avec vaccins connus ou à nom libre, RDV synchronisés avec un calendrier iCloud partagé, rappels des étapes dans le digest du matin.
+- Santé (onglet dédié) : prochain rendez-vous en évidence, autres RDV programmés, RDV passés à confirmer, examens à programmer ; examens obligatoires et vaccins, RDV libres (ostéopathe, ORL, vaccin de saison…) avec vaccins connus ou à nom libre, RDV synchronisés avec un calendrier iCloud partagé, rappels des étapes dans le digest du matin. Une tuile Rendez-vous sur Aujourd'hui suit le prochain RDV.
 - Barre du bas : Journal, Assiette, Aujourd'hui (bouton central), Santé, Réglages.
 
 ## Prérequis
