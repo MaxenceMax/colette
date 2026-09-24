@@ -49,8 +49,19 @@ void main() {
         .scheduled,
         practitioner: '   ',
       );
+      final noVisit = MedicalTimelineItem.stage(
+        entry(MedicalStageId.m2, MedicalStageStatus.due),
+      );
+      final rdvWithName = custom(
+        'a',
+        DateTime(2026, 10, 15, 9),
+        .scheduled,
+        practitioner: 'Dr Dupont',
+      );
       expect(withName.practitioner, 'Dr Martin');
       expect(blank.practitioner, isNull);
+      expect(noVisit.practitioner, isNull);
+      expect(rdvWithName.practitioner, 'Dr Dupont');
     });
   });
 
@@ -91,6 +102,23 @@ void main() {
       // (15 oct.) est inséré avant, « orl » (3 nov.) après les étapes. À date
       // égale (m2 et orl, 3 nov. 10h00), l'ordre de `items` est gardé.
       expect(ids, ['osteo', 'm2', 'orl']);
+    });
+
+    test('scheduled : une entrée sans date passe en dernier', () {
+      final withMissingDate = MedicalTimeline(
+        entries: [
+          entry(MedicalStageId.m3, MedicalStageStatus.scheduled),
+          entry(
+            MedicalStageId.m2,
+            MedicalStageStatus.scheduled,
+            appointmentAt: DateTime(2026, 11, 3, 10),
+          ),
+        ],
+      );
+      expect(
+        withMissingDate.scheduled.map((i) => (i as StageItem).entry.stage.id),
+        [MedicalStageId.m2, MedicalStageId.m3],
+      );
     });
 
     test('nextAppointment : le premier programmé, ou null', () {
