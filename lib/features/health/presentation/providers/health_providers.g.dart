@@ -264,13 +264,15 @@ final class MedicalTimelineProvider
 String _$medicalTimelineHash() => r'd3c2615d87b3fb0a1619249723e497cbcbcb5c8a';
 
 /// Proximité du prochain RDV programmé ; `null` sans frise ou sans RDV.
-/// Suit [todayProvider] : ne change qu'au changement de jour.
+/// Suit [todayProvider] et le prochain RDV : change au changement de jour ou
+/// de RDV.
 
 @ProviderFor(nextAppointmentProximity)
 final nextAppointmentProximityProvider = NextAppointmentProximityProvider._();
 
 /// Proximité du prochain RDV programmé ; `null` sans frise ou sans RDV.
-/// Suit [todayProvider] : ne change qu'au changement de jour.
+/// Suit [todayProvider] et le prochain RDV : change au changement de jour ou
+/// de RDV.
 
 final class NextAppointmentProximityProvider
     extends
@@ -281,7 +283,8 @@ final class NextAppointmentProximityProvider
         >
     with $Provider<AppointmentProximity?> {
   /// Proximité du prochain RDV programmé ; `null` sans frise ou sans RDV.
-  /// Suit [todayProvider] : ne change qu'au changement de jour.
+  /// Suit [todayProvider] et le prochain RDV : change au changement de jour ou
+  /// de RDV.
   NextAppointmentProximityProvider._()
     : super(
         from: null,
