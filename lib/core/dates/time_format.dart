@@ -21,3 +21,12 @@ String formatShortDate(DateTime day) =>
 /// « mer. 23 ».
 String formatShortWeekday(DateTime day) =>
     DateFormat('EEE d', 'fr').format(day);
+
+/// « 14 ».
+String formatDayOfMonth(DateTime day) => DateFormat('d', 'fr').format(day);
+
+/// « oct. ».
+String formatShortMonth(DateTime day) => DateFormat('MMM', 'fr').format(day);
+
+/// « 5 nov. ».
+String formatDayMonth(DateTime day) => DateFormat('d MMM', 'fr').format(day);
