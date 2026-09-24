@@ -108,11 +108,8 @@ abstract final class CareSettingsDto {
     if (map['umbilicalCare'] case final Map<String, dynamic> nested) {
       return CareFrequencyDto.fromMap(nested);
     }
-    if (map['umbilicalCarePerDay'] is num) {
-      return CareFrequencyDto.fromLegacyPerDay(
-        map['umbilicalCarePerDay'],
-        fallback,
-      );
+    if (map['umbilicalCarePerDay'] case final num raw when raw.isFinite) {
+      return CareFrequencyDto.fromLegacyPerDay(raw, fallback);
     }
     return map['umbilicalCareEnabled'] == false
         ? fallback.copyWith(enabled: false)

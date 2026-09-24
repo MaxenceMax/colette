@@ -129,6 +129,13 @@ void main() {
         }).umbilicalCare,
         const CareFrequency(timesPerDay: 3, enabled: false),
       );
+      expect(
+        CareSettingsDto.fromMap(const {
+          'umbilicalCarePerDay': double.nan,
+          'umbilicalCareEnabled': false,
+        }).umbilicalCare,
+        const CareFrequency(timesPerDay: 3, enabled: false),
+      );
     });
 
     test('la map de soin prime sur l\'ancien entier', () {
