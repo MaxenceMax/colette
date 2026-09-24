@@ -3,13 +3,14 @@ import 'dart:developer' as developer;
 import 'package:colette/core/result/failure.dart';
 import 'package:colette/core/ui/failure_message.dart';
 import 'package:colette/features/documents/domain/entities/document_entry.dart';
-import 'package:colette/features/documents/presentation/providers/documents_delete_controller.dart';
+import 'package:colette/features/documents/presentation/providers/documents_manage_controller.dart';
 import 'package:colette/features/documents/presentation/providers/documents_providers.dart';
 import 'package:colette/features/documents/presentation/providers/documents_root.dart';
 import 'package:colette/features/documents/presentation/providers/documents_write_controller.dart';
 import 'package:colette/features/documents/presentation/widgets/document_entry_tile.dart';
 import 'package:colette/features/documents/presentation/widgets/documents_add_menu.dart';
 import 'package:colette/features/documents/presentation/widgets/documents_lost_access_view.dart';
+import 'package:colette/features/documents/presentation/widgets/documents_manage_error.dart';
 import 'package:colette/features/documents/presentation/widgets/documents_open_in_files_button.dart';
 import 'package:colette/l10n/generated/app_localizations.dart';
 import 'package:colette/shared/ui/widgets/empty_state.dart';
@@ -52,21 +53,9 @@ class DocumentsPage extends ConsumerWidget {
         }
       }
     });
-    ref.listen(documentsDeleteControllerProvider(path), (_, next) {
+    ref.listen(documentsManageControllerProvider(path), (_, next) {
       if (next case AsyncError(:final error)) {
-        switch (error) {
-          case DocumentsFailure(
-            reason: DocumentsReason.noFolder || DocumentsReason.accessDenied,
-          ):
-            ref.invalidate(documentsFolderProvider(path));
-          case DocumentsFailure(reason: DocumentsReason.io):
-            ScaffoldMessenger.of(context)
-                .showSnackBar(SnackBar(content: Text(s.documentsErrorDelete)));
-          default:
-            ScaffoldMessenger.of(
-              context,
-            ).showSnackBar(SnackBar(content: Text(failureMessage(error, s))));
-        }
+        showDocumentsManageError(context, ref, error, path);
       }
     });
     final folder = ref.watch(documentsFolderProvider(path));

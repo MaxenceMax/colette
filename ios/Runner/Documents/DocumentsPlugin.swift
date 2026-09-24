@@ -55,8 +55,8 @@ final class DocumentsPlugin: NSObject {
   /// 7. fermeture de l'aperçu Quick Look (succès) ;
   /// 8. écriture terminée hors thread principal, réussie ou en échec (`offMainThread`).
   ///
-  /// `rootFolder`, `forgetRootFolder`, `openFolderStream`, `download`, `delete` et
-  /// `openInFiles` ne prennent pas le verrou.
+  /// `rootFolder`, `forgetRootFolder`, `openFolderStream`, `download`, `delete`,
+  /// `createFolder`, `rename`, `move` et `openInFiles` ne prennent pas le verrou.
   private var busy = false
 
   init(messenger: FlutterBinaryMessenger) {
@@ -88,6 +88,18 @@ final class DocumentsPlugin: NSObject {
         result(nil)
       case "delete":
         try delete(path: try argument("path", of: call), result: result)
+      case "createFolder":
+        try createFolder(
+          path: try argument("path", of: call), name: try argument("name", of: call),
+          result: result)
+      case "rename":
+        try rename(
+          path: try argument("path", of: call), name: try argument("name", of: call),
+          result: result)
+      case "move":
+        try move(
+          path: try argument("path", of: call),
+          destination: try argument("destination", of: call), result: result)
       case "openInFiles":
         try openInFiles(path: try argument("path", of: call), result: result)
       case "pickRootFolder", "preview", "scan", "importFile":
@@ -209,9 +221,9 @@ final class DocumentsPlugin: NSObject {
     folderChannels.removeValue(forKey: name)?.setStreamHandler(nil)
   }
 
-  /// Relistage forcé de tous les abonnements au dossier `path`.
-  private func refreshWatchers(of path: String) {
-    for watcher in watchers.values where watcher.relativePath == path {
+  /// Relistage forcé de tous les abonnements aux dossiers `paths`.
+  private func refreshWatchers(of paths: String...) {
+    for watcher in watchers.values where paths.contains(watcher.relativePath) {
       watcher.refresh()
     }
   }
@@ -230,22 +242,10 @@ final class DocumentsPlugin: NSObject {
     try DocumentsLister.startDownload(located)
   }
 
+  /// Supprime un fichier ou un dossier et son contenu.
   private func delete(path: String, result: @escaping FlutterResult) throws {
-    let root = try store.openRoot()
-    let located: URL
-    do {
-      located = try DocumentsLister.locate(path, under: root.url)
-    } catch {
-      root.close()
-      throw error
-    }
-    var isDirectory: ObjCBool = false
-    if FileManager.default.fileExists(atPath: located.path, isDirectory: &isDirectory),
-      isDirectory.boolValue
-    {
-      root.close()
-      throw DocumentsError.io("Un dossier ne peut pas être supprimé")
-    }
+    guard !path.isEmpty else { throw DocumentsError.accessDenied }
+    let (root, located) = try locate(path)
     let folderPath = Self.parent(of: path)
     Self.offMainThread(
       root: root,
@@ -256,6 +256,74 @@ final class DocumentsPlugin: NSObject {
     ) {
       try DocumentsWriter.delete(DocumentsLister.realURL(for: located))
       return nil
+    }
+  }
+
+  // MARK: - Dossiers, renommage, déplacement
+
+  private func createFolder(path: String, name: String, result: @escaping FlutterResult) throws {
+    let root = try store.openRoot()
+    let folder = try resolve(path, under: root)
+    Self.offMainThread(
+      root: root,
+      result: { [weak self] value in
+        if !(value is FlutterError) { self?.refreshWatchers(of: path) }
+        result(value)
+      }
+    ) {
+      ["name": try DocumentsWriter.createFolder(named: name, in: folder)]
+    }
+  }
+
+  private func rename(path: String, name: String, result: @escaping FlutterResult) throws {
+    guard !path.isEmpty else { throw DocumentsError.accessDenied }
+    let (root, located) = try locate(path)
+    let folderPath = Self.parent(of: path)
+    Self.offMainThread(
+      root: root,
+      result: { [weak self] value in
+        if !(value is FlutterError) { self?.refreshWatchers(of: folderPath) }
+        result(value)
+      }
+    ) {
+      ["name": try DocumentsWriter.rename(located, to: name)]
+    }
+  }
+
+  /// Refuse la racine, le dossier actuel, l'élément lui-même et ses descendants.
+  private func move(path: String, destination: String, result: @escaping FlutterResult) throws {
+    let folderPath = Self.parent(of: path)
+    guard !path.isEmpty, destination != folderPath, destination != path,
+      !destination.hasPrefix(path + "/")
+    else { throw DocumentsError.accessDenied }
+    let (root, located) = try locate(path)
+    let target = try resolve(destination, under: root)
+    var isDirectory: ObjCBool = false
+    guard FileManager.default.fileExists(atPath: target.path, isDirectory: &isDirectory),
+      isDirectory.boolValue
+    else {
+      root.close()
+      throw DocumentsError.io("Dossier de destination introuvable")
+    }
+    Self.offMainThread(
+      root: root,
+      result: { [weak self] value in
+        if !(value is FlutterError) { self?.refreshWatchers(of: folderPath, destination) }
+        result(value)
+      }
+    ) {
+      ["name": try DocumentsWriter.move(located, into: target)]
+    }
+  }
+
+  /// Racine ouverte et élément localisé ; ferme la portée si l'élément est introuvable.
+  private func locate(_ path: String) throws -> (ScopedRoot, URL) {
+    let root = try store.openRoot()
+    do {
+      return (root, try DocumentsLister.locate(path, under: root.url))
+    } catch {
+      root.close()
+      throw error
     }
   }
 

@@ -6,15 +6,18 @@ import 'package:colette/core/theme/design_tokens.dart';
 import 'package:colette/core/ui/failure_message.dart';
 import 'package:colette/features/documents/domain/entities/document_entry.dart';
 import 'package:colette/features/documents/domain/entities/download_status.dart';
+import 'package:colette/features/documents/presentation/providers/documents_manage_controller.dart';
 import 'package:colette/features/documents/presentation/providers/documents_preview_controller.dart';
 import 'package:colette/features/documents/presentation/providers/documents_providers.dart';
 import 'package:colette/features/documents/presentation/widgets/document_delete_dismissible.dart';
+import 'package:colette/features/documents/presentation/widgets/document_entry_actions.dart';
 import 'package:colette/l10n/generated/app_localizations.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
-/// Ligne d'un dossier ou d'un fichier ; tap : navigation ou aperçu.
+/// Ligne d'un dossier ou d'un fichier ; tap : navigation ou aperçu ;
+/// appui long : renommer, déplacer, supprimer.
 class DocumentEntryTile extends ConsumerWidget {
   const DocumentEntryTile({
     super.key,
@@ -85,6 +88,10 @@ class DocumentEntryTile extends ConsumerWidget {
     final controller = documentsPreviewControllerProvider(entry.path);
     // Garde le contrôleur autoDispose vivant pendant l'await de open().
     final previewing = ref.watch(controller).isLoading;
+    // Garde le contrôleur autoDispose vivant pendant les actions de l'appui long.
+    final managing = ref
+        .watch(documentsManageControllerProvider(folderPath))
+        .isLoading;
     ref.listen(controller, (_, next) {
       if (next case AsyncError(:final error)) {
         _onPreviewError(context, ref, error);
@@ -102,8 +109,15 @@ class DocumentEntryTile extends ConsumerWidget {
         false when previewing => null,
         false => () => ref.read(controller.notifier).open(entry),
       },
+      onLongPress: managing
+          ? null
+          : () => showDocumentEntryActions(
+              context,
+              ref,
+              entry: entry,
+              folderPath: folderPath,
+            ),
     );
-    if (entry.isDirectory) return tile;
     return DocumentDeleteDismissible(
       entry: entry,
       folderPath: folderPath,

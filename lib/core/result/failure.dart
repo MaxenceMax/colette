@@ -22,6 +22,7 @@ enum ValidationReason {
   medicalDateInFuture,
   medicalTitleRequired,
   medicalVaccineNameRequired,
+  invalidDocumentName,
 }
 
 /// Erreur remontée par les repositories et les use cases via `Either`.
@@ -55,7 +56,7 @@ final class UnknownFailure extends Failure {
 }
 
 /// Raison d'une [DocumentsFailure].
-enum DocumentsReason { noFolder, accessDenied, cancelled, io }
+enum DocumentsReason { noFolder, accessDenied, cancelled, io, nameTaken }
 
 /// Erreur du pont natif documents (dossier iCloud).
 final class DocumentsFailure extends Failure {

@@ -248,11 +248,45 @@ void main() {
     expect(calls.single.arguments, {'path': ''});
   });
 
+  test('createFolder transmet dossier et nom, renvoie le nom final', () async {
+    mock((_) => {'name': 'Santé (2)'});
+    final result = await repo.createFolder(
+      folderPath: 'Papiers',
+      name: 'Santé',
+    );
+    expect(result.toNullable(), 'Santé (2)');
+    expect(calls.single.method, 'createFolder');
+    expect(calls.single.arguments, {'path': 'Papiers', 'name': 'Santé'});
+  });
+
+  test('rename transmet chemin et nom, renvoie le nom final', () async {
+    mock((_) => {'name': 'b.pdf'});
+    final result = await repo.rename(path: 'Santé/a.pdf', newName: 'b.pdf');
+    expect(result.toNullable(), 'b.pdf');
+    expect(calls.single.method, 'rename');
+    expect(calls.single.arguments, {'path': 'Santé/a.pdf', 'name': 'b.pdf'});
+  });
+
+  test('move transmet chemin et destination, renvoie le nom final', () async {
+    mock((_) => {'name': 'a (2).pdf'});
+    final result = await repo.move(
+      path: 'Santé/a.pdf',
+      destinationFolderPath: 'Papiers',
+    );
+    expect(result.toNullable(), 'a (2).pdf');
+    expect(calls.single.method, 'move');
+    expect(calls.single.arguments, {
+      'path': 'Santé/a.pdf',
+      'destination': 'Papiers',
+    });
+  });
+
   for (final (code, reason) in [
     ('noFolder', DocumentsReason.noFolder),
     ('accessDenied', DocumentsReason.accessDenied),
     ('cancelled', DocumentsReason.cancelled),
     ('io', DocumentsReason.io),
+    ('nameTaken', DocumentsReason.nameTaken),
   ]) {
     test('code $code → DocumentsFailure.$reason', () async {
       mock((_) => throw PlatformException(code: code));

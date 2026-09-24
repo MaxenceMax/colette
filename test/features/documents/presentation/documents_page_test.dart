@@ -133,7 +133,10 @@ void main() {
     await swipeLeft(tester, 'a.pdf');
     await tester.tap(find.text('Supprimer'));
     await tester.pumpAndSettle();
-    expect(find.text('Impossible de supprimer ce document'), findsOneWidget);
+    expect(
+      find.text('Impossible de modifier le dossier iCloud'),
+      findsOneWidget,
+    );
   });
 
   testWidgets('suppression refusée (accessDenied) → vue accès perdu', (
@@ -181,12 +184,26 @@ void main() {
     );
   });
 
-  testWidgets('un dossier ne se glisse pas', (tester) async {
+  testWidgets('glisser un dossier : confirmation dédiée puis delete', (
+    tester,
+  ) async {
     when(() => repo.watch('')).thenAnswer(
-      (_) => Stream.value(right([entry('Ordonnances', isDirectory: true)])),
+      (_) => Stream.value(right([entry('Santé', isDirectory: true)])),
     );
+    when(() => repo.delete('Santé')).thenAnswer((_) async => right(null));
     await pumpPage(tester);
-    expect(find.byType(Dismissible), findsNothing);
+    await swipeLeft(tester, 'Santé');
+    expect(find.text('Supprimer ce dossier ?'), findsOneWidget);
+    expect(
+      find.text(
+        "Le dossier Santé et tout son contenu resteront trente jours dans "
+        "« Récemment supprimés » de l'app Fichiers.",
+      ),
+      findsOneWidget,
+    );
+    await tester.tap(find.text('Supprimer'));
+    await tester.pumpAndSettle();
+    verify(() => repo.delete('Santé')).called(1);
   });
 
   testWidgets('liste triée avec le nom de la racine en titre', (tester) async {
