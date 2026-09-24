@@ -20,7 +20,10 @@ class MedicalStageTile extends StatelessWidget {
     final s = S.of(context);
     final styles = Theme.of(context).coletteTextStyles;
     final stage = entry.stage;
-    final late = entry.status == MedicalStageStatus.late;
+    final highlighted = switch (entry.status) {
+      MedicalStageStatus.late || MedicalStageStatus.appointmentPassed => true,
+      _ => false,
+    };
     return ListTile(
       contentPadding: AppSpacing.sm.horizontal,
       onTap: onTap,
@@ -42,7 +45,7 @@ class MedicalStageTile extends StatelessWidget {
             healthStatusText(s, entry),
             style: styles.small.copyWith(
               color: context.appColor(
-                late ? AppColors.warning : AppColors.textSecondary,
+                highlighted ? AppColors.warning : AppColors.textSecondary,
               ),
             ),
           ),

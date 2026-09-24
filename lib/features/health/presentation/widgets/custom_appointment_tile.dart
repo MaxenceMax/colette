@@ -1,6 +1,7 @@
 import 'package:colette/core/theme/app_colors.dart';
 import 'package:colette/core/theme/design_tokens.dart';
 import 'package:colette/core/theme/text_styles.dart';
+import 'package:colette/features/health/domain/entities/medical_stage_status.dart';
 import 'package:colette/features/health/domain/entities/medical_timeline.dart';
 import 'package:colette/features/health/presentation/widgets/health_status_text.dart';
 import 'package:colette/features/health/presentation/widgets/medical_stage_tile.dart';
@@ -18,6 +19,7 @@ class CustomAppointmentTile extends StatelessWidget {
   Widget build(BuildContext context) {
     final s = S.of(context);
     final styles = Theme.of(context).coletteTextStyles;
+    final highlighted = item.status == MedicalStageStatus.appointmentPassed;
     return ListTile(
       contentPadding: AppSpacing.sm.horizontal,
       onTap: onTap,
@@ -37,7 +39,9 @@ class CustomAppointmentTile extends StatelessWidget {
           Text(
             healthAppointmentStatusText(s, item),
             style: styles.small.copyWith(
-              color: context.appColor(AppColors.textSecondary),
+              color: context.appColor(
+                highlighted ? AppColors.warning : AppColors.textSecondary,
+              ),
             ),
           ),
         ],
