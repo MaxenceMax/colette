@@ -30,19 +30,22 @@ class SleepWeekChart extends StatelessWidget {
     return Column(
       crossAxisAlignment: .stretch,
       children: [
-        Row(
-          children: [
-            SizedBox(width: AppSize.huge.value),
-            Expanded(
-              child: Row(
-                mainAxisAlignment: .spaceBetween,
-                children: [
-                  for (final hour in _axisHours) Text('$hour', style: muted),
-                ],
+        Padding(
+          padding: AppSpacing.sm.horizontal,
+          child: Row(
+            children: [
+              SizedBox(width: AppSize.huge.value),
+              Expanded(
+                child: Row(
+                  mainAxisAlignment: .spaceBetween,
+                  children: [
+                    for (final hour in _axisHours) Text('$hour', style: muted),
+                  ],
+                ),
               ),
-            ),
-            SizedBox(width: AppSize.huge.value),
-          ],
+              SizedBox(width: AppSize.huge.value),
+            ],
+          ),
         ),
         for (var i = 0; i < days.length; i++)
           SleepWeekRow(
@@ -86,7 +89,10 @@ class SleepWeekRow extends StatelessWidget {
           onTap: onTap,
           borderRadius: AppRadius.sm.circular,
           child: Padding(
-            padding: AppSpacing.xs.vertical,
+            padding: AppSpacing.symmetric(
+              horizontal: AppSpacing.sm,
+              vertical: AppSpacing.xs,
+            ),
             child: Row(
               children: [
                 SizedBox(
