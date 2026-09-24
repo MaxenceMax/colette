@@ -1,4 +1,5 @@
 import 'package:colette/core/theme/app_colors.dart';
+import 'package:colette/core/theme/design_tokens.dart';
 import 'package:colette/features/health/domain/entities/medical_stage.dart';
 import 'package:colette/features/health/domain/entities/medical_stage_status.dart';
 import 'package:colette/features/health/domain/entities/medical_timeline.dart';
@@ -44,6 +45,23 @@ void main() {
       expect(late.style?.color, AppColors.warning.light);
     },
   );
+
+  testWidgets('hauteur tactile minimale de 48 pt', (tester) async {
+    await pumpApp(
+      tester,
+      Scaffold(
+        body: ToScheduleSection(
+          items: [
+            MedicalTimelineItem.stage(
+              entry(MedicalStageId.m2, MedicalStageStatus.due),
+            ),
+          ],
+        ),
+      ),
+    );
+    final height = tester.getSize(find.byType(CompactStageRow)).height;
+    expect(height, greaterThanOrEqualTo(AppSize.xl.value));
+  });
 
   testWidgets('rien si vide', (tester) async {
     await pumpApp(tester, const Scaffold(body: ToScheduleSection(items: [])));

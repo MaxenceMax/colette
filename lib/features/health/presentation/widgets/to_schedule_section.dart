@@ -19,6 +19,8 @@ class ToScheduleSection extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    // `items` vient de `toSchedule`, qui ne contient que des étapes du
+    // calendrier : les RDV libres (AppointmentItem) sont donc ignorés ici.
     final entries = [
       for (final item in items)
         if (item case StageItem(:final entry)) entry,
@@ -69,26 +71,36 @@ class CompactStageRow extends StatelessWidget {
             formatDayMonth(entry.dueFrom),
             formatDayMonth(lastDay),
           );
-    return InkWell(
-      onTap: onTap,
-      child: Padding(
-        padding: AppSpacing.sm.all,
-        child: Row(
-          spacing: AppSpacing.sm.value,
-          children: [
-            Expanded(
-              child: Text(
-                HealthLabels.stage(s, entry.stage.id),
-                style: styles.body.copyWith(color: secondary),
+    return MergeSemantics(
+      child: Semantics(
+        button: true,
+        child: InkWell(
+          onTap: onTap,
+          child: ConstrainedBox(
+            constraints: BoxConstraints(minHeight: AppSize.xl.value),
+            child: Padding(
+              padding: AppSpacing.sm.all,
+              child: Row(
+                spacing: AppSpacing.sm.value,
+                children: [
+                  Expanded(
+                    child: Text(
+                      HealthLabels.stage(s, entry.stage.id),
+                      style: styles.body.copyWith(color: secondary),
+                    ),
+                  ),
+                  Text(
+                    trailing,
+                    style: styles.small.copyWith(
+                      color: late
+                          ? context.appColor(AppColors.warning)
+                          : secondary,
+                    ),
+                  ),
+                ],
               ),
             ),
-            Text(
-              trailing,
-              style: styles.small.copyWith(
-                color: late ? context.appColor(AppColors.warning) : secondary,
-              ),
-            ),
-          ],
+          ),
         ),
       ),
     );
