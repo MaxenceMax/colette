@@ -2,12 +2,13 @@ import { Timestamp } from 'firebase-admin/firestore';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import type { BabyDoc, Device, DeviceDoc, EventDoc, MedicalReminderDoc } from './lib/types';
 
-const { sendToDevices, loggerError, loggerWarn, households, deviceUpdates } = vi.hoisted(() => ({
+const { sendToDevices, loggerError, loggerWarn, households, deviceUpdates, queries } = vi.hoisted(() => ({
   sendToDevices: vi.fn(),
   loggerError: vi.fn(),
   loggerWarn: vi.fn(),
   households: [] as FakeHousehold[],
   deviceUpdates: [] as Array<{ household: string; deviceId: string; data: Record<string, unknown> }>,
+  queries: [] as Filter[][],
 }));
 
 type FakeHousehold = {
@@ -48,6 +49,7 @@ function fakeQuery(events: EventDoc[], filters: Filter[] = [], desc = false, max
     orderBy: (_field: string, direction?: string) => fakeQuery(events, filters, direction === 'desc', max),
     limit: (n: number) => fakeQuery(events, filters, desc, n),
     get: async () => {
+      queries.push(filters);
       const found = events
         .filter(matches)
         .sort((a, b) => (desc ? b.startAt.toMillis() - a.startAt.toMillis() : a.startAt.toMillis() - b.startAt.toMillis()))
@@ -181,10 +183,29 @@ describe('morningDigest', () => {
     loggerWarn.mockReset();
     households.length = 0;
     deviceUpdates.length = 0;
+    queries.length = 0;
   });
 
   afterEach(() => {
     vi.useRealTimers();
+  });
+
+  it('interroge les 7 derniers jours civils de Paris', async () => {
+    households.push({
+      id: 'ABC123',
+      baby: { name: 'Colette' },
+      devices: [{ id: 'd1' }],
+      events: [],
+    });
+
+    await handler();
+
+    expect(queries).toHaveLength(1);
+    const [lowerFilter, upperFilter] = queries[0];
+    expect(lowerFilter[1]).toBe('>=');
+    expect((lowerFilter[2] as Timestamp).toDate().toISOString()).toBe('2026-09-14T22:00:00.000Z');
+    expect(upperFilter[1]).toBe('<');
+    expect((upperFilter[2] as Timestamp).toDate().toISOString()).toBe('2026-09-21T22:00:00.000Z');
   });
 
   it('envoie les soins en attente et marque les appareils servis', async () => {

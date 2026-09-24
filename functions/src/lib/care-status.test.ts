@@ -34,13 +34,13 @@ describe('pendingCares', () => {
     expect(pending).toContain('Adrigyl');
   });
 
-  it('soin désactivé : jamais en attente, même bain récent', () => {
+  it("soin désactivé : jamais en attente, même fait aujourd'hui", () => {
     const pending = pendingCares({
       settings: { ...DEFAULT_CARE_SETTINGS, umbilicalCare: { ...DEFAULT_CARE_SETTINGS.umbilicalCare, enabled: false } },
-      events: [{ startAt: new Date('2026-09-20T16:00:00Z'), bath: true }],
+      events: [{ startAt: new Date('2026-09-21T05:00:00Z'), umbilicalCare: true }],
       now,
     });
-    expect(pending).toEqual(['Adrigyl', 'Soin des yeux', 'Soin du nez']);
+    expect(pending).toEqual(['Adrigyl', 'Soin des yeux', 'Soin du nez', 'Bain']);
   });
 
   it('nombril 3 par jour : deux soins faits encore en attente, trois faits absent', () => {
