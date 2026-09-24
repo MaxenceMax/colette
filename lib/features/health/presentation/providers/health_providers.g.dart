@@ -262,3 +262,59 @@ final class MedicalTimelineProvider
 }
 
 String _$medicalTimelineHash() => r'd3c2615d87b3fb0a1619249723e497cbcbcb5c8a';
+
+/// Proximité du prochain RDV programmé ; `null` sans frise ou sans RDV.
+/// Suit [todayProvider] : ne change qu'au changement de jour.
+
+@ProviderFor(nextAppointmentProximity)
+final nextAppointmentProximityProvider = NextAppointmentProximityProvider._();
+
+/// Proximité du prochain RDV programmé ; `null` sans frise ou sans RDV.
+/// Suit [todayProvider] : ne change qu'au changement de jour.
+
+final class NextAppointmentProximityProvider
+    extends
+        $FunctionalProvider<
+          AppointmentProximity?,
+          AppointmentProximity?,
+          AppointmentProximity?
+        >
+    with $Provider<AppointmentProximity?> {
+  /// Proximité du prochain RDV programmé ; `null` sans frise ou sans RDV.
+  /// Suit [todayProvider] : ne change qu'au changement de jour.
+  NextAppointmentProximityProvider._()
+    : super(
+        from: null,
+        argument: null,
+        retry: null,
+        name: r'nextAppointmentProximityProvider',
+        isAutoDispose: true,
+        dependencies: null,
+        $allTransitiveDependencies: null,
+      );
+
+  @override
+  String debugGetCreateSourceHash() => _$nextAppointmentProximityHash();
+
+  @$internal
+  @override
+  $ProviderElement<AppointmentProximity?> $createElement(
+    $ProviderPointer pointer,
+  ) => $ProviderElement(pointer);
+
+  @override
+  AppointmentProximity? create(Ref ref) {
+    return nextAppointmentProximity(ref);
+  }
+
+  /// {@macro riverpod.override_with_value}
+  Override overrideWithValue(AppointmentProximity? value) {
+    return $ProviderOverride(
+      origin: this,
+      providerOverride: $SyncValueProvider<AppointmentProximity?>(value),
+    );
+  }
+}
+
+String _$nextAppointmentProximityHash() =>
+    r'ac494b876d29139c42772ff64afeab3fd599bbcc';

@@ -5,8 +5,11 @@ import 'package:colette/core/clock/now_providers.dart';
 import 'package:colette/core/firebase/firebase_providers.dart';
 import 'package:colette/features/baby/domain/entities/baby_profile.dart';
 import 'package:colette/features/baby/presentation/providers/baby_providers.dart';
+import 'package:colette/features/health/domain/entities/appointment_proximity.dart';
 import 'package:colette/features/health/domain/entities/custom_appointment.dart';
 import 'package:colette/features/health/domain/entities/medical_stage.dart';
+import 'package:colette/features/health/domain/entities/medical_stage_status.dart';
+import 'package:colette/features/health/domain/entities/medical_timeline.dart';
 import 'package:colette/features/health/domain/entities/medical_visit.dart';
 import 'package:colette/features/health/presentation/providers/health_providers.dart';
 import 'package:colette/features/household/presentation/providers/household_providers.dart';
@@ -86,4 +89,50 @@ void main() {
       );
     },
   );
+
+  group('nextAppointmentProximityProvider', () {
+    ProviderContainer containerWith(MedicalTimeline? timeline) {
+      final container = ProviderContainer(
+        overrides: [
+          clockProvider.overrideWithValue(
+            FixedClock(DateTime(2026, 10, 20, 9)),
+          ),
+          minuteTickerProvider.overrideWith((ref) => const Stream.empty()),
+          medicalTimelineProvider.overrideWithValue(timeline),
+        ],
+      );
+      addTearDown(container.dispose);
+      return container;
+    }
+
+    test('null sans frise ou sans RDV programmé', () {
+      expect(
+        containerWith(null).read(nextAppointmentProximityProvider),
+        isNull,
+      );
+      final noRdv = MedicalTimeline(
+        entries: [entry(MedicalStageId.m2, MedicalStageStatus.due)],
+      );
+      expect(
+        containerWith(noRdv).read(nextAppointmentProximityProvider),
+        isNull,
+      );
+    });
+
+    test('proximité du prochain RDV programmé', () {
+      final timeline = MedicalTimeline(
+        entries: [
+          entry(
+            MedicalStageId.m2,
+            MedicalStageStatus.scheduled,
+            appointmentAt: DateTime(2026, 10, 23, 10),
+          ),
+        ],
+      );
+      expect(
+        containerWith(timeline).read(nextAppointmentProximityProvider),
+        AppointmentProximity.soon,
+      );
+    });
+  });
 }

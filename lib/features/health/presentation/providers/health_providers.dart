@@ -4,11 +4,13 @@ import 'package:colette/core/result/no_retry.dart';
 import 'package:colette/features/baby/presentation/providers/baby_providers.dart';
 import 'package:colette/features/health/data/native_calendar_repository.dart';
 import 'package:colette/features/health/data/repositories/firestore_medical_repository.dart';
+import 'package:colette/features/health/domain/entities/appointment_proximity.dart';
 import 'package:colette/features/health/domain/entities/custom_appointment.dart';
 import 'package:colette/features/health/domain/entities/medical_timeline.dart';
 import 'package:colette/features/health/domain/entities/medical_visit.dart';
 import 'package:colette/features/health/domain/repositories/calendar_repository.dart';
 import 'package:colette/features/health/domain/repositories/medical_repository.dart';
+import 'package:colette/features/health/domain/use_cases/compute_appointment_proximity.dart';
 import 'package:colette/features/health/domain/use_cases/compute_medical_timeline.dart';
 import 'package:colette/features/household/presentation/providers/household_providers.dart';
 import 'package:flutter/services.dart';
@@ -65,5 +67,17 @@ MedicalTimeline? medicalTimeline(Ref ref) {
     visits: visits,
     appointments: appointments,
     now: ref.watch(currentMinuteProvider),
+  );
+}
+
+/// Proximité du prochain RDV programmé ; `null` sans frise ou sans RDV.
+/// Suit [todayProvider] : ne change qu'au changement de jour.
+@riverpod
+AppointmentProximity? nextAppointmentProximity(Ref ref) {
+  final at = ref.watch(medicalTimelineProvider)?.nextAppointment?.appointmentAt;
+  if (at == null) return null;
+  return const ComputeAppointmentProximity()(
+    appointmentAt: at,
+    today: ref.watch(todayProvider),
   );
 }
