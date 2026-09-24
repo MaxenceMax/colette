@@ -37,7 +37,7 @@ final class BabySettingsControllerProvider
 }
 
 String _$babySettingsControllerHash() =>
-    r'5e726ad94b13261c5a47173b1d43fb07f2325c08';
+    r'c8380eea4c6970dc1d59b6595d4b6023d2a8299f';
 
 /// Actions de l'onglet Réglages sur le profil, les mesures de croissance et les soins attendus.
 

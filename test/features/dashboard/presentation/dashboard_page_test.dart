@@ -84,7 +84,9 @@ void main() {
     latestBottleProvider.overrideWith(
       (ref) => Stream.value(noBottle ? null : latest ?? bottle),
     ),
-    latestBathProvider.overrideWith((ref) => Stream.value(null)),
+    weekEventsProvider.overrideWith(
+      (ref) => Stream.value(recent ?? [adrigyl, bottle, lateBottle]),
+    ),
     eventsRepositoryProvider.overrideWithValue(repo),
     idGeneratorProvider.overrideWithValue(const FixedIdGenerator('e-new')),
     feedingPlanSyncProvider.overrideWithValue(const NoopFeedingPlanSync()),

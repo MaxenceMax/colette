@@ -31,7 +31,7 @@ void main() {
     todayEventsProvider.overrideWith((ref) => const Stream.empty()),
     recentEventsProvider.overrideWith((ref) => const Stream.empty()),
     latestBottleProvider.overrideWith((ref) => Stream.value(null)),
-    latestBathProvider.overrideWith((ref) => Stream.value(null)),
+    weekEventsProvider.overrideWith((ref) => const Stream.empty()),
   ];
 
   test('feedingPlan honore la cible ajustée du profil', () async {

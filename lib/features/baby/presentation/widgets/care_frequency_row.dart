@@ -7,8 +7,7 @@ import 'package:colette/shared/domain/care_type.dart';
 import 'package:colette/shared/ui/care_type_ui.dart';
 import 'package:flutter/material.dart';
 
-/// Réglage d'un soin : libellé et interrupteur de suivi, puis « [−] fréquence [+] ».
-/// Suivi coupé : la fréquence reste lisible, grisée, boutons inactifs.
+/// Réglage d'un soin : libellé, interrupteur de suivi, puis « [−] fréquence [+] » (grisé quand le suivi est coupé).
 class CareFrequencyRow extends StatelessWidget {
   const CareFrequencyRow({
     super.key,
@@ -37,28 +36,32 @@ class CareFrequencyRow extends StatelessWidget {
         : s.careFrequencyPerDay(frequency.timesPerDay);
     return Column(
       children: [
-        Row(
-          spacing: AppSpacing.sm.value,
-          children: [
-            Icon(
-              type.icon,
-              color: enabled ? context.appColor(type.color) : muted,
-            ),
-            Expanded(
-              child: Text(
-                type.label(s),
-                style: styles.body.copyWith(color: enabled ? onSurface : muted),
+        MergeSemantics(
+          child: Row(
+            spacing: AppSpacing.sm.value,
+            children: [
+              Icon(
+                type.icon,
+                color: enabled ? context.appColor(type.color) : muted,
               ),
-            ),
-            Semantics(
-              label: s.settingsCareTracked,
-              child: Switch(
-                value: enabled,
-                onChanged: (value) =>
-                    onChanged(frequency.copyWith(enabled: value)),
+              Expanded(
+                child: Text(
+                  type.label(s),
+                  style: styles.body.copyWith(
+                    color: enabled ? onSurface : muted,
+                  ),
+                ),
               ),
-            ),
-          ],
+              Semantics(
+                label: s.settingsCareTracked,
+                child: Switch(
+                  value: enabled,
+                  onChanged: (value) =>
+                      onChanged(frequency.copyWith(enabled: value)),
+                ),
+              ),
+            ],
+          ),
         ),
         Row(
           children: [

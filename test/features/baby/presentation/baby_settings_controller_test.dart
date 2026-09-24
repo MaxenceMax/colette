@@ -3,6 +3,7 @@ import 'dart:async';
 import 'package:colette/core/ids/id_generator.dart';
 import 'package:colette/core/result/failure.dart';
 import 'package:colette/features/baby/domain/entities/baby_profile.dart';
+import 'package:colette/features/baby/domain/entities/care_frequency.dart';
 import 'package:colette/features/baby/domain/entities/care_settings.dart';
 import 'package:colette/features/baby/domain/entities/growth_measurement.dart';
 import 'package:colette/features/baby/domain/repositories/baby_repository.dart';
@@ -137,27 +138,42 @@ void main() {
     verify(() => sync.sync()).called(1);
   });
 
-  test('setCordFallenAt désactive le soin du nombril', () async {
-    when(() => repo.saveProfile(any(), any()))
-        .thenAnswer((_) async => right(null));
-    final ok = await controller().setCordFallenAt(
-      profile,
-      DateTime(2026, 9, 12),
-    );
-    expect(ok, isTrue);
-    final saved =
-        verify(() => repo.saveProfile('ABCDEFGH', captureAny())).captured.single
-            as BabyProfile;
-    expect(saved.cordFallenAt, DateTime(2026, 9, 12));
-    expect(saved.careSettings.umbilicalCarePerDay, 0);
-  });
+  test(
+    'setCordFallenAt coupe le suivi du nombril, fréquence conservée',
+    () async {
+      when(() => repo.saveProfile(any(), any()))
+          .thenAnswer((_) async => right(null));
+      final twoPerDay = profile.copyWith(
+        careSettings: const CareSettings(
+          umbilicalCare: CareFrequency(timesPerDay: 2),
+        ),
+      );
+      final ok = await controller().setCordFallenAt(
+        twoPerDay,
+        DateTime(2026, 9, 12),
+      );
+      expect(ok, isTrue);
+      final saved =
+          verify(() => repo.saveProfile('ABCDEFGH', captureAny()))
+                  .captured
+                  .single
+              as BabyProfile;
+      expect(saved.cordFallenAt, DateTime(2026, 9, 12));
+      expect(
+        saved.careSettings.umbilicalCare,
+        const CareFrequency(timesPerDay: 2, enabled: false),
+      );
+    },
+  );
 
-  test('setCordFallenAt null remet le soin du nombril à 3', () async {
+  test('setCordFallenAt null rallume le suivi du nombril', () async {
     when(() => repo.saveProfile(any(), any()))
         .thenAnswer((_) async => right(null));
     final disabled = profile.copyWith(
       cordFallenAt: DateTime(2026, 9, 12),
-      careSettings: const CareSettings(umbilicalCarePerDay: 0),
+      careSettings: const CareSettings(
+        umbilicalCare: CareFrequency(timesPerDay: 2, enabled: false),
+      ),
     );
     final ok = await controller().setCordFallenAt(disabled, null);
     expect(ok, isTrue);
@@ -165,7 +181,10 @@ void main() {
         verify(() => repo.saveProfile('ABCDEFGH', captureAny())).captured.single
             as BabyProfile;
     expect(saved.cordFallenAt, isNull);
-    expect(saved.careSettings.umbilicalCarePerDay, 3);
+    expect(
+      saved.careSettings.umbilicalCare,
+      const CareFrequency(timesPerDay: 2),
+    );
   });
 
   test('updateCareSettings enregistre et synchronise', () async {

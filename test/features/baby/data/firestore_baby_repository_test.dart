@@ -1,6 +1,7 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:colette/features/baby/data/repositories/firestore_baby_repository.dart';
 import 'package:colette/features/baby/domain/entities/baby_profile.dart';
+import 'package:colette/features/baby/domain/entities/care_frequency.dart';
 import 'package:colette/features/baby/domain/entities/care_settings.dart';
 import 'package:colette/features/baby/domain/entities/feeding_plan_snapshot.dart';
 import 'package:colette/features/baby/domain/entities/growth_measurement.dart';
@@ -12,7 +13,7 @@ void main() {
   final profile = BabyProfile(
     name: 'Colette',
     birthDate: DateTime(2026, 9, 1),
-    careSettings: const CareSettings(bathEveryDays: 3),
+    careSettings: const CareSettings(bath: CareFrequency(everyDays: 3)),
   );
 
   test('watchProfile émet null tant que rien n\'est écrit', () async {

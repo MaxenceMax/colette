@@ -2,88 +2,154 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:colette/features/baby/data/dtos/baby_profile_dto.dart';
 import 'package:colette/features/baby/domain/entities/baby_profile.dart';
 import 'package:colette/features/baby/domain/entities/baby_sex.dart';
+import 'package:colette/features/baby/domain/entities/care_frequency.dart';
 import 'package:colette/features/baby/domain/entities/care_settings.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 void main() {
   _sexTests();
-
-  test('CareSettingsDto.fromMap ignore une valeur non numérique', () {
-    expect(
-      CareSettingsDto.fromMap(const {'bathEveryDays': '5'}).bathEveryDays,
-      2,
-    );
-  });
-
-  test('CareSettingsDto.fromMap applique les défauts sur une map vide', () {
-    expect(CareSettingsDto.fromMap(const {}), const CareSettings());
-  });
-
-  test('CareSettingsDto.fromMap borne les valeurs aberrantes', () {
-    final settings = CareSettingsDto.fromMap(const {
-      'feedsPerDay': 0,
-      'bathEveryDays': 0,
-      'adrigylPerDay': 99,
+  group('CareFrequency', () {
+    test('toMap écrit une map par soin et plus aucun champ plat', () {
+      final map = CareSettingsDto.toMap(const CareSettings());
+      expect(map['adrigyl'], {
+        'timesPerDay': 1,
+        'everyDays': 1,
+        'enabled': true,
+      });
+      expect(map['umbilicalCare'], {
+        'timesPerDay': 3,
+        'everyDays': 1,
+        'enabled': true,
+      });
+      expect(map['bath'], {'timesPerDay': 1, 'everyDays': 2, 'enabled': true});
+      for (final legacy in [
+        'adrigylPerDay',
+        'eyeCarePerDay',
+        'noseCarePerDay',
+        'umbilicalCarePerDay',
+        'umbilicalCareEnabled',
+        'bathEveryDays',
+      ]) {
+        expect(map.containsKey(legacy), isFalse, reason: legacy);
+      }
     });
-    expect(settings.feedsPerDay, 1);
-    expect(settings.bathEveryDays, 1);
-    expect(settings.adrigylPerDay, 10);
+
+    test('aller-retour', () {
+      const settings = CareSettings(
+        adrigyl: CareFrequency(everyDays: 3, enabled: false),
+        bath: CareFrequency(timesPerDay: 2),
+      );
+      expect(
+        CareSettingsDto.fromMap(CareSettingsDto.toMap(settings)),
+        settings,
+      );
+    });
+
+    test('map vide : défauts', () {
+      expect(CareSettingsDto.fromMap(const {}), const CareSettings());
+    });
+
+    test('map de soin : bornes 1..10 et 1..30, enabled vrai par défaut', () {
+      final settings = CareSettingsDto.fromMap(const {
+        'adrigyl': {'timesPerDay': 99},
+        'bath': {'everyDays': 60, 'enabled': 'oui'},
+        'eyeCare': {'timesPerDay': 0, 'everyDays': -1},
+      });
+      expect(settings.adrigyl, const CareFrequency(timesPerDay: 10));
+      expect(settings.bath, const CareFrequency(everyDays: 30));
+      expect(settings.eyeCare, const CareFrequency());
+    });
+
+    test('map de soin : deux entiers > 1 → timesPerDay ramené à 1', () {
+      expect(
+        CareSettingsDto.fromMap(const {
+          'noseCare': {'timesPerDay': 3, 'everyDays': 2},
+        }).noseCare,
+        const CareFrequency(everyDays: 2),
+      );
+    });
+
+    test('ancien entier xPerDay : n > 0 → n/jour, 0 → désactivé avec la fréquence par défaut', () {
+      final settings = CareSettingsDto.fromMap(const {
+        'adrigylPerDay': 2,
+        'eyeCarePerDay': 0,
+        'noseCarePerDay': 99,
+        'umbilicalCarePerDay': 0,
+      });
+      expect(settings.adrigyl, const CareFrequency(timesPerDay: 2));
+      expect(settings.eyeCare, const CareFrequency(enabled: false));
+      expect(settings.noseCare, const CareFrequency(timesPerDay: 10));
+      expect(
+        settings.umbilicalCare,
+        const CareFrequency(timesPerDay: 3, enabled: false),
+      );
+    });
+
+    test('ancien entier non numérique ou non fini : défaut', () {
+      expect(
+        CareSettingsDto.fromMap(const {'bathEveryDays': '5'}).bath,
+        const CareFrequency(everyDays: 2),
+      );
+      expect(
+        CareSettingsDto.fromMap(const {'adrigylPerDay': double.nan}).adrigyl,
+        const CareFrequency(),
+      );
+    });
+
+    test('ancien bathEveryDays : tous les n jours, borné 1..30', () {
+      expect(
+        CareSettingsDto.fromMap(const {'bathEveryDays': 3}).bath,
+        const CareFrequency(everyDays: 3),
+      );
+      expect(
+        CareSettingsDto.fromMap(const {'bathEveryDays': 0}).bath,
+        const CareFrequency(),
+      );
+      expect(
+        CareSettingsDto.fromMap(const {'bathEveryDays': 60}).bath,
+        const CareFrequency(everyDays: 30),
+      );
+    });
+
+    test('nombril : repli sur l\'ancien booléen umbilicalCareEnabled', () {
+      expect(
+        CareSettingsDto.fromMap(const {'umbilicalCareEnabled': false})
+            .umbilicalCare,
+        const CareFrequency(timesPerDay: 3, enabled: false),
+      );
+      expect(
+        CareSettingsDto.fromMap(const {'umbilicalCareEnabled': true})
+            .umbilicalCare,
+        const CareFrequency(timesPerDay: 3),
+      );
+      expect(
+        CareSettingsDto.fromMap(const {
+          'umbilicalCarePerDay': 0,
+          'umbilicalCareEnabled': true,
+        }).umbilicalCare,
+        const CareFrequency(timesPerDay: 3, enabled: false),
+      );
+    });
+
+    test('la map de soin prime sur l\'ancien entier', () {
+      expect(
+        CareSettingsDto.fromMap(const {
+          'adrigyl': {'everyDays': 2},
+          'adrigylPerDay': 0,
+        }).adrigyl,
+        const CareFrequency(everyDays: 2),
+      );
+    });
   });
 
-  test('CareSettingsDto.fromMap ignore une valeur non finie', () {
+  test('CareSettingsDto.fromMap borne feedsPerDay', () {
+    expect(CareSettingsDto.fromMap(const {'feedsPerDay': 0}).feedsPerDay, 1);
     expect(
       CareSettingsDto.fromMap(const {'feedsPerDay': double.infinity})
           .feedsPerDay,
       8,
     );
   });
-
-  test('CareSettingsDto.fromMap lit umbilicalCarePerDay borné', () {
-    expect(
-      CareSettingsDto.fromMap(const {'umbilicalCarePerDay': 2})
-          .umbilicalCarePerDay,
-      2,
-    );
-    expect(
-      CareSettingsDto.fromMap(const {'umbilicalCarePerDay': 42})
-          .umbilicalCarePerDay,
-      10,
-    );
-  });
-
-  test(
-    'CareSettingsDto.fromMap replie sur l\'ancien booléen umbilicalCareEnabled',
-    () {
-      expect(
-        CareSettingsDto.fromMap(const {'umbilicalCareEnabled': false})
-            .umbilicalCarePerDay,
-        0,
-      );
-      expect(
-        CareSettingsDto.fromMap(const {'umbilicalCareEnabled': true})
-            .umbilicalCarePerDay,
-        3,
-      );
-      expect(
-        CareSettingsDto.fromMap(const {
-          'umbilicalCarePerDay': 0,
-          'umbilicalCareEnabled': true,
-        }).umbilicalCarePerDay,
-        0,
-      );
-    },
-  );
-
-  test(
-    'CareSettingsDto.toMap écrit umbilicalCarePerDay et plus le booléen',
-    () {
-      final map = CareSettingsDto.toMap(
-        const CareSettings(umbilicalCarePerDay: 2),
-      );
-      expect(map['umbilicalCarePerDay'], 2);
-      expect(map.containsKey('umbilicalCareEnabled'), isFalse);
-    },
-  );
 
   group('dailyTargetMl', () {
     test('aller-retour avec une cible ajustée', () {

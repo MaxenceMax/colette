@@ -44,7 +44,7 @@ void main() {
           babyProfileProvider.overrideWith((ref) => Stream.value(profile)),
           todayEventsProvider.overrideWith((ref) => Stream.value(const [])),
           latestBottleProvider.overrideWith((ref) => Stream.value(null)),
-          latestBathProvider.overrideWith((ref) => Stream.value(null)),
+          weekEventsProvider.overrideWith((ref) => Stream.value(const [])),
           eventsRepositoryProvider.overrideWithValue(repo),
           idGeneratorProvider.overrideWithValue(
             const FixedIdGenerator('e-new'),

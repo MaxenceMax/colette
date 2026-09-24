@@ -2,13 +2,15 @@ import 'package:colette/core/theme/design_tokens.dart';
 import 'package:colette/features/baby/domain/entities/baby_profile.dart';
 import 'package:colette/features/baby/domain/entities/care_settings.dart';
 import 'package:colette/features/baby/presentation/providers/baby_settings_controller.dart';
+import 'package:colette/features/baby/presentation/widgets/care_frequency_row.dart';
 import 'package:colette/l10n/generated/app_localizations.dart';
+import 'package:colette/shared/domain/care_type.dart';
 import 'package:colette/shared/ui/widgets/colette_card_surface.dart';
 import 'package:colette/shared/ui/widgets/int_stepper_row.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-/// Fréquences des soins attendus et nombre de biberons par jour.
+/// Fréquence et suivi de chaque soin, et nombre de biberons par jour.
 /// Tient une copie locale optimiste : des taps rapides s'enchaînent sans attendre Firestore.
 class CareSettingsSection extends ConsumerStatefulWidget {
   const CareSettingsSection({super.key, required this.profile});
@@ -42,6 +44,15 @@ class _CareSettingsSectionState extends ConsumerState<CareSettingsSection> {
         .updateCareSettings(widget.profile, apply(widget.profile.careSettings));
   }
 
+  /// Borne haute « fois par jour » de chaque soin.
+  static const _maxTimesPerDay = {
+    CareType.adrigyl: 3,
+    CareType.eyeCare: 4,
+    CareType.noseCare: 4,
+    CareType.umbilicalCare: 4,
+    CareType.bath: 2,
+  };
+
   @override
   Widget build(BuildContext context) {
     // Garde le contrôleur autoDispose vivant pendant l'await de updateCareSettings.
@@ -50,48 +61,17 @@ class _CareSettingsSectionState extends ConsumerState<CareSettingsSection> {
     return ColetteCardSurface(
       padding: AppSpacing.sm.all,
       child: Column(
+        spacing: AppSpacing.xs.value,
         children: [
-          IntStepperRow(
-            label: s.settingsAdrigylPerDay,
-            value: _settings.adrigylPerDay,
-            min: 0,
-            max: 3,
-            onChanged: (v) =>
-                _update((settings) => settings.copyWith(adrigylPerDay: v)),
-          ),
-          IntStepperRow(
-            label: s.settingsEyeCarePerDay,
-            value: _settings.eyeCarePerDay,
-            min: 0,
-            max: 4,
-            onChanged: (v) =>
-                _update((settings) => settings.copyWith(eyeCarePerDay: v)),
-          ),
-          IntStepperRow(
-            label: s.settingsNoseCarePerDay,
-            value: _settings.noseCarePerDay,
-            min: 0,
-            max: 4,
-            onChanged: (v) =>
-                _update((settings) => settings.copyWith(noseCarePerDay: v)),
-          ),
-          IntStepperRow(
-            label: s.settingsUmbilicalCarePerDay,
-            value: _settings.umbilicalCarePerDay,
-            min: 0,
-            max: 4,
-            onChanged: (v) => _update(
-              (settings) => settings.copyWith(umbilicalCarePerDay: v),
+          for (final type in CareType.scheduled)
+            CareFrequencyRow(
+              type: type,
+              frequency: _settings.frequencyOf(type),
+              maxTimesPerDay: _maxTimesPerDay[type]!,
+              onChanged: (frequency) => _update(
+                (settings) => settings.withFrequency(type, frequency),
+              ),
             ),
-          ),
-          IntStepperRow(
-            label: s.settingsBathEveryDays,
-            value: _settings.bathEveryDays,
-            min: 1,
-            max: 7,
-            onChanged: (v) =>
-                _update((settings) => settings.copyWith(bathEveryDays: v)),
-          ),
           IntStepperRow(
             label: s.settingsFeedsPerDay,
             value: _settings.feedsPerDay,
