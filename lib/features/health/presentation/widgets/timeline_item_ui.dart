@@ -1,4 +1,5 @@
 import 'package:colette/core/dates/time_format.dart';
+import 'package:colette/core/theme/app_colors.dart';
 import 'package:colette/core/theme/design_tokens.dart';
 import 'package:colette/features/health/domain/entities/appointment_proximity.dart';
 import 'package:colette/features/health/domain/entities/medical_timeline.dart';
@@ -46,9 +47,16 @@ Future<void> showTimelineItemSheet(
 /// Pastilles d'un élément : Examen / Vaccins / Certificat pour une étape,
 /// RDV libre / Vaccins pour un RDV libre.
 class TimelineItemChips extends StatelessWidget {
-  const TimelineItemChips({super.key, required this.item});
+  const TimelineItemChips({
+    super.key,
+    required this.item,
+    this.backgroundColor = AppColors.surfaceContainer,
+  });
 
   final MedicalTimelineItem item;
+
+  /// Couleur de fond des pastilles.
+  final AppColors backgroundColor;
 
   @override
   Widget build(BuildContext context) {
@@ -66,7 +74,10 @@ class TimelineItemChips extends StatelessWidget {
     };
     return Wrap(
       spacing: AppSpacing.xs.value,
-      children: [for (final label in labels) MedicalChip(label: label)],
+      children: [
+        for (final label in labels)
+          MedicalChip(label: label, backgroundColor: backgroundColor),
+      ],
     );
   }
 }

@@ -21,8 +21,10 @@ class NextAppointmentCard extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final s = S.of(context);
     final styles = Theme.of(context).coletteTextStyles;
-    final item = ref.watch(medicalTimelineProvider)?.nextAppointment;
+    final timeline = ref.watch(medicalTimelineProvider);
     final proximity = ref.watch(nextAppointmentProximityProvider);
+    if (timeline == null) return const SizedBox.shrink();
+    final item = timeline.nextAppointment;
     final appointmentAt = item?.appointmentAt;
     return Column(
       crossAxisAlignment: .stretch,
@@ -121,7 +123,10 @@ class _AppointmentBody extends ConsumerWidget {
             ),
           Padding(
             padding: AppSpacing.xs.top,
-            child: TimelineItemChips(item: item),
+            child: TimelineItemChips(
+              item: item,
+              backgroundColor: AppColors.surface,
+            ),
           ),
         ],
       ),

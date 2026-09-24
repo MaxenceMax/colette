@@ -119,4 +119,29 @@ void main() {
     await tester.pumpAndSettle();
     expect(find.text('Titre (ostéopathe, ORL, pédiatre…)'), findsOneWidget);
   });
+
+  testWidgets('timeline en chargement : rien n\'est affiché', (tester) async {
+    await pumpCard(tester, null);
+    expect(find.text('Prochain rendez-vous'), findsNothing);
+    expect(find.text('Pas de rendez-vous programmé'), findsNothing);
+  });
+
+  testWidgets('tap : ouvre la feuille de l\'étape', (tester) async {
+    await pumpCard(
+      tester,
+      MedicalTimeline(
+        entries: [
+          entry(
+            MedicalStageId.m2,
+            MedicalStageStatus.scheduled,
+            appointmentAt: DateTime(2026, 10, 25, 8),
+          ),
+        ],
+      ),
+    );
+    expect(find.text('Rendez-vous'), findsNothing);
+    await tester.tap(find.text('Examen et vaccins des 2 mois'));
+    await tester.pumpAndSettle();
+    expect(find.text('Rendez-vous'), findsWidgets);
+  });
 }
