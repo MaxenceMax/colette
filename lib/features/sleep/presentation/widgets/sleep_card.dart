@@ -34,7 +34,7 @@ class SleepCard extends ConsumerWidget {
     final summary = ref.watch(sleepSummaryProvider);
     if (summary == null) return const SizedBox.shrink();
     return Padding(
-      padding: AppSpacing.md.top,
+      padding: AppSpacing.md.bottom,
       child: ColetteCardSurface(
         onTap: () => context.push(AppRoutes.sleep),
         child: Column(

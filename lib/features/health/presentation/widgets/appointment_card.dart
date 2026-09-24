@@ -43,25 +43,22 @@ class AppointmentCard extends ConsumerWidget {
     } else {
       state = const _None();
     }
-    return Padding(
-      padding: AppSpacing.md.top,
-      child: ColetteCardSurface(
-        backgroundColor: state.background,
-        borderColor: state.border,
-        onTap: () => context.go(AppRoutes.health),
-        child: Row(
-          spacing: AppSpacing.sm.value,
-          children: [
-            Icon(state.icon, color: context.appColor(state.accent)),
-            Expanded(child: _Body(state: state)),
-            Icon(
-              Icons.chevron_right,
-              color: context.appColor(
-                state.isImminent ? AppColors.primary : AppColors.textSecondary,
-              ),
+    return ColetteCardSurface(
+      backgroundColor: state.background,
+      borderColor: state.border,
+      onTap: () => context.go(AppRoutes.health),
+      child: Row(
+        spacing: AppSpacing.sm.value,
+        children: [
+          Icon(state.icon, color: context.appColor(state.accent)),
+          Expanded(child: _Body(state: state)),
+          Icon(
+            Icons.chevron_right,
+            color: context.appColor(
+              state.isImminent ? AppColors.primary : AppColors.textSecondary,
             ),
-          ],
-        ),
+          ),
+        ],
       ),
     );
   }
