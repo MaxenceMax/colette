@@ -125,4 +125,24 @@ void main() {
     expect(find.text('Soin du nombril'), findsNothing);
     expect(find.text('Soin des yeux'), findsOneWidget);
   });
+
+  testWidgets(
+    'la puce nombril reste visible en édition si l\'événement l\'a cochée',
+    (tester) async {
+      final profile = BabyProfile(
+        name: 'Colette',
+        birthDate: DateTime(2026, 9, 1),
+        careSettings: const CareSettings(
+          umbilicalCare: CareFrequency(timesPerDay: 3, enabled: false),
+        ),
+      );
+      final initial = makeEvent(
+        id: 'e-existing',
+        startAt: now.subtract(const Duration(hours: 2)),
+        umbilicalCare: true,
+      );
+      await pumpSheet(tester, profile: profile, initial: initial);
+      expect(find.text('Soin du nombril'), findsOneWidget);
+    },
+  );
 }

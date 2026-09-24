@@ -61,9 +61,9 @@ void main() {
     // sur « Couches ») : depuis que la section Calendrier a grandi la liste,
     // un défilement scindé en deux s'arrête parfois sur le bouton « Choisir
     // un calendrier » plus bas, qui absorbe alors le glissement suivant.
-    // Après la section Couches, pas de 100 : les hauteurs estimées des sections
-    // non construites changent en défilant, et un pas de 300 saute par-dessus
-    // la section Calendrier depuis que la section Soins attendus a grandi.
+    // Après la section Couches, pas de 100 : `scrollUntilVisible` défile par
+    // `drag`, qui déclenche un fling ; avec un pas de 300 ce fling dépasse la
+    // section Calendrier avant que le finder ne s'exécute entre deux défilements.
     final scrollable = find.byType(Scrollable).first;
     await tester.scrollUntilVisible(
       find.text('Stock non renseigné'),
