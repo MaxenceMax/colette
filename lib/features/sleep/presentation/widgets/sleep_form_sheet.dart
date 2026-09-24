@@ -135,7 +135,9 @@ class _SleepFormSheetState extends ConsumerState<SleepFormSheet> {
     final saved = await ref
         .read(sleepFormControllerProvider.notifier)
         .save(draft);
-    if (saved != null && mounted) await Navigator.of(context).maybePop(true);
+    // `pop` et non `maybePop` : le PopScope rend encore `canPop: false` tant
+    // que le widget n'a pas été reconstruit après la fin de l'écriture.
+    if (saved != null && mounted) Navigator.of(context).pop(true);
   }
 
   Future<void> _delete() async {
@@ -161,7 +163,7 @@ class _SleepFormSheetState extends ConsumerState<SleepFormSheet> {
     final deleted = await ref
         .read(sleepFormControllerProvider.notifier)
         .delete(widget.initial!.id);
-    if (deleted && mounted) await Navigator.of(context).maybePop(true);
+    if (deleted && mounted) Navigator.of(context).pop(true);
   }
 
   @override

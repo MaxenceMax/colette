@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:colette/core/clock/app_clock.dart';
 import 'package:colette/core/clock/now_providers.dart';
 import 'package:colette/core/ids/id_generator.dart';
@@ -86,6 +88,21 @@ void main() {
     expect(find.text('Nouveau sommeil'), findsNothing);
   });
 
+  testWidgets('écriture longue : le formulaire se ferme une fois enregistré', (
+    tester,
+  ) async {
+    final repo = FakeSleepRepository()..writeGate = Completer<void>();
+    await open(tester, repo);
+    await tester.tap(find.text('Enregistrer'));
+    // Une frame avec l'écriture en cours : le bouton est désactivé.
+    await tester.pump();
+    expect(find.text('Nouveau sommeil'), findsOneWidget);
+    repo.writeGate!.complete();
+    await tester.pumpAndSettle();
+    expect(repo.saved, hasLength(1));
+    expect(find.text('Nouveau sommeil'), findsNothing);
+  });
+
   testWidgets(
     'les heures de nuit du profil pré-remplissent Nuit sur un nouveau sommeil',
     (tester) async {
@@ -151,15 +168,18 @@ void main() {
       startAt: DateTime(2026, 9, 23, 2),
       endAt: DateTime(2026, 9, 23, 5),
     );
-    final repo = FakeSleepRepository([existing]);
+    final repo = FakeSleepRepository([existing])..writeGate = Completer<void>();
     await open(tester, repo, initial: existing);
     expect(find.text('Modifier le sommeil'), findsOneWidget);
     expect(kindButton(tester).selected, {SleepKind.night});
     await tester.tap(find.text('Supprimer'));
     await tester.pumpAndSettle();
     await tester.tap(find.text('Supprimer').last);
+    await tester.pump();
+    repo.writeGate!.complete();
     await tester.pumpAndSettle();
     expect(repo.deleted, ['x']);
+    expect(find.text('Modifier le sommeil'), findsNothing);
   });
 
   testWidgets('sommeil en cours : fin affichée « En cours »', (tester) async {
