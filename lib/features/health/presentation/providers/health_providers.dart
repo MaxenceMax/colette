@@ -71,7 +71,8 @@ MedicalTimeline? medicalTimeline(Ref ref) {
 }
 
 /// Proximité du prochain RDV programmé ; `null` sans frise ou sans RDV.
-/// Suit [todayProvider] : ne change qu'au changement de jour.
+/// Suit [todayProvider] et le prochain RDV : change au changement de jour ou
+/// de RDV.
 @riverpod
 AppointmentProximity? nextAppointmentProximity(Ref ref) {
   final at = ref.watch(medicalTimelineProvider)?.nextAppointment?.appointmentAt;

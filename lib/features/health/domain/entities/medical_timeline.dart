@@ -9,6 +9,8 @@ part 'medical_timeline.freezed.dart';
 /// Une étape datée pour ce bébé, avec son statut et sa visite éventuelle.
 @freezed
 abstract class MedicalTimelineEntry with _$MedicalTimelineEntry {
+  const MedicalTimelineEntry._();
+
   const factory MedicalTimelineEntry({
     required MedicalStage stage,
     required DateTime dueFrom,
@@ -16,6 +18,10 @@ abstract class MedicalTimelineEntry with _$MedicalTimelineEntry {
     required MedicalStageStatus status,
     MedicalVisit? visit,
   }) = _MedicalTimelineEntry;
+
+  /// Dernier jour de la fenêtre ([dueUntil] est exclu).
+  DateTime get lastDueDay =>
+      DateTime(dueUntil.year, dueUntil.month, dueUntil.day - 1);
 }
 
 /// Élément de la frise : étape du calendrier ou RDV libre.

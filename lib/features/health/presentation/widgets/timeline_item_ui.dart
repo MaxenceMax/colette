@@ -5,6 +5,7 @@ import 'package:colette/features/health/domain/entities/appointment_proximity.da
 import 'package:colette/features/health/domain/entities/medical_timeline.dart';
 import 'package:colette/features/health/presentation/labels/health_labels.dart';
 import 'package:colette/features/health/presentation/widgets/custom_appointment_sheet.dart';
+import 'package:colette/features/health/presentation/widgets/custom_appointment_tile.dart';
 import 'package:colette/features/health/presentation/widgets/medical_stage_sheet.dart';
 import 'package:colette/features/health/presentation/widgets/medical_stage_tile.dart';
 import 'package:colette/l10n/generated/app_localizations.dart';
@@ -43,6 +44,25 @@ Future<void> showTimelineItemSheet(
     initial: appointment,
   ),
 };
+
+/// Tuile d'un élément de la frise ; tap : feuille d'étape ou de RDV libre.
+class TimelineItemTile extends StatelessWidget {
+  const TimelineItemTile({super.key, required this.item});
+
+  final MedicalTimelineItem item;
+
+  @override
+  Widget build(BuildContext context) => switch (item) {
+    StageItem(:final entry) => MedicalStageTile(
+      entry: entry,
+      onTap: () => showTimelineItemSheet(context, item),
+    ),
+    final AppointmentItem appointment => CustomAppointmentTile(
+      item: appointment,
+      onTap: () => showTimelineItemSheet(context, item),
+    ),
+  };
+}
 
 /// Pastilles d'un élément : Examen / Vaccins / Certificat pour une étape,
 /// RDV libre / Vaccins pour un RDV libre.

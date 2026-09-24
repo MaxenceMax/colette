@@ -60,16 +60,11 @@ class CompactStageRow extends StatelessWidget {
     final styles = Theme.of(context).coletteTextStyles;
     final secondary = context.appColor(AppColors.textSecondary);
     final late = entry.status == MedicalStageStatus.late;
-    final lastDay = DateTime(
-      entry.dueUntil.year,
-      entry.dueUntil.month,
-      entry.dueUntil.day - 1,
-    );
     final trailing = late
         ? s.healthLateShort
         : s.healthDueWindowShort(
             formatDayMonth(entry.dueFrom),
-            formatDayMonth(lastDay),
+            formatDayMonth(entry.lastDueDay),
           );
     return MergeSemantics(
       child: Semantics(

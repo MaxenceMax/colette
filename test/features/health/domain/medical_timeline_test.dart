@@ -65,6 +65,15 @@ void main() {
     });
   });
 
+  group('MedicalTimelineEntry', () {
+    test('lastDueDay : dernier jour de la fenêtre, dueUntil exclu', () {
+      expect(
+        entry(MedicalStageId.m2, MedicalStageStatus.due).lastDueDay,
+        DateTime(2026, 11, 30),
+      );
+    });
+  });
+
   group('MedicalTimeline', () {
     final timeline = MedicalTimeline(
       entries: [

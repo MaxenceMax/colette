@@ -13,8 +13,6 @@ import 'package:colette/features/health/presentation/providers/medical_visit_con
 import 'package:colette/features/health/presentation/providers/selected_calendar.dart';
 import 'package:colette/features/health/presentation/widgets/awaiting_confirmation_section.dart';
 import 'package:colette/features/health/presentation/widgets/custom_appointment_sheet.dart';
-import 'package:colette/features/health/presentation/widgets/custom_appointment_tile.dart';
-import 'package:colette/features/health/presentation/widgets/medical_stage_tile.dart';
 import 'package:colette/features/health/presentation/widgets/next_appointment_card.dart';
 import 'package:colette/features/health/presentation/widgets/scheduled_section.dart';
 import 'package:colette/features/health/presentation/widgets/timeline_item_ui.dart';
@@ -145,25 +143,6 @@ class _CalendarStatus extends ConsumerWidget {
   }
 }
 
-/// Tuile d'un élément de la frise ; tap : feuille d'étape ou de RDV libre.
-class _ItemTile extends StatelessWidget {
-  const _ItemTile({required this.item});
-
-  final MedicalTimelineItem item;
-
-  @override
-  Widget build(BuildContext context) => switch (item) {
-    StageItem(:final entry) => MedicalStageTile(
-      entry: entry,
-      onTap: () => showTimelineItemSheet(context, item),
-    ),
-    final AppointmentItem appointment => CustomAppointmentTile(
-      item: appointment,
-      onTap: () => showTimelineItemSheet(context, item),
-    ),
-  };
-}
-
 /// Section repliée par défaut : « À venir (n) », « Faites (n) ».
 class _CollapsedSection extends StatelessWidget {
   const _CollapsedSection({required this.title, required this.items});
@@ -183,7 +162,7 @@ class _CollapsedSection extends StatelessWidget {
         ),
         shape: const Border(),
         collapsedShape: const Border(),
-        children: [for (final item in items) _ItemTile(item: item)],
+        children: [for (final item in items) TimelineItemTile(item: item)],
       ),
     ),
   );

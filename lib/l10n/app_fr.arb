@@ -490,7 +490,6 @@
   "@healthLateSince": { "placeholders": { "date": { "type": "String" } } },
   "healthDoneOn": "Faite le {date}",
   "@healthDoneOn": { "placeholders": { "date": { "type": "String" } } },
-  "healthSectionLate": "En retard",
   "healthSectionDone": "Faites ({count})",
   "@healthSectionDone": { "placeholders": { "count": { "type": "int" } } },
   "healthChipExam": "Examen",
