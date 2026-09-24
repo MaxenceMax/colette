@@ -65,14 +65,6 @@ Stream<List<CareEvent>> weekEvents(Ref ref) {
       );
 }
 
-/// Dernier bain enregistré, toutes dates confondues.
-@Riverpod(retry: noRetry)
-Stream<CareEvent?> latestBath(Ref ref) {
-  final code = ref.watch(currentHouseholdCodeProvider);
-  if (code == null) return Stream.value(null);
-  return ref.watch(eventsRepositoryProvider).watchLatestBath(code);
-}
-
 /// Dernier biberon enregistré, toutes dates confondues.
 @Riverpod(retry: noRetry)
 Stream<CareEvent?> latestBottle(Ref ref) {

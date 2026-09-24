@@ -194,49 +194,6 @@ final class WeekEventsProvider
 
 String _$weekEventsHash() => r'3809598357a51a7a179bc23e547eccd7f2c4786c';
 
-/// Dernier bain enregistré, toutes dates confondues.
-
-@ProviderFor(latestBath)
-final latestBathProvider = LatestBathProvider._();
-
-/// Dernier bain enregistré, toutes dates confondues.
-
-final class LatestBathProvider
-    extends
-        $FunctionalProvider<
-          AsyncValue<CareEvent?>,
-          CareEvent?,
-          Stream<CareEvent?>
-        >
-    with $FutureModifier<CareEvent?>, $StreamProvider<CareEvent?> {
-  /// Dernier bain enregistré, toutes dates confondues.
-  LatestBathProvider._()
-    : super(
-        from: null,
-        argument: null,
-        retry: noRetry,
-        name: r'latestBathProvider',
-        isAutoDispose: true,
-        dependencies: null,
-        $allTransitiveDependencies: null,
-      );
-
-  @override
-  String debugGetCreateSourceHash() => _$latestBathHash();
-
-  @$internal
-  @override
-  $StreamProviderElement<CareEvent?> $createElement($ProviderPointer pointer) =>
-      $StreamProviderElement(pointer);
-
-  @override
-  Stream<CareEvent?> create(Ref ref) {
-    return latestBath(ref);
-  }
-}
-
-String _$latestBathHash() => r'13d034d23273b5ca69f33c0d6a08c032697c07ca';
-
 /// Dernier biberon enregistré, toutes dates confondues.
 
 @ProviderFor(latestBottle)

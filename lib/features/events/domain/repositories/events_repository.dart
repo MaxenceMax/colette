@@ -23,8 +23,6 @@ abstract interface class EventsRepository {
     required DateTime to,
   });
 
-  Stream<CareEvent?> watchLatestBath(String householdCode);
-
   Stream<CareEvent?> watchLatestBottle(String householdCode);
 
   Future<Either<Failure, CareEvent?>> getLatestBottle(String householdCode);

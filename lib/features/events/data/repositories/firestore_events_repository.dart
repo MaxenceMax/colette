@@ -67,10 +67,6 @@ class FirestoreEventsRepository implements EventsRepository {
       guard(() async => _toList(await _between(householdCode, from, to).get()));
 
   @override
-  Stream<CareEvent?> watchLatestBath(String householdCode) =>
-      _latestWhere(householdCode, 'bath').snapshots().map(_firstOrNull);
-
-  @override
   Stream<CareEvent?> watchLatestBottle(String householdCode) =>
       _latestWhere(householdCode, 'hasBottle').snapshots().map(_firstOrNull);
 
