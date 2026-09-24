@@ -4,7 +4,6 @@ import 'package:colette/core/theme/design_tokens.dart';
 import 'package:colette/core/theme/text_styles.dart';
 import 'package:colette/core/ui/failure_message.dart';
 import 'package:colette/features/health/domain/entities/calendar_choice.dart';
-import 'package:colette/features/health/domain/entities/medical_stage_status.dart';
 import 'package:colette/features/health/domain/entities/medical_timeline.dart';
 import 'package:colette/features/health/presentation/providers/calendar_sync_issue.dart';
 import 'package:colette/features/health/presentation/providers/custom_appointment_controller.dart';
@@ -12,17 +11,21 @@ import 'package:colette/features/health/presentation/providers/health_providers.
 import 'package:colette/features/health/presentation/providers/health_sync.dart';
 import 'package:colette/features/health/presentation/providers/medical_visit_controller.dart';
 import 'package:colette/features/health/presentation/providers/selected_calendar.dart';
+import 'package:colette/features/health/presentation/widgets/awaiting_confirmation_section.dart';
 import 'package:colette/features/health/presentation/widgets/custom_appointment_sheet.dart';
 import 'package:colette/features/health/presentation/widgets/custom_appointment_tile.dart';
-import 'package:colette/features/health/presentation/widgets/medical_stage_sheet.dart';
 import 'package:colette/features/health/presentation/widgets/medical_stage_tile.dart';
+import 'package:colette/features/health/presentation/widgets/next_appointment_card.dart';
+import 'package:colette/features/health/presentation/widgets/scheduled_section.dart';
+import 'package:colette/features/health/presentation/widgets/timeline_item_ui.dart';
+import 'package:colette/features/health/presentation/widgets/to_schedule_section.dart';
 import 'package:colette/l10n/generated/app_localizations.dart';
 import 'package:colette/shared/ui/widgets/colette_card_surface.dart';
-import 'package:colette/shared/ui/widgets/section_header.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-/// Page Santé : étapes et RDV libres en retard, à faire, à venir et faits.
+/// Page Santé : prochain RDV en évidence, autres RDV programmés, RDV passés
+/// à confirmer, étapes à programmer, puis à venir et faites repliées.
 class HealthPage extends ConsumerStatefulWidget {
   const HealthPage({super.key});
 
@@ -56,19 +59,7 @@ class _HealthPageState extends ConsumerState<HealthPage> {
       (_, next) => showError(next),
     );
     final timeline = ref.watch(medicalTimelineProvider);
-    final items = timeline?.items ?? const <MedicalTimelineItem>[];
-    List<MedicalTimelineItem> where(Set<MedicalStageStatus> statuses) => [
-      for (final i in items)
-        if (statuses.contains(i.status)) i,
-    ];
-    final late = where({MedicalStageStatus.late});
-    final toDo = where({
-      MedicalStageStatus.appointmentPassed,
-      MedicalStageStatus.scheduled,
-      MedicalStageStatus.due,
-    });
-    final upcoming = where({MedicalStageStatus.upcoming});
-    final done = where({MedicalStageStatus.done});
+    final hasIssue = ref.watch(calendarSyncIssueProvider) != null;
     return Scaffold(
       appBar: AppBar(
         title: Text(s.healthTitle),
@@ -83,14 +74,24 @@ class _HealthPageState extends ConsumerState<HealthPage> {
       body: ListView(
         padding: AppSpacing.md.horizontal,
         children: [
-          const _CalendarStatus(),
-          if (late.isNotEmpty)
-            _Section(title: s.healthSectionLate, items: late),
-          if (toDo.isNotEmpty)
-            _Section(title: s.healthSectionToDo, items: toDo),
-          if (upcoming.isNotEmpty)
-            _Section(title: s.healthSectionUpcoming, items: upcoming),
-          if (done.isNotEmpty) _DoneSection(items: done),
+          if (hasIssue) const _CalendarStatus(),
+          const NextAppointmentCard(),
+          if (timeline != null) ...[
+            ScheduledSection(items: timeline.scheduled),
+            AwaitingConfirmationSection(items: timeline.awaitingConfirmation),
+            ToScheduleSection(items: timeline.toSchedule),
+            if (timeline.upcoming.isNotEmpty)
+              _CollapsedSection(
+                title: s.healthSectionUpcomingCount(timeline.upcoming.length),
+                items: timeline.upcoming,
+              ),
+            if (timeline.done.isNotEmpty)
+              _CollapsedSection(
+                title: s.healthSectionDone(timeline.done.length),
+                items: timeline.done,
+              ),
+          ],
+          if (!hasIssue) const _CalendarStatus(),
           AppSpacing.xl.verticalSpace,
         ],
       ),
@@ -98,8 +99,8 @@ class _HealthPageState extends ConsumerState<HealthPage> {
   }
 }
 
-/// Calendrier synchronisé sur cet iPhone, alerte de synchronisation, ou
-/// invitation à le régler.
+/// Alerte de synchronisation (en haut, `warning`) ou état du calendrier
+/// (en pied de page, discret).
 class _CalendarStatus extends ConsumerWidget {
   const _CalendarStatus();
 
@@ -154,40 +155,20 @@ class _ItemTile extends StatelessWidget {
   Widget build(BuildContext context) => switch (item) {
     StageItem(:final entry) => MedicalStageTile(
       entry: entry,
-      onTap: () => showMedicalStageSheet(context, entry),
+      onTap: () => showTimelineItemSheet(context, item),
     ),
-    AppointmentItem(:final appointment) && final it => CustomAppointmentTile(
-      item: it,
-      onTap: () => showCustomAppointmentSheet(context, initial: appointment),
+    final AppointmentItem appointment => CustomAppointmentTile(
+      item: appointment,
+      onTap: () => showTimelineItemSheet(context, item),
     ),
   };
 }
 
-class _Section extends StatelessWidget {
-  const _Section({required this.title, required this.items});
+/// Section repliée par défaut : « À venir (n) », « Faites (n) ».
+class _CollapsedSection extends StatelessWidget {
+  const _CollapsedSection({required this.title, required this.items});
 
   final String title;
-  final List<MedicalTimelineItem> items;
-
-  @override
-  Widget build(BuildContext context) => Column(
-    crossAxisAlignment: .stretch,
-    children: [
-      SectionHeader(title: title),
-      ColetteCardSurface(
-        padding: AppSpacing.xs.all,
-        child: Column(
-          children: [for (final item in items) _ItemTile(item: item)],
-        ),
-      ),
-    ],
-  );
-}
-
-/// Étapes faites, repliées par défaut.
-class _DoneSection extends StatelessWidget {
-  const _DoneSection({required this.items});
-
   final List<MedicalTimelineItem> items;
 
   @override
@@ -197,7 +178,7 @@ class _DoneSection extends StatelessWidget {
       padding: AppSpacing.xs.all,
       child: ExpansionTile(
         title: Text(
-          S.of(context).healthSectionDone(items.length),
+          title,
           style: Theme.of(context).coletteTextStyles.bodyMedium,
         ),
         shape: const Border(),
