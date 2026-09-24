@@ -31,6 +31,7 @@ String failureMessage(Object failure, S s) => switch (failure) {
     ValidationReason.medicalTitleRequired => s.errorMedicalTitleRequired,
     ValidationReason.medicalVaccineNameRequired =>
       s.errorMedicalVaccineNameRequired,
+    ValidationReason.invalidDocumentName => s.errorInvalidDocumentName,
   },
   SleepOverlapFailure(:final startAt, :final endAt) => switch (endAt) {
     null => s.errorSleepOverlapOngoing(formatHourMinute(startAt)),
@@ -43,6 +44,7 @@ String failureMessage(Object failure, S s) => switch (failure) {
     DocumentsReason.noFolder ||
     DocumentsReason.accessDenied => s.documentsErrorAccess,
     DocumentsReason.io => s.documentsErrorIo,
+    DocumentsReason.nameTaken => s.documentsErrorNameTaken,
     // Jamais affiché : l'UI ignore cancelled.
     DocumentsReason.cancelled => s.errorUnknown,
   },

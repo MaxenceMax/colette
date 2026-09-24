@@ -1,11 +1,13 @@
 import 'package:colette/core/theme/app_colors.dart';
 import 'package:colette/core/theme/design_tokens.dart';
+import 'package:colette/features/documents/presentation/providers/documents_manage_controller.dart';
 import 'package:colette/features/documents/presentation/providers/documents_write_controller.dart';
+import 'package:colette/features/documents/presentation/widgets/document_name_dialog.dart';
 import 'package:colette/l10n/generated/app_localizations.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-/// Bouton « + » : scanner ou importer dans [folderPath].
+/// Bouton « + » : scanner, importer ou créer un dossier dans [folderPath].
 class DocumentsAddButton extends ConsumerWidget {
   const DocumentsAddButton({super.key, required this.folderPath});
 
@@ -35,6 +37,12 @@ class DocumentsAddButton extends ConsumerWidget {
                 onTap: () =>
                     Navigator.of(sheetContext).pop(_AddAction.importFile),
               ),
+              ListTile(
+                leading: const Icon(Icons.create_new_folder_outlined),
+                title: Text(s.documentsActionNewFolder),
+                onTap: () =>
+                    Navigator.of(sheetContext).pop(_AddAction.newFolder),
+              ),
             ],
           ),
         ),
@@ -45,6 +53,17 @@ class DocumentsAddButton extends ConsumerWidget {
         await controller.scan();
       case _AddAction.importFile:
         await controller.importFile();
+      case _AddAction.newFolder:
+        if (!context.mounted) return;
+        final name = await showDocumentNameDialog(
+          context,
+          title: s.documentsNewFolderTitle,
+          confirmLabel: s.actionCreate,
+        );
+        if (name == null) return;
+        await ref
+            .read(documentsManageControllerProvider(folderPath).notifier)
+            .createFolder(name);
       case null:
         break;
     }
@@ -52,10 +71,10 @@ class DocumentsAddButton extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    // Garde le contrôleur autoDispose vivant pendant l'await de l'action.
-    final writing = ref
-        .watch(documentsWriteControllerProvider(folderPath))
-        .isLoading;
+    // Garde les contrôleurs autoDispose vivants pendant l'await de l'action.
+    final writing =
+        ref.watch(documentsWriteControllerProvider(folderPath)).isLoading ||
+        ref.watch(documentsManageControllerProvider(folderPath)).isLoading;
     return FloatingActionButton(
       onPressed: writing ? null : () => _open(context, ref),
       child: writing
@@ -71,4 +90,4 @@ class DocumentsAddButton extends ConsumerWidget {
   }
 }
 
-enum _AddAction { scan, importFile }
+enum _AddAction { scan, importFile, newFolder }

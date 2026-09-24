@@ -324,7 +324,7 @@ Alternatives écartées :
 - **Correctif minimal** : délai porté à deux minutes, attente par lecture coordonnée (`NSFileCoordinator`), relistage à la fermeture de chaque aperçu. Pas de pourcentage, indicateurs de synchronisation toujours figés, verrou toujours tenu pendant l'attente.
 - **Relistage périodique** : relister toutes les trois secondes tant qu'un téléchargement demandé via `download` pour ce dossier n'est pas terminé (ou qu'une ligne est en téléchargement ; sans requête de métadonnées, un placeholder ne passe jamais par `downloading`, la condition sur les seuls téléchargements demandés est donc indispensable). Simple, mais un listage complet du dossier à chaque tour, pas de pourcentage, et pas de mise à jour quand l'autre parent ajoute un fichier. Reste le plan de repli si `NSMetadataQueryAccessibleUbiquitousExternalDocumentsScope` ne remonte rien sur le dossier partagé (point 22 de la liste de contrôle) : dans ce cas, `DocumentsFolderWatcher` relisterait sur minuterie tant qu'un fichier est `downloading`, sans changer le contrat du canal ni l'UI.
 
-Décisions d'interface prises avec Maxence : suppression par glissement vers la gauche avec confirmation, fichiers seulement (jamais un dossier partagé entier) ; bouton Fichiers menant au dossier affiché, pas toujours à la racine.
+Décisions d'interface prises avec Maxence : suppression par glissement vers la gauche avec confirmation, fichiers seulement (jamais un dossier partagé entier ; levé au lot 4 pour les sous-dossiers) ; bouton Fichiers menant au dossier affiché, pas toujours à la racine.
 
 Points ouverts après revue (2026-09-23). Le code est relu et testé côté Flutter, mais quelques comportements d'iOS ne se tranchent que sur iPhone réel, avec le dossier partagé :
 
@@ -333,3 +333,17 @@ Points ouverts après revue (2026-09-23). Le code est relu et testé côté Flut
 - **`/private/var` dans `shareddocuments://`** (point 24) : Fichiers doit accepter la forme du chemin donnée par le bookmark ; sinon, retirer le préfixe `/private` avant de construire l'URL.
 - **Accent dans le prédicat** (point 23) : le `BEGINSWITH` doit correspondre sur un chemin accentué ; en cas d'échec, comparer des chemins normalisés (NFC/NFD) en code plutôt que dans le prédicat.
 - **Attente sans délai quand iCloud ne signale jamais de téléchargement** (point 26) : la ligne reste en attente sans message tant qu'on ne quitte pas la page. Suite possible si c'est observé : réactiver le tap pendant l'attente (un second tap relance `download`), ou ajouter un délai d'expiration généreux côté Flutter, déclenché seulement tant qu'aucun `downloading` n'a été vu.
+
+## 12. Lot 4 : gestion des dossiers (2026-09-24)
+
+Demande de Maxence : gérer les dossiers depuis Colette. Périmètre retenu : créer, renommer, déplacer, supprimer (dossiers non vides compris).
+
+- **Créer** : entrée « Nouveau dossier » du menu « + », dans le dossier affiché. Nom déjà pris : suffixe « (2) » en fin de nom (pas d'extension découpée pour un dossier).
+- **Appui long** sur une ligne (fichier ou dossier) : feuille Renommer / Déplacer / Supprimer. Le glissement vers la gauche supprime aussi les dossiers ; la confirmation d'un dossier annonce la suppression de tout son contenu (corbeille iCloud quand iOS le permet). La racine choisie ne peut être ni supprimée, ni renommée, ni déplacée.
+- **Renommer** : dialogue prérempli ; pour un fichier, seule la base est éditable, l'extension est affichée en suffixe et conservée. Nom déjà pris : erreur `nameTaken` (« Un élément porte déjà ce nom »), jamais de suffixe silencieux ; un simple changement de casse est permis.
+- **Déplacer** : page plein écran `DocumentsMovePage` qui parcourt les sous-dossiers depuis la racine (jamais au-delà : le bookmark ne couvre qu'elle), avec retour d'un niveau, création de dossier sur place et bouton « Déplacer ici » inactif sur le dossier actuel, l'élément lui-même ou l'un de ses descendants (`canMoveInto`, vérifié aussi côté Swift). Nom pris dans la destination : suffixe « (2) ».
+- **Validation des noms** (`validateEntryName`) : sans espaces autour, non vide, sans `/`, sans point initial. Vérifiée à la saisie (bouton inactif, message sous le champ), dans le contrôleur et côté Swift.
+- **Canal** : `createFolder {path, name}`, `rename {path, name}`, `move {path, destination}` renvoient `{name}` (nom final) ; nouveau code d'erreur `nameTaken`. Déplacement et renommage passent par `NSFileCoordinator` (`.forMoving` / `.forReplacing`, `item(at:willMoveTo:)` / `didMoveTo`) ; un placeholder `.x.icloud` reste un placeholder à l'arrivée. Après succès, Swift reliste les flux du dossier source et, pour un déplacement, de la destination.
+- **Flutter** : `DocumentsManageController(folderPath)` remplace `DocumentsDeleteController` et porte les quatre opérations ; les erreurs sont affichées par la page au premier plan seulement (`showDocumentsManageError`), pour qu'une création échouée depuis la page de déplacement ne produise pas deux SnackBars.
+
+À vérifier sur iPhone réel : renommage et déplacement d'un fichier non téléchargé, suppression d'un dossier non vide (présence dans « Récemment supprimés »), propagation chez l'autre parent.

@@ -13,6 +13,7 @@ const _reasons = {
   'accessDenied': DocumentsReason.accessDenied,
   'cancelled': DocumentsReason.cancelled,
   'io': DocumentsReason.io,
+  'nameTaken': DocumentsReason.nameTaken,
 };
 
 /// Repository documents adossé au pont Swift : un [MethodChannel] pour les
@@ -103,6 +104,36 @@ class NativeDocumentsRepository implements DocumentsRepository {
   @override
   Future<Either<Failure, void>> delete(String path) =>
       _call(() => _channel.invokeMethod<void>('delete', {'path': path}));
+
+  @override
+  Future<Either<Failure, String>> createFolder({
+    required String folderPath,
+    required String name,
+  }) => _named('createFolder', {'path': folderPath, 'name': name});
+
+  @override
+  Future<Either<Failure, String>> rename({
+    required String path,
+    required String newName,
+  }) => _named('rename', {'path': path, 'name': newName});
+
+  @override
+  Future<Either<Failure, String>> move({
+    required String path,
+    required String destinationFolderPath,
+  }) => _named('move', {'path': path, 'destination': destinationFolderPath});
+
+  /// Appel dont Swift renvoie `{name}` : le nom final après collision.
+  Future<Either<Failure, String>> _named(
+    String method,
+    Map<String, String> arguments,
+  ) => _call(() async {
+    final map = await _channel.invokeMapMethod<String, Object?>(
+      method,
+      arguments,
+    );
+    return map!['name'] as String;
+  });
 
   @override
   Future<Either<Failure, void>> openInFiles(String path) =>

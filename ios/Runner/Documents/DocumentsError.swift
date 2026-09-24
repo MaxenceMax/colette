@@ -5,6 +5,7 @@ enum DocumentsError: Error {
   case noFolder
   case accessDenied
   case cancelled
+  case nameTaken
   case io(String)
 
   var code: String {
@@ -12,6 +13,7 @@ enum DocumentsError: Error {
     case .noFolder: return "noFolder"
     case .accessDenied: return "accessDenied"
     case .cancelled: return "cancelled"
+    case .nameTaken: return "nameTaken"
     case .io: return "io"
     }
   }

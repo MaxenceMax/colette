@@ -22,9 +22,30 @@ abstract interface class DocumentsRepository {
   /// Lance le téléchargement iCloud du fichier et rend la main aussitôt.
   Future<Either<Failure, void>> download(String path);
 
-  /// Supprime un fichier (jamais un dossier) ; passe par la corbeille iCloud
-  /// quand iOS le permet, sinon suppression directe.
+  /// Supprime un fichier ou un dossier avec son contenu ; passe par la
+  /// corbeille iCloud quand iOS le permet, sinon suppression directe.
   Future<Either<Failure, void>> delete(String path);
+
+  /// Crée un sous-dossier ; suffixe « (2) » si le nom est pris. Renvoie le
+  /// nom final.
+  Future<Either<Failure, String>> createFolder({
+    required String folderPath,
+    required String name,
+  });
+
+  /// Renomme sur place ; `DocumentsReason.nameTaken` si le nom est pris.
+  /// Renvoie le nom final.
+  Future<Either<Failure, String>> rename({
+    required String path,
+    required String newName,
+  });
+
+  /// Déplace dans un autre dossier de la racine ; suffixe « (2) » si le nom
+  /// y est pris. Renvoie le nom final.
+  Future<Either<Failure, String>> move({
+    required String path,
+    required String destinationFolderPath,
+  });
 
   /// Ouvre l'app Fichiers sur ce dossier.
   Future<Either<Failure, void>> openInFiles(String path);
