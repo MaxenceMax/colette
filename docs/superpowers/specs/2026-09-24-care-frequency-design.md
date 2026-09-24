@@ -156,7 +156,7 @@ Identique dans `CareSettingsDto.fromMap` (app) et `withDefaults` (Functions), po
    - Bain : `bathEveryDays: n` → tous les `n` jours (borné 1..30).
 3. Sinon → défaut du soin.
 
-Aucune migration : la première sauvegarde des réglages réécrit le document au nouveau format.
+Aucune migration : la première sauvegarde des réglages écrit les maps. L'écriture se fait en fusion (`merge: true`), donc les anciens champs plats restent dans le document ; ils sont ignorés dès que la map du soin existe.
 
 ### 5.3 Index
 
