@@ -158,6 +158,12 @@ Identique dans `CareSettingsDto.fromMap` (app) et `withDefaults` (Functions), po
 
 Aucune migration : la première sauvegarde des réglages écrit les maps. L'écriture se fait en fusion (`merge: true`), donc les anciens champs plats restent dans le document ; ils sont ignorés dès que la map du soin existe.
 
+### Déploiement
+
+- Déployer les Cloud Functions avant l'app : les anciennes fonctions liraient les champs plats figés et interrogeraient encore l'index du bain.
+- Mettre à jour les deux iPhones le même jour. Un ancien build lit et écrit les champs plats : il ne voit pas les réglages « tous les N jours » ni les suivis coupés, et ce qu'il écrit est ignoré par la nouvelle version (la map prime).
+- Au `firebase deploy --only firestore:indexes`, répondre non à la suppression de l'index `events (bath, startAt)` tant qu'un ancien build ou les anciennes fonctions tournent ; le supprimer ensuite.
+
 ### 5.3 Index
 
 L'index composite `events (bath ASC, startAt DESC)` de `firestore.indexes.json` n'a plus de consommateur (ni app, ni Functions) et est retiré.
