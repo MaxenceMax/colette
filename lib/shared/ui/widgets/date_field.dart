@@ -37,7 +37,9 @@ class DateField extends StatelessWidget {
                   ),
                 ),
               ),
-              Text(value, style: styles.bodyMedium),
+              Flexible(
+                child: Text(value, textAlign: .end, style: styles.bodyMedium),
+              ),
               AppSpacing.xs.horizontalSpace,
               Icon(
                 Icons.chevron_right,
