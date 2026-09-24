@@ -59,7 +59,7 @@ Les cinq entiers `adrigylPerDay`, `eyeCarePerDay`, `noseCarePerDay`, `umbilicalC
 
 `feedsPerDay`, `nightStartHour`, `nightEndHour` et `dailyTargetMl` ne changent pas.
 
-Accès par type : `CareFrequency? frequencyOf(CareType type)` (`null` pour pipi, caca, change) et `CareSettings withFrequency(CareType type, CareFrequency frequency)`. `CareType` gagne `bool get isScheduled` (vrai pour les cinq soins ci-dessus) et la liste ordonnée `CareType.scheduled` = Adrigyl, yeux, nez, nombril, bain, qui fixe l'ordre de l'accueil, des réglages et du digest.
+Accès par type : `CareFrequency frequencyOf(CareType type)` (lève `ArgumentError` pour pipi, caca, change, qui ne sont jamais passés) et `CareSettings withFrequency(CareType type, CareFrequency frequency)`. `CareType` gagne `bool get isScheduled` (vrai pour les cinq soins ci-dessus) et la liste ordonnée `CareType.scheduled` = Adrigyl, yeux, nez, nombril, bain, qui fixe l'ordre de l'accueil, des réglages et du digest.
 
 ### 3.3 `ComputeDailyCareStatus`
 
