@@ -31,11 +31,10 @@ vi.mock('./lib/push', () => ({ sendToDevices }));
 
 type Filter = [field: string, op: string, value: unknown];
 
-/** Requête Firestore en mémoire : filtres sur `startAt` et `bath`, tri et limite. */
+/** Requête Firestore en mémoire : filtres sur `startAt`, tri et limite. */
 function fakeQuery(events: EventDoc[], filters: Filter[] = [], desc = false, max?: number) {
   const matches = (event: EventDoc) =>
     filters.every(([field, op, value]) => {
-      if (field === 'bath') return Boolean(event.bath) === value;
       if (field !== 'startAt') throw new Error(`filtre inattendu: ${field}`);
       const at = event.startAt.toMillis();
       const bound = (value as Timestamp).toMillis();
@@ -264,6 +263,43 @@ describe('morningDigest', () => {
     await handler();
 
     expect(sendToDevices.mock.calls[0][2].body).toContain('Adrigyl');
+  });
+
+  it("un bain d'hier (tous les 2 jours) n'est pas en attente", async () => {
+    households.push({
+      id: 'ABC123',
+      baby: { name: 'Colette' },
+      devices: [{ id: 'd1' }],
+      events: [{ startAt: at('2026-09-20T16:00:00Z'), bath: true }],
+    });
+
+    await handler();
+
+    expect(sendToDevices.mock.calls[0][2].body).toBe(
+      buildDigestBody(['Adrigyl', 'Soin des yeux', 'Soin du nez', 'Soin du nombril']),
+    );
+  });
+
+  it('un Adrigyl tous les 2 jours fait hier reste absent, fait il y a 8 jours est en attente', async () => {
+    const everyTwoDays = { timesPerDay: 1, everyDays: 2, enabled: true };
+    households.push({
+      id: 'ABC123',
+      baby: { name: 'Colette', careSettings: { adrigyl: everyTwoDays } },
+      devices: [{ id: 'd1' }],
+      events: [{ startAt: at('2026-09-20T05:00:00Z'), adrigyl: true }],
+    });
+    households.push({
+      id: 'DEF456',
+      baby: { name: 'Léon', careSettings: { adrigyl: everyTwoDays } },
+      devices: [{ id: 'd2' }],
+      events: [{ startAt: at('2026-09-13T05:00:00Z'), adrigyl: true }],
+    });
+
+    await handler();
+
+    expect(sendToDevices).toHaveBeenCalledTimes(2);
+    expect(sendToDevices.mock.calls[0][2].body).not.toContain('Adrigyl');
+    expect(sendToDevices.mock.calls[1][2].body).toContain('Adrigyl');
   });
 
   it('se rabat sur « bébé » quand le prénom manque', async () => {

@@ -22,6 +22,11 @@ export function startOfTomorrowInParis(date: Date): Date {
   return paris(date).startOf('day').plus({ days: 1 }).toJSDate();
 }
 
+/** Minuit à Paris, `daysAgo` jours avant le jour de `date` : borne basse de la fenêtre des soins. */
+export function startOfDayInParis(date: Date, daysAgo: number): Date {
+  return paris(date).startOf('day').minus({ days: daysAgo }).toJSDate();
+}
+
 /** Heure de Paris la plus proche : 7h59 et 8h29 donnent 8, 8h31 donne 9. */
 export function nearestHourInParis(date: Date): number {
   return paris(date).plus({ minutes: 30 }).startOf('hour').hour;
