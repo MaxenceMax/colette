@@ -248,7 +248,7 @@ final class DailyCareTasksProvider
   }
 }
 
-String _$dailyCareTasksHash() => r'9e2da3e811d732fd2c2fcce224457909641c3c85';
+String _$dailyCareTasksHash() => r'ecc7bc88bf4e895842fe783f91f47723d2a313ed';
 
 @ProviderFor(dayCounters)
 final dayCountersProvider = DayCountersProvider._();

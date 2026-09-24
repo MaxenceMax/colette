@@ -74,7 +74,7 @@ void main() {
   });
 
   test(
-    'watchLatestBath et watchLatestBottle renvoient le dernier de chaque',
+    'watchLatestBottle et getLatestBottle renvoient le dernier biberon',
     () async {
       final repo = FirestoreEventsRepository(FakeFirebaseFirestore());
       await repo.save(
@@ -101,7 +101,6 @@ void main() {
           bottleMl: 120,
         ),
       );
-      expect((await repo.watchLatestBath(code).first)?.id, 'bath');
       expect((await repo.watchLatestBottle(code).first)?.id, 'b2');
       expect(
         (await repo.getLatestBottle(code)).getRight().toNullable()?.id,
@@ -109,11 +108,6 @@ void main() {
       );
     },
   );
-
-  test('watchLatestBath émet null sans bain', () async {
-    final repo = FirestoreEventsRepository(FakeFirebaseFirestore());
-    expect(await repo.watchLatestBath(code).first, isNull);
-  });
 
   test('save écrase un événement existant et delete le retire', () async {
     final repo = FirestoreEventsRepository(FakeFirebaseFirestore());

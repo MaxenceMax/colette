@@ -87,12 +87,11 @@ void main() {
     await tester.pump();
     await tester.pump();
 
-    // Tape + sur "Adrigyl par jour" (premier stepper de CareSettingsSection,
-    // troisième bouton + après les deux de SleepSettingsSection).
+    // Tape + sur la ligne Adrigyl (première ligne de CareSettingsSection, troisième bouton + après les deux de SleepSettingsSection).
     await tester.tap(plusButtons.at(2));
     await tester.pumpAndSettle();
 
     expect(savedProfiles.last.careSettings.nightStartHour, 21);
-    expect(savedProfiles.last.careSettings.adrigylPerDay, 2);
+    expect(savedProfiles.last.careSettings.adrigyl.timesPerDay, 2);
   });
 }

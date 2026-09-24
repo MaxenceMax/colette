@@ -78,8 +78,7 @@ List<CareTask> dailyCareTasks(Ref ref) {
   if (profile == null) return const [];
   return const ComputeDailyCareStatus()(
     settings: profile.careSettings,
-    todayEvents: ref.watch(todayEventsProvider).value ?? const [],
-    lastBath: ref.watch(latestBathProvider).value,
+    events: ref.watch(weekEventsProvider).value ?? const [],
     now: ref.watch(currentMinuteProvider),
   );
 }

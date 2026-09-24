@@ -147,48 +147,52 @@ final class RecentEventsProvider
 
 String _$recentEventsHash() => r'5bdafd61775f31d407098848cfbe93fb1810e9fc';
 
-/// Dernier bain enregistré, toutes dates confondues.
+/// Événements des 7 derniers jours civils, aujourd'hui inclus : suffisant pour savoir
+/// si un soin espacé d'au plus [CareFrequency.maxEveryDays] jours est dû.
 
-@ProviderFor(latestBath)
-final latestBathProvider = LatestBathProvider._();
+@ProviderFor(weekEvents)
+final weekEventsProvider = WeekEventsProvider._();
 
-/// Dernier bain enregistré, toutes dates confondues.
+/// Événements des 7 derniers jours civils, aujourd'hui inclus : suffisant pour savoir
+/// si un soin espacé d'au plus [CareFrequency.maxEveryDays] jours est dû.
 
-final class LatestBathProvider
+final class WeekEventsProvider
     extends
         $FunctionalProvider<
-          AsyncValue<CareEvent?>,
-          CareEvent?,
-          Stream<CareEvent?>
+          AsyncValue<List<CareEvent>>,
+          List<CareEvent>,
+          Stream<List<CareEvent>>
         >
-    with $FutureModifier<CareEvent?>, $StreamProvider<CareEvent?> {
-  /// Dernier bain enregistré, toutes dates confondues.
-  LatestBathProvider._()
+    with $FutureModifier<List<CareEvent>>, $StreamProvider<List<CareEvent>> {
+  /// Événements des 7 derniers jours civils, aujourd'hui inclus : suffisant pour savoir
+  /// si un soin espacé d'au plus [CareFrequency.maxEveryDays] jours est dû.
+  WeekEventsProvider._()
     : super(
         from: null,
         argument: null,
         retry: noRetry,
-        name: r'latestBathProvider',
+        name: r'weekEventsProvider',
         isAutoDispose: true,
         dependencies: null,
         $allTransitiveDependencies: null,
       );
 
   @override
-  String debugGetCreateSourceHash() => _$latestBathHash();
+  String debugGetCreateSourceHash() => _$weekEventsHash();
 
   @$internal
   @override
-  $StreamProviderElement<CareEvent?> $createElement($ProviderPointer pointer) =>
-      $StreamProviderElement(pointer);
+  $StreamProviderElement<List<CareEvent>> $createElement(
+    $ProviderPointer pointer,
+  ) => $StreamProviderElement(pointer);
 
   @override
-  Stream<CareEvent?> create(Ref ref) {
-    return latestBath(ref);
+  Stream<List<CareEvent>> create(Ref ref) {
+    return weekEvents(ref);
   }
 }
 
-String _$latestBathHash() => r'13d034d23273b5ca69f33c0d6a08c032697c07ca';
+String _$weekEventsHash() => r'3809598357a51a7a179bc23e547eccd7f2c4786c';
 
 /// Dernier biberon enregistré, toutes dates confondues.
 

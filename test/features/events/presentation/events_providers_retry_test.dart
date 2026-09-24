@@ -55,8 +55,6 @@ void main() {
         to: any(named: 'to'),
       ),
     ).thenAnswer((_) => Stream<List<CareEvent>>.error(_failure));
-    when(() => repo.watchLatestBath(any()))
-        .thenAnswer((_) => Stream<CareEvent?>.error(_failure));
     when(() => repo.watchLatestBottle(any()))
         .thenAnswer((_) => Stream<CareEvent?>.error(_failure));
     when(
@@ -78,9 +76,9 @@ void main() {
     expect(state.retrying, isFalse);
   });
 
-  test('latestBath remonte la failure en AsyncError sans relance', () async {
-    final state = await failedState(containerWith(repo), latestBathProvider);
-    expect(state, isA<AsyncError<CareEvent?>>());
+  test('weekEvents remonte la failure en AsyncError sans relance', () async {
+    final state = await failedState(containerWith(repo), weekEventsProvider);
+    expect(state, isA<AsyncError<List<CareEvent>>>());
     expect(state.retrying, isFalse);
   });
 

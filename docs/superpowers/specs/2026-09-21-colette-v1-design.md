@@ -162,12 +162,12 @@ households/{code}
     name: string
     birthDate: Timestamp
     cordFallenAt: Timestamp | null
-    careSettings:
-      adrigylPerDay: 1
-      eyeCarePerDay: 1
-      noseCarePerDay: 1
-      umbilicalCarePerDay: 3          passe à 0 quand cordFallenAt est renseigné, revient à 3 quand elle est effacée
-      bathEveryDays: 2
+    careSettings:                     une map par soin, voir 2026-09-24-care-frequency-design.md
+      adrigyl:       { timesPerDay: 1, everyDays: 1, enabled: true }
+      eyeCare:       { timesPerDay: 1, everyDays: 1, enabled: true }
+      noseCare:      { timesPerDay: 1, everyDays: 1, enabled: true }
+      umbilicalCare: { timesPerDay: 3, everyDays: 1, enabled: true }   enabled passe à false quand cordFallenAt est renseigné, à true quand elle est effacée
+      bath:          { timesPerDay: 1, everyDays: 2, enabled: true }
       feedsPerDay: 8
   feedingPlan:                        écrit par le client à chaque sauvegarde d'événement biberon
     nextBottleAt: Timestamp           heure centrale du prochain biberon
@@ -268,19 +268,19 @@ Contenu, de haut en bas :
 4. Section « Reste à faire » : une `CareTaskRow` par soin attendu non fait. Tap : crée immédiatement un événement pré-rempli (heure = maintenant, soin coché) puis affiche une snackbar « Enregistré » avec « Annuler ». Les soins faits passent en bas, grisés, avec l'heure.
 5. Compteurs du jour : couches, pipis, cacas.
 
-Soins attendus (depuis `careSettings`) :
+Soins attendus (depuis `careSettings`, règle commune aux cinq soins, voir `2026-09-24-care-frequency-design.md`) :
 
-| Soin | Règle |
+| Cas | Accueil |
 | --- | --- |
-| Adrigyl | `adrigylPerDay` fois par jour civil |
-| Soin des yeux | `eyeCarePerDay` fois par jour civil |
-| Soin du nez | `noseCarePerDay` fois par jour civil |
-| Soin du nombril | `umbilicalCarePerDay` fois par jour civil ; jamais attendu si 0 |
-| Bain | attendu si aucun bain n'est enregistré, ou si le jour civil du dernier bain est antérieur ou égal à aujourd'hui − `bathEveryDays` (bain lundi, `bathEveryDays` = 2 : attendu mercredi) |
+| Suivi coupé (`enabled: false`) | Jamais listé, même fait aujourd'hui. |
+| `timesPerDay` par jour (`everyDays` = 1) | Toujours listé, cible `timesPerDay`. |
+| Tous les `everyDays` jours, dernier fait il y a moins de `everyDays` jours civils | Absent (bain lundi, tous les 2 jours : attendu mercredi). |
+| Tous les `everyDays` jours, dû ou jamais fait | Listé, à faire. |
+| Fait aujourd'hui, quelle que soit la fréquence | Listé, grisé « fait ». |
 
 Le jour civil va de 00:00 à 23:59 heure locale de l'appareil.
 
-Use case `ComputeDailyCareStatus(events du jour, dernier bain, careSettings, now) → List<CareTask>`. Pur, testé.
+Use case `ComputeDailyCareStatus(événements des 7 derniers jours, careSettings, now) → List<CareTask>`. Pur, testé.
 
 ### 6.3 Plan biberons (use case `ComputeFeedingPlan`)
 
@@ -329,7 +329,7 @@ Actions : tap sur une ligne → formulaire en édition ; glisser vers la gauche 
 Présenté en bottom sheet modale (`showModalBottomSheet`, hauteur au contenu, `isScrollControlled`, insets clavier gérés). Champs :
 
 - Heure de début et heure de fin : préremplies à `now` à l'ouverture, modifiables par `CupertinoDatePicker` (date + heure). Validation : fin ≥ début, début ≤ maintenant + 5 min.
-- Puces `CareChip` : pipi, caca, changement de couche, Adrigyl, bain, soin des yeux, soin du nez, soin du nombril (masquée si `umbilicalCarePerDay` vaut 0).
+- Puces `CareChip` : pipi, caca, changement de couche, Adrigyl, bain, soin des yeux, soin du nez, soin du nombril (masquée si le suivi du nombril est coupé).
 - Biberon : interrupteur « Biberon » qui révèle un stepper ml (pas de 10, bornes 10 – 300) et des raccourcis 60 / 90 / 120 / 150 / 180 / 210. Prérempli avec `suggestedMl` quand ouvert depuis la carte biberon.
 - Note libre, une ligne extensible.
 - Bouton « Enregistrer ». Désactivé tant qu'aucune puce n'est cochée et qu'aucun biberon n'est renseigné.
@@ -340,9 +340,9 @@ Use case `ValidateCareEvent` pur, testé : refuse un événement vide, une fin a
 
 Sections :
 
-- Bébé : prénom, date de naissance, date de chute du cordon (renseigner cette date désactive le soin du nombril).
+- Bébé : prénom, date de naissance, date de chute du cordon (renseigner cette date coupe le suivi du nombril, l'effacer le rallume).
 - Mesures : liste des mesures de croissance (date + poids, taille, périmètre crânien facultatifs), ajout, modification, suppression. La plus récente qui contient un poids sert au calcul. Détail dans `2026-09-23-growth-measurements-design.md`.
-- Soins attendus : Adrigyl / jour, yeux / jour, nez / jour, bain tous les N jours, nombril / jour, prises de biberon / jour.
+- Soins attendus : une ligne par soin (Adrigyl, yeux, nez, nombril, bain) avec un interrupteur « suivi » et une fréquence réglable de « N fois par jour » à « tous les 7 jours » ; prises de biberon / jour.
 - Couches : stock restant, « Recompter », « + paquet », seuil d'alerte (0 à 30, 0 = désactivé).
 - Notifications de cet appareil : événements ajoutés par l'autre, rappel biberon, digest du matin avec son heure. Demande de permission iOS au premier passage à « activé ».
 - Foyer : code affiché en grand avec bouton copier, nom de l'appareil, bouton « Quitter ce foyer » (avec confirmation : supprime `devices/{deviceId}` du foyer, avec un délai maximal de 5 s, puis efface le code local ; le foyer est quitté même si la suppression échoue, l'écriture restant en file Firestore).
@@ -355,7 +355,7 @@ Dossier `functions/` TypeScript, Firebase Functions v2, région `europe-west1`, 
 | --- | --- | --- |
 | `onEventCreated` | Firestore `onDocumentCreated` sur `households/{code}/events/{id}` | Envoie un push à chaque appareil du foyer dont `deviceId ≠ createdByDeviceId` et `notifyOnOthersEvents` est vrai ; sans `createdByDeviceId`, personne n'est notifié. Titre : « {label appareil} a ajouté un événement ». Corps : résumé (ex. « Biberon 120 ml · Couche · Adrigyl à 14h32 »). |
 | `bottleReminder` | `onSchedule('every 5 minutes')` | Pour chaque foyer dont `feedingPlan` porte une fourchette : rappel dû si `windowStartAt ≤ now ≤ windowEndAt`, `lastBottleNotifiedFor ≠ nextBottleAt` et `computedAt < windowStartAt` (un plan calculé fourchette déjà ouverte, sans biberon enregistré ou avec un dernier biberon trop ancien, ne déclenche rien) : push « Biberon possible dès maintenant · Environ {suggestedMl} ml, d'ici {windowEnd} » aux appareils avec `notifyBottleReminder`. Sans fourchette (snapshot d'une version antérieure de l'app) : ancienne règle, `nextBottleAt − 10 min ≤ now ≤ nextBottleAt + 15 min` et `computedAt < nextBottleAt`, push « Biberon dans 10 min ». `lastBottleNotifiedFor` n'est écrit que si au moins un push est parti ou si aucun appareil n'est abonné ; sinon le tick suivant réessaie, dans la limite de la fenêtre. Chaque foyer est traité dans son propre `try/catch`. |
-| `morningDigest` | `onSchedule('every 60 minutes')` | Pour chaque appareil dont `morningDigestHour` correspond à l'heure Europe/Paris la plus proche de l'exécution, `notifyMorningDigest` est vrai et `lastDigestSentOn` ≠ la date du jour (Paris) : calcule les soins attendus non faits ce jour, sur les événements de `[minuit, minuit + 1 j)` Paris (même règle que §6.2, réimplémentée en TypeScript avec ses tests) et envoie « Aujourd'hui pour {prénom} : Adrigyl, soin des yeux, bain », puis écrit `lastDigestSentOn`. Rien n'est envoyé s'il n'y a ni soin en attente ni RDV santé à prendre (lignes « RDV à prendre » / « En retard » lues dans `medicalReminder`, voir `2026-09-23-health-follow-up-design.md`), ou si le foyer n'a pas de profil bébé. Chaque foyer est traité dans son propre `try/catch`. |
+| `morningDigest` | `onSchedule('every 60 minutes')` | Pour chaque appareil dont `morningDigestHour` correspond à l'heure Europe/Paris la plus proche de l'exécution, `notifyMorningDigest` est vrai et `lastDigestSentOn` ≠ la date du jour (Paris) : calcule les soins attendus non faits ce jour, sur les événements des 7 derniers jours civils Paris `[minuit − 6 j, minuit + 1 j)` (même règle que §6.2, réimplémentée en TypeScript avec ses tests) et envoie « Aujourd'hui pour {prénom} : Adrigyl, soin des yeux, bain », puis écrit `lastDigestSentOn`. Rien n'est envoyé s'il n'y a ni soin en attente ni RDV santé à prendre (lignes « RDV à prendre » / « En retard » lues dans `medicalReminder`, voir `2026-09-23-health-follow-up-design.md`), ou si le foyer n'a pas de profil bébé. Chaque foyer est traité dans son propre `try/catch`. |
 
 Le tap sur une notification ouvre le dashboard (événement, digest) ou le formulaire biberon prérempli (rappel).
 
@@ -372,7 +372,7 @@ Volume attendu : quelques dizaines de pushs par jour, 8 640 exécutions du cron 
 
 ## 9. Tests
 
-- Domaine (TDD, cible 90 %) : `ComputeFeedingPlan` (montée progressive, 150 ml/kg, repli par âge, retard, bornes de suggestion), `ComputeDailyCareStatus` (fréquences, bain tous les N jours, nombril désactivé), `ValidateCareEvent`, génération du code foyer.
+- Domaine (TDD, cible 90 %) : `ComputeFeedingPlan` (montée progressive, 150 ml/kg, repli par âge, retard, bornes de suggestion), `ComputeDailyCareStatus` (fréquences N par jour et tous les N jours, suivi coupé), `ValidateCareEvent`, génération du code foyer.
 - Data : repositories avec `fake_cloud_firestore` (CRUD événements, pagination par limite, pesées, appareils).
 - Présentation : widgets dashboard, formulaire et timeline avec `ProviderScope(overrides: [...])` ; vérification des états vide, chargement, erreur.
 - Functions : tests unitaires de la logique du digest et du résumé d'événement avec Vitest.

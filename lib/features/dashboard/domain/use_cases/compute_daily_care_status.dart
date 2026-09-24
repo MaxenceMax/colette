@@ -1,4 +1,5 @@
 import 'package:colette/core/dates/date_extensions.dart';
+import 'package:colette/features/baby/domain/entities/care_frequency.dart';
 import 'package:colette/features/baby/domain/entities/care_settings.dart';
 import 'package:colette/features/dashboard/domain/entities/care_task.dart';
 import 'package:colette/features/events/domain/entities/care_event.dart';
@@ -8,51 +9,36 @@ import 'package:colette/shared/domain/care_type.dart';
 class ComputeDailyCareStatus {
   const ComputeDailyCareStatus();
 
+  /// [events] : les 7 derniers jours civils, aujourd'hui inclus
+  /// (fenêtre de [CareFrequency.maxEveryDays] jours).
   List<CareTask> call({
     required CareSettings settings,
-    required List<CareEvent> todayEvents,
-    required CareEvent? lastBath,
+    required List<CareEvent> events,
     required DateTime now,
-  }) {
-    CareTask task(CareType type, int target) {
-      final matching = todayEvents.where((e) => e.has(type)).toList()
-        ..sort((a, b) => a.startAt.compareTo(b.startAt));
-      return CareTask(
-        type: type,
-        target: target,
-        done: matching.length,
-        lastDoneAt: matching.isEmpty ? null : matching.last.startAt,
-      );
-    }
+  }) => [
+    for (final type in CareType.scheduled)
+      ?_task(type, settings.frequencyOf(type), events, now),
+  ];
 
-    final bathToday = todayEvents.any((e) => e.bath);
-    final bathExpected = isBathExpected(
-      lastBath: lastBath,
-      bathEveryDays: settings.bathEveryDays,
-      now: now,
+  /// Tâche présente si le suivi est actif et que le soin est dû ou déjà fait aujourd'hui.
+  CareTask? _task(
+    CareType type,
+    CareFrequency frequency,
+    List<CareEvent> events,
+    DateTime now,
+  ) {
+    if (!frequency.enabled) return null;
+    final matching = events.where((e) => e.has(type)).toList()
+      ..sort((a, b) => a.startAt.compareTo(b.startAt));
+    final today = matching.where((e) => e.startAt.isSameDay(now)).toList();
+    final lastDoneAt = matching.isEmpty ? null : matching.last.startAt;
+    final expected = frequency.isExpected(lastDoneAt: lastDoneAt, now: now);
+    if (!expected && today.isEmpty) return null;
+    return CareTask(
+      type: type,
+      target: frequency.timesPerDay,
+      done: today.length,
+      lastDoneAt: today.isEmpty ? null : today.last.startAt,
     );
-
-    return [
-      if (settings.adrigylPerDay > 0)
-        task(CareType.adrigyl, settings.adrigylPerDay),
-      if (settings.eyeCarePerDay > 0)
-        task(CareType.eyeCare, settings.eyeCarePerDay),
-      if (settings.noseCarePerDay > 0)
-        task(CareType.noseCare, settings.noseCarePerDay),
-      if (settings.umbilicalCarePerDay > 0)
-        task(CareType.umbilicalCare, settings.umbilicalCarePerDay),
-      if (bathExpected || bathToday) task(CareType.bath, 1),
-    ];
-  }
-
-  /// Bain attendu si aucun bain, ou si le dernier date d'au moins [bathEveryDays] jours civils.
-  static bool isBathExpected({
-    required CareEvent? lastBath,
-    required int bathEveryDays,
-    required DateTime now,
-  }) {
-    if (lastBath == null) return true;
-    final daysSince = calendarDaysBetween(lastBath.startAt, now);
-    return daysSince >= bathEveryDays;
   }
 }

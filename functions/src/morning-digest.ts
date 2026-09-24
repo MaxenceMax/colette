@@ -1,12 +1,13 @@
 import { Timestamp } from 'firebase-admin/firestore';
 import { logger } from 'firebase-functions';
 import { onSchedule } from 'firebase-functions/v2/scheduler';
+import { CARE_WINDOW_DAYS } from './lib/care-frequency';
 import { pendingCares } from './lib/care-status';
 import { db, loadDevices } from './lib/firestore';
 import { medicalLines } from './lib/medical-reminder';
 import {
   nearestHourInParis,
-  startOfTodayInParis,
+  startOfDayInParis,
   startOfTomorrowInParis,
   todayKeyInParis,
   ZONE,
@@ -49,17 +50,15 @@ export const morningDigest = onSchedule({ schedule: '0 * * * *', timeZone: ZONE,
       const baby = doc.get('baby') as BabyDoc | undefined;
       if (!baby) continue;
 
-      const events = doc.ref.collection('events');
-      const todaySnap = await events
-        .where('startAt', '>=', Timestamp.fromDate(startOfTodayInParis(now)))
+      const eventsSnap = await doc.ref
+        .collection('events')
+        .where('startAt', '>=', Timestamp.fromDate(startOfDayInParis(now, CARE_WINDOW_DAYS - 1)))
         .where('startAt', '<', Timestamp.fromDate(startOfTomorrowInParis(now)))
         .get();
-      const lastBathSnap = await events.where('bath', '==', true).orderBy('startAt', 'desc').limit(1).get();
 
       const pending = pendingCares({
         settings: withDefaults(baby.careSettings),
-        todayEvents: todaySnap.docs.map((d) => toCareEvent(d.data() as EventDoc)),
-        lastBathAt: lastBathSnap.empty ? null : (lastBathSnap.docs[0].data() as EventDoc).startAt.toDate(),
+        events: eventsSnap.docs.map((d) => toCareEvent(d.data() as EventDoc)),
         now,
       });
       let medical: string[] = [];

@@ -1,3 +1,4 @@
+import 'package:colette/features/baby/domain/entities/care_frequency.dart';
 import 'package:colette/features/baby/domain/entities/care_settings.dart';
 import 'package:colette/features/dashboard/domain/use_cases/compute_daily_care_status.dart';
 import 'package:colette/shared/domain/care_type.dart';
@@ -8,12 +9,12 @@ import '../../../helpers/care_event_factory.dart';
 void main() {
   const compute = ComputeDailyCareStatus();
   final now = DateTime(2026, 9, 21, 14);
+  const everyTwoDays = CareSettings(adrigyl: CareFrequency(everyDays: 2));
 
   test('réglages par défaut sans événement : 5 tâches, aucune faite', () {
     final tasks = compute(
       settings: const CareSettings(),
-      todayEvents: const [],
-      lastBath: null,
+      events: const [],
       now: now,
     );
     expect(tasks.map((t) => t.type), [
@@ -30,8 +31,7 @@ void main() {
     final event = makeEvent(startAt: DateTime(2026, 9, 21, 8), adrigyl: true);
     final tasks = compute(
       settings: const CareSettings(),
-      todayEvents: [event],
-      lastBath: null,
+      events: [event],
       now: now,
     );
     final adrigyl = tasks.firstWhere((t) => t.type == CareType.adrigyl);
@@ -39,12 +39,23 @@ void main() {
     expect(adrigyl.lastDoneAt, event.startAt);
   });
 
-  test('adrigylPerDay 2 avec une prise reste à faire', () {
+  test('un Adrigyl d\'hier ne compte pas pour aujourd\'hui (1/jour)', () {
+    final event = makeEvent(startAt: DateTime(2026, 9, 20, 8), adrigyl: true);
+    final tasks = compute(
+      settings: const CareSettings(),
+      events: [event],
+      now: now,
+    );
+    final adrigyl = tasks.firstWhere((t) => t.type == CareType.adrigyl);
+    expect(adrigyl.isDone, isFalse);
+    expect(adrigyl.lastDoneAt, isNull);
+  });
+
+  test('2/jour avec une prise reste à faire', () {
     final event = makeEvent(startAt: DateTime(2026, 9, 21, 8), adrigyl: true);
     final tasks = compute(
-      settings: const CareSettings(adrigylPerDay: 2),
-      todayEvents: [event],
-      lastBath: null,
+      settings: const CareSettings(adrigyl: CareFrequency(timesPerDay: 2)),
+      events: [event],
       now: now,
     );
     final adrigyl = tasks.firstWhere((t) => t.type == CareType.adrigyl);
@@ -53,20 +64,10 @@ void main() {
     expect(adrigyl.isDone, isFalse);
   });
 
-  test('nombril à 0 : pas de tâche nombril', () {
-    final tasks = compute(
-      settings: const CareSettings(umbilicalCarePerDay: 0),
-      todayEvents: const [],
-      lastBath: null,
-      now: now,
-    );
-    expect(tasks.any((t) => t.type == CareType.umbilicalCare), isFalse);
-  });
-
   test('nombril 3 par jour par défaut : deux soins faits, reste à faire', () {
     final tasks = compute(
       settings: const CareSettings(),
-      todayEvents: [
+      events: [
         makeEvent(
           id: 'u1',
           startAt: DateTime(2026, 9, 21, 8),
@@ -78,7 +79,6 @@ void main() {
           umbilicalCare: true,
         ),
       ],
-      lastBath: null,
       now: now,
     );
     final umbilical = tasks.firstWhere((t) => t.type == CareType.umbilicalCare);
@@ -88,52 +88,84 @@ void main() {
     expect(umbilical.lastDoneAt, DateTime(2026, 9, 21, 12));
   });
 
-  test('bain hier avec bathEveryDays 2 : pas attendu aujourd\'hui', () {
-    final bath = makeEvent(startAt: DateTime(2026, 9, 20, 18), bath: true);
+  test('soin désactivé : absent, même fait aujourd\'hui', () {
     final tasks = compute(
-      settings: const CareSettings(),
-      todayEvents: const [],
-      lastBath: bath,
+      settings: const CareSettings(
+        umbilicalCare: CareFrequency(timesPerDay: 3, enabled: false),
+      ),
+      events: [
+        makeEvent(startAt: DateTime(2026, 9, 21, 8), umbilicalCare: true),
+      ],
       now: now,
     );
-    expect(tasks.any((t) => t.type == CareType.bath), isFalse);
+    expect(tasks.any((t) => t.type == CareType.umbilicalCare), isFalse);
   });
 
-  test('bain avant-hier avec bathEveryDays 2 : attendu', () {
-    final bath = makeEvent(startAt: DateTime(2026, 9, 19, 18), bath: true);
+  test('tous les 2 jours, fait hier : absent', () {
     final tasks = compute(
-      settings: const CareSettings(),
-      todayEvents: const [],
-      lastBath: bath,
+      settings: everyTwoDays,
+      events: [makeEvent(startAt: DateTime(2026, 9, 20, 18), adrigyl: true)],
       now: now,
     );
-    expect(tasks.any((t) => t.type == CareType.bath && !t.isDone), isTrue);
+    expect(tasks.any((t) => t.type == CareType.adrigyl), isFalse);
   });
+
+  test('tous les 2 jours, fait avant-hier : listé, à faire', () {
+    final tasks = compute(
+      settings: everyTwoDays,
+      events: [makeEvent(startAt: DateTime(2026, 9, 19, 18), adrigyl: true)],
+      now: now,
+    );
+    final adrigyl = tasks.firstWhere((t) => t.type == CareType.adrigyl);
+    expect(adrigyl.isDone, isFalse);
+    expect(adrigyl.target, 1);
+  });
+
+  test('tous les 2 jours, jamais fait : listé, à faire', () {
+    final tasks = compute(settings: everyTwoDays, events: const [], now: now);
+    expect(tasks.any((t) => t.type == CareType.adrigyl && !t.isDone), isTrue);
+  });
+
+  test('tous les 2 jours, fait hier et aujourd\'hui : listé, fait', () {
+    final today = makeEvent(
+      id: 'a2',
+      startAt: DateTime(2026, 9, 21, 9),
+      adrigyl: true,
+    );
+    final tasks = compute(
+      settings: everyTwoDays,
+      events: [
+        makeEvent(id: 'a1', startAt: DateTime(2026, 9, 20, 9), adrigyl: true),
+        today,
+      ],
+      now: now,
+    );
+    final adrigyl = tasks.firstWhere((t) => t.type == CareType.adrigyl);
+    expect(adrigyl.isDone, isTrue);
+    expect(adrigyl.lastDoneAt, today.startAt);
+  });
+
+  test(
+    'bain hier (tous les 2 jours par défaut) : pas attendu aujourd\'hui',
+    () {
+      final tasks = compute(
+        settings: const CareSettings(),
+        events: [makeEvent(startAt: DateTime(2026, 9, 20, 18), bath: true)],
+        now: now,
+      );
+      expect(tasks.any((t) => t.type == CareType.bath), isFalse);
+    },
+  );
 
   test(
     'DST : bain de 2 jours civils reste attendu malgré le changement d\'heure',
     () {
-      // Passage à l'heure d'été le 29 mars 2026 entre le bain et maintenant.
-      final bath = makeEvent(startAt: DateTime(2026, 3, 28, 20), bath: true);
       final tasks = compute(
         settings: const CareSettings(),
-        todayEvents: const [],
-        lastBath: bath,
+        events: [makeEvent(startAt: DateTime(2026, 3, 28, 20), bath: true)],
         now: DateTime(2026, 3, 30, 8),
       );
       expect(tasks.any((t) => t.type == CareType.bath && !t.isDone), isTrue);
     },
   );
-
-  test('bain aujourd\'hui : listé et fait', () {
-    final bath = makeEvent(startAt: DateTime(2026, 9, 21, 9), bath: true);
-    final tasks = compute(
-      settings: const CareSettings(),
-      todayEvents: [bath],
-      lastBath: bath,
-      now: now,
-    );
-    final task = tasks.firstWhere((t) => t.type == CareType.bath);
-    expect(task.isDone, isTrue);
-  });
 }

@@ -27,18 +27,18 @@ class BabySettingsController extends _$BabySettingsController {
   Future<bool> updateCareSettings(BabyProfile profile, CareSettings settings) =>
       saveProfile(profile.copyWith(careSettings: settings));
 
-  /// Renseigner la date désactive le soin du nombril ; l'effacer le remet à la valeur par défaut.
-  Future<bool> setCordFallenAt(BabyProfile profile, DateTime? date) =>
-      saveProfile(
-        profile.copyWith(
-          cordFallenAt: date,
-          careSettings: profile.careSettings.copyWith(
-            umbilicalCarePerDay: date == null
-                ? const CareSettings().umbilicalCarePerDay
-                : 0,
-          ),
+  /// Renseigner la date coupe le suivi du nombril ; l'effacer le rallume. La fréquence est conservée.
+  Future<bool> setCordFallenAt(BabyProfile profile, DateTime? date) {
+    final umbilicalCare = profile.careSettings.umbilicalCare;
+    return saveProfile(
+      profile.copyWith(
+        cordFallenAt: date,
+        careSettings: profile.careSettings.copyWith(
+          umbilicalCare: umbilicalCare.copyWith(enabled: date == null),
         ),
-      );
+      ),
+    );
+  }
 
   /// Crée ([id] nul) ou remplace une mesure après validation, puis resynchronise le plan.
   Future<bool> saveMeasurement({

@@ -61,6 +61,9 @@ void main() {
     // sur « Couches ») : depuis que la section Calendrier a grandi la liste,
     // un défilement scindé en deux s'arrête parfois sur le bouton « Choisir
     // un calendrier » plus bas, qui absorbe alors le glissement suivant.
+    // Après la section Couches, pas de 100 : `scrollUntilVisible` défile par
+    // `drag`, qui déclenche un fling ; avec un pas de 300 ce fling dépasse la
+    // section Calendrier avant que le finder ne s'exécute entre deux défilements.
     final scrollable = find.byType(Scrollable).first;
     await tester.scrollUntilVisible(
       find.text('Stock non renseigné'),
@@ -73,7 +76,7 @@ void main() {
       find.text(
         'Les RDV santé ne sont pas ajoutés au Calendrier de cet iPhone.',
       ),
-      300,
+      100,
       scrollable: scrollable,
     );
     expect(find.text('Calendrier'), findsOneWidget);
@@ -85,7 +88,7 @@ void main() {
     );
     await tester.scrollUntilVisible(
       find.text('ABCDEFGH'),
-      300,
+      100,
       scrollable: scrollable,
     );
     expect(find.text('ABCDEFGH'), findsOneWidget);

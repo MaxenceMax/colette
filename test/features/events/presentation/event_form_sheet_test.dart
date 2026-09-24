@@ -1,6 +1,7 @@
 import 'package:colette/core/clock/app_clock.dart';
 import 'package:colette/core/ids/id_generator.dart';
 import 'package:colette/features/baby/domain/entities/baby_profile.dart';
+import 'package:colette/features/baby/domain/entities/care_frequency.dart';
 import 'package:colette/features/baby/domain/entities/care_settings.dart';
 import 'package:colette/features/baby/presentation/providers/baby_providers.dart';
 import 'package:colette/features/dashboard/presentation/providers/feeding_plan_sync.dart';
@@ -116,10 +117,32 @@ void main() {
     final profile = BabyProfile(
       name: 'Colette',
       birthDate: DateTime(2026, 9, 1),
-      careSettings: const CareSettings(umbilicalCarePerDay: 0),
+      careSettings: const CareSettings(
+        umbilicalCare: CareFrequency(timesPerDay: 3, enabled: false),
+      ),
     );
     await pumpSheet(tester, profile: profile);
     expect(find.text('Soin du nombril'), findsNothing);
     expect(find.text('Soin des yeux'), findsOneWidget);
   });
+
+  testWidgets(
+    'la puce nombril reste visible en édition si l\'événement l\'a cochée',
+    (tester) async {
+      final profile = BabyProfile(
+        name: 'Colette',
+        birthDate: DateTime(2026, 9, 1),
+        careSettings: const CareSettings(
+          umbilicalCare: CareFrequency(timesPerDay: 3, enabled: false),
+        ),
+      );
+      final initial = makeEvent(
+        id: 'e-existing',
+        startAt: now.subtract(const Duration(hours: 2)),
+        umbilicalCare: true,
+      );
+      await pumpSheet(tester, profile: profile, initial: initial);
+      expect(find.text('Soin du nombril'), findsOneWidget);
+    },
+  );
 }

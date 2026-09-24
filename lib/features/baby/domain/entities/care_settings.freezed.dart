@@ -15,7 +15,7 @@ T _$identity<T>(T value) => value;
 /// @nodoc
 mixin _$CareSettings {
 
- int get adrigylPerDay; int get eyeCarePerDay; int get noseCarePerDay; int get umbilicalCarePerDay; int get bathEveryDays; int get feedsPerDay;/// Heure (0-23) à partir de laquelle un endormissement est une nuit.
+ CareFrequency get adrigyl; CareFrequency get eyeCare; CareFrequency get noseCare; CareFrequency get umbilicalCare; CareFrequency get bath; int get feedsPerDay;/// Heure (0-23) à partir de laquelle un endormissement est une nuit.
  int get nightStartHour;/// Heure (0-23) à partir de laquelle un endormissement redevient une sieste.
  int get nightEndHour;/// Cible journalière forcée en ml ; `null` = calcul OMS.
  int? get dailyTargetMl;
@@ -30,20 +30,20 @@ $CareSettingsCopyWith<CareSettings> get copyWith => _$CareSettingsCopyWithImpl<C
 @override
 bool operator ==(Object other) {
   final _this = this as CareSettings;
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is CareSettings&&(identical(other.adrigylPerDay, _this.adrigylPerDay) || other.adrigylPerDay == _this.adrigylPerDay)&&(identical(other.eyeCarePerDay, _this.eyeCarePerDay) || other.eyeCarePerDay == _this.eyeCarePerDay)&&(identical(other.noseCarePerDay, _this.noseCarePerDay) || other.noseCarePerDay == _this.noseCarePerDay)&&(identical(other.umbilicalCarePerDay, _this.umbilicalCarePerDay) || other.umbilicalCarePerDay == _this.umbilicalCarePerDay)&&(identical(other.bathEveryDays, _this.bathEveryDays) || other.bathEveryDays == _this.bathEveryDays)&&(identical(other.feedsPerDay, _this.feedsPerDay) || other.feedsPerDay == _this.feedsPerDay)&&(identical(other.nightStartHour, _this.nightStartHour) || other.nightStartHour == _this.nightStartHour)&&(identical(other.nightEndHour, _this.nightEndHour) || other.nightEndHour == _this.nightEndHour)&&(identical(other.dailyTargetMl, _this.dailyTargetMl) || other.dailyTargetMl == _this.dailyTargetMl));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is CareSettings&&(identical(other.adrigyl, _this.adrigyl) || other.adrigyl == _this.adrigyl)&&(identical(other.eyeCare, _this.eyeCare) || other.eyeCare == _this.eyeCare)&&(identical(other.noseCare, _this.noseCare) || other.noseCare == _this.noseCare)&&(identical(other.umbilicalCare, _this.umbilicalCare) || other.umbilicalCare == _this.umbilicalCare)&&(identical(other.bath, _this.bath) || other.bath == _this.bath)&&(identical(other.feedsPerDay, _this.feedsPerDay) || other.feedsPerDay == _this.feedsPerDay)&&(identical(other.nightStartHour, _this.nightStartHour) || other.nightStartHour == _this.nightStartHour)&&(identical(other.nightEndHour, _this.nightEndHour) || other.nightEndHour == _this.nightEndHour)&&(identical(other.dailyTargetMl, _this.dailyTargetMl) || other.dailyTargetMl == _this.dailyTargetMl));
 }
 
 
 @override
 int get hashCode {
   final _this = this as CareSettings;
-  return Object.hash(runtimeType,_this.adrigylPerDay,_this.eyeCarePerDay,_this.noseCarePerDay,_this.umbilicalCarePerDay,_this.bathEveryDays,_this.feedsPerDay,_this.nightStartHour,_this.nightEndHour,_this.dailyTargetMl);
+  return Object.hash(runtimeType,_this.adrigyl,_this.eyeCare,_this.noseCare,_this.umbilicalCare,_this.bath,_this.feedsPerDay,_this.nightStartHour,_this.nightEndHour,_this.dailyTargetMl);
 }
 
 @override
 String toString() {
   final _this = this as CareSettings;
-  return 'CareSettings(adrigylPerDay: ${_this.adrigylPerDay}, eyeCarePerDay: ${_this.eyeCarePerDay}, noseCarePerDay: ${_this.noseCarePerDay}, umbilicalCarePerDay: ${_this.umbilicalCarePerDay}, bathEveryDays: ${_this.bathEveryDays}, feedsPerDay: ${_this.feedsPerDay}, nightStartHour: ${_this.nightStartHour}, nightEndHour: ${_this.nightEndHour}, dailyTargetMl: ${_this.dailyTargetMl})';
+  return 'CareSettings(adrigyl: ${_this.adrigyl}, eyeCare: ${_this.eyeCare}, noseCare: ${_this.noseCare}, umbilicalCare: ${_this.umbilicalCare}, bath: ${_this.bath}, feedsPerDay: ${_this.feedsPerDay}, nightStartHour: ${_this.nightStartHour}, nightEndHour: ${_this.nightEndHour}, dailyTargetMl: ${_this.dailyTargetMl})';
 }
 
 
@@ -54,11 +54,11 @@ abstract mixin class $CareSettingsCopyWith<$Res>  {
   factory $CareSettingsCopyWith(CareSettings value, $Res Function(CareSettings) _then) = _$CareSettingsCopyWithImpl;
 @useResult
 $Res call({
- int adrigylPerDay, int eyeCarePerDay, int noseCarePerDay, int umbilicalCarePerDay, int bathEveryDays, int feedsPerDay, int nightStartHour, int nightEndHour, int? dailyTargetMl
+ CareFrequency adrigyl, CareFrequency eyeCare, CareFrequency noseCare, CareFrequency umbilicalCare, CareFrequency bath, int feedsPerDay, int nightStartHour, int nightEndHour, int? dailyTargetMl
 });
 
 
-
+$CareFrequencyCopyWith<$Res> get adrigyl;$CareFrequencyCopyWith<$Res> get eyeCare;$CareFrequencyCopyWith<$Res> get noseCare;$CareFrequencyCopyWith<$Res> get umbilicalCare;$CareFrequencyCopyWith<$Res> get bath;
 
 }
 /// @nodoc
@@ -71,21 +71,66 @@ class _$CareSettingsCopyWithImpl<$Res>
 
 /// Create a copy of CareSettings
 /// with the given fields replaced by the non-null parameter values.
-@pragma('vm:prefer-inline') @override $Res call({Object? adrigylPerDay = null,Object? eyeCarePerDay = null,Object? noseCarePerDay = null,Object? umbilicalCarePerDay = null,Object? bathEveryDays = null,Object? feedsPerDay = null,Object? nightStartHour = null,Object? nightEndHour = null,Object? dailyTargetMl = freezed,}) {
+@pragma('vm:prefer-inline') @override $Res call({Object? adrigyl = null,Object? eyeCare = null,Object? noseCare = null,Object? umbilicalCare = null,Object? bath = null,Object? feedsPerDay = null,Object? nightStartHour = null,Object? nightEndHour = null,Object? dailyTargetMl = freezed,}) {
   return _then(CareSettings(
-adrigylPerDay: null == adrigylPerDay ? _self.adrigylPerDay : adrigylPerDay // ignore: cast_nullable_to_non_nullable
-as int,eyeCarePerDay: null == eyeCarePerDay ? _self.eyeCarePerDay : eyeCarePerDay // ignore: cast_nullable_to_non_nullable
-as int,noseCarePerDay: null == noseCarePerDay ? _self.noseCarePerDay : noseCarePerDay // ignore: cast_nullable_to_non_nullable
-as int,umbilicalCarePerDay: null == umbilicalCarePerDay ? _self.umbilicalCarePerDay : umbilicalCarePerDay // ignore: cast_nullable_to_non_nullable
-as int,bathEveryDays: null == bathEveryDays ? _self.bathEveryDays : bathEveryDays // ignore: cast_nullable_to_non_nullable
-as int,feedsPerDay: null == feedsPerDay ? _self.feedsPerDay : feedsPerDay // ignore: cast_nullable_to_non_nullable
+adrigyl: null == adrigyl ? _self.adrigyl : adrigyl // ignore: cast_nullable_to_non_nullable
+as CareFrequency,eyeCare: null == eyeCare ? _self.eyeCare : eyeCare // ignore: cast_nullable_to_non_nullable
+as CareFrequency,noseCare: null == noseCare ? _self.noseCare : noseCare // ignore: cast_nullable_to_non_nullable
+as CareFrequency,umbilicalCare: null == umbilicalCare ? _self.umbilicalCare : umbilicalCare // ignore: cast_nullable_to_non_nullable
+as CareFrequency,bath: null == bath ? _self.bath : bath // ignore: cast_nullable_to_non_nullable
+as CareFrequency,feedsPerDay: null == feedsPerDay ? _self.feedsPerDay : feedsPerDay // ignore: cast_nullable_to_non_nullable
 as int,nightStartHour: null == nightStartHour ? _self.nightStartHour : nightStartHour // ignore: cast_nullable_to_non_nullable
 as int,nightEndHour: null == nightEndHour ? _self.nightEndHour : nightEndHour // ignore: cast_nullable_to_non_nullable
 as int,dailyTargetMl: freezed == dailyTargetMl ? _self.dailyTargetMl : dailyTargetMl // ignore: cast_nullable_to_non_nullable
 as int?,
   ));
 }
-
+/// Create a copy of CareSettings
+/// with the given fields replaced by the non-null parameter values.
+@override
+@pragma('vm:prefer-inline')
+$CareFrequencyCopyWith<$Res> get adrigyl {
+  
+  return $CareFrequencyCopyWith<$Res>(_self.adrigyl, (value) {
+    return _then(_self.copyWith(adrigyl: value));
+  });
+}/// Create a copy of CareSettings
+/// with the given fields replaced by the non-null parameter values.
+@override
+@pragma('vm:prefer-inline')
+$CareFrequencyCopyWith<$Res> get eyeCare {
+  
+  return $CareFrequencyCopyWith<$Res>(_self.eyeCare, (value) {
+    return _then(_self.copyWith(eyeCare: value));
+  });
+}/// Create a copy of CareSettings
+/// with the given fields replaced by the non-null parameter values.
+@override
+@pragma('vm:prefer-inline')
+$CareFrequencyCopyWith<$Res> get noseCare {
+  
+  return $CareFrequencyCopyWith<$Res>(_self.noseCare, (value) {
+    return _then(_self.copyWith(noseCare: value));
+  });
+}/// Create a copy of CareSettings
+/// with the given fields replaced by the non-null parameter values.
+@override
+@pragma('vm:prefer-inline')
+$CareFrequencyCopyWith<$Res> get umbilicalCare {
+  
+  return $CareFrequencyCopyWith<$Res>(_self.umbilicalCare, (value) {
+    return _then(_self.copyWith(umbilicalCare: value));
+  });
+}/// Create a copy of CareSettings
+/// with the given fields replaced by the non-null parameter values.
+@override
+@pragma('vm:prefer-inline')
+$CareFrequencyCopyWith<$Res> get bath {
+  
+  return $CareFrequencyCopyWith<$Res>(_self.bath, (value) {
+    return _then(_self.copyWith(bath: value));
+  });
+}
 }
 
 
@@ -167,10 +212,10 @@ return $default(_that);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( int adrigylPerDay,  int eyeCarePerDay,  int noseCarePerDay,  int umbilicalCarePerDay,  int bathEveryDays,  int feedsPerDay,  int nightStartHour,  int nightEndHour,  int? dailyTargetMl)?  $default,{required TResult orElse(),}) {final _that = this;
+@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( CareFrequency adrigyl,  CareFrequency eyeCare,  CareFrequency noseCare,  CareFrequency umbilicalCare,  CareFrequency bath,  int feedsPerDay,  int nightStartHour,  int nightEndHour,  int? dailyTargetMl)?  $default,{required TResult orElse(),}) {final _that = this;
 switch (_that) {
 case _CareSettings() when $default != null:
-return $default(_that.adrigylPerDay,_that.eyeCarePerDay,_that.noseCarePerDay,_that.umbilicalCarePerDay,_that.bathEveryDays,_that.feedsPerDay,_that.nightStartHour,_that.nightEndHour,_that.dailyTargetMl);case _:
+return $default(_that.adrigyl,_that.eyeCare,_that.noseCare,_that.umbilicalCare,_that.bath,_that.feedsPerDay,_that.nightStartHour,_that.nightEndHour,_that.dailyTargetMl);case _:
   return orElse();
 
 }
@@ -188,10 +233,10 @@ return $default(_that.adrigylPerDay,_that.eyeCarePerDay,_that.noseCarePerDay,_th
 /// }
 /// ```
 
-@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( int adrigylPerDay,  int eyeCarePerDay,  int noseCarePerDay,  int umbilicalCarePerDay,  int bathEveryDays,  int feedsPerDay,  int nightStartHour,  int nightEndHour,  int? dailyTargetMl)  $default,) {final _that = this;
+@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( CareFrequency adrigyl,  CareFrequency eyeCare,  CareFrequency noseCare,  CareFrequency umbilicalCare,  CareFrequency bath,  int feedsPerDay,  int nightStartHour,  int nightEndHour,  int? dailyTargetMl)  $default,) {final _that = this;
 switch (_that) {
 case _CareSettings():
-return $default(_that.adrigylPerDay,_that.eyeCarePerDay,_that.noseCarePerDay,_that.umbilicalCarePerDay,_that.bathEveryDays,_that.feedsPerDay,_that.nightStartHour,_that.nightEndHour,_that.dailyTargetMl);case _:
+return $default(_that.adrigyl,_that.eyeCare,_that.noseCare,_that.umbilicalCare,_that.bath,_that.feedsPerDay,_that.nightStartHour,_that.nightEndHour,_that.dailyTargetMl);case _:
   throw StateError('Unexpected subclass');
 
 }
@@ -208,10 +253,10 @@ return $default(_that.adrigylPerDay,_that.eyeCarePerDay,_that.noseCarePerDay,_th
 /// }
 /// ```
 
-@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( int adrigylPerDay,  int eyeCarePerDay,  int noseCarePerDay,  int umbilicalCarePerDay,  int bathEveryDays,  int feedsPerDay,  int nightStartHour,  int nightEndHour,  int? dailyTargetMl)?  $default,) {final _that = this;
+@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( CareFrequency adrigyl,  CareFrequency eyeCare,  CareFrequency noseCare,  CareFrequency umbilicalCare,  CareFrequency bath,  int feedsPerDay,  int nightStartHour,  int nightEndHour,  int? dailyTargetMl)?  $default,) {final _that = this;
 switch (_that) {
 case _CareSettings() when $default != null:
-return $default(_that.adrigylPerDay,_that.eyeCarePerDay,_that.noseCarePerDay,_that.umbilicalCarePerDay,_that.bathEveryDays,_that.feedsPerDay,_that.nightStartHour,_that.nightEndHour,_that.dailyTargetMl);case _:
+return $default(_that.adrigyl,_that.eyeCare,_that.noseCare,_that.umbilicalCare,_that.bath,_that.feedsPerDay,_that.nightStartHour,_that.nightEndHour,_that.dailyTargetMl);case _:
   return null;
 
 }
@@ -223,14 +268,14 @@ return $default(_that.adrigylPerDay,_that.eyeCarePerDay,_that.noseCarePerDay,_th
 
 
 class _CareSettings extends CareSettings {
-  const _CareSettings({this.adrigylPerDay = 1, this.eyeCarePerDay = 1, this.noseCarePerDay = 1, this.umbilicalCarePerDay = 3, this.bathEveryDays = 2, this.feedsPerDay = 8, this.nightStartHour = 20, this.nightEndHour = 7, this.dailyTargetMl}): super._();
+  const _CareSettings({this.adrigyl = const CareFrequency(), this.eyeCare = const CareFrequency(), this.noseCare = const CareFrequency(), this.umbilicalCare = const CareFrequency(timesPerDay: 3), this.bath = const CareFrequency(everyDays: 2), this.feedsPerDay = 8, this.nightStartHour = 20, this.nightEndHour = 7, this.dailyTargetMl}): super._();
   
 
-@override@JsonKey() final  int adrigylPerDay;
-@override@JsonKey() final  int eyeCarePerDay;
-@override@JsonKey() final  int noseCarePerDay;
-@override@JsonKey() final  int umbilicalCarePerDay;
-@override@JsonKey() final  int bathEveryDays;
+@override@JsonKey() final  CareFrequency adrigyl;
+@override@JsonKey() final  CareFrequency eyeCare;
+@override@JsonKey() final  CareFrequency noseCare;
+@override@JsonKey() final  CareFrequency umbilicalCare;
+@override@JsonKey() final  CareFrequency bath;
 @override@JsonKey() final  int feedsPerDay;
 /// Heure (0-23) à partir de laquelle un endormissement est une nuit.
 @override@JsonKey() final  int nightStartHour;
@@ -249,18 +294,18 @@ _$CareSettingsCopyWith<_CareSettings> get copyWith => __$CareSettingsCopyWithImp
 
 @override
 bool operator ==(Object other) {
-    return identical(this, other) || (other.runtimeType == runtimeType&&other is _CareSettings&&(identical(other.adrigylPerDay, adrigylPerDay) || other.adrigylPerDay == adrigylPerDay)&&(identical(other.eyeCarePerDay, eyeCarePerDay) || other.eyeCarePerDay == eyeCarePerDay)&&(identical(other.noseCarePerDay, noseCarePerDay) || other.noseCarePerDay == noseCarePerDay)&&(identical(other.umbilicalCarePerDay, umbilicalCarePerDay) || other.umbilicalCarePerDay == umbilicalCarePerDay)&&(identical(other.bathEveryDays, bathEveryDays) || other.bathEveryDays == bathEveryDays)&&(identical(other.feedsPerDay, feedsPerDay) || other.feedsPerDay == feedsPerDay)&&(identical(other.nightStartHour, nightStartHour) || other.nightStartHour == nightStartHour)&&(identical(other.nightEndHour, nightEndHour) || other.nightEndHour == nightEndHour)&&(identical(other.dailyTargetMl, dailyTargetMl) || other.dailyTargetMl == dailyTargetMl));
+    return identical(this, other) || (other.runtimeType == runtimeType&&other is _CareSettings&&(identical(other.adrigyl, adrigyl) || other.adrigyl == adrigyl)&&(identical(other.eyeCare, eyeCare) || other.eyeCare == eyeCare)&&(identical(other.noseCare, noseCare) || other.noseCare == noseCare)&&(identical(other.umbilicalCare, umbilicalCare) || other.umbilicalCare == umbilicalCare)&&(identical(other.bath, bath) || other.bath == bath)&&(identical(other.feedsPerDay, feedsPerDay) || other.feedsPerDay == feedsPerDay)&&(identical(other.nightStartHour, nightStartHour) || other.nightStartHour == nightStartHour)&&(identical(other.nightEndHour, nightEndHour) || other.nightEndHour == nightEndHour)&&(identical(other.dailyTargetMl, dailyTargetMl) || other.dailyTargetMl == dailyTargetMl));
 }
 
 
 @override
 int get hashCode {
-    return Object.hash(runtimeType,adrigylPerDay,eyeCarePerDay,noseCarePerDay,umbilicalCarePerDay,bathEveryDays,feedsPerDay,nightStartHour,nightEndHour,dailyTargetMl);
+    return Object.hash(runtimeType,adrigyl,eyeCare,noseCare,umbilicalCare,bath,feedsPerDay,nightStartHour,nightEndHour,dailyTargetMl);
 }
 
 @override
 String toString() {
-    return 'CareSettings(adrigylPerDay: $adrigylPerDay, eyeCarePerDay: $eyeCarePerDay, noseCarePerDay: $noseCarePerDay, umbilicalCarePerDay: $umbilicalCarePerDay, bathEveryDays: $bathEveryDays, feedsPerDay: $feedsPerDay, nightStartHour: $nightStartHour, nightEndHour: $nightEndHour, dailyTargetMl: $dailyTargetMl)';
+    return 'CareSettings(adrigyl: $adrigyl, eyeCare: $eyeCare, noseCare: $noseCare, umbilicalCare: $umbilicalCare, bath: $bath, feedsPerDay: $feedsPerDay, nightStartHour: $nightStartHour, nightEndHour: $nightEndHour, dailyTargetMl: $dailyTargetMl)';
 }
 
 
@@ -271,11 +316,11 @@ abstract mixin class _$CareSettingsCopyWith<$Res> implements $CareSettingsCopyWi
   factory _$CareSettingsCopyWith(_CareSettings value, $Res Function(_CareSettings) _then) = __$CareSettingsCopyWithImpl;
 @override @useResult
 $Res call({
- int adrigylPerDay, int eyeCarePerDay, int noseCarePerDay, int umbilicalCarePerDay, int bathEveryDays, int feedsPerDay, int nightStartHour, int nightEndHour, int? dailyTargetMl
+ CareFrequency adrigyl, CareFrequency eyeCare, CareFrequency noseCare, CareFrequency umbilicalCare, CareFrequency bath, int feedsPerDay, int nightStartHour, int nightEndHour, int? dailyTargetMl
 });
 
 
-
+@override $CareFrequencyCopyWith<$Res> get adrigyl;@override $CareFrequencyCopyWith<$Res> get eyeCare;@override $CareFrequencyCopyWith<$Res> get noseCare;@override $CareFrequencyCopyWith<$Res> get umbilicalCare;@override $CareFrequencyCopyWith<$Res> get bath;
 
 }
 /// @nodoc
@@ -288,14 +333,14 @@ class __$CareSettingsCopyWithImpl<$Res>
 
 /// Create a copy of CareSettings
 /// with the given fields replaced by the non-null parameter values.
-@override @pragma('vm:prefer-inline') $Res call({Object? adrigylPerDay = null,Object? eyeCarePerDay = null,Object? noseCarePerDay = null,Object? umbilicalCarePerDay = null,Object? bathEveryDays = null,Object? feedsPerDay = null,Object? nightStartHour = null,Object? nightEndHour = null,Object? dailyTargetMl = freezed,}) {
+@override @pragma('vm:prefer-inline') $Res call({Object? adrigyl = null,Object? eyeCare = null,Object? noseCare = null,Object? umbilicalCare = null,Object? bath = null,Object? feedsPerDay = null,Object? nightStartHour = null,Object? nightEndHour = null,Object? dailyTargetMl = freezed,}) {
   return _then(_CareSettings(
-adrigylPerDay: null == adrigylPerDay ? _self.adrigylPerDay : adrigylPerDay // ignore: cast_nullable_to_non_nullable
-as int,eyeCarePerDay: null == eyeCarePerDay ? _self.eyeCarePerDay : eyeCarePerDay // ignore: cast_nullable_to_non_nullable
-as int,noseCarePerDay: null == noseCarePerDay ? _self.noseCarePerDay : noseCarePerDay // ignore: cast_nullable_to_non_nullable
-as int,umbilicalCarePerDay: null == umbilicalCarePerDay ? _self.umbilicalCarePerDay : umbilicalCarePerDay // ignore: cast_nullable_to_non_nullable
-as int,bathEveryDays: null == bathEveryDays ? _self.bathEveryDays : bathEveryDays // ignore: cast_nullable_to_non_nullable
-as int,feedsPerDay: null == feedsPerDay ? _self.feedsPerDay : feedsPerDay // ignore: cast_nullable_to_non_nullable
+adrigyl: null == adrigyl ? _self.adrigyl : adrigyl // ignore: cast_nullable_to_non_nullable
+as CareFrequency,eyeCare: null == eyeCare ? _self.eyeCare : eyeCare // ignore: cast_nullable_to_non_nullable
+as CareFrequency,noseCare: null == noseCare ? _self.noseCare : noseCare // ignore: cast_nullable_to_non_nullable
+as CareFrequency,umbilicalCare: null == umbilicalCare ? _self.umbilicalCare : umbilicalCare // ignore: cast_nullable_to_non_nullable
+as CareFrequency,bath: null == bath ? _self.bath : bath // ignore: cast_nullable_to_non_nullable
+as CareFrequency,feedsPerDay: null == feedsPerDay ? _self.feedsPerDay : feedsPerDay // ignore: cast_nullable_to_non_nullable
 as int,nightStartHour: null == nightStartHour ? _self.nightStartHour : nightStartHour // ignore: cast_nullable_to_non_nullable
 as int,nightEndHour: null == nightEndHour ? _self.nightEndHour : nightEndHour // ignore: cast_nullable_to_non_nullable
 as int,dailyTargetMl: freezed == dailyTargetMl ? _self.dailyTargetMl : dailyTargetMl // ignore: cast_nullable_to_non_nullable
@@ -303,7 +348,52 @@ as int?,
   ));
 }
 
-
+/// Create a copy of CareSettings
+/// with the given fields replaced by the non-null parameter values.
+@override
+@pragma('vm:prefer-inline')
+$CareFrequencyCopyWith<$Res> get adrigyl {
+  
+  return $CareFrequencyCopyWith<$Res>(_self.adrigyl, (value) {
+    return _then(_self.copyWith(adrigyl: value));
+  });
+}/// Create a copy of CareSettings
+/// with the given fields replaced by the non-null parameter values.
+@override
+@pragma('vm:prefer-inline')
+$CareFrequencyCopyWith<$Res> get eyeCare {
+  
+  return $CareFrequencyCopyWith<$Res>(_self.eyeCare, (value) {
+    return _then(_self.copyWith(eyeCare: value));
+  });
+}/// Create a copy of CareSettings
+/// with the given fields replaced by the non-null parameter values.
+@override
+@pragma('vm:prefer-inline')
+$CareFrequencyCopyWith<$Res> get noseCare {
+  
+  return $CareFrequencyCopyWith<$Res>(_self.noseCare, (value) {
+    return _then(_self.copyWith(noseCare: value));
+  });
+}/// Create a copy of CareSettings
+/// with the given fields replaced by the non-null parameter values.
+@override
+@pragma('vm:prefer-inline')
+$CareFrequencyCopyWith<$Res> get umbilicalCare {
+  
+  return $CareFrequencyCopyWith<$Res>(_self.umbilicalCare, (value) {
+    return _then(_self.copyWith(umbilicalCare: value));
+  });
+}/// Create a copy of CareSettings
+/// with the given fields replaced by the non-null parameter values.
+@override
+@pragma('vm:prefer-inline')
+$CareFrequencyCopyWith<$Res> get bath {
+  
+  return $CareFrequencyCopyWith<$Res>(_self.bath, (value) {
+    return _then(_self.copyWith(bath: value));
+  });
+}
 }
 
 // dart format on

@@ -2,6 +2,8 @@
 
 Date : 2026-09-22. Complète la spec v1 (`2026-09-21-colette-v1-design.md`).
 
+> Remplacée le 2026-09-24 par `2026-09-24-care-frequency-design.md` : `umbilicalCarePerDay` devient `umbilicalCare: CareFrequency`. Conservée pour l'historique et le repli de lecture.
+
 ## 1. Problème
 
 Le soin du nombril est figé à une fois par jour, partout : use case `ComputeDailyCareStatus`, fonction `pendingCares` du digest du matin, et un simple interrupteur activé / désactivé dans les Réglages. Les parents doivent pouvoir saisir le nombre attendu (trois fois par jour dans le foyer actuel), comme pour Adrigyl, les yeux et le nez.

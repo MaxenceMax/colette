@@ -15,4 +15,16 @@ enum CareType {
   const CareType(this.category);
 
   final CareCategory category;
+
+  /// Soins avec une fréquence attendue, dans l'ordre de l'accueil, des réglages et du digest.
+  static const List<CareType> scheduled = [
+    adrigyl,
+    eyeCare,
+    noseCare,
+    umbilicalCare,
+    bath,
+  ];
+
+  /// `true` si ce soin a une fréquence attendue.
+  bool get isScheduled => scheduled.contains(this);
 }

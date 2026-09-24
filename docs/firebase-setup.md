@@ -73,7 +73,7 @@ firebase use --add
 firebase deploy --only firestore:rules,firestore:indexes
 ```
 
-Les deux index composites sur `events` mettent quelques minutes à se construire ; l'onglet Firestore → Index affiche leur état. Tant qu'ils ne sont pas prêts, le dashboard ne trouve pas le dernier bain ni le dernier biberon.
+Les deux index composites sur `events` (dernier biberon `hasBottle` + `startAt`, nombre de couches `diaperChange` + `startAt`) mettent quelques minutes à se construire ; l'onglet Firestore → Index affiche leur état. Tant qu'ils ne sont pas prêts, le dashboard ne trouve pas le dernier biberon ni le nombre de couches.
 
 ```bash
 cd functions && npm install && npm test && cd ..

@@ -2,6 +2,7 @@ import 'package:colette/core/clock/now_providers.dart';
 import 'package:colette/core/dates/date_extensions.dart';
 import 'package:colette/core/firebase/firebase_providers.dart';
 import 'package:colette/core/result/no_retry.dart';
+import 'package:colette/features/baby/domain/entities/care_frequency.dart';
 import 'package:colette/features/events/data/repositories/firestore_events_repository.dart';
 import 'package:colette/features/events/domain/entities/care_event.dart';
 import 'package:colette/features/events/domain/repositories/events_repository.dart';
@@ -44,12 +45,24 @@ Stream<List<CareEvent>> recentEvents(Ref ref) {
       );
 }
 
-/// Dernier bain enregistré, toutes dates confondues.
+/// Événements des 7 derniers jours civils, aujourd'hui inclus : suffisant pour savoir
+/// si un soin espacé d'au plus [CareFrequency.maxEveryDays] jours est dû.
 @Riverpod(retry: noRetry)
-Stream<CareEvent?> latestBath(Ref ref) {
+Stream<List<CareEvent>> weekEvents(Ref ref) {
   final code = ref.watch(currentHouseholdCodeProvider);
-  if (code == null) return Stream.value(null);
-  return ref.watch(eventsRepositoryProvider).watchLatestBath(code);
+  if (code == null) return Stream.value(const []);
+  final today = ref.watch(todayProvider);
+  return ref
+      .watch(eventsRepositoryProvider)
+      .watchBetween(
+        code,
+        from: DateTime(
+          today.year,
+          today.month,
+          today.day - (CareFrequency.maxEveryDays - 1),
+        ),
+        to: today.startOfNextDay,
+      );
 }
 
 /// Dernier biberon enregistré, toutes dates confondues.
