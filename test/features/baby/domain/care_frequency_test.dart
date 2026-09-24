@@ -98,6 +98,18 @@ void main() {
       );
     });
 
+    test('tous les 7 jours : pas attendu après 6 jours, attendu après 7', () {
+      const weekly = CareFrequency(everyDays: 7);
+      expect(
+        weekly.isExpected(lastDoneAt: DateTime(2026, 9, 15, 18), now: now),
+        isFalse,
+      );
+      expect(
+        weekly.isExpected(lastDoneAt: DateTime(2026, 9, 14, 18), now: now),
+        isTrue,
+      );
+    });
+
     test('DST : deux jours civils malgré le changement d\'heure', () {
       // Passage à l'heure d'été le 29 mars 2026 entre les deux instants.
       expect(
