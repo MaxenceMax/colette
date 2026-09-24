@@ -149,7 +149,7 @@ Les champs `adrigylPerDay`, `eyeCarePerDay`, `noseCarePerDay`, `umbilicalCarePer
 
 Identique dans `CareSettingsDto.fromMap` (app) et `withDefaults` (Functions), pour chaque soin :
 
-1. Map présente → `timesPerDay` borné 1..10, `everyDays` borné 1..30, `enabled` booléen (absent ou non booléen → `true`). Si les deux entiers dépassent 1, `timesPerDay` est ramené à 1.
+1. Map présente → `timesPerDay` borné 1..10, `everyDays` borné 1..30, `enabled` booléen (absent ou non booléen → `true`). La lecture tolère jusqu'à 30 jours pour un document modifié à la main, mais l'interface plafonne à 7 et la fenêtre d'événements aussi : au-delà de 7 jours, le dernier soin sort de la fenêtre et le soin redevient dû chaque jour. Si les deux entiers dépassent 1, `timesPerDay` est ramené à 1.
 2. Sinon, ancien champ plat :
    - `xPerDay` numérique : `0` → `enabled: false` avec la fréquence par défaut du soin ; `n > 0` → `n/jour` (borné 1..10).
    - Nombril : `umbilicalCarePerDay` comme ci-dessus ; sinon `umbilicalCareEnabled == false` → désactivé, fréquence par défaut.
