@@ -141,4 +141,22 @@ void main() {
     expect(find.text('Arrêter le minuteur ?'), findsNothing);
     expect(find.byType(EventFormSheet), findsNothing);
   });
+
+  testWidgets('le bouton Fermer ferme le formulaire', (tester) async {
+    await openSheet(tester);
+    await tester.tap(find.byTooltip('Fermer'));
+    await tester.pumpAndSettle();
+    expect(find.byType(EventFormSheet), findsNothing);
+    verifyNever(() => repo.save(any(), any()));
+  });
+
+  testWidgets('le bouton Fermer demande confirmation si le minuteur tourne', (
+    tester,
+  ) async {
+    await openSheet(tester);
+    await enableBottleAndStart(tester);
+    await tester.tap(find.byTooltip('Fermer'));
+    await tester.pumpAndSettle();
+    expect(find.text('Arrêter le minuteur ?'), findsOneWidget);
+  });
 }

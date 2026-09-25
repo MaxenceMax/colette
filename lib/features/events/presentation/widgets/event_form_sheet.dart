@@ -181,9 +181,21 @@ class _EventFormSheetState extends ConsumerState<EventFormSheet> {
           shrinkWrap: true,
           padding: AppSpacing.lg.all,
           children: [
-            Text(
-              _isEditing ? s.eventFormEditTitle : s.eventFormNewTitle,
-              style: styles.heading2,
+            Row(
+              children: [
+                Expanded(
+                  child: Text(
+                    _isEditing ? s.eventFormEditTitle : s.eventFormNewTitle,
+                    style: styles.heading2,
+                  ),
+                ),
+                // `maybePop` : passe par le `PopScope` du minuteur.
+                IconButton(
+                  onPressed: () => Navigator.of(context).maybePop(),
+                  tooltip: s.actionClose,
+                  icon: const Icon(Icons.close),
+                ),
+              ],
             ),
             AppSpacing.md.verticalSpace,
             Row(
