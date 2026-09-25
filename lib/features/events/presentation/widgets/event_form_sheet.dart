@@ -7,7 +7,9 @@ import 'package:colette/core/ui/date_time_picker.dart';
 import 'package:colette/core/ui/failure_message.dart';
 import 'package:colette/features/baby/presentation/providers/baby_providers.dart';
 import 'package:colette/features/events/domain/entities/care_event.dart';
+import 'package:colette/features/events/domain/use_cases/bottle_timer.dart';
 import 'package:colette/features/events/domain/use_cases/new_event_draft.dart';
+import 'package:colette/features/events/presentation/providers/bottle_timer_controller.dart';
 import 'package:colette/features/events/presentation/providers/event_form_controller.dart';
 import 'package:colette/features/events/presentation/widgets/bottle_field.dart';
 import 'package:colette/features/household/presentation/providers/household_providers.dart';
@@ -29,6 +31,9 @@ Future<bool?> showEventFormSheet(
   context: context,
   isScrollControlled: true,
   useSafeArea: true,
+  // Le glisser appelle `Navigator.pop` et contourne le `PopScope` qui
+  // confirme l'arrêt du minuteur de biberon.
+  enableDrag: false,
   builder: (_) => EventFormSheet(
     initial: initial,
     preChecked: preChecked,
@@ -104,7 +109,32 @@ class _EventFormSheetState extends ConsumerState<EventFormSheet> {
     final saved = await ref
         .read(eventFormControllerProvider.notifier)
         .submit(_draft.copyWith(note: note.isEmpty ? null : note));
-    if (saved != null && mounted) await Navigator.of(context).maybePop(true);
+    // `pop` et non `maybePop` : enregistrer ferme même si le minuteur tourne.
+    if (saved != null && mounted) Navigator.of(context).pop(true);
+  }
+
+  Future<void> _confirmClose() async {
+    final s = S.of(context);
+    final stop = await showDialog<bool>(
+      context: context,
+      builder: (dialogContext) => AlertDialog(
+        title: Text(s.bottleTimerCloseTitle),
+        content: Text(s.bottleTimerCloseBody),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(dialogContext).pop(false),
+            child: Text(s.bottleTimerContinue),
+          ),
+          TextButton(
+            onPressed: () => Navigator.of(dialogContext).pop(true),
+            child: Text(s.bottleTimerStop),
+          ),
+        ],
+      ),
+    );
+    if (stop != true || !mounted) return;
+    ref.read(bottleTimerControllerProvider.notifier).reset();
+    Navigator.of(context).pop();
   }
 
   @override
@@ -118,6 +148,9 @@ class _EventFormSheetState extends ConsumerState<EventFormSheet> {
       }
     });
     final isLoading = ref.watch(eventFormControllerProvider) is AsyncLoading;
+    final timerPhase = ref.watch(bottleTimerPhaseProvider);
+    final timerRunning =
+        timerPhase is BottleFeeding || timerPhase is BottleUpright;
     final umbilicalEnabled =
         ref
             .watch(babyProfileProvider)
@@ -135,73 +168,85 @@ class _EventFormSheetState extends ConsumerState<EventFormSheet> {
         )
         .toList();
 
-    return Padding(
-      padding: EdgeInsets.only(bottom: MediaQuery.viewInsetsOf(context).bottom),
-      child: ListView(
-        shrinkWrap: true,
-        padding: AppSpacing.lg.all,
-        children: [
-          Text(
-            _isEditing ? s.eventFormEditTitle : s.eventFormNewTitle,
-            style: styles.heading2,
-          ),
-          AppSpacing.md.verticalSpace,
-          Row(
-            spacing: AppSpacing.sm.value,
-            children: [
-              Expanded(
-                child: DateField(
-                  label: s.fieldStartAt,
-                  value: formatHourMinute(_draft.startAt),
-                  onTap: () => _pickTime(isStart: true),
-                ),
-              ),
-              Expanded(
-                child: DateField(
-                  label: s.fieldEndAt,
-                  value: formatHourMinute(_draft.endAt),
-                  onTap: () => _pickTime(isStart: false),
-                ),
-              ),
-            ],
-          ),
-          AppSpacing.md.verticalSpace,
-          Wrap(
-            spacing: AppSpacing.sm.value,
-            runSpacing: AppSpacing.sm.value,
-            children: [
-              for (final type in visibleCares)
-                CareChip(
-                  type: type,
-                  selected: _draft.has(type),
-                  onChanged: (value) =>
-                      setState(() => _draft = _draft.toggle(type, value)),
-                ),
-            ],
-          ),
-          AppSpacing.md.verticalSpace,
-          BottleField(
-            bottleMl: _draft.bottleMl,
-            onChanged: (ml) =>
-                setState(() => _draft = _draft.copyWith(bottleMl: ml)),
-          ),
-          AppSpacing.md.verticalSpace,
-          TextField(
-            controller: _noteController,
-            decoration: InputDecoration(
-              labelText: s.fieldNote,
-              hintText: s.fieldNoteHint,
+    return PopScope(
+      canPop: !timerRunning && !isLoading,
+      onPopInvokedWithResult: (didPop, _) {
+        if (!didPop && timerRunning) _confirmClose();
+      },
+      child: Padding(
+        padding: EdgeInsets.only(
+          bottom: MediaQuery.viewInsetsOf(context).bottom,
+        ),
+        child: ListView(
+          shrinkWrap: true,
+          padding: AppSpacing.lg.all,
+          children: [
+            Text(
+              _isEditing ? s.eventFormEditTitle : s.eventFormNewTitle,
+              style: styles.heading2,
             ),
-            minLines: 1,
-            maxLines: 3,
-            textCapitalization: .sentences,
-          ),
-          AppSpacing.lg.verticalSpace,
-          FilledButton(
-            onPressed: _draft.isEmpty || isLoading ? null : _save,
-            child: Text(s.actionSave),
-          ),
-        ],
+            AppSpacing.md.verticalSpace,
+            Row(
+              spacing: AppSpacing.sm.value,
+              children: [
+                Expanded(
+                  child: DateField(
+                    label: s.fieldStartAt,
+                    value: formatHourMinute(_draft.startAt),
+                    onTap: () => _pickTime(isStart: true),
+                  ),
+                ),
+                Expanded(
+                  child: DateField(
+                    label: s.fieldEndAt,
+                    value: formatHourMinute(_draft.endAt),
+                    onTap: () => _pickTime(isStart: false),
+                  ),
+                ),
+              ],
+            ),
+            AppSpacing.md.verticalSpace,
+            Wrap(
+              spacing: AppSpacing.sm.value,
+              runSpacing: AppSpacing.sm.value,
+              children: [
+                for (final type in visibleCares)
+                  CareChip(
+                    type: type,
+                    selected: _draft.has(type),
+                    onChanged: (value) =>
+                        setState(() => _draft = _draft.toggle(type, value)),
+                  ),
+              ],
+            ),
+            AppSpacing.md.verticalSpace,
+            BottleField(
+              bottleMl: _draft.bottleMl,
+              onChanged: (ml) {
+                if (ml == null) {
+                  ref.read(bottleTimerControllerProvider.notifier).reset();
+                }
+                setState(() => _draft = _draft.copyWith(bottleMl: ml));
+              },
+            ),
+            AppSpacing.md.verticalSpace,
+            TextField(
+              controller: _noteController,
+              decoration: InputDecoration(
+                labelText: s.fieldNote,
+                hintText: s.fieldNoteHint,
+              ),
+              minLines: 1,
+              maxLines: 3,
+              textCapitalization: .sentences,
+            ),
+            AppSpacing.lg.verticalSpace,
+            FilledButton(
+              onPressed: _draft.isEmpty || isLoading ? null : _save,
+              child: Text(s.actionSave),
+            ),
+          ],
+        ),
       ),
     );
   }

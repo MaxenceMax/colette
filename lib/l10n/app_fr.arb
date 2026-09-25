@@ -563,5 +563,14 @@
   "dashboardAppointmentTitle": "Rendez-vous",
   "dashboardAppointmentSoon": "{count, plural, =1{Rendez-vous dans 1 jour} other{Rendez-vous dans {count} jours}}",
   "@dashboardAppointmentSoon": { "placeholders": { "count": { "type": "int" } } },
-  "dashboardAppointmentAwaiting": "RDV passé · à marquer comme faite"
+  "dashboardAppointmentAwaiting": "RDV passé · à marquer comme faite",
+  "bottleTimerStart": "Lancer le minuteur (30 + 12 min)",
+  "bottleTimerFeeding": "Biberon",
+  "bottleTimerUpright": "À la verticale",
+  "bottleTimerDone": "Minuteur terminé",
+  "bottleTimerStop": "Arrêter",
+  "bottleTimerRestart": "Relancer",
+  "bottleTimerCloseTitle": "Arrêter le minuteur ?",
+  "bottleTimerCloseBody": "Le minuteur sera perdu si tu fermes le formulaire.",
+  "bottleTimerContinue": "Continuer"
 }
