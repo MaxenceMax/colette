@@ -16,7 +16,8 @@ Le minuteur n'est jamais obligatoire : il n'influence ni le brouillon, ni la val
 - Le minuteur **vit dans le formulaire** : fermer ou enregistrer la sheet l'arrête.
 - Alerte **uniquement dans l'app** : pas de notification locale, pas de nouveau package. Un retour haptique marque le changement de phase et la fin.
 - **Local à l'iPhone** : rien n'est écrit dans Firestore.
-- **Confirmation à la fermeture** : si le minuteur tourne (phase Biberon ou Verticale), glisser la sheet vers le bas ou taper hors de la sheet affiche « Arrêter le minuteur ? ». Enregistrer ferme sans demander.
+- **Confirmation à la fermeture** : si le minuteur tourne (phase Biberon ou Verticale), taper hors de la sheet affiche « Arrêter le minuteur ? ». Enregistrer ferme sans demander.
+- **Glisser pour fermer désactivé** (`enableDrag: false`) sur le formulaire de soin : dans Flutter, le glisser d'une bottom sheet modale appelle `Navigator.pop` et contourne `PopScope`, donc il ne peut pas être confirmé. On ferme en tapant hors de la sheet.
 - Hors périmètre : pause, notifications, modification de l'heure de fin du soin, partage entre parents.
 
 ## Domaine
@@ -29,7 +30,7 @@ Le minuteur n'est jamais obligatoire : il n'influence ni le brouillon, ni la val
   - `BottleFeeding(Duration remaining, double progress)` ;
   - `BottleUpright(Duration remaining, double progress)` ;
   - `BottleTimerDone()`.
-- `BottleTimerPhase bottleTimerPhase({required DateTime startedAt, required DateTime now})` :
+- `BottleTimerPhase computeBottleTimerPhase({required DateTime startedAt, required DateTime now})` :
   - `elapsed = now - startedAt`, ramené à zéro s'il est négatif ;
   - si `elapsed < 30 min` : `BottleFeeding(30 min - elapsed, elapsed / 30 min)` ;
   - si `elapsed < 42 min` : `BottleUpright(42 min - elapsed, (elapsed - 30 min) / 12 min)` ;
@@ -47,11 +48,15 @@ La phase se calcule toujours à partir de `startedAt` et de l'horloge. Le décom
 - `start()` : `state = ref.read(clockProvider).now()` ;
 - `reset()` : `state = null`.
 
-Il est `ref.watch`é par `EventFormSheet`, donc détruit à la fermeture de la sheet.
+Il est `ref.watch`é (via `bottleTimerPhaseProvider`) par `EventFormSheet`, donc détruit à la fermeture de la sheet.
+
+### `bottleTimerPhaseProvider`
+
+`@riverpod BottleTimerPhase?` (autoDispose) : `null` au repos ; sinon il combine `startedAt` et le dernier tick (ou `clock.now()` avant le premier) via `computeBottleTimerPhase`. Le ticker n'est watché que si un minuteur est lancé.
 
 ### `bottleTimerTickProvider`
 
-`@riverpod Stream<DateTime>` (autoDispose) : il émet `clock.now()` immédiatement puis chaque seconde. Il n'est watché que par la section minuteur quand un minuteur tourne.
+`@riverpod Stream<DateTime>` (autoDispose) : il émet `clock.now()` immédiatement puis chaque seconde. Il n'est watché que par `bottleTimerPhaseProvider` quand un minuteur est lancé.
 
 ### `BottleTimerSection`
 
