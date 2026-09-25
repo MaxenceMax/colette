@@ -15,7 +15,8 @@ T _$identity<T>(T value) => value;
 /// @nodoc
 mixin _$ProjectedBottle {
 
-/// Heure centrale de la prise.
+/// Heure supposée de la prise : le centre du plan pour le prochain
+/// biberon, le début de la fourchette pour les suivants.
  DateTime get at; DateTime get windowStart; DateTime get windowEnd; int get suggestedMl;
 /// Create a copy of ProjectedBottle
 /// with the given fields replaced by the non-null parameter values.
@@ -219,7 +220,8 @@ class _ProjectedBottle implements ProjectedBottle {
   const _ProjectedBottle({required this.at, required this.windowStart, required this.windowEnd, required this.suggestedMl});
   
 
-/// Heure centrale de la prise.
+/// Heure supposée de la prise : le centre du plan pour le prochain
+/// biberon, le début de la fourchette pour les suivants.
 @override final  DateTime at;
 @override final  DateTime windowStart;
 @override final  DateTime windowEnd;

@@ -5,9 +5,10 @@ import 'package:colette/features/dashboard/domain/use_cases/compute_feeding_plan
 
 /// Projette les biberons des 24 prochaines heures à partir du plan du jour.
 ///
-/// Le premier est le prochain biberon du plan ; les suivants partent de
-/// `max(nextBottleAt, now)` et sont espacés de l'intervalle. Les prises du
-/// lendemain suivent la cible de demain répartie sur `feedsPerDay`.
+/// Le premier est le prochain biberon du plan. Les suivants supposent chaque
+/// biberon donné au plus tôt : la fourchette suivante (2 h 30 – 5 h) part du
+/// début de la précédente, la première de `max(windowStart, now)`. Les prises
+/// du lendemain suivent la cible de demain répartie sur `feedsPerDay`.
 class ProjectBottleSchedule {
   const ProjectBottleSchedule();
 
@@ -20,7 +21,6 @@ class ProjectBottleSchedule {
     required DateTime now,
     int? dailyTargetMlOverride,
   }) {
-    final interval = ComputeFeedingPlan.intervalFor(plan.feedsPerDay);
     final end = now.add(horizon);
     final tomorrowMl = _tomorrowSuggestedMl(
       feedsPerDay: plan.feedsPerDay,
@@ -29,7 +29,7 @@ class ProjectBottleSchedule {
       now: now,
       dailyTargetMlOverride: dailyTargetMlOverride,
     );
-    final anchor = plan.nextBottleAt.isAfter(now) ? plan.nextBottleAt : now;
+    final firstGiven = plan.windowStart.isAfter(now) ? plan.windowStart : now;
     final bottles = [
       ProjectedBottle(
         at: plan.nextBottleAt,
@@ -39,19 +39,16 @@ class ProjectBottleSchedule {
       ),
     ];
     for (
-      var at = anchor.add(interval);
-      at.isBefore(end);
-      at = at.add(interval)
+      var (windowStart, windowEnd) = ComputeFeedingPlan.windowAfter(firstGiven);
+      windowStart.isBefore(end);
+      (windowStart, windowEnd) = ComputeFeedingPlan.windowAfter(windowStart)
     ) {
-      final (windowStart, windowEnd) = ComputeFeedingPlan.windowAfter(
-        at.subtract(interval),
-      );
       bottles.add(
         ProjectedBottle(
-          at: at,
+          at: windowStart,
           windowStart: windowStart,
           windowEnd: windowEnd,
-          suggestedMl: at.dateOnly == now.dateOnly
+          suggestedMl: windowStart.dateOnly == now.dateOnly
               ? plan.suggestedMl
               : tomorrowMl,
         ),
