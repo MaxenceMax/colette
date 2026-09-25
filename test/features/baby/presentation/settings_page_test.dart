@@ -14,9 +14,7 @@ import '../../../helpers/in_memory_household_local_store.dart';
 import '../../../helpers/pump_app.dart';
 
 void main() {
-  testWidgets('affiche le profil, les mesures et le code foyer', (
-    tester,
-  ) async {
+  testWidgets('affiche le profil et le code foyer', (tester) async {
     SharedPreferences.setMockInitialValues({});
     final prefs = await SharedPreferences.getInstance();
     await pumpApp(
@@ -47,8 +45,8 @@ void main() {
       ],
     );
     expect(find.text('Colette'), findsOneWidget);
-    expect(find.text('3600 g'), findsOneWidget);
-    expect(find.text('Mesures'), findsOneWidget);
+    // La liste des mesures est retirée des réglages pour le moment.
+    expect(find.text('3600 g'), findsNothing);
     expect(find.text('Soins attendus'), findsOneWidget);
     // La section Couches (et, plus bas, la section Foyer) est sous la ligne
     // de flottaison de la taille de test par défaut (800x600) : la ListView

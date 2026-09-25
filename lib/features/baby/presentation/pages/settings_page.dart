@@ -4,7 +4,6 @@ import 'package:colette/features/baby/presentation/providers/baby_providers.dart
 import 'package:colette/features/baby/presentation/providers/baby_settings_controller.dart';
 import 'package:colette/features/baby/presentation/widgets/baby_section.dart';
 import 'package:colette/features/baby/presentation/widgets/care_settings_section.dart';
-import 'package:colette/features/baby/presentation/widgets/measurements_section.dart';
 import 'package:colette/features/diapers/presentation/providers/diaper_stock_controller.dart';
 import 'package:colette/features/diapers/presentation/widgets/diaper_stock_section.dart';
 import 'package:colette/features/health/presentation/widgets/calendar_settings_section.dart';
@@ -56,7 +55,6 @@ class SettingsPage extends ConsumerWidget {
             SectionHeader(title: s.settingsBabySection),
             BabySection(profile: profile),
             SectionHeader(title: s.settingsMeasurementsSection),
-            const MeasurementsSection(),
             SectionHeader(title: s.settingsCareSection),
             CareSettingsSection(profile: profile),
             SectionHeader(title: s.settingsSleepSection),

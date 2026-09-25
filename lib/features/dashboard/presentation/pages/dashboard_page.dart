@@ -10,7 +10,6 @@ import 'package:colette/features/diapers/presentation/widgets/diaper_stock_alert
 import 'package:colette/features/documents/presentation/widgets/documents_card.dart';
 import 'package:colette/features/events/presentation/widgets/event_form_sheet.dart';
 import 'package:colette/features/health/presentation/widgets/appointment_card.dart';
-import 'package:colette/features/sleep/presentation/widgets/sleep_card.dart';
 import 'package:colette/l10n/generated/app_localizations.dart';
 import 'package:colette/shared/ui/widgets/section_header.dart';
 import 'package:flutter/material.dart';
@@ -58,10 +57,11 @@ class _DashboardPageState extends ConsumerState<DashboardPage> {
             SectionHeader(title: s.todoTitle),
             const TodoSection(),
             AppSpacing.md.verticalSpace,
-            const SleepCard(),
-            const AppointmentCard(),
-            AppSpacing.md.verticalSpace,
+            // à remettre plus tard
+            // const SleepCard(),
             const DayCountersRow(),
+            AppSpacing.md.verticalSpace,
+            const AppointmentCard(),
             AppSpacing.md.verticalSpace,
             const WeightCard(),
             AppSpacing.md.verticalSpace,

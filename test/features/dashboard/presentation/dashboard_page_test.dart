@@ -119,8 +119,6 @@ void main() {
         find.text('2 biberons · 150 ml sur les dernières 24 h'),
         findsOneWidget,
       );
-      expect(find.text('Sommeil'), findsOneWidget);
-      expect(find.text('Aucun sommeil noté'), findsOneWidget);
       await tester.scrollUntilVisible(find.text('Soin des yeux'), 200);
       expect(find.text('Bain'), findsOneWidget);
       await tester.scrollUntilVisible(find.text('couches'), 200);
@@ -129,13 +127,11 @@ void main() {
     },
   );
 
-  testWidgets('affiche la carte Sommeil sous le prochain biberon', (
-    tester,
-  ) async {
+  // La carte Sommeil est retirée du tableau de bord pour le moment.
+  testWidgets('n\'affiche pas la carte Sommeil', (tester) async {
     final repo = MockEventsRepository();
     await pumpApp(tester, const DashboardPage(), overrides: overridesFor(repo));
-    expect(find.text('Sommeil'), findsOneWidget);
-    expect(find.text('Aucun sommeil noté'), findsOneWidget);
+    expect(find.text('Aucun sommeil noté'), findsNothing);
   });
 
   testWidgets('affiche la tuile Rendez-vous même sans frise médicale', (
