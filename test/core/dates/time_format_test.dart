@@ -21,4 +21,9 @@ void main() {
   test('formatDayMonth : « 5 nov. »', () {
     expect(formatDayMonth(DateTime(2026, 11, 5)), '5 nov.');
   });
+
+  test('formatCountdown : « 29:05 »', () {
+    expect(formatCountdown(const Duration(minutes: 29, seconds: 5)), '29:05');
+    expect(formatCountdown(Duration.zero), '00:00');
+  });
 }

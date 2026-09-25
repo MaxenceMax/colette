@@ -30,3 +30,10 @@ String formatShortMonth(DateTime day) => DateFormat('MMM', 'fr').format(day);
 
 /// « 5 nov. ».
 String formatDayMonth(DateTime day) => DateFormat('d MMM', 'fr').format(day);
+
+/// « 29:05 ».
+String formatCountdown(Duration duration) {
+  final minutes = duration.inMinutes.toString().padLeft(2, '0');
+  final seconds = (duration.inSeconds % 60).toString().padLeft(2, '0');
+  return '$minutes:$seconds';
+}
