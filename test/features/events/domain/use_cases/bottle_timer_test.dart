@@ -51,10 +51,7 @@ void main() {
   });
 
   test('à 41:59 : encore verticale', () {
-    expect(
-      at(const Duration(minutes: 41, seconds: 59)),
-      isA<BottleUpright>(),
-    );
+    expect(at(const Duration(minutes: 41, seconds: 59)), isA<BottleUpright>());
   });
 
   test('à 42:00 : terminé', () {

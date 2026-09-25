@@ -2,11 +2,12 @@ import 'package:colette/core/theme/app_colors.dart';
 import 'package:colette/core/theme/design_tokens.dart';
 import 'package:colette/core/theme/text_styles.dart';
 import 'package:colette/features/events/domain/use_cases/validate_care_event.dart';
+import 'package:colette/features/events/presentation/widgets/bottle_timer_section.dart';
 import 'package:colette/l10n/generated/app_localizations.dart';
 import 'package:colette/shared/ui/widgets/int_stepper_row.dart';
 import 'package:flutter/material.dart';
 
-/// Interrupteur « Biberon » + stepper de 10 ml + raccourcis.
+/// Interrupteur « Biberon » + stepper de 10 ml + raccourcis + minuteur.
 class BottleField extends StatelessWidget {
   const BottleField({
     super.key,
@@ -68,6 +69,8 @@ class BottleField extends StatelessWidget {
                 ),
             ],
           ),
+          AppSpacing.sm.verticalSpace,
+          const BottleTimerSection(),
         ],
       ],
     );
