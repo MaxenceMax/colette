@@ -46,7 +46,8 @@ La phase se calcule toujours à partir de `startedAt` et de l'horloge. Le décom
 
 - l'état est un `DateTime?` (`startedAt`), `null` au repos ;
 - `start()` : `state = ref.read(clockProvider).now()` ;
-- `reset()` : `state = null`.
+- `reset()` : `state = null` ;
+- `skipToUpright()` : `state = now - bottleFeedingDuration` (sans effet au repos).
 
 Il est `ref.watch`é (via `bottleTimerPhaseProvider`) par `EventFormSheet`, donc détruit à la fermeture de la sheet.
 
@@ -68,6 +69,7 @@ Il est `ref.watch`é (via `bottleTimerPhaseProvider`) par `EventFormSheet`, donc
   - décompte `mm:ss` ;
   - `LinearProgressIndicator` de la phase, couleur `AppColors.categoryFeeding` ;
   - bouton « Arrêter » qui appelle `reset()` ;
+  - en phase Biberon seulement, bouton « Biberon terminé » qui appelle `skipToUpright()` : l'heure de départ est recalée à `now - 30 min`, la verticale démarre donc avec 12 min pleines ;
 - **terminé** : « Minuteur terminé » et bouton « Relancer » qui appelle `start()`.
 
 Un `ref.listen` sur la phase dérivée déclenche `HapticFeedback.mediumImpact()` à chaque transition (Biberon → Verticale, Verticale → Terminé).

@@ -45,7 +45,7 @@ final class BottleTimerControllerProvider
 }
 
 String _$bottleTimerControllerHash() =>
-    r'b9cffceead41b71c88b8a7cdf4840fdaefebb577';
+    r'f589cade9140e81c63c5ada7d4a62d906f99d0b7';
 
 /// Heure de lancement du minuteur de biberon ; `null` au repos.
 

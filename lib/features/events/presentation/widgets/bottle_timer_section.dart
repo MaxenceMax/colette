@@ -26,6 +26,8 @@ class BottleTimerSection extends ConsumerWidget {
     final phase = ref.watch(bottleTimerPhaseProvider);
     void start() => ref.read(bottleTimerControllerProvider.notifier).start();
     void stop() => ref.read(bottleTimerControllerProvider.notifier).reset();
+    void skip() =>
+        ref.read(bottleTimerControllerProvider.notifier).skipToUpright();
     return switch (phase) {
       null => Align(
         alignment: .centerLeft,
@@ -40,6 +42,7 @@ class BottleTimerSection extends ConsumerWidget {
         remaining: remaining,
         progress: progress,
         onStop: stop,
+        onSkip: skip,
       ),
       BottleUpright(:final remaining, :final progress) => _RunningPhase(
         label: s.bottleTimerUpright,
@@ -73,6 +76,7 @@ class _RunningPhase extends StatelessWidget {
     required this.remaining,
     required this.progress,
     required this.onStop,
+    this.onSkip,
   });
 
   final String label;
@@ -80,8 +84,12 @@ class _RunningPhase extends StatelessWidget {
   final double progress;
   final VoidCallback onStop;
 
+  /// Passe à la phase suivante ; `null` quand il n'y en a pas.
+  final VoidCallback? onSkip;
+
   @override
   Widget build(BuildContext context) {
+    final s = S.of(context);
     final styles = Theme.of(context).coletteTextStyles;
     final color = context.appColor(AppColors.categoryFeeding);
     return Column(
@@ -93,16 +101,20 @@ class _RunningPhase extends StatelessWidget {
             AppSpacing.sm.horizontalSpace,
             Expanded(child: Text(label, style: styles.bodyMedium)),
             Text(formatCountdown(remaining), style: styles.numberMedium),
-            AppSpacing.sm.horizontalSpace,
-            TextButton(
-              onPressed: onStop,
-              child: Text(S.of(context).bottleTimerStop),
-            ),
           ],
         ),
+        AppSpacing.sm.verticalSpace,
         ClipRRect(
           borderRadius: AppRadius.round.circular,
           child: LinearProgressIndicator(value: progress, color: color),
+        ),
+        Row(
+          mainAxisAlignment: .end,
+          children: [
+            if (onSkip case final onSkip?)
+              TextButton(onPressed: onSkip, child: Text(s.bottleTimerSkip)),
+            TextButton(onPressed: onStop, child: Text(s.bottleTimerStop)),
+          ],
         ),
       ],
     );

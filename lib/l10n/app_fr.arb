@@ -567,6 +567,7 @@
   "bottleTimerStart": "Lancer le minuteur (30 + 12 min)",
   "bottleTimerFeeding": "Biberon",
   "bottleTimerUpright": "À la verticale",
+  "bottleTimerSkip": "Biberon terminé",
   "bottleTimerDone": "Minuteur terminé",
   "bottleTimerStop": "Arrêter",
   "bottleTimerRestart": "Relancer",
