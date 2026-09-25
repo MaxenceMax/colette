@@ -49,4 +49,23 @@ void main() {
       ..reset();
     expect(container.read(bottleTimerPhaseProvider), isNull);
   });
+
+  test('skipToUpright passe à 12 min de verticale depuis maintenant', () {
+    container.read(bottleTimerControllerProvider.notifier)
+      ..start()
+      ..skipToUpright();
+    expect(
+      container.read(bottleTimerPhaseProvider),
+      isA<BottleUpright>().having(
+        (p) => p.remaining,
+        'remaining',
+        const Duration(minutes: 12),
+      ),
+    );
+  });
+
+  test('skipToUpright ne fait rien au repos', () {
+    container.read(bottleTimerControllerProvider.notifier).skipToUpright();
+    expect(container.read(bottleTimerControllerProvider), isNull);
+  });
 }

@@ -13,6 +13,12 @@ class BottleTimerController extends _$BottleTimerController {
   /// Lance (ou relance) le minuteur maintenant.
   void start() => state = ref.read(clockProvider).now();
 
+  /// Termine le biberon : la verticale démarre maintenant.
+  void skipToUpright() {
+    if (state == null) return;
+    state = ref.read(clockProvider).now().subtract(bottleFeedingDuration);
+  }
+
   /// Arrête le minuteur.
   void reset() => state = null;
 }

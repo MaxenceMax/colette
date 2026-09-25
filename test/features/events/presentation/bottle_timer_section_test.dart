@@ -62,4 +62,17 @@ void main() {
     await tester.pump();
     expect(find.text('Lancer le minuteur (30 + 12 min)'), findsOneWidget);
   });
+
+  testWidgets('Biberon terminé passe directement à la verticale', (
+    tester,
+  ) async {
+    await pumpSection(tester);
+    await tester.tap(find.text('Lancer le minuteur (30 + 12 min)'));
+    await tester.pump();
+    await tester.tap(find.text('Biberon terminé'));
+    await tester.pump();
+    expect(find.text('À la verticale'), findsOneWidget);
+    expect(find.text('12:00'), findsOneWidget);
+    expect(find.text('Biberon terminé'), findsNothing);
+  });
 }
