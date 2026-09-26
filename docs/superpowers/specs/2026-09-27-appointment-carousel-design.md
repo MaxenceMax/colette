@@ -43,10 +43,10 @@ List<MedicalTimelineItem> get nextAppointments =>
 - Widget public générique `AppointmentCarousel({required List<Widget> pages})`, qui contient aussi les points (`_PageDots`, section 3.3). Le garder à part permet de laisser `next_appointment_card.dart` sous 300 lignes.
 - `StatefulWidget` qui détient un `PageController`, disposé dans `dispose()`, et l'index de la page courante. C'est un état d'UI pur, sans logique métier.
 - **Hauteur sans valeur en dur** : un `Stack` contient
-  1. chaque carte dans `Visibility(visible: false, maintainSize: true, maintainAnimation: true, maintainState: true)`, ce qui donne au `Stack` la hauteur de la plus haute carte ;
+  1. un `IndexedStack(index: null)` qui contient toutes les cartes : il prend la taille de la plus grande, sans rien peindre, sans recevoir de tap, sans sémantique, et les finders de test l'ignorent ;
   2. un `Positioned.fill` qui contient `PageView.builder` (viewport pleine largeur).
 
-  La hauteur reste stable pendant le glissement et suit la taille de texte d'iOS. Les cartes cachées sont exclues de la sémantique (`ExcludeSemantics`).
+  La hauteur reste stable pendant le glissement et suit la taille de texte d'iOS.
 - Chaque page, visible comme cachée, est enveloppée dans le même padding horizontal `AppSpacing.xs`. Ce padding sépare les cartes pendant le glissement, et la mesure se fait à la largeur réelle d'affichage.
 - Si la liste change (un RDV passe, un autre est ajouté) et que l'index courant dépasse la nouvelle longueur, `didUpdateWidget` ramène à la dernière page valide.
 
