@@ -8,15 +8,15 @@ part of 'bottle_timer_controller.dart';
 
 // GENERATED CODE - DO NOT MODIFY BY HAND
 // ignore_for_file: type=lint, type=warning
-/// Heure de lancement du minuteur de biberon ; `null` au repos.
+/// Minuteur de biberon lancé ; `null` au repos.
 
 @ProviderFor(BottleTimerController)
 final bottleTimerControllerProvider = BottleTimerControllerProvider._();
 
-/// Heure de lancement du minuteur de biberon ; `null` au repos.
+/// Minuteur de biberon lancé ; `null` au repos.
 final class BottleTimerControllerProvider
-    extends $NotifierProvider<BottleTimerController, DateTime?> {
-  /// Heure de lancement du minuteur de biberon ; `null` au repos.
+    extends $NotifierProvider<BottleTimerController, BottleTimerRun?> {
+  /// Minuteur de biberon lancé ; `null` au repos.
   BottleTimerControllerProvider._()
     : super(
         from: null,
@@ -36,30 +36,30 @@ final class BottleTimerControllerProvider
   BottleTimerController create() => BottleTimerController();
 
   /// {@macro riverpod.override_with_value}
-  Override overrideWithValue(DateTime? value) {
+  Override overrideWithValue(BottleTimerRun? value) {
     return $ProviderOverride(
       origin: this,
-      providerOverride: $SyncValueProvider<DateTime?>(value),
+      providerOverride: $SyncValueProvider<BottleTimerRun?>(value),
     );
   }
 }
 
 String _$bottleTimerControllerHash() =>
-    r'f589cade9140e81c63c5ada7d4a62d906f99d0b7';
+    r'f8e804b449a1e9bf07f6f5947d23a758af5d5019';
 
-/// Heure de lancement du minuteur de biberon ; `null` au repos.
+/// Minuteur de biberon lancé ; `null` au repos.
 
-abstract class _$BottleTimerController extends $Notifier<DateTime?> {
-  DateTime? build();
+abstract class _$BottleTimerController extends $Notifier<BottleTimerRun?> {
+  BottleTimerRun? build();
   @$mustCallSuper
   @override
   WhenComplete runBuild() {
-    final ref = this.ref as $Ref<DateTime?, DateTime?>;
+    final ref = this.ref as $Ref<BottleTimerRun?, BottleTimerRun?>;
     final element =
         ref.element
             as $ClassProviderElement<
-              AnyNotifier<DateTime?, DateTime?>,
-              DateTime?,
+              AnyNotifier<BottleTimerRun?, BottleTimerRun?>,
+              BottleTimerRun?,
               Object?,
               Object?
             >;
@@ -156,4 +156,54 @@ final class BottleTimerPhaseProvider
   }
 }
 
-String _$bottleTimerPhaseHash() => r'5fc68f9d6cef6a8f4df002a0935c03c082c19bca';
+String _$bottleTimerPhaseHash() => r'fc630676cd665425fb7af29c7fbff18b64105375';
+
+/// Écran maintenu allumé, sons et vibrations aux transitions du minuteur.
+/// Relâche l'écran à sa destruction (fermeture du formulaire).
+
+@ProviderFor(bottleTimerEffects)
+final bottleTimerEffectsProvider = BottleTimerEffectsProvider._();
+
+/// Écran maintenu allumé, sons et vibrations aux transitions du minuteur.
+/// Relâche l'écran à sa destruction (fermeture du formulaire).
+
+final class BottleTimerEffectsProvider
+    extends $FunctionalProvider<void, void, void>
+    with $Provider<void> {
+  /// Écran maintenu allumé, sons et vibrations aux transitions du minuteur.
+  /// Relâche l'écran à sa destruction (fermeture du formulaire).
+  BottleTimerEffectsProvider._()
+    : super(
+        from: null,
+        argument: null,
+        retry: null,
+        name: r'bottleTimerEffectsProvider',
+        isAutoDispose: true,
+        dependencies: null,
+        $allTransitiveDependencies: null,
+      );
+
+  @override
+  String debugGetCreateSourceHash() => _$bottleTimerEffectsHash();
+
+  @$internal
+  @override
+  $ProviderElement<void> $createElement($ProviderPointer pointer) =>
+      $ProviderElement(pointer);
+
+  @override
+  void create(Ref ref) {
+    return bottleTimerEffects(ref);
+  }
+
+  /// {@macro riverpod.override_with_value}
+  Override overrideWithValue(void value) {
+    return $ProviderOverride(
+      origin: this,
+      providerOverride: $SyncValueProvider<void>(value),
+    );
+  }
+}
+
+String _$bottleTimerEffectsHash() =>
+    r'c5b22fa61f72abc88c06f64e1e530311b15e810a';
