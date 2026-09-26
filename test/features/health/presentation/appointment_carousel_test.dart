@@ -17,9 +17,7 @@ void main() {
         ),
       );
 
-  testWidgets('affiche la première page et un point par page', (
-    tester,
-  ) async {
+  testWidgets('affiche la première page et un point par page', (tester) async {
     await pumpCarousel(tester, ['A', 'B', 'C']);
     expect(find.text('A'), findsOneWidget);
     expect(find.text('B'), findsNothing);
