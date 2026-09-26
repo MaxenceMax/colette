@@ -5,15 +5,17 @@ import 'package:colette/core/theme/design_tokens.dart';
 import 'package:colette/core/theme/text_styles.dart';
 import 'package:colette/features/health/domain/entities/appointment_proximity.dart';
 import 'package:colette/features/health/domain/entities/medical_timeline.dart';
+import 'package:colette/features/health/domain/use_cases/compute_appointment_proximity.dart';
 import 'package:colette/features/health/presentation/providers/health_providers.dart';
+import 'package:colette/features/health/presentation/widgets/appointment_carousel.dart';
 import 'package:colette/features/health/presentation/widgets/timeline_item_ui.dart';
 import 'package:colette/l10n/generated/app_localizations.dart';
 import 'package:colette/shared/ui/widgets/colette_card_surface.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-/// Carte « Prochain rendez-vous » de l'onglet Santé : le RDV programmé le
-/// plus proche en évidence, ou « Pas de rendez-vous programmé ».
+/// Carte « Prochain rendez-vous » de l'onglet Santé : les prochains RDV
+/// programmés (jusqu'à 5, en carrousel), ou « Pas de rendez-vous programmé ».
 class NextAppointmentCard extends ConsumerWidget {
   const NextAppointmentCard({super.key});
 
@@ -22,10 +24,20 @@ class NextAppointmentCard extends ConsumerWidget {
     final s = S.of(context);
     final styles = Theme.of(context).coletteTextStyles;
     final timeline = ref.watch(medicalTimelineProvider);
-    final proximity = ref.watch(nextAppointmentProximityProvider);
+    final today = ref.watch(todayProvider);
     if (timeline == null) return const SizedBox.shrink();
-    final item = timeline.nextAppointment;
-    final appointmentAt = item?.appointmentAt;
+    final bodies = [
+      for (final item in timeline.nextAppointments)
+        if (item.appointmentAt case final at?)
+          _AppointmentBody(
+            item: item,
+            appointmentAt: at,
+            proximity: const ComputeAppointmentProximity()(
+              appointmentAt: at,
+              today: today,
+            ),
+          ),
+    ];
     return Column(
       crossAxisAlignment: .stretch,
       spacing: AppSpacing.sm.value,
@@ -39,14 +51,11 @@ class NextAppointmentCard extends ConsumerWidget {
             ),
           ),
         ),
-        if (item == null || proximity == null || appointmentAt == null)
-          const _EmptyCard()
-        else
-          _AppointmentBody(
-            item: item,
-            appointmentAt: appointmentAt,
-            proximity: proximity,
-          ),
+        switch (bodies) {
+          [] => const _EmptyCard(),
+          [final only] => only,
+          _ => AppointmentCarousel(pages: bodies),
+        },
       ],
     );
   }

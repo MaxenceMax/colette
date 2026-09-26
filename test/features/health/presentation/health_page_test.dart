@@ -79,8 +79,10 @@ void main() {
       expect(find.text('Prochain rendez-vous'), findsOneWidget);
       // Le RDV libre du 25 octobre précède l'étape du 3 novembre.
       expect(find.text('dim. 25 oct., 15h00'), findsOneWidget);
-      expect(find.text('Ostéopathe'), findsOneWidget);
-      expect(find.text('Aussi programmés'), findsOneWidget);
+      // Le premier RDV est dans le carrousel et dans la liste complète.
+      expect(find.byType(PageView), findsOneWidget);
+      expect(find.text('Ostéopathe'), findsNWidgets(2));
+      expect(find.text('Rendez-vous programmés'), findsOneWidget);
       expect(find.text('10h00 · Dr Martin'), findsOneWidget);
       expect(find.text('RDV passé, à confirmer'), findsOneWidget);
       expect(find.text('Examen du 1er mois'), findsOneWidget);
@@ -92,13 +94,24 @@ void main() {
       expect(find.text('Examen et vaccins des 4 mois'), findsNothing);
 
       double top(String text) => tester.getTopLeft(find.text(text)).dy;
-      expect(top('Prochain rendez-vous'), lessThan(top('Aussi programmés')));
-      expect(top('Aussi programmés'), lessThan(top('RDV passé, à confirmer')));
+      expect(
+        top('Prochain rendez-vous'),
+        lessThan(top('Rendez-vous programmés')),
+      );
+      expect(
+        top('Rendez-vous programmés'),
+        lessThan(top('RDV passé, à confirmer')),
+      );
       expect(top('RDV passé, à confirmer'), lessThan(top('À programmer')));
       expect(top('À programmer'), lessThan(top('À venir (2)')));
       expect(top('À venir (2)'), lessThan(top('Faites (1)')));
 
-      await tester.scrollUntilVisible(find.text('À venir (2)'), 200);
+      await tester.scrollUntilVisible(
+        find.text('À venir (2)'),
+        200,
+        // La page contient aussi le PageView horizontal du carrousel.
+        scrollable: find.byType(Scrollable).first,
+      );
       await tester.tap(find.text('À venir (2)'));
       await tester.pumpAndSettle();
       expect(find.text('Examen et vaccins des 4 mois'), findsOneWidget);
@@ -115,7 +128,7 @@ void main() {
         ),
       );
       expect(find.text('Pas de rendez-vous programmé'), findsOneWidget);
-      expect(find.text('Aussi programmés'), findsNothing);
+      expect(find.text('Rendez-vous programmés'), findsNothing);
       expect(find.text('RDV passé, à confirmer'), findsNothing);
       expect(find.text('À programmer'), findsOneWidget);
     },

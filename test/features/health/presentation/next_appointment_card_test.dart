@@ -144,4 +144,59 @@ void main() {
     await tester.pumpAndSettle();
     expect(find.text('Rendez-vous'), findsWidgets);
   });
+
+  AppointmentItem rdv(String title, DateTime at) => AppointmentItem(
+    makeAppointment(id: title, title: title, appointmentAt: at),
+    MedicalStageStatus.scheduled,
+  );
+
+  testWidgets('un seul RDV : pas de carrousel', (tester) async {
+    await pumpCard(
+      tester,
+      MedicalTimeline(
+        entries: [],
+        appointments: [rdv('ORL', DateTime(2026, 10, 25, 8))],
+      ),
+    );
+    expect(find.byType(PageView), findsNothing);
+  });
+
+  testWidgets('plusieurs RDV : carrousel, chaque carte avec sa proximité', (
+    tester,
+  ) async {
+    await pumpCard(
+      tester,
+      MedicalTimeline(
+        entries: [],
+        appointments: [
+          rdv('ORL', DateTime(2026, 10, 20, 15)),
+          rdv('Pédiatre', DateTime(2026, 10, 30, 9)),
+          rdv('Ostéo', DateTime(2026, 11, 5, 9)),
+        ],
+      ),
+    );
+    expect(find.byType(PageView), findsOneWidget);
+    expect(find.text('Aujourd\'hui à 15h00'), findsOneWidget);
+    expect(find.bySemanticsLabel('Rendez-vous 1 sur 3'), findsOneWidget);
+    await tester.fling(find.text('ORL'), const Offset(-300, 0), 1000);
+    await tester.pumpAndSettle();
+    expect(find.text('Pédiatre'), findsOneWidget);
+    expect(find.text('RDV libre'), findsWidgets);
+    expect(find.text('dans 10 jours'), findsOneWidget);
+    expect(find.bySemanticsLabel('Rendez-vous 2 sur 3'), findsOneWidget);
+  });
+
+  testWidgets('plus de 5 RDV : 5 cartes seulement', (tester) async {
+    await pumpCard(
+      tester,
+      MedicalTimeline(
+        entries: [],
+        appointments: [
+          for (var d = 21; d <= 27; d++)
+            rdv('RDV $d', DateTime(2026, 10, d, 9)),
+        ],
+      ),
+    );
+    expect(find.bySemanticsLabel('Rendez-vous 1 sur 5'), findsOneWidget);
+  });
 }
