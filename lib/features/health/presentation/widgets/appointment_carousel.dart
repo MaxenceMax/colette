@@ -78,6 +78,7 @@ class _PageDots extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Semantics(
+      container: true,
       label: S.of(context).healthAppointmentPosition(index + 1, count),
       child: Row(
         mainAxisAlignment: .center,
