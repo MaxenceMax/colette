@@ -130,6 +130,25 @@ void main() {
       );
     });
 
+    test('nextAppointments : les 5 premiers programmés, datés et triés', () {
+      final many = MedicalTimeline(
+        entries: [entry(MedicalStageId.m2, MedicalStageStatus.due)],
+        appointments: [
+          for (var d = 7; d >= 1; d--)
+            custom('rdv$d', DateTime(2026, 10, d, 9), .scheduled),
+          custom('fait', DateTime(2026, 10, 1, 8), .done),
+        ],
+      );
+      expect(
+        [
+          for (final i in many.nextAppointments)
+            (i as AppointmentItem).appointment.id,
+        ],
+        ['rdv1', 'rdv2', 'rdv3', 'rdv4', 'rdv5'],
+      );
+      expect(const MedicalTimeline(entries: []).nextAppointments, isEmpty);
+    });
+
     test('nextAppointment : le premier programmé, ou null', () {
       expect(
         timeline.nextAppointment?.appointmentAt,

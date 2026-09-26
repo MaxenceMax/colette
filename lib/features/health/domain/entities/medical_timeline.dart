@@ -102,6 +102,14 @@ abstract class MedicalTimeline with _$MedicalTimeline {
   /// Prochain RDV programmé, ou `null`.
   MedicalTimelineItem? get nextAppointment => scheduled.firstOrNull;
 
+  /// Nombre de RDV mis en avant dans le carrousel de l'onglet Santé.
+  static const nextAppointmentsLimit = 5;
+
+  /// Les [nextAppointmentsLimit] prochains RDV programmés, du plus proche au
+  /// plus lointain.
+  List<MedicalTimelineItem> get nextAppointments =>
+      scheduled.take(nextAppointmentsLimit).toList();
+
   /// RDV passés pas encore marqués faits, du plus ancien au plus récent.
   List<MedicalTimelineItem> get awaitingConfirmation =>
       _byAppointment(_withStatus(MedicalStageStatus.appointmentPassed));
