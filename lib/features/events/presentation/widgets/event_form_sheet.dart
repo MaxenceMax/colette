@@ -113,6 +113,21 @@ class _EventFormSheetState extends ConsumerState<EventFormSheet> {
     if (saved != null && mounted) Navigator.of(context).pop(true);
   }
 
+  /// Fin du minuteur : enregistre le soin aux heures du minuteur.
+  Future<void> _autoSave() async {
+    final run = ref.read(bottleTimerControllerProvider);
+    if (run == null || ref.read(eventFormControllerProvider) is AsyncLoading) {
+      return;
+    }
+    setState(
+      () => _draft = _draft.copyWith(
+        startAt: run.startedAt,
+        endAt: run.feedingEndsAt,
+      ),
+    );
+    await _save();
+  }
+
   Future<void> _confirmClose() async {
     final s = S.of(context);
     final stop = await showDialog<bool>(
@@ -148,6 +163,11 @@ class _EventFormSheetState extends ConsumerState<EventFormSheet> {
       }
     });
     final isLoading = ref.watch(eventFormControllerProvider) is AsyncLoading;
+    ref
+      ..watch(bottleTimerEffectsProvider)
+      ..listen(bottleTimerPhaseProvider, (previous, next) {
+        if (bottleTimerTransition(previous, next) == .finished) _autoSave();
+      });
     final timerPhase = ref.watch(bottleTimerPhaseProvider);
     final timerRunning =
         timerPhase is BottleFeeding || timerPhase is BottleUpright;

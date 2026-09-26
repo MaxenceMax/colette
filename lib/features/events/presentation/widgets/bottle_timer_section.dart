@@ -6,7 +6,6 @@ import 'package:colette/features/events/domain/use_cases/bottle_timer.dart';
 import 'package:colette/features/events/presentation/providers/bottle_timer_controller.dart';
 import 'package:colette/l10n/generated/app_localizations.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 /// Minuteur facultatif : 30 min de biberon puis 12 min à la verticale.
@@ -16,13 +15,6 @@ class BottleTimerSection extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final s = S.of(context);
-    ref.listen(bottleTimerPhaseProvider, (previous, next) {
-      if (previous != null &&
-          next != null &&
-          previous.runtimeType != next.runtimeType) {
-        HapticFeedback.mediumImpact();
-      }
-    });
     final phase = ref.watch(bottleTimerPhaseProvider);
     void start() => ref.read(bottleTimerControllerProvider.notifier).start();
     void stop() => ref.read(bottleTimerControllerProvider.notifier).reset();
