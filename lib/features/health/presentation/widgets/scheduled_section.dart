@@ -7,8 +7,9 @@ import 'package:colette/shared/ui/widgets/colette_card_surface.dart';
 import 'package:colette/shared/ui/widgets/section_header.dart';
 import 'package:flutter/material.dart';
 
-/// Section « Aussi programmés » : les RDV programmés après le premier
-/// (déjà en carte « Prochain rendez-vous »). Rien s'il y en a moins de deux.
+/// Section « Rendez-vous programmés » : tous les RDV programmés, du plus
+/// proche au plus lointain. Rien s'il y en a moins de deux (la carte
+/// « Prochain rendez-vous » suffit).
 class ScheduledSection extends StatelessWidget {
   const ScheduledSection({super.key, required this.items});
 
@@ -18,7 +19,6 @@ class ScheduledSection extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     if (items.length < 2) return const SizedBox.shrink();
-    final rest = items.skip(1);
     return Column(
       crossAxisAlignment: .stretch,
       children: [
@@ -27,7 +27,7 @@ class ScheduledSection extends StatelessWidget {
           padding: AppSpacing.xs.all,
           child: Column(
             children: [
-              for (final item in rest)
+              for (final item in items)
                 if (item.appointmentAt case final at?)
                   DatedAppointmentTile(
                     item: item,

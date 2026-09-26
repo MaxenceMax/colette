@@ -29,10 +29,10 @@ void main() {
         ),
       ),
     ]);
-    expect(find.text('Aussi programmés'), findsNothing);
+    expect(find.text('Rendez-vous programmés'), findsNothing);
   });
 
-  testWidgets('liste les RDV sauf le premier, avec bloc date et détail', (
+  testWidgets('liste tous les RDV, le premier compris, avec bloc date et détail', (
     tester,
   ) async {
     await pumpSection(tester, [
@@ -56,15 +56,16 @@ void main() {
         ),
       ),
     ]);
-    expect(find.text('Aussi programmés'), findsOneWidget);
-    expect(find.text('Examen et vaccins des 2 mois'), findsNothing);
+    expect(find.text('Rendez-vous programmés'), findsOneWidget);
+    expect(find.text('Examen et vaccins des 2 mois'), findsOneWidget);
+    expect(find.text('3'), findsOneWidget);
     expect(find.text('14'), findsOneWidget);
-    expect(find.text('nov.'), findsOneWidget);
+    expect(find.text('nov.'), findsNWidgets(2));
     expect(find.text('Ostéopathe'), findsOneWidget);
     expect(find.text('15h00 · RDV libre'), findsOneWidget);
     expect(find.text('2'), findsOneWidget);
     expect(find.text('déc.'), findsOneWidget);
     expect(find.text('09h30 · Dr Martin'), findsOneWidget);
-    expect(find.byIcon(Icons.chevron_right), findsNWidgets(2));
+    expect(find.byIcon(Icons.chevron_right), findsNWidgets(3));
   });
 }
