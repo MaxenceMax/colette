@@ -1,5 +1,6 @@
 import 'package:colette/core/clock/now_providers.dart';
 import 'package:colette/core/connectivity/connectivity_provider.dart';
+import 'package:colette/core/device/bottle_timer_system.dart';
 import 'package:colette/core/firebase/firebase_providers.dart';
 import 'package:colette/features/health/presentation/providers/health_sync.dart';
 import 'package:colette/features/household/presentation/providers/household_providers.dart';
@@ -10,6 +11,7 @@ import 'package:flutter_riverpod/misc.dart' show Override;
 import 'package:shared_preferences/shared_preferences.dart';
 
 import 'documents_repository_override.dart';
+import 'fake_bottle_timer_system.dart';
 import 'fake_push_token_source.dart';
 import 'in_memory_household_local_store.dart';
 
@@ -20,6 +22,7 @@ Future<List<Override>> coletteAppOverrides({
   Override? documents,
   FakeFirebaseFirestore? firestore,
   PushTokenSource? pushTokenSource,
+  BottleTimerSystem? bottleTimerSystem,
 }) async {
   SharedPreferences.setMockInitialValues({});
   final prefs = await SharedPreferences.getInstance();
@@ -39,5 +42,8 @@ Future<List<Override>> coletteAppOverrides({
       pushTokenSource ?? FakePushTokenSource(),
     ),
     healthSyncProvider.overrideWithValue(const NoopHealthSync()),
+    bottleTimerSystemProvider.overrideWithValue(
+      bottleTimerSystem ?? FakeBottleTimerSystem(),
+    ),
   ];
 }
