@@ -7,12 +7,18 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		02474678C3185CEA0CBF58EA /* BottleTimerAttributes.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8FE38E07142D5570EF31F07A /* BottleTimerAttributes.swift */; };
+		060646F17147D5D601C97783 /* SwiftUI.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 4CD5CF185C6440EDC9C8A6C0 /* SwiftUI.framework */; };
 		074BB3DD2BDB9AC52DA61355 /* DocumentsStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1FF6F0D7293FDBDB18A725A2 /* DocumentsStore.swift */; };
+		0A3066E4D147D0D9CA2A1EDE /* Foundation.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 86428F6005C219040B96D0AE /* Foundation.framework */; };
 		1498D2341E8E89220040F4C2 /* GeneratedPluginRegistrant.m in Sources */ = {isa = PBXBuildFile; fileRef = 1498D2331E8E89220040F4C2 /* GeneratedPluginRegistrant.m */; };
+		1BB84BAF848AAF15E192215C /* BottleTimerChannel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 22E72974F326CB66AC2B8301 /* BottleTimerChannel.swift */; };
 		331C808B294A63AB00263BE5 /* RunnerTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 331C807B294A618700263BE5 /* RunnerTests.swift */; };
 		3B3967161E833CAA004F5970 /* AppFrameworkInfo.plist in Resources */ = {isa = PBXBuildFile; fileRef = 3B3967151E833CAA004F5970 /* AppFrameworkInfo.plist */; };
+		45027E0D4696F75687BB4228 /* BottleTimerWidgetBundle.swift in Sources */ = {isa = PBXBuildFile; fileRef = A4853B584A8ADB8FE9395D9B /* BottleTimerWidgetBundle.swift */; };
 		4D2942D0F180D733D67E5710 /* DocumentsPresenter.swift in Sources */ = {isa = PBXBuildFile; fileRef = 722252BF848C237EC62FDE31 /* DocumentsPresenter.swift */; };
 		508BC55B67FD5D2A44705DAB /* DocumentsError.swift in Sources */ = {isa = PBXBuildFile; fileRef = D68608E299311B4105CEBB80 /* DocumentsError.swift */; };
+		5228B1FBDB4AC15C92613DB9 /* Localizable.strings in Resources */ = {isa = PBXBuildFile; fileRef = 2818C335E3C2A663B3AEAFD2 /* Localizable.strings */; };
 		596EBB5F5D17D2901458DF4D /* DocumentsLister.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4A5D72E7D7823DE93FFA722B /* DocumentsLister.swift */; };
 		6012B65C6AEE35D85AF314B4 /* DocumentsWriter.swift in Sources */ = {isa = PBXBuildFile; fileRef = 921D69F2B532018408C9E192 /* DocumentsWriter.swift */; };
 		6392AF056DDCA164E01D49CC /* Pods_RunnerTests.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = BE8E1BDB2FE270821CAE266A /* Pods_RunnerTests.framework */; };
@@ -20,13 +26,20 @@
 		74858FAF1ED2DC5600515810 /* AppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 74858FAE1ED2DC5600515810 /* AppDelegate.swift */; };
 		7884E8682EC3CC0700C636F2 /* SceneDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7884E8672EC3CC0400C636F2 /* SceneDelegate.swift */; };
 		8285F5E41D72FF8168955796 /* CalendarError.swift in Sources */ = {isa = PBXBuildFile; fileRef = 221F7E3B168C87EA58CD7689 /* CalendarError.swift */; };
+		942A088E97FDCB1B05082D41 /* BottleTimerLiveActivity.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4CFEE6ADFF250F5A999EED86 /* BottleTimerLiveActivity.swift */; };
 		97C146FC1CF9000F007C117D /* Main.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 97C146FA1CF9000F007C117D /* Main.storyboard */; };
 		97C146FE1CF9000F007C117D /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 97C146FD1CF9000F007C117D /* Assets.xcassets */; };
 		97C147011CF9000F007C117D /* LaunchScreen.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 97C146FF1CF9000F007C117D /* LaunchScreen.storyboard */; };
 		A31A584CD443ED3340EED7C4 /* DocumentsPlugin.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6D2E7664532727AE34A98434 /* DocumentsPlugin.swift */; };
+		A8D3AC73FD5FDB7B28ED22C7 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 2D739DA89E7F2E6770B7D4D5 /* Assets.xcassets */; };
+		C08D32B340122D25E4AD232C /* Localizable.strings in Resources */ = {isa = PBXBuildFile; fileRef = EA4747269937D893B7B3AD14 /* Localizable.strings */; };
 		C71FFA29175E34007DB04568 /* CalendarPlugin.swift in Sources */ = {isa = PBXBuildFile; fileRef = 378BC72813F9DBAFE47E6756 /* CalendarPlugin.swift */; };
+		D924252044557D36DF850DDD /* BottleTimerAttributes.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8FE38E07142D5570EF31F07A /* BottleTimerAttributes.swift */; };
 		D98ACBD199AFB1154BA35D12 /* DocumentsFolderWatcher.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA42176EFF0FFEA71BDED313 /* DocumentsFolderWatcher.swift */; };
+		E6ACA9076001FDA59EDF2027 /* BottleTimerViews.swift in Sources */ = {isa = PBXBuildFile; fileRef = B5EDD20107CB521B65B91B3E /* BottleTimerViews.swift */; };
+		EFD8F127044A4571A5198897 /* BottleTimerWidget.appex in Embed Foundation Extensions */ = {isa = PBXBuildFile; fileRef = 1B87CFA659602EB8ABB08319 /* BottleTimerWidget.appex */; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
 		F762E2C8315E2213A911E222 /* Pods_Runner.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 281B8CFA7E49B0EE6DE757F1 /* Pods_Runner.framework */; };
+		F88C5E949651AF4DD4F791D1 /* WidgetKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = ED47195520F760BC2B2C453F /* WidgetKit.framework */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -37,9 +50,27 @@
 			remoteGlobalIDString = 97C146ED1CF9000F007C117D;
 			remoteInfo = Runner;
 		};
+		6D474D11ABE640B12F860E66 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 97C146E61CF9000F007C117D /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = 964710CD7C408031FBDF711F;
+			remoteInfo = BottleTimerWidget;
+		};
 /* End PBXContainerItemProxy section */
 
 /* Begin PBXCopyFilesBuildPhase section */
+		2298451895BF9B67D906FFF6 /* Embed Foundation Extensions */ = {
+			isa = PBXCopyFilesBuildPhase;
+			buildActionMask = 2147483647;
+			dstPath = "";
+			dstSubfolderSpec = 13;
+			files = (
+				EFD8F127044A4571A5198897 /* BottleTimerWidget.appex in Embed Foundation Extensions */,
+			);
+			name = "Embed Foundation Extensions";
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 		9705A1C41CF9048500538489 /* Embed Frameworks */ = {
 			isa = PBXCopyFilesBuildPhase;
 			buildActionMask = 2147483647;
@@ -55,17 +86,24 @@
 /* Begin PBXFileReference section */
 		1498D2321E8E86230040F4C2 /* GeneratedPluginRegistrant.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = GeneratedPluginRegistrant.h; sourceTree = "<group>"; };
 		1498D2331E8E89220040F4C2 /* GeneratedPluginRegistrant.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = GeneratedPluginRegistrant.m; sourceTree = "<group>"; };
+		1B87CFA659602EB8ABB08319 /* BottleTimerWidget.appex */ = {isa = PBXFileReference; explicitFileType = "wrapper.app-extension"; includeInIndex = 0; path = BottleTimerWidget.appex; sourceTree = BUILT_PRODUCTS_DIR; };
 		1FF6F0D7293FDBDB18A725A2 /* DocumentsStore.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = DocumentsStore.swift; sourceTree = "<group>"; };
 		2184DBBA84C55CF62CEEDBDA /* Pods-RunnerTests.release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-RunnerTests.release.xcconfig"; path = "Target Support Files/Pods-RunnerTests/Pods-RunnerTests.release.xcconfig"; sourceTree = "<group>"; };
 		221F7E3B168C87EA58CD7689 /* CalendarError.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = CalendarError.swift; sourceTree = "<group>"; };
+		22E72974F326CB66AC2B8301 /* BottleTimerChannel.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = BottleTimerChannel.swift; sourceTree = "<group>"; };
+		2818C335E3C2A663B3AEAFD2 /* Localizable.strings */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.plist.strings; path = Localizable.strings; sourceTree = "<group>"; };
 		281B8CFA7E49B0EE6DE757F1 /* Pods_Runner.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = Pods_Runner.framework; sourceTree = BUILT_PRODUCTS_DIR; };
+		2D739DA89E7F2E6770B7D4D5 /* Assets.xcassets */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
 		331C807B294A618700263BE5 /* RunnerTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RunnerTests.swift; sourceTree = "<group>"; };
 		331C8081294A63A400263BE5 /* RunnerTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = RunnerTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
+		332B4EB51ABA19612BB638D5 /* Info.plist */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
 		378BC72813F9DBAFE47E6756 /* CalendarPlugin.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = CalendarPlugin.swift; sourceTree = "<group>"; };
 		37B31C553062768F008FB5B9 /* Runner.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = Runner.entitlements; sourceTree = "<group>"; };
 		3975CE6AC2A393601271803A /* Pods-Runner.debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-Runner.debug.xcconfig"; path = "Target Support Files/Pods-Runner/Pods-Runner.debug.xcconfig"; sourceTree = "<group>"; };
 		3B3967151E833CAA004F5970 /* AppFrameworkInfo.plist */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist.xml; name = AppFrameworkInfo.plist; path = Flutter/AppFrameworkInfo.plist; sourceTree = "<group>"; };
 		4A5D72E7D7823DE93FFA722B /* DocumentsLister.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = DocumentsLister.swift; sourceTree = "<group>"; };
+		4CD5CF185C6440EDC9C8A6C0 /* SwiftUI.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = SwiftUI.framework; path = Platforms/iPhoneOS.platform/Developer/SDKs/iPhoneOS18.0.sdk/System/Library/Frameworks/SwiftUI.framework; sourceTree = DEVELOPER_DIR; };
+		4CFEE6ADFF250F5A999EED86 /* BottleTimerLiveActivity.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = BottleTimerLiveActivity.swift; sourceTree = "<group>"; };
 		6D2E7664532727AE34A98434 /* DocumentsPlugin.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = DocumentsPlugin.swift; sourceTree = "<group>"; };
 		722252BF848C237EC62FDE31 /* DocumentsPresenter.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = DocumentsPresenter.swift; sourceTree = "<group>"; };
 		74858FAD1ED2DC5600515810 /* Runner-Bridging-Header.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = "Runner-Bridging-Header.h"; sourceTree = "<group>"; };
@@ -76,6 +114,8 @@
 		7BEA2DEA22BDFD7E94B87F93 /* Pods-RunnerTests.debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-RunnerTests.debug.xcconfig"; path = "Target Support Files/Pods-RunnerTests/Pods-RunnerTests.debug.xcconfig"; sourceTree = "<group>"; };
 		82810532C45088827DD28BF4 /* Pods-Runner.profile.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-Runner.profile.xcconfig"; path = "Target Support Files/Pods-Runner/Pods-Runner.profile.xcconfig"; sourceTree = "<group>"; };
 		84C7B8CB5AE5E56480F7BF1B /* GoogleService-Info.plist */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.plist.xml; name = "GoogleService-Info.plist"; path = "Runner/GoogleService-Info.plist"; sourceTree = "<group>"; };
+		86428F6005C219040B96D0AE /* Foundation.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Foundation.framework; path = Platforms/iPhoneOS.platform/Developer/SDKs/iPhoneOS18.0.sdk/System/Library/Frameworks/Foundation.framework; sourceTree = DEVELOPER_DIR; };
+		8FE38E07142D5570EF31F07A /* BottleTimerAttributes.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = BottleTimerAttributes.swift; sourceTree = "<group>"; };
 		921D69F2B532018408C9E192 /* DocumentsWriter.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = DocumentsWriter.swift; sourceTree = "<group>"; };
 		9740EEB21CF90195004384FC /* Debug.xcconfig */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.xcconfig; name = Debug.xcconfig; path = Flutter/Debug.xcconfig; sourceTree = "<group>"; };
 		9740EEB31CF90195004384FC /* Generated.xcconfig */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.xcconfig; name = Generated.xcconfig; path = Flutter/Generated.xcconfig; sourceTree = "<group>"; };
@@ -85,9 +125,13 @@
 		97C147001CF9000F007C117D /* Base */ = {isa = PBXFileReference; lastKnownFileType = file.storyboard; name = Base; path = Base.lproj/LaunchScreen.storyboard; sourceTree = "<group>"; };
 		97C147021CF9000F007C117D /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
 		9DAA1230AD9957CEB7170237 /* Pods-RunnerTests.profile.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-RunnerTests.profile.xcconfig"; path = "Target Support Files/Pods-RunnerTests/Pods-RunnerTests.profile.xcconfig"; sourceTree = "<group>"; };
+		A4853B584A8ADB8FE9395D9B /* BottleTimerWidgetBundle.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = BottleTimerWidgetBundle.swift; sourceTree = "<group>"; };
 		AA42176EFF0FFEA71BDED313 /* DocumentsFolderWatcher.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = DocumentsFolderWatcher.swift; sourceTree = "<group>"; };
+		B5EDD20107CB521B65B91B3E /* BottleTimerViews.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = BottleTimerViews.swift; sourceTree = "<group>"; };
 		BE8E1BDB2FE270821CAE266A /* Pods_RunnerTests.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = Pods_RunnerTests.framework; sourceTree = BUILT_PRODUCTS_DIR; };
 		D68608E299311B4105CEBB80 /* DocumentsError.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = DocumentsError.swift; sourceTree = "<group>"; };
+		EA4747269937D893B7B3AD14 /* Localizable.strings */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.plist.strings; path = Localizable.strings; sourceTree = "<group>"; };
+		ED47195520F760BC2B2C453F /* WidgetKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = WidgetKit.framework; path = Platforms/iPhoneOS.platform/Developer/SDKs/iPhoneOS18.0.sdk/System/Library/Frameworks/WidgetKit.framework; sourceTree = DEVELOPER_DIR; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -96,6 +140,16 @@
 			buildActionMask = 2147483647;
 			files = (
 				6392AF056DDCA164E01D49CC /* Pods_RunnerTests.framework in Frameworks */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		1E1B240E2A6E4FE9AD6CDD41 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				0A3066E4D147D0D9CA2A1EDE /* Foundation.framework in Frameworks */,
+				F88C5E949651AF4DD4F791D1 /* WidgetKit.framework in Frameworks */,
+				060646F17147D5D601C97783 /* SwiftUI.framework in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -128,6 +182,16 @@
 			path = RunnerTests;
 			sourceTree = "<group>";
 		};
+		39C0D2C05362DC5A4325CBD4 /* iOS */ = {
+			isa = PBXGroup;
+			children = (
+				86428F6005C219040B96D0AE /* Foundation.framework */,
+				ED47195520F760BC2B2C453F /* WidgetKit.framework */,
+				4CD5CF185C6440EDC9C8A6C0 /* SwiftUI.framework */,
+			);
+			name = iOS;
+			sourceTree = "<group>";
+		};
 		41C1126958A789C783403F24 /* Documents */ = {
 			isa = PBXGroup;
 			children = (
@@ -148,6 +212,7 @@
 			children = (
 				281B8CFA7E49B0EE6DE757F1 /* Pods_Runner.framework */,
 				BE8E1BDB2FE270821CAE266A /* Pods_RunnerTests.framework */,
+				39C0D2C05362DC5A4325CBD4 /* iOS */,
 			);
 			name = Frameworks;
 			sourceTree = "<group>";
@@ -173,6 +238,7 @@
 				ABAA618E76264348B17E50D4 /* Pods */,
 				705B45D813AD74A2955BDD5F /* Frameworks */,
 				84C7B8CB5AE5E56480F7BF1B /* GoogleService-Info.plist */,
+				FA1D32545F704CAD1498227E /* BottleTimerWidget */,
 			);
 			sourceTree = "<group>";
 		};
@@ -181,6 +247,7 @@
 			children = (
 				97C146EE1CF9000F007C117D /* Runner.app */,
 				331C8081294A63A400263BE5 /* RunnerTests.xctest */,
+				1B87CFA659602EB8ABB08319 /* BottleTimerWidget.appex */,
 			);
 			name = Products;
 			sourceTree = "<group>";
@@ -200,6 +267,7 @@
 				74858FAD1ED2DC5600515810 /* Runner-Bridging-Header.h */,
 				41C1126958A789C783403F24 /* Documents */,
 				01FC99B53238B4B4CE8FEC56 /* Calendar */,
+				BFDA637F9C4E94B932388880 /* BottleTimer */,
 			);
 			path = Runner;
 			sourceTree = "<group>";
@@ -215,6 +283,31 @@
 				9DAA1230AD9957CEB7170237 /* Pods-RunnerTests.profile.xcconfig */,
 			);
 			path = Pods;
+			sourceTree = "<group>";
+		};
+		BFDA637F9C4E94B932388880 /* BottleTimer */ = {
+			isa = PBXGroup;
+			children = (
+				8FE38E07142D5570EF31F07A /* BottleTimerAttributes.swift */,
+				22E72974F326CB66AC2B8301 /* BottleTimerChannel.swift */,
+				EA4747269937D893B7B3AD14 /* Localizable.strings */,
+			);
+			name = BottleTimer;
+			path = BottleTimer;
+			sourceTree = "<group>";
+		};
+		FA1D32545F704CAD1498227E /* BottleTimerWidget */ = {
+			isa = PBXGroup;
+			children = (
+				A4853B584A8ADB8FE9395D9B /* BottleTimerWidgetBundle.swift */,
+				4CFEE6ADFF250F5A999EED86 /* BottleTimerLiveActivity.swift */,
+				B5EDD20107CB521B65B91B3E /* BottleTimerViews.swift */,
+				332B4EB51ABA19612BB638D5 /* Info.plist */,
+				2D739DA89E7F2E6770B7D4D5 /* Assets.xcassets */,
+				2818C335E3C2A663B3AEAFD2 /* Localizable.strings */,
+			);
+			name = BottleTimerWidget;
+			path = BottleTimerWidget;
 			sourceTree = "<group>";
 		};
 /* End PBXGroup section */
@@ -239,6 +332,23 @@
 			productReference = 331C8081294A63A400263BE5 /* RunnerTests.xctest */;
 			productType = "com.apple.product-type.bundle.unit-test";
 		};
+		964710CD7C408031FBDF711F /* BottleTimerWidget */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 28BD87A96658D414DDC21B8C /* Build configuration list for PBXNativeTarget "BottleTimerWidget" */;
+			buildPhases = (
+				DE4DA945E3E84EABB590764B /* Sources */,
+				1E1B240E2A6E4FE9AD6CDD41 /* Frameworks */,
+				8636F46E8057B7AB7DEB366A /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			name = BottleTimerWidget;
+			productName = BottleTimerWidget;
+			productReference = 1B87CFA659602EB8ABB08319 /* BottleTimerWidget.appex */;
+			productType = "com.apple.product-type.app-extension";
+		};
 		97C146ED1CF9000F007C117D /* Runner */ = {
 			isa = PBXNativeTarget;
 			buildConfigurationList = 97C147051CF9000F007C117D /* Build configuration list for PBXNativeTarget "Runner" */;
@@ -249,6 +359,7 @@
 				97C146EB1CF9000F007C117D /* Frameworks */,
 				97C146EC1CF9000F007C117D /* Resources */,
 				9705A1C41CF9048500538489 /* Embed Frameworks */,
+				2298451895BF9B67D906FFF6 /* Embed Foundation Extensions */,
 				3B06AD1E1E4923F5004D2608 /* Thin Binary */,
 				970B68B5B902ED7C3613CAA8 /* [CP] Embed Pods Frameworks */,
 				2CCAEFDF05ADDD4A4C4B64D7 /* [CP] Copy Pods Resources */,
@@ -256,6 +367,7 @@
 			buildRules = (
 			);
 			dependencies = (
+				2CBB6584B499601F6B4AC6B2 /* PBXTargetDependency */,
 			);
 			name = Runner;
 			productName = Runner;
@@ -297,6 +409,7 @@
 			targets = (
 				97C146ED1CF9000F007C117D /* Runner */,
 				331C8080294A63A400263BE5 /* RunnerTests */,
+				964710CD7C408031FBDF711F /* BottleTimerWidget */,
 			);
 		};
 /* End PBXProject section */
@@ -309,6 +422,15 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
+		8636F46E8057B7AB7DEB366A /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				A8D3AC73FD5FDB7B28ED22C7 /* Assets.xcassets in Resources */,
+				5228B1FBDB4AC15C92613DB9 /* Localizable.strings in Resources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 		97C146EC1CF9000F007C117D /* Resources */ = {
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
@@ -318,6 +440,7 @@
 				97C146FE1CF9000F007C117D /* Assets.xcassets in Resources */,
 				97C146FC1CF9000F007C117D /* Main.storyboard in Resources */,
 				713D465B4FF5C0555E9A0D9B /* GoogleService-Info.plist in Resources */,
+				C08D32B340122D25E4AD232C /* Localizable.strings in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -460,12 +583,31 @@
 				D98ACBD199AFB1154BA35D12 /* DocumentsFolderWatcher.swift in Sources */,
 				8285F5E41D72FF8168955796 /* CalendarError.swift in Sources */,
 				C71FFA29175E34007DB04568 /* CalendarPlugin.swift in Sources */,
+				02474678C3185CEA0CBF58EA /* BottleTimerAttributes.swift in Sources */,
+				1BB84BAF848AAF15E192215C /* BottleTimerChannel.swift in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		DE4DA945E3E84EABB590764B /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				45027E0D4696F75687BB4228 /* BottleTimerWidgetBundle.swift in Sources */,
+				942A088E97FDCB1B05082D41 /* BottleTimerLiveActivity.swift in Sources */,
+				E6ACA9076001FDA59EDF2027 /* BottleTimerViews.swift in Sources */,
+				D924252044557D36DF850DDD /* BottleTimerAttributes.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
 /* End PBXSourcesBuildPhase section */
 
 /* Begin PBXTargetDependency section */
+		2CBB6584B499601F6B4AC6B2 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			name = BottleTimerWidget;
+			target = 964710CD7C408031FBDF711F /* BottleTimerWidget */;
+			targetProxy = 6D474D11ABE640B12F860E66 /* PBXContainerItemProxy */;
+		};
 		331C8086294A63A400263BE5 /* PBXTargetDependency */ = {
 			isa = PBXTargetDependency;
 			target = 97C146ED1CF9000F007C117D /* Runner */;
@@ -618,6 +760,31 @@
 				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/Runner.app/$(BUNDLE_EXECUTABLE_FOLDER_PATH)/Runner";
 			};
 			name = Profile;
+		};
+		3F4476A9BDA8F2C35D11C671 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			baseConfigurationReference = 9740EEB31CF90195004384FC /* Generated.xcconfig */;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = "";
+				CLANG_ENABLE_OBJC_WEAK = NO;
+				CODE_SIGN_STYLE = Automatic;
+				DEVELOPMENT_TEAM = D2K5A7DBDQ;
+				GENERATE_INFOPLIST_FILE = NO;
+				INFOPLIST_FILE = BottleTimerWidget/Info.plist;
+				IPHONEOS_DEPLOYMENT_TARGET = 16.2;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+					"@executable_path/../../Frameworks",
+				);
+				PRODUCT_BUNDLE_IDENTIFIER = fr.montet.colette.BottleTimerWidget;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SDKROOT = iphoneos;
+				SKIP_INSTALL = YES;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+			};
+			name = Debug;
 		};
 		97C147031CF9000F007C117D /* Debug */ = {
 			isa = XCBuildConfiguration;
@@ -779,9 +946,71 @@
 			};
 			name = Release;
 		};
+		A7AF84620556C2547A270CE4 /* Profile */ = {
+			isa = XCBuildConfiguration;
+			baseConfigurationReference = 9740EEB31CF90195004384FC /* Generated.xcconfig */;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = "";
+				CLANG_ENABLE_OBJC_WEAK = NO;
+				CODE_SIGN_STYLE = Automatic;
+				DEVELOPMENT_TEAM = D2K5A7DBDQ;
+				GENERATE_INFOPLIST_FILE = NO;
+				INFOPLIST_FILE = BottleTimerWidget/Info.plist;
+				IPHONEOS_DEPLOYMENT_TARGET = 16.2;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+					"@executable_path/../../Frameworks",
+				);
+				PRODUCT_BUNDLE_IDENTIFIER = fr.montet.colette.BottleTimerWidget;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SDKROOT = iphoneos;
+				SKIP_INSTALL = YES;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+				VALIDATE_PRODUCT = YES;
+			};
+			name = Profile;
+		};
+		BA5F25EB04D7A55517F51F5D /* Release */ = {
+			isa = XCBuildConfiguration;
+			baseConfigurationReference = 9740EEB31CF90195004384FC /* Generated.xcconfig */;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = "";
+				CLANG_ENABLE_OBJC_WEAK = NO;
+				CODE_SIGN_STYLE = Automatic;
+				DEVELOPMENT_TEAM = D2K5A7DBDQ;
+				GENERATE_INFOPLIST_FILE = NO;
+				INFOPLIST_FILE = BottleTimerWidget/Info.plist;
+				IPHONEOS_DEPLOYMENT_TARGET = 16.2;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+					"@executable_path/../../Frameworks",
+				);
+				PRODUCT_BUNDLE_IDENTIFIER = fr.montet.colette.BottleTimerWidget;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SDKROOT = iphoneos;
+				SKIP_INSTALL = YES;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+				VALIDATE_PRODUCT = YES;
+			};
+			name = Release;
+		};
 /* End XCBuildConfiguration section */
 
 /* Begin XCConfigurationList section */
+		28BD87A96658D414DDC21B8C /* Build configuration list for PBXNativeTarget "BottleTimerWidget" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				BA5F25EB04D7A55517F51F5D /* Release */,
+				3F4476A9BDA8F2C35D11C671 /* Debug */,
+				A7AF84620556C2547A270CE4 /* Profile */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
 		331C8087294A63A400263BE5 /* Build configuration list for PBXNativeTarget "RunnerTests" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (

@@ -1,0 +1,5 @@
+/* Notifications locales du minuteur de biberon. */
+"bottleTimer.feedingEnded.title" = "Biberon terminé";
+"bottleTimer.feedingEnded.body" = "12 min à la verticale.";
+"bottleTimer.uprightEnded.title" = "Verticale terminée";
+"bottleTimer.uprightEnded.body" = "Ouvre Colette pour enregistrer le biberon.";

@@ -1,3 +1,4 @@
+import 'package:colette/app/bottle_timer_resume_gate.dart';
 import 'package:colette/app/notifications_gate.dart';
 import 'package:colette/app/router/app_router.dart';
 import 'package:colette/app/splash_intro.dart';
@@ -26,7 +27,9 @@ class ColetteApp extends ConsumerWidget {
       routerConfig: ref.watch(appRouterProvider),
       builder: (context, child) => SplashIntro(
         child: NotificationsGate(
-          child: HealthSyncGate(child: child ?? const SizedBox.shrink()),
+          child: BottleTimerResumeGate(
+            child: HealthSyncGate(child: child ?? const SizedBox.shrink()),
+          ),
         ),
       ),
     );

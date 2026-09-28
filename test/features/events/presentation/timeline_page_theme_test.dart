@@ -1,9 +1,11 @@
 import 'package:colette/core/clock/app_clock.dart';
 import 'package:colette/core/connectivity/connectivity_provider.dart';
+import 'package:colette/core/device/bottle_timer_system.dart';
 import 'package:colette/core/theme/app_colors.dart';
 import 'package:colette/core/theme/theme_service.dart';
 import 'package:colette/features/events/domain/repositories/events_repository.dart';
 import 'package:colette/features/events/presentation/pages/timeline_page.dart';
+import 'package:colette/features/events/presentation/providers/bottle_timer_session_providers.dart';
 import 'package:colette/features/events/presentation/providers/events_providers.dart';
 import 'package:colette/features/events/presentation/widgets/day_header_delegate.dart';
 import 'package:colette/features/events/presentation/widgets/event_form_sheet.dart';
@@ -16,7 +18,9 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:mocktail/mocktail.dart';
 
 import '../../../helpers/care_event_factory.dart';
+import '../../../helpers/fake_bottle_timer_system.dart';
 import '../../../helpers/fake_sleep_repository.dart';
+import '../../../helpers/in_memory_bottle_timer_session_repository.dart';
 import '../../../helpers/in_memory_household_local_store.dart';
 
 class MockEventsRepository extends Mock implements EventsRepository {}
@@ -46,6 +50,10 @@ void main() {
           clockProvider.overrideWithValue(FixedClock(now)),
           householdLocalStoreProvider.overrideWithValue(
             InMemoryHouseholdLocalStore(householdCode: 'ABCDEFGH'),
+          ),
+          bottleTimerSystemProvider.overrideWithValue(FakeBottleTimerSystem()),
+          bottleTimerSessionRepositoryProvider.overrideWithValue(
+            InMemoryBottleTimerSessionRepository(),
           ),
         ],
         child: ValueListenableBuilder<ThemeMode>(

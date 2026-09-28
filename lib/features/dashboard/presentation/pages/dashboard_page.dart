@@ -8,6 +8,7 @@ import 'package:colette/features/dashboard/presentation/widgets/todo_section.dar
 import 'package:colette/features/dashboard/presentation/widgets/weight_card.dart';
 import 'package:colette/features/diapers/presentation/widgets/diaper_stock_alert_card.dart';
 import 'package:colette/features/documents/presentation/widgets/documents_card.dart';
+import 'package:colette/features/events/presentation/providers/bottle_timer_session_providers.dart';
 import 'package:colette/features/events/presentation/widgets/event_form_sheet.dart';
 import 'package:colette/features/health/presentation/widgets/appointment_card.dart';
 import 'package:colette/l10n/generated/app_localizations.dart';
@@ -25,20 +26,46 @@ class DashboardPage extends ConsumerStatefulWidget {
 }
 
 class _DashboardPageState extends ConsumerState<DashboardPage> {
+  /// Feuille ouverte par cette page (rappel biberon ou reprise).
+  bool _sheetOpen = false;
+
   @override
   void initState() {
     super.initState();
-    ref.listenManual(bottleFormRequestProvider, fireImmediately: true, (
-      _,
-      requested,
-    ) {
-      if (!requested) return;
-      WidgetsBinding.instance.addPostFrameCallback((_) {
-        if (!mounted) return;
-        ref.read(bottleFormRequestProvider.notifier).consume();
-        final plan = ref.read(feedingPlanProvider);
-        showEventFormSheet(context, suggestedBottleMl: plan?.suggestedMl);
+    ref
+      ..listenManual(bottleFormRequestProvider, fireImmediately: true, (
+        _,
+        requested,
+      ) {
+        if (requested) _openRequestedSheet();
+      })
+      ..listenManual(bottleTimerResumeProvider, fireImmediately: true, (
+        _,
+        session,
+      ) {
+        if (session != null) _openRequestedSheet();
       });
+  }
+
+  /// Ouvre une seule feuille à la fois. La reprise d'un minuteur interrompu
+  /// passe avant le rappel biberon, qu'elle absorbe (c'est déjà un biberon).
+  void _openRequestedSheet() {
+    WidgetsBinding.instance.addPostFrameCallback((_) async {
+      if (!mounted || _sheetOpen) return;
+      final restored = ref.read(bottleTimerResumeProvider.notifier).take();
+      final requested = ref.read(bottleFormRequestProvider);
+      if (requested) ref.read(bottleFormRequestProvider.notifier).consume();
+      if (restored == null && !requested) return;
+      _sheetOpen = true;
+      await showEventFormSheet(
+        context,
+        restored: restored,
+        suggestedBottleMl: restored == null
+            ? ref.read(feedingPlanProvider)?.suggestedMl
+            : null,
+      );
+      _sheetOpen = false;
+      if (mounted) _openRequestedSheet();
     });
   }
 

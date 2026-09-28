@@ -1,9 +1,12 @@
 import 'dart:async';
 
 import 'package:colette/core/clock/app_clock.dart';
+import 'package:colette/core/device/bottle_timer_system.dart';
 import 'package:colette/core/device/device_feedback.dart';
+import 'package:colette/features/baby/presentation/providers/baby_providers.dart';
 import 'package:colette/features/events/domain/entities/bottle_timer_run.dart';
 import 'package:colette/features/events/domain/use_cases/bottle_timer.dart';
+import 'package:colette/features/events/presentation/providers/bottle_timer_session_providers.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
 part 'bottle_timer_controller.g.dart';
@@ -25,6 +28,9 @@ class BottleTimerController extends _$BottleTimerController {
     if (run == null || !now.isBefore(run.feedingEndsAt)) return;
     state = run.copyWith(feedingEndsAt: now);
   }
+
+  /// Remet un minuteur interrompu (app tuée) sans changer ses dates.
+  void restore(BottleTimerRun run) => state = run;
 
   /// Arrête le minuteur.
   void reset() => state = null;
@@ -49,11 +55,19 @@ BottleTimerPhase? bottleTimerPhase(Ref ref) {
   return computeBottleTimerPhase(run: run, now: now);
 }
 
-/// Écran maintenu allumé, sons et vibrations aux transitions du minuteur.
-/// Relâche l'écran à sa destruction (fermeture du formulaire).
+/// Écran maintenu allumé, sons et vibrations aux transitions du minuteur ;
+/// Live Activity et notifications tenues à jour. À sa destruction (fermeture
+/// du formulaire) : écran relâché, activité fermée, session effacée.
 @riverpod
 void bottleTimerEffects(Ref ref) {
   final feedback = ref.watch(deviceFeedbackProvider);
+  final system = ref.watch(bottleTimerSystemProvider);
+  final sessions = ref.watch(bottleTimerSessionRepositoryProvider);
+  Future<void> release() async {
+    await system.clear();
+    await sessions.clear();
+  }
+
   ref
     ..listen(bottleTimerPhaseProvider, (previous, next) {
       switch (bottleTimerTransition(previous, next)) {
@@ -72,5 +86,27 @@ void bottleTimerEffects(Ref ref) {
           break;
       }
     })
-    ..onDispose(() => unawaited(feedback.setKeepScreenOn(false)));
+    ..listen(bottleTimerControllerProvider, (previous, next) {
+      // Un minuteur repris déjà fini n'a plus rien à afficher hors de l'app.
+      final done =
+          next != null &&
+          computeBottleTimerPhase(run: next, now: ref.read(clockProvider).now())
+              is BottleTimerDone;
+      if (next != null && next != previous && !done) {
+        unawaited(
+          system.sync(
+            startedAt: next.startedAt,
+            feedingEndsAt: next.feedingEndsAt,
+            uprightEndsAt: next.uprightEndsAt,
+            babyName: ref.read(babyProfileProvider).value?.name ?? '',
+          ),
+        );
+      } else if (next == null && previous != null) {
+        unawaited(release());
+      }
+    })
+    ..onDispose(() {
+      unawaited(feedback.setKeepScreenOn(false));
+      unawaited(release());
+    });
 }
