@@ -9,6 +9,19 @@ enum BottleTimerChannel {
   private static let feedingId = "bottle-timer.feeding"
   private static let uprightId = "bottle-timer.upright"
 
+  /// Dernière opération ActivityKit ; chaque nouvelle attend la précédente
+  /// pour qu'un `clear` suivi d'un `sync` (ou deux `sync`) gardent leur ordre.
+  /// Modifiée uniquement depuis le thread principal (handler du canal).
+  private static var lastActivityTask: Task<Void, Never>?
+
+  private static func enqueue(_ operation: @escaping () async -> Void) {
+    let previous = lastActivityTask
+    lastActivityTask = Task {
+      await previous?.value
+      await operation()
+    }
+  }
+
   static func register(with registry: FlutterPluginRegistry) {
     guard let messenger = registry.registrar(forPlugin: "BottleTimerPlugin")?.messenger() else {
       return
@@ -30,13 +43,13 @@ enum BottleTimerChannel {
         if #available(iOS 16.2, *) {
           let state = BottleTimerAttributes.ContentState(
             startedAt: startedAt, feedingEndsAt: feedingEndsAt, uprightEndsAt: uprightEndsAt)
-          Task { await syncActivity(babyName: babyName, state: state) }
+          enqueue { await syncActivity(babyName: babyName, state: state) }
         }
         result(nil)
       case "clear":
         clearNotifications()
         if #available(iOS 16.2, *) {
-          Task { await endActivities() }
+          enqueue { await endActivities() }
         }
         result(nil)
       default:
