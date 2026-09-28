@@ -8,6 +8,7 @@ import 'package:colette/features/dashboard/presentation/widgets/todo_section.dar
 import 'package:colette/features/dashboard/presentation/widgets/weight_card.dart';
 import 'package:colette/features/diapers/presentation/widgets/diaper_stock_alert_card.dart';
 import 'package:colette/features/documents/presentation/widgets/documents_card.dart';
+import 'package:colette/features/events/presentation/providers/bottle_timer_session_providers.dart';
 import 'package:colette/features/events/presentation/widgets/event_form_sheet.dart';
 import 'package:colette/features/health/presentation/widgets/appointment_card.dart';
 import 'package:colette/l10n/generated/app_localizations.dart';
@@ -38,6 +39,17 @@ class _DashboardPageState extends ConsumerState<DashboardPage> {
         ref.read(bottleFormRequestProvider.notifier).consume();
         final plan = ref.read(feedingPlanProvider);
         showEventFormSheet(context, suggestedBottleMl: plan?.suggestedMl);
+      });
+    });
+    ref.listenManual(bottleTimerResumeProvider, fireImmediately: true, (
+      _,
+      session,
+    ) {
+      if (session == null) return;
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (!mounted) return;
+        final restored = ref.read(bottleTimerResumeProvider.notifier).take();
+        if (restored != null) showEventFormSheet(context, restored: restored);
       });
     });
   }
