@@ -9,7 +9,7 @@ Dans l'onglet Journal, retrouver d'un tap tous les événements d'un même type 
 
 ## Périmètre
 
-- Un seul filtre actif à la fois, choisi dans une rangée de puces sous l'AppBar.
+- Un seul filtre actif à la fois, choisi dans une rangée de puces en haut du Journal.
 - Filtres : Tout (par défaut), Biberon, Caca, Pipi, Couche, Sommeil, Bain, Adrigyl, Soin des yeux, Soin du nez, Soin du nombril.
 - Le filtre vit en mémoire le temps de la session. Il n'est ni persisté ni partagé entre appareils.
 - Hors périmètre : sélection multiple, recherche dans les notes, filtre par date, compteur de résultats.
@@ -84,7 +84,7 @@ Nouvelle méthode `Stream<List<SleepSession>> watchLatestSessions(String househo
 
 ### UI
 
-- `TimelineFilterBar` (`presentation/widgets/timeline_filter_bar.dart`, moins de 300 lignes) est un `PreferredSizeWidget`, placé en `bottom:` de l'AppBar. C'est un `ListView.builder` horizontal de `ChoiceChip`, avec icône et libellé :
+- `TimelineFilterBar` (`presentation/widgets/timeline_filter_bar.dart`, moins de 300 lignes) est placé en tête du corps de la page, au-dessus de la liste. C'est une rangée horizontale défilante de `ChoiceChip`, avec icône et libellé. Il n'est pas en `bottom:` de l'AppBar : un `PreferredSizeWidget` imposerait une hauteur fixe, qui casserait avec les grandes tailles de texte.
   - soins : `CareTypeUi.icon`, `label(s)` et `color` ;
   - Biberon : `s.careBottle`, `AppColors.categoryFeeding` ;
   - Sommeil : `s.sleepCardTitle`, `AppColors.sleepNight` ;
