@@ -7,6 +7,8 @@ import 'package:colette/features/events/domain/repositories/events_repository.da
 import 'package:colette/features/events/presentation/pages/timeline_page.dart';
 import 'package:colette/features/events/presentation/providers/events_providers.dart';
 import 'package:colette/features/events/presentation/widgets/event_tile.dart';
+import 'package:colette/features/events/domain/entities/event_tag.dart';
+import 'package:colette/shared/domain/care_type.dart';
 import 'package:colette/features/household/presentation/providers/household_providers.dart';
 import 'package:colette/features/sleep/domain/entities/sleep_session.dart';
 import 'package:colette/features/sleep/presentation/providers/sleep_providers.dart';
@@ -52,6 +54,8 @@ class RecordingSleepRepository extends FakeSleepRepository {
 void main() {
   final now = DateTime(2026, 9, 21, 14);
 
+  setUpAll(() => registerFallbackValue(const BottleTag()));
+
   testWidgets('affiche les événements groupés par jour', (tester) async {
     final repo = MockEventsRepository();
     when(() => repo.watchLatest(any(), limit: any(named: 'limit'))).thenAnswer(
@@ -85,9 +89,17 @@ void main() {
     expect(find.text('Hier'), findsOneWidget);
     expect(find.text('09h05'), findsOneWidget);
     expect(find.text('120 ml'), findsOneWidget);
-    expect(find.text('Couche'), findsOneWidget);
-    expect(find.text('Bain'), findsOneWidget);
-    expect(find.byIcon(Icons.local_drink_outlined), findsOneWidget);
+    Finder inTiles(String text) =>
+        find.descendant(of: find.byType(EventTile), matching: find.text(text));
+    expect(inTiles('Couche'), findsOneWidget);
+    expect(inTiles('Bain'), findsOneWidget);
+    expect(
+      find.descendant(
+        of: find.byType(EventTile),
+        matching: find.byIcon(Icons.local_drink_outlined),
+      ),
+      findsOneWidget,
+    );
   });
 
   testWidgets('affiche l\'état vide sans événement', (tester) async {
@@ -379,4 +391,105 @@ void main() {
       );
     },
   );
+  group('filtre', () {
+    late MockEventsRepository repo;
+    final pee = makeEvent(
+      id: 'pee',
+      startAt: DateTime(2026, 9, 21, 9),
+      pee: true,
+    );
+    final poop = makeEvent(
+      id: 'poop',
+      startAt: DateTime(2026, 9, 21, 8, 30),
+      poop: true,
+    );
+    final sleepRepo = FakeSleepRepository([
+      makeSleep(
+        id: 's',
+        startAt: DateTime(2026, 9, 21, 10, 20),
+        endAt: DateTime(2026, 9, 21, 12),
+      ),
+    ]);
+
+    setUp(() {
+      repo = MockEventsRepository();
+      when(
+        () => repo.watchLatest(
+          any(),
+          limit: any(named: 'limit'),
+          only: any(named: 'only'),
+        ),
+      ).thenAnswer((invocation) {
+        final only = invocation.namedArguments[#only] as EventTag?;
+        return Stream.value(switch (only) {
+          null => [pee, poop],
+          CareTag(type: CareType.poop) => [poop],
+          _ => const <CareEvent>[],
+        });
+      });
+    });
+
+    Future<void> pumpTimeline(WidgetTester tester) => pumpApp(
+      tester,
+      const TimelinePage(),
+      overrides: [
+        eventsRepositoryProvider.overrideWithValue(repo),
+        sleepRepositoryProvider.overrideWithValue(sleepRepo),
+        clockProvider.overrideWithValue(FixedClock(now)),
+        householdLocalStoreProvider.overrideWithValue(
+          InMemoryHouseholdLocalStore(householdCode: 'ABCDEFGH'),
+        ),
+      ],
+    );
+
+    Finder chip(String label) => find.widgetWithText(ChoiceChip, label);
+
+    testWidgets('« Tout » est sélectionné par défaut', (tester) async {
+      await pumpTimeline(tester);
+      expect(tester.widget<ChoiceChip>(chip('Tout')).selected, isTrue);
+      expect(find.byType(EventTile), findsNWidgets(2));
+      expect(find.byType(SleepTile), findsOneWidget);
+    });
+
+    testWidgets('« Caca » n\'affiche que les cacas et masque les sommeils', (
+      tester,
+    ) async {
+      await pumpTimeline(tester);
+      await tester.tap(chip('Caca'));
+      await tester.pumpAndSettle();
+      expect(tester.widget<ChoiceChip>(chip('Caca')).selected, isTrue);
+      expect(
+        find.byWidgetPredicate((w) => w is EventTile && w.event.id == 'poop'),
+        findsOneWidget,
+      );
+      expect(
+        find.byWidgetPredicate((w) => w is EventTile && w.event.id == 'pee'),
+        findsNothing,
+      );
+      expect(find.byType(SleepTile), findsNothing);
+    });
+
+    testWidgets('« Sommeil » n\'affiche que les sommeils', (tester) async {
+      await pumpTimeline(tester);
+      await tester.tap(chip('Sommeil'));
+      await tester.pumpAndSettle();
+      expect(find.byType(EventTile), findsNothing);
+      expect(find.byType(SleepTile), findsOneWidget);
+    });
+
+    testWidgets('un filtre sans résultat affiche un état vide dédié', (
+      tester,
+    ) async {
+      await pumpTimeline(tester);
+      await tester.ensureVisible(chip('Bain'));
+      await tester.tap(chip('Bain'));
+      await tester.pumpAndSettle();
+      expect(find.text('Aucun événement pour ce filtre.'), findsOneWidget);
+      expect(
+        chip('Tout'),
+        findsOneWidget,
+        reason: 'les puces restent visibles',
+      );
+    });
+  });
 }
