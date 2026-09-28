@@ -5,9 +5,12 @@ import 'package:colette/core/device/device_feedback.dart';
 import 'package:colette/core/ids/id_generator.dart';
 import 'package:colette/features/baby/presentation/providers/baby_providers.dart';
 import 'package:colette/features/dashboard/presentation/providers/feeding_plan_sync.dart';
+import 'package:colette/features/events/domain/entities/bottle_timer_run.dart';
+import 'package:colette/features/events/domain/entities/bottle_timer_session.dart';
 import 'package:colette/features/events/domain/entities/care_event.dart';
 import 'package:colette/features/events/domain/repositories/events_repository.dart';
 import 'package:colette/features/events/presentation/providers/bottle_timer_controller.dart';
+import 'package:colette/features/events/presentation/providers/bottle_timer_session_providers.dart';
 import 'package:colette/features/events/presentation/providers/events_providers.dart';
 import 'package:colette/features/events/presentation/widgets/event_form_sheet.dart';
 import 'package:colette/features/household/presentation/providers/household_providers.dart';
@@ -18,6 +21,7 @@ import 'package:mocktail/mocktail.dart';
 
 import '../../../helpers/care_event_factory.dart';
 import '../../../helpers/fake_device_feedback.dart';
+import '../../../helpers/in_memory_bottle_timer_session_repository.dart';
 import '../../../helpers/in_memory_household_local_store.dart';
 import '../../../helpers/pump_app.dart';
 
@@ -39,6 +43,7 @@ void main() {
   late StreamController<DateTime> ticks;
   late _MutableClock clock;
   late FakeDeviceFeedback feedback;
+  late InMemoryBottleTimerSessionRepository sessions;
 
   setUpAll(() => registerFallbackValue(makeEvent(startAt: DateTime(2026))));
 
@@ -48,17 +53,21 @@ void main() {
     ticks = StreamController<DateTime>.broadcast();
     clock = _MutableClock(now);
     feedback = FakeDeviceFeedback();
+    sessions = InMemoryBottleTimerSessionRepository();
   });
 
   tearDown(() => ticks.close());
 
-  Future<void> openSheet(WidgetTester tester) async {
+  Future<void> openSheet(
+    WidgetTester tester, {
+    BottleTimerSession? restored,
+  }) async {
     await pumpApp(
       tester,
       Scaffold(
         body: Builder(
           builder: (context) => TextButton(
-            onPressed: () => showEventFormSheet(context),
+            onPressed: () => showEventFormSheet(context, restored: restored),
             child: const Text('ouvrir'),
           ),
         ),
@@ -78,6 +87,7 @@ void main() {
         feedingPlanSyncProvider.overrideWithValue(const NoopFeedingPlanSync()),
         bottleTimerTickProvider.overrideWith((ref) => ticks.stream),
         deviceFeedbackProvider.overrideWithValue(feedback),
+        bottleTimerSessionRepositoryProvider.overrideWithValue(sessions),
       ],
     );
     await tester.tap(find.text('ouvrir'));
@@ -221,5 +231,78 @@ void main() {
     expect(saved.startAt, now);
     expect(saved.endAt, now.add(const Duration(minutes: 12)));
     expect(find.byType(EventFormSheet), findsNothing);
+  });
+
+  BottleTimerSession restoredSession({
+    required Duration startedAgo,
+    bool editing = false,
+  }) {
+    final run = BottleTimerRun.startingAt(now.subtract(startedAgo));
+    return BottleTimerSession(
+      run: run,
+      draft: makeEvent(id: 'e-old', startAt: run.startedAt, bottleMl: 90),
+      editing: editing,
+    );
+  }
+
+  testWidgets('pendant le minuteur, le brouillon est sauvegardé', (
+    tester,
+  ) async {
+    await openSheet(tester);
+    await enableBottleAndStart(tester);
+    expect(sessions.session?.run.startedAt, now);
+    expect(sessions.session?.draft.bottleMl, 120);
+    expect(sessions.session?.editing, isFalse);
+    await tester.tap(find.text('Pipi'));
+    await tester.pump();
+    expect(sessions.session?.draft.pee, isTrue);
+    await tester.enterText(find.byType(TextField), 'rot');
+    expect(sessions.session?.draft.note, 'rot');
+  });
+
+  testWidgets('session reprise en cours : minuteur et brouillon restaurés', (
+    tester,
+  ) async {
+    final session = restoredSession(startedAgo: const Duration(minutes: 10));
+    await openSheet(tester, restored: session);
+    expect(find.text('Biberon terminé'), findsOneWidget);
+    expect(find.text('Nouvel événement'), findsOneWidget);
+    verifyNever(() => repo.save(any(), any()));
+
+    final save = find.widgetWithText(FilledButton, 'Enregistrer');
+    await tester.ensureVisible(save);
+    await tester.tap(save);
+    await tester.pumpAndSettle();
+    final saved =
+        verify(() => repo.save('ABCDEFGH', captureAny())).captured.single
+            as CareEvent;
+    expect(saved.id, 'e-old');
+    expect(saved.bottleMl, 90);
+  });
+
+  testWidgets('session reprise terminée : soin enregistré et feuille fermée', (
+    tester,
+  ) async {
+    final session = restoredSession(startedAgo: const Duration(minutes: 50));
+    await openSheet(tester, restored: session);
+    final saved =
+        verify(() => repo.save('ABCDEFGH', captureAny())).captured.single
+            as CareEvent;
+    expect(saved.startAt, session.run.startedAt);
+    expect(saved.endAt, session.run.feedingEndsAt);
+    expect(saved.bottleMl, 90);
+    expect(find.byType(EventFormSheet), findsNothing);
+    expect(feedback.calls, isNot(contains('sound:uprightEnded')));
+    expect(sessions.session, isNull);
+  });
+
+  testWidgets('session reprise en édition : titre de modification', (
+    tester,
+  ) async {
+    await openSheet(
+      tester,
+      restored: restoredSession(startedAgo: Duration.zero, editing: true),
+    );
+    expect(find.text("Modifier l'événement"), findsOneWidget);
   });
 }

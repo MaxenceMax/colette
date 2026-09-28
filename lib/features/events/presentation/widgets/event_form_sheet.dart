@@ -1,22 +1,27 @@
+import 'dart:async';
+
 import 'package:colette/core/clock/app_clock.dart';
-import 'package:colette/core/dates/time_format.dart';
 import 'package:colette/core/ids/id_generator.dart';
 import 'package:colette/core/theme/design_tokens.dart';
-import 'package:colette/core/theme/text_styles.dart';
 import 'package:colette/core/ui/date_time_picker.dart';
 import 'package:colette/core/ui/failure_message.dart';
 import 'package:colette/features/baby/presentation/providers/baby_providers.dart';
+import 'package:colette/features/events/domain/entities/bottle_timer_run.dart';
+import 'package:colette/features/events/domain/entities/bottle_timer_session.dart';
 import 'package:colette/features/events/domain/entities/care_event.dart';
 import 'package:colette/features/events/domain/use_cases/bottle_timer.dart';
 import 'package:colette/features/events/domain/use_cases/new_event_draft.dart';
 import 'package:colette/features/events/presentation/providers/bottle_timer_controller.dart';
+import 'package:colette/features/events/presentation/providers/bottle_timer_session_providers.dart';
 import 'package:colette/features/events/presentation/providers/event_form_controller.dart';
 import 'package:colette/features/events/presentation/widgets/bottle_field.dart';
+import 'package:colette/features/events/presentation/widgets/bottle_timer_stop_dialog.dart';
+import 'package:colette/features/events/presentation/widgets/event_form_header.dart';
+import 'package:colette/features/events/presentation/widgets/event_time_fields.dart';
 import 'package:colette/features/household/presentation/providers/household_providers.dart';
 import 'package:colette/l10n/generated/app_localizations.dart';
 import 'package:colette/shared/domain/care_type.dart';
 import 'package:colette/shared/ui/widgets/care_chip.dart';
-import 'package:colette/shared/ui/widgets/date_field.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -27,6 +32,7 @@ Future<bool?> showEventFormSheet(
   CareEvent? initial,
   CareType? preChecked,
   int? suggestedBottleMl,
+  BottleTimerSession? restored,
 }) => showModalBottomSheet<bool>(
   context: context,
   isScrollControlled: true,
@@ -38,6 +44,7 @@ Future<bool?> showEventFormSheet(
     initial: initial,
     preChecked: preChecked,
     suggestedBottleMl: suggestedBottleMl,
+    restored: restored,
   ),
 );
 
@@ -48,11 +55,15 @@ class EventFormSheet extends ConsumerStatefulWidget {
     this.initial,
     this.preChecked,
     this.suggestedBottleMl,
+    this.restored,
   });
 
   final CareEvent? initial;
   final CareType? preChecked;
   final int? suggestedBottleMl;
+
+  /// Minuteur interrompu (app tuée) à reprendre avec son brouillon.
+  final BottleTimerSession? restored;
 
   @override
   ConsumerState<EventFormSheet> createState() => _EventFormSheetState();
@@ -62,12 +73,15 @@ class _EventFormSheetState extends ConsumerState<EventFormSheet> {
   late CareEvent _draft;
   late final TextEditingController _noteController;
 
-  bool get _isEditing => widget.initial != null;
+  bool get _isEditing =>
+      widget.initial != null || (widget.restored?.editing ?? false);
 
   @override
   void initState() {
     super.initState();
+    final restored = widget.restored;
     _draft =
+        restored?.draft ??
         widget.initial ??
         newEventDraft(
           now: ref.read(clockProvider).now(),
@@ -76,7 +90,47 @@ class _EventFormSheetState extends ConsumerState<EventFormSheet> {
           preChecked: widget.preChecked,
           bottleMl: widget.suggestedBottleMl,
         );
-    _noteController = TextEditingController(text: _draft.note ?? '');
+    _noteController = TextEditingController(text: _draft.note ?? '')
+      ..addListener(_persistSession);
+    if (restored != null) {
+      WidgetsBinding.instance.addPostFrameCallback(
+        (_) => _resume(restored.run),
+      );
+    }
+  }
+
+  /// Reprend le minuteur ; s'il a fini pendant que l'app était tuée,
+  /// enregistre sans son (les notifications ont déjà sonné).
+  void _resume(BottleTimerRun run) {
+    if (!mounted) return;
+    ref.read(bottleTimerControllerProvider.notifier).restore(run);
+    final now = ref.read(clockProvider).now();
+    if (computeBottleTimerPhase(run: run, now: now) is BottleTimerDone) {
+      _autoSave();
+    }
+  }
+
+  void _setDraft(CareEvent draft) {
+    setState(() => _draft = draft);
+    _persistSession();
+  }
+
+  /// Sauvegarde minuteur et brouillon tant que le minuteur tourne.
+  void _persistSession() {
+    final run = ref.read(bottleTimerControllerProvider);
+    if (run == null) return;
+    final note = _noteController.text.trim();
+    unawaited(
+      ref
+          .read(bottleTimerSessionRepositoryProvider)
+          .save(
+            BottleTimerSession(
+              run: run,
+              draft: _draft.copyWith(note: note.isEmpty ? null : note),
+              editing: _isEditing,
+            ),
+          ),
+    );
   }
 
   @override
@@ -94,14 +148,14 @@ class _EventFormSheetState extends ConsumerState<EventFormSheet> {
       maximum: isStart ? ref.read(clockProvider).now() : null,
     );
     if (picked == null) return;
-    setState(() {
-      _draft = isStart
+    _setDraft(
+      isStart
           ? _draft.copyWith(
               startAt: picked,
               endAt: picked.isAfter(_draft.endAt) ? picked : _draft.endAt,
             )
-          : _draft.copyWith(endAt: picked);
-    });
+          : _draft.copyWith(endAt: picked),
+    );
   }
 
   Future<void> _save() async {
@@ -129,25 +183,7 @@ class _EventFormSheetState extends ConsumerState<EventFormSheet> {
   }
 
   Future<void> _confirmClose() async {
-    final s = S.of(context);
-    final stop = await showDialog<bool>(
-      context: context,
-      builder: (dialogContext) => AlertDialog(
-        title: Text(s.bottleTimerCloseTitle),
-        content: Text(s.bottleTimerCloseBody),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.of(dialogContext).pop(false),
-            child: Text(s.bottleTimerContinue),
-          ),
-          TextButton(
-            onPressed: () => Navigator.of(dialogContext).pop(true),
-            child: Text(s.bottleTimerStop),
-          ),
-        ],
-      ),
-    );
-    if (stop != true || !mounted) return;
+    if (!await confirmBottleTimerStop(context) || !mounted) return;
     ref.read(bottleTimerControllerProvider.notifier).reset();
     Navigator.of(context).pop();
   }
@@ -155,7 +191,6 @@ class _EventFormSheetState extends ConsumerState<EventFormSheet> {
   @override
   Widget build(BuildContext context) {
     final s = S.of(context);
-    final styles = Theme.of(context).coletteTextStyles;
     ref.listen(eventFormControllerProvider, (_, next) {
       if (next case AsyncError(:final error)) {
         ScaffoldMessenger.of(context)
@@ -167,6 +202,9 @@ class _EventFormSheetState extends ConsumerState<EventFormSheet> {
       ..watch(bottleTimerEffectsProvider)
       ..listen(bottleTimerPhaseProvider, (previous, next) {
         if (bottleTimerTransition(previous, next) == .finished) _autoSave();
+      })
+      ..listen(bottleTimerControllerProvider, (_, run) {
+        if (run != null) _persistSession();
       });
     final timerPhase = ref.watch(bottleTimerPhaseProvider);
     final timerRunning =
@@ -201,41 +239,13 @@ class _EventFormSheetState extends ConsumerState<EventFormSheet> {
           shrinkWrap: true,
           padding: AppSpacing.lg.all,
           children: [
-            Row(
-              children: [
-                Expanded(
-                  child: Text(
-                    _isEditing ? s.eventFormEditTitle : s.eventFormNewTitle,
-                    style: styles.heading2,
-                  ),
-                ),
-                // `maybePop` : passe par le `PopScope` du minuteur.
-                IconButton(
-                  onPressed: () => Navigator.of(context).maybePop(),
-                  tooltip: s.actionClose,
-                  icon: const Icon(Icons.close),
-                ),
-              ],
-            ),
+            EventFormHeader(isEditing: _isEditing),
             AppSpacing.md.verticalSpace,
-            Row(
-              spacing: AppSpacing.sm.value,
-              children: [
-                Expanded(
-                  child: DateField(
-                    label: s.fieldStartAt,
-                    value: formatHourMinute(_draft.startAt),
-                    onTap: () => _pickTime(isStart: true),
-                  ),
-                ),
-                Expanded(
-                  child: DateField(
-                    label: s.fieldEndAt,
-                    value: formatHourMinute(_draft.endAt),
-                    onTap: () => _pickTime(isStart: false),
-                  ),
-                ),
-              ],
+            EventTimeFields(
+              startAt: _draft.startAt,
+              endAt: _draft.endAt,
+              onPickStart: () => _pickTime(isStart: true),
+              onPickEnd: () => _pickTime(isStart: false),
             ),
             AppSpacing.md.verticalSpace,
             Wrap(
@@ -246,8 +256,7 @@ class _EventFormSheetState extends ConsumerState<EventFormSheet> {
                   CareChip(
                     type: type,
                     selected: _draft.has(type),
-                    onChanged: (value) =>
-                        setState(() => _draft = _draft.toggle(type, value)),
+                    onChanged: (value) => _setDraft(_draft.toggle(type, value)),
                   ),
               ],
             ),
@@ -258,7 +267,7 @@ class _EventFormSheetState extends ConsumerState<EventFormSheet> {
                 if (ml == null) {
                   ref.read(bottleTimerControllerProvider.notifier).reset();
                 }
-                setState(() => _draft = _draft.copyWith(bottleMl: ml));
+                _setDraft(_draft.copyWith(bottleMl: ml));
               },
             ),
             AppSpacing.md.verticalSpace,
