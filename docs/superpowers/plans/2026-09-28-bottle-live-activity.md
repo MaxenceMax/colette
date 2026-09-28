@@ -536,7 +536,7 @@ import 'package:riverpod_annotation/riverpod_annotation.dart';
 
 part 'bottle_timer_system.g.dart';
 
-/// Présence du minuteur de biberon hors de l'app : Live Activity (iOS 16.1+)
+/// Présence du minuteur de biberon hors de l'app : Live Activity (iOS 16.2+)
 /// et notifications locales de fin de phase.
 abstract interface class BottleTimerSystem {
   /// Crée ou met à jour l'activité et reprogramme les notifications.
@@ -1236,7 +1236,7 @@ import ActivityKit
 import Foundation
 
 /// Live Activity du minuteur de biberon : prénom fixe, dates dynamiques.
-@available(iOS 16.1, *)
+@available(iOS 16.2, *)
 struct BottleTimerAttributes: ActivityAttributes {
   struct ContentState: Codable, Hashable {
     var startedAt: Date
@@ -1255,7 +1255,7 @@ import ActivityKit
 import Flutter
 import UserNotifications
 
-/// Canal `colette/bottle-timer` : Live Activity (iOS 16.1+) et notifications
+/// Canal `colette/bottle-timer` : Live Activity (iOS 16.2+) et notifications
 /// locales de fin de phase du minuteur de biberon.
 enum BottleTimerChannel {
   static let notificationPrefix = "bottle-timer."
@@ -1280,7 +1280,7 @@ enum BottleTimerChannel {
         }
         let babyName = args["babyName"] as? String ?? ""
         scheduleNotifications(feedingEndsAt: feedingEndsAt, uprightEndsAt: uprightEndsAt)
-        if #available(iOS 16.1, *) {
+        if #available(iOS 16.2, *) {
           Task {
             await syncActivity(
               babyName: babyName,
@@ -1290,7 +1290,7 @@ enum BottleTimerChannel {
         result(nil)
       case "clear":
         clearNotifications()
-        if #available(iOS 16.1, *) {
+        if #available(iOS 16.2, *) {
           Task { await endActivities() }
         }
         result(nil)
@@ -1341,7 +1341,7 @@ enum BottleTimerChannel {
 
   // MARK: - Live Activity
 
-  @available(iOS 16.1, *)
+  @available(iOS 16.2, *)
   private static func syncActivity(babyName: String, state: BottleTimerAttributes.ContentState) async {
     guard ActivityAuthorizationInfo().areActivitiesEnabled else { return }
     if let activity = Activity<BottleTimerAttributes>.activities.first {
@@ -1366,7 +1366,7 @@ enum BottleTimerChannel {
     }
   }
 
-  @available(iOS 16.1, *)
+  @available(iOS 16.2, *)
   private static func endActivities() async {
     for activity in Activity<BottleTimerAttributes>.activities {
       if #available(iOS 16.2, *) {
@@ -1379,7 +1379,7 @@ enum BottleTimerChannel {
 }
 ```
 
-(`staleDate` n'existe qu'à partir d'iOS 16.2 ; sur 16.1 l'activité reste sur les décomptes à 0:00, acceptable.)
+(`staleDate`, `isStale` et `ActivityContent` exigent iOS 16.2 : c'est le minimum de l'extension et du code ActivityKit.)
 
 - [ ] **Step 3 : `AppDelegate.swift`**
 
@@ -1439,7 +1439,7 @@ Ajouter les deux fichiers Swift et `Localizable.strings` à la target Runner (fa
 
 - [ ] **Step 1 : script `xcodeproj`** qui :
   - ajoute `Runner/BottleTimer/*.swift` et `Runner/fr.lproj/Localizable.strings` à la target Runner ;
-  - crée la target `BottleTimerWidget` (`:app_extension`, iOS 16.1, bundle id `fr.montet.colette.BottleTimerWidget`, équipe `D2K5A7DBDQ`, signature automatique, Swift 5, `INFOPLIST_FILE = BottleTimerWidget/Info.plist`, `GENERATE_INFOPLIST_FILE = NO`, `ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME` vide, `SKIP_INSTALL = YES`) avec `BottleTimerWidget/*.swift`, `Runner/BottleTimer/BottleTimerAttributes.swift`, `Assets.xcassets` et `fr.lproj/Localizable.strings`, frameworks `WidgetKit` et `SwiftUI` ;
+  - crée la target `BottleTimerWidget` (`:app_extension`, iOS 16.2, bundle id `fr.montet.colette.BottleTimerWidget`, équipe `D2K5A7DBDQ`, signature automatique, Swift 5, `INFOPLIST_FILE = BottleTimerWidget/Info.plist`, `GENERATE_INFOPLIST_FILE = NO`, `ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME` vide, `SKIP_INSTALL = YES`) avec `BottleTimerWidget/*.swift`, `Runner/BottleTimer/BottleTimerAttributes.swift`, `Assets.xcassets` et `fr.lproj/Localizable.strings`, frameworks `WidgetKit` et `SwiftUI` ;
   - ajoute au Runner une phase « Embed Foundation Extensions » (copy files, destination plugins) contenant `BottleTimerWidget.appex`, **placée avant « Thin Binary »**, et la dépendance de target ;
   - ajoute `fr` aux `knownRegions` si absent.
 

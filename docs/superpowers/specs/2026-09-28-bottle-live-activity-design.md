@@ -15,9 +15,10 @@ Le minuteur de biberon (30 min de biberon puis 12 min à la verticale) reste vis
 - **Pas de package** : canal natif `colette/bottle-timer`, sur le modèle de `colette/device`. Deux méthodes idempotentes : `sync` et `clear`.
 - **Affichage sans mise à jour** : une Live Activity ne change pas de vue seule à une date donnée ; seuls `Text(timerInterval:)` et `ProgressView(timerInterval:)` avancent sans l'app. Donc :
   - écran verrouillé et îlot étendu : les deux phases côte à côte, chacune avec son décompte (`startedAt…feedingEndsAt` et `feedingEndsAt…uprightEndsAt`) ; le décompte de la verticale reste à 12:00 tant que le biberon n'est pas fini ;
-  - îlot compact : icône biberon à gauche, temps restant jusqu'à `uprightEndsAt` à droite ;
+  - îlot compact : icône biberon à gauche, temps restant jusqu'à `uprightEndsAt` à droite (coche une fois périmé) ;
+  - îlot étendu : prénom à gauche, heure de lancement à droite, les deux phases dessous ;
   - îlot minimal : icône biberon ;
-  - `staleDate = uprightEndsAt` : vue « Minuteur terminé · Ouvre Colette pour enregistrer » quand `context.isStale`.
+  - `staleDate = uprightEndsAt` : vue « Minuteur terminé · Ouvre Colette pour enregistrer » quand `context.isStale` (iOS l'applique avec environ une minute de retard, constaté sur simulateur).
 - **Pas de bouton** dans l'activité : un appui ouvre l'app (comportement par défaut, pas de lien profond). La feuille déjà ouverte ou la reprise font le reste.
 - **Notifications locales** programmées en natif (`UNUserNotificationCenter`), identifiants `bottle-timer.feeding` et `bottle-timer.upright`, son par défaut. Masquées au premier plan (les sons de l'app prennent le relais). L'autorisation est celle déjà demandée pour FCM ; rien n'est redemandé.
 - **Reprise** : la session (minuteur + brouillon) est persistée dans `shared_preferences` pendant que le minuteur tourne.
@@ -61,20 +62,20 @@ Le minuteur de biberon (30 min de biberon puis 12 min à la verticale) reste vis
 ## Natif iOS
 
 - **Canal** dans `AppDelegate.swift` (`registerBottleTimerChannel`), code métier dans `ios/Runner/BottleTimer/` :
-  - `sync` : si iOS ≥ 16.1 et `ActivityAuthorizationInfo().areActivitiesEnabled`, met à jour l'activité en cours (`Activity<BottleTimerAttributes>.activities.first`) ou en démarre une, avec `staleDate = uprightEndsAt` ; puis retire et reprogramme les deux notifications, en sautant celles dont l'heure est passée ;
+  - `sync` : si iOS ≥ 16.2 et `ActivityAuthorizationInfo().areActivitiesEnabled`, met à jour l'activité en cours (`Activity<BottleTimerAttributes>.activities.first`) ou en démarre une, avec `staleDate = uprightEndsAt` ; puis retire et reprogramme les deux notifications, en sautant celles dont l'heure est passée ;
   - `clear` : termine toutes les activités `BottleTimerAttributes` avec `dismissalPolicy: .immediate` et retire les notifications en attente et affichées `bottle-timer.*`.
 - **Premier plan** : dans `userNotificationCenter(_:willPresent:)` de l'`AppDelegate`, les notifications dont l'identifiant commence par `bottle-timer.` sont présentées avec `[]` ; les autres suivent le comportement actuel (`super`, pour `firebase_messaging`).
 - **`BottleTimerAttributes`** (fichier partagé entre Runner et l'extension) : attribut fixe `babyName` ; `ContentState` avec `startedAt`, `feedingEndsAt`, `uprightEndsAt`.
-- **Target `BottleTimerWidget`** (Widget Extension, iOS 16.1) : `ActivityConfiguration` avec les vues compacte, minimale, étendue et écran verrouillé décrites plus haut ; couleurs en asset catalog clair / sombre ; textes dans `Localizable.strings` (fr).
+- **Target `BottleTimerWidget`** (Widget Extension, iOS 16.2) : `ActivityConfiguration` avec les vues compacte, minimale, étendue et écran verrouillé décrites plus haut ; couleurs en asset catalog clair / sombre ; textes dans `Localizable.strings` (fr).
 - `Info.plist` du Runner : `NSSupportsLiveActivities = YES`.
 - Build : la phase « Embed Foundation Extensions » doit précéder « Thin Binary » dans le Runner, sinon Xcode signale un cycle.
-- La cible de l'app reste iOS 15 : tout le code ActivityKit est sous `if #available(iOS 16.1, *)`.
+- La cible de l'app reste iOS 15 : tout le code ActivityKit est sous `if #available(iOS 16.2, *)`.
 
 ## Dégradations silencieuses
 
 | Cas | Comportement |
 |---|---|
-| iOS 15 | Pas d'activité ; notifications locales et reprise actives. |
+| iOS 15 à 16.1 | Pas d'activité (`isStale` et `ActivityContent` exigent iOS 16.2) ; notifications locales et reprise actives. |
 | Live Activities désactivées dans Réglages | Pas d'activité ; notifications et reprise actives. |
 | Notifications refusées | Sons dans l'app seulement ; activité et reprise actives. |
 | Session de plus de 12 h | Effacée au démarrage, activité fermée. |
