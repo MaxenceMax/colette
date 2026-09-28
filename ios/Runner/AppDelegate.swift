@@ -1,6 +1,7 @@
 import AudioToolbox
 import Flutter
 import UIKit
+import UserNotifications
 
 @main
 @objc class AppDelegate: FlutterAppDelegate, FlutterImplicitEngineDelegate {
@@ -8,7 +9,26 @@ import UIKit
     _ application: UIApplication,
     didFinishLaunchingWithOptions launchOptions: [UIApplication.LaunchOptionsKey: Any]?
   ) -> Bool {
+    // Delegate posé avant `super` : `firebase_messaging` le conserve et reçoit
+    // ses appels via `FlutterAppDelegate` ; les notifications du minuteur sont
+    // filtrées dans `willPresent`.
+    UNUserNotificationCenter.current().delegate = self
     return super.application(application, didFinishLaunchingWithOptions: launchOptions)
+  }
+
+  /// Au premier plan, les sons de l'app remplacent les notifications du minuteur.
+  override func userNotificationCenter(
+    _ center: UNUserNotificationCenter,
+    willPresent notification: UNNotification,
+    withCompletionHandler completionHandler:
+      @escaping (UNNotificationPresentationOptions) -> Void
+  ) {
+    if notification.request.identifier.hasPrefix(BottleTimerChannel.notificationPrefix) {
+      completionHandler([])
+      return
+    }
+    super.userNotificationCenter(
+      center, willPresent: notification, withCompletionHandler: completionHandler)
   }
 
   func didInitializeImplicitFlutterEngine(_ engineBridge: FlutterImplicitEngineBridge) {
@@ -16,6 +36,7 @@ import UIKit
     DocumentsPlugin.register(with: engineBridge.pluginRegistry)
     CalendarPlugin.register(with: engineBridge.pluginRegistry)
     registerDeviceChannel(with: engineBridge.pluginRegistry)
+    BottleTimerChannel.register(with: engineBridge.pluginRegistry)
   }
 
   /// Canal `colette/device` : écran maintenu allumé et sons système

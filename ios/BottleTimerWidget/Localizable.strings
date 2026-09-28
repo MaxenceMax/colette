@@ -1,0 +1,6 @@
+/* Live Activity du minuteur de biberon. */
+"bottleTimer.feeding" = "Biberon";
+"bottleTimer.upright" = "Verticale";
+"bottleTimer.titleFor" = "Biberon de %@";
+"bottleTimer.done" = "Minuteur terminé";
+"bottleTimer.openToSave" = "Ouvre Colette pour enregistrer";
