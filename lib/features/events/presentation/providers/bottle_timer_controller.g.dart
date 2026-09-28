@@ -45,7 +45,7 @@ final class BottleTimerControllerProvider
 }
 
 String _$bottleTimerControllerHash() =>
-    r'f8e804b449a1e9bf07f6f5947d23a758af5d5019';
+    r'2ab9ec90773d33119722c9c6775dc672e57ee113';
 
 /// Minuteur de biberon lancé ; `null` au repos.
 
@@ -158,20 +158,23 @@ final class BottleTimerPhaseProvider
 
 String _$bottleTimerPhaseHash() => r'fc630676cd665425fb7af29c7fbff18b64105375';
 
-/// Écran maintenu allumé, sons et vibrations aux transitions du minuteur.
-/// Relâche l'écran à sa destruction (fermeture du formulaire).
+/// Écran maintenu allumé, sons et vibrations aux transitions du minuteur ;
+/// Live Activity et notifications tenues à jour. À sa destruction (fermeture
+/// du formulaire) : écran relâché, activité fermée, session effacée.
 
 @ProviderFor(bottleTimerEffects)
 final bottleTimerEffectsProvider = BottleTimerEffectsProvider._();
 
-/// Écran maintenu allumé, sons et vibrations aux transitions du minuteur.
-/// Relâche l'écran à sa destruction (fermeture du formulaire).
+/// Écran maintenu allumé, sons et vibrations aux transitions du minuteur ;
+/// Live Activity et notifications tenues à jour. À sa destruction (fermeture
+/// du formulaire) : écran relâché, activité fermée, session effacée.
 
 final class BottleTimerEffectsProvider
     extends $FunctionalProvider<void, void, void>
     with $Provider<void> {
-  /// Écran maintenu allumé, sons et vibrations aux transitions du minuteur.
-  /// Relâche l'écran à sa destruction (fermeture du formulaire).
+  /// Écran maintenu allumé, sons et vibrations aux transitions du minuteur ;
+  /// Live Activity et notifications tenues à jour. À sa destruction (fermeture
+  /// du formulaire) : écran relâché, activité fermée, session effacée.
   BottleTimerEffectsProvider._()
     : super(
         from: null,
@@ -206,4 +209,4 @@ final class BottleTimerEffectsProvider
 }
 
 String _$bottleTimerEffectsHash() =>
-    r'099cc65af70a7d15d0a8b4c105085881c581c273';
+    r'81e588fc09e14ae467d9ac2b6af0042e205ead83';
