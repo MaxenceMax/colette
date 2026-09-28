@@ -206,4 +206,4 @@ final class BottleTimerEffectsProvider
 }
 
 String _$bottleTimerEffectsHash() =>
-    r'c5b22fa61f72abc88c06f64e1e530311b15e810a';
+    r'099cc65af70a7d15d0a8b4c105085881c581c273';

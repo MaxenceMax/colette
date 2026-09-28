@@ -362,7 +362,7 @@ final class TimelineLimitProvider
   }
 }
 
-String _$timelineLimitHash() => r'93cf26cd06a2cd8eb512ab419b1a27656975e708';
+String _$timelineLimitHash() => r'7cc726cdabe3a43d5b7877dde56ee6930f07dd59';
 
 /// Nombre d'événements demandés au journal ; grandit par pages.
 
@@ -384,12 +384,14 @@ abstract class _$TimelineLimit extends $Notifier<int> {
   }
 }
 
-/// Événements du journal, limités par [TimelineLimit].
+/// Événements du journal, limités par [TimelineLimit] et triés par
+/// [TimelineFilterController] ; vides quand le filtre n'affiche que les sommeils.
 
 @ProviderFor(timelineEvents)
 final timelineEventsProvider = TimelineEventsProvider._();
 
-/// Événements du journal, limités par [TimelineLimit].
+/// Événements du journal, limités par [TimelineLimit] et triés par
+/// [TimelineFilterController] ; vides quand le filtre n'affiche que les sommeils.
 
 final class TimelineEventsProvider
     extends
@@ -399,7 +401,8 @@ final class TimelineEventsProvider
           Stream<List<CareEvent>>
         >
     with $FutureModifier<List<CareEvent>>, $StreamProvider<List<CareEvent>> {
-  /// Événements du journal, limités par [TimelineLimit].
+  /// Événements du journal, limités par [TimelineLimit] et triés par
+  /// [TimelineFilterController] ; vides quand le filtre n'affiche que les sommeils.
   TimelineEventsProvider._()
     : super(
         from: null,
@@ -426,4 +429,4 @@ final class TimelineEventsProvider
   }
 }
 
-String _$timelineEventsHash() => r'fd3a923bca4e0a9a54eae8fa66cb4ed03135337b';
+String _$timelineEventsHash() => r'b57690c15d0e04e7336a3c3c1e47cdf88ec79a15';
