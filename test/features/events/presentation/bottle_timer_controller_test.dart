@@ -198,6 +198,13 @@ void main() {
       expect(container.read(bottleTimerControllerProvider), run);
     });
 
+    test('restaurer un minuteur déjà fini ne crée pas d\'activité', () {
+      controller().restore(
+        BottleTimerRun.startingAt(start.subtract(const Duration(hours: 1))),
+      );
+      expect(system.calls, isEmpty);
+    });
+
     test('lancement puis « Biberon terminé » : sync à chaque fois', () {
       controller().start();
       clock.current = start.add(const Duration(minutes: 10));

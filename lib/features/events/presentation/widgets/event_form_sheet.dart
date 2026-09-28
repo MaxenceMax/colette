@@ -73,6 +73,9 @@ class _EventFormSheetState extends ConsumerState<EventFormSheet> {
   late CareEvent _draft;
   late final TextEditingController _noteController;
 
+  /// Posé au `pop` : la feuille reste montée pendant l'animation de fermeture.
+  bool _closing = false;
+
   bool get _isEditing =>
       widget.initial != null || (widget.restored?.editing ?? false);
 
@@ -120,17 +123,13 @@ class _EventFormSheetState extends ConsumerState<EventFormSheet> {
     final run = ref.read(bottleTimerControllerProvider);
     if (run == null) return;
     final note = _noteController.text.trim();
-    unawaited(
-      ref
-          .read(bottleTimerSessionRepositoryProvider)
-          .save(
-            BottleTimerSession(
-              run: run,
-              draft: _draft.copyWith(note: note.isEmpty ? null : note),
-              editing: _isEditing,
-            ),
-          ),
+    final draft = _draft.copyWith(note: note.isEmpty ? null : note);
+    final session = BottleTimerSession(
+      run: run,
+      draft: draft,
+      editing: _isEditing,
     );
+    unawaited(ref.read(bottleTimerSessionRepositoryProvider).save(session));
   }
 
   @override
@@ -164,13 +163,18 @@ class _EventFormSheetState extends ConsumerState<EventFormSheet> {
         .read(eventFormControllerProvider.notifier)
         .submit(_draft.copyWith(note: note.isEmpty ? null : note));
     // `pop` et non `maybePop` : enregistrer ferme même si le minuteur tourne.
-    if (saved != null && mounted) Navigator.of(context).pop(true);
+    if (saved != null && mounted) {
+      _closing = true;
+      Navigator.of(context).pop(true);
+    }
   }
 
   /// Fin du minuteur : enregistre le soin aux heures du minuteur.
   Future<void> _autoSave() async {
     final run = ref.read(bottleTimerControllerProvider);
-    if (run == null || ref.read(eventFormControllerProvider) is AsyncLoading) {
+    if (_closing ||
+        run == null ||
+        ref.read(eventFormControllerProvider) is AsyncLoading) {
       return;
     }
     setState(
@@ -185,6 +189,7 @@ class _EventFormSheetState extends ConsumerState<EventFormSheet> {
   Future<void> _confirmClose() async {
     if (!await confirmBottleTimerStop(context) || !mounted) return;
     ref.read(bottleTimerControllerProvider.notifier).reset();
+    _closing = true;
     Navigator.of(context).pop();
   }
 

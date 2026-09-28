@@ -87,7 +87,12 @@ void bottleTimerEffects(Ref ref) {
       }
     })
     ..listen(bottleTimerControllerProvider, (previous, next) {
-      if (next != null && next != previous) {
+      // Un minuteur repris déjà fini n'a plus rien à afficher hors de l'app.
+      final done =
+          next != null &&
+          computeBottleTimerPhase(run: next, now: ref.read(clockProvider).now())
+              is BottleTimerDone;
+      if (next != null && next != previous && !done) {
         unawaited(
           system.sync(
             startedAt: next.startedAt,

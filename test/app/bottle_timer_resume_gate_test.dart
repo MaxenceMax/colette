@@ -11,6 +11,7 @@ import 'package:flutter_test/flutter_test.dart';
 import '../helpers/care_event_factory.dart';
 import '../helpers/colette_app_overrides.dart';
 import '../helpers/fake_bottle_timer_system.dart';
+import '../helpers/fake_push_token_source.dart';
 import '../helpers/in_memory_bottle_timer_session_repository.dart';
 
 void main() {
@@ -21,6 +22,7 @@ void main() {
     required InMemoryBottleTimerSessionRepository sessions,
     required FakeBottleTimerSystem system,
     String? code = 'ABCDEFGH',
+    FakePushTokenSource? pushSource,
   }) async {
     await tester.pumpWidget(
       ProviderScope(
@@ -29,6 +31,7 @@ void main() {
             householdCode: code,
             deviceId: 'dev-1',
             bottleTimerSystem: system,
+            pushTokenSource: pushSource,
           ),
           bottleTimerSessionRepositoryProvider.overrideWithValue(sessions),
           clockProvider.overrideWithValue(FixedClock(now)),
@@ -100,5 +103,22 @@ void main() {
     );
     expect(find.byType(EventFormSheet), findsNothing);
     expect(sessions.session, isNotNull);
+  });
+
+  testWidgets('reprise et rappel biberon au démarrage : une seule feuille', (
+    tester,
+  ) async {
+    await pumpColetteApp(
+      tester,
+      sessions: InMemoryBottleTimerSessionRepository(
+        session: sessionStartedAgo(const Duration(minutes: 10)),
+      ),
+      system: FakeBottleTimerSystem(),
+      pushSource: FakePushTokenSource(
+        initialMessageData: {'route': '/today?bottle=1'},
+      ),
+    );
+    expect(find.byType(EventFormSheet), findsOneWidget);
+    expect(find.text('Biberon terminé'), findsOneWidget);
   });
 }
