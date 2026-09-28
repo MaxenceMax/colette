@@ -13,12 +13,7 @@ void main() {
       startedAt: start,
       feedingEndsAt: start.add(const Duration(minutes: 21)),
     ),
-    draft: makeEvent(
-      startAt: start,
-      bottleMl: 150,
-      pee: true,
-      note: 'rot',
-    ),
+    draft: makeEvent(startAt: start, bottleMl: 150, pee: true, note: 'rot'),
     editing: true,
   );
 

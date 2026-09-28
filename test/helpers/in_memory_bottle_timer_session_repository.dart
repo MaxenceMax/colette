@@ -19,9 +19,8 @@ class InMemoryBottleTimerSessionRepository
   }
 
   @override
-  Future<Either<Failure, BottleTimerSession?>> load() async => failLoad
-      ? left(UnknownFailure(StateError('illisible')))
-      : right(session);
+  Future<Either<Failure, BottleTimerSession?>> load() async =>
+      failLoad ? left(UnknownFailure(StateError('illisible'))) : right(session);
 
   @override
   Future<Either<Failure, void>> clear() async {
