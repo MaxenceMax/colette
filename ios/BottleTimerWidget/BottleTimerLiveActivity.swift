@@ -16,14 +16,22 @@ struct BottleTimerLiveActivity: Widget {
     } dynamicIsland: { context in
       DynamicIsland {
         DynamicIslandExpandedRegion(.leading) {
-          Label("bottleTimer.feeding", systemImage: "waterbottle")
-            .font(.subheadline)
-            .foregroundStyle(Color("Feeding"))
+          Label(
+            context.attributes.babyName.isEmpty
+              ? NSLocalizedString("bottleTimer.feeding", comment: "")
+              : context.attributes.babyName,
+            systemImage: "waterbottle"
+          )
+          .font(.subheadline)
+          .lineLimit(1)
+          .foregroundStyle(Color("Feeding"))
+          .padding(.leading, 6)
         }
         DynamicIslandExpandedRegion(.trailing) {
-          Text(context.attributes.babyName)
+          Text(context.state.startedAt, style: .time)
             .font(.subheadline)
             .foregroundStyle(.secondary)
+            .padding(.trailing, 6)
         }
         DynamicIslandExpandedRegion(.bottom) {
           PhasesView(state: context.state, isStale: context.isStale, onDark: true)
