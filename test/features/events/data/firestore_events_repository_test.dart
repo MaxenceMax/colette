@@ -1,4 +1,6 @@
 import 'package:colette/features/events/data/repositories/firestore_events_repository.dart';
+import 'package:colette/features/events/domain/entities/event_tag.dart';
+import 'package:colette/shared/domain/care_type.dart';
 import 'package:fake_cloud_firestore/fake_cloud_firestore.dart';
 import 'package:flutter_test/flutter_test.dart';
 
@@ -40,6 +42,53 @@ void main() {
       expect(latest.map((e) => e.id), ['c', 'b']);
     },
   );
+
+  test(
+    'watchLatest(only: CareTag) ne renvoie que ce soin, trié et limité',
+    () async {
+      final repo = FirestoreEventsRepository(FakeFirebaseFirestore());
+      for (final (id, hour, poop) in [
+        ('p1', 8, true),
+        ('x', 9, false),
+        ('p2', 10, true),
+        ('p3', 12, true),
+      ]) {
+        await repo.save(
+          code,
+          makeEvent(
+            id: id,
+            startAt: day.add(Duration(hours: hour)),
+            pee: true,
+            poop: poop,
+          ),
+        );
+      }
+      final latest = await repo
+          .watchLatest(code, limit: 2, only: const CareTag(CareType.poop))
+          .first;
+      expect(latest.map((e) => e.id), ['p3', 'p2']);
+    },
+  );
+
+  test('watchLatest(only: BottleTag) ne renvoie que les biberons', () async {
+    final repo = FirestoreEventsRepository(FakeFirebaseFirestore());
+    await repo.save(
+      code,
+      makeEvent(
+        id: 'b',
+        startAt: day.add(const Duration(hours: 8)),
+        bottleMl: 90,
+      ),
+    );
+    await repo.save(
+      code,
+      makeEvent(id: 'x', startAt: day.add(const Duration(hours: 9)), pee: true),
+    );
+    final latest = await repo
+        .watchLatest(code, limit: 30, only: const BottleTag())
+        .first;
+    expect(latest.map((e) => e.id), ['b']);
+  });
 
   test('watchBetween ne renvoie que les événements du jour', () async {
     final repo = FirestoreEventsRepository(FakeFirebaseFirestore());

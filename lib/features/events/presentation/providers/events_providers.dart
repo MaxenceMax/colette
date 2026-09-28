@@ -6,6 +6,7 @@ import 'package:colette/features/baby/domain/entities/care_frequency.dart';
 import 'package:colette/features/events/data/repositories/firestore_events_repository.dart';
 import 'package:colette/features/events/domain/entities/care_event.dart';
 import 'package:colette/features/events/domain/repositories/events_repository.dart';
+import 'package:colette/features/events/presentation/providers/timeline_filter_controller.dart';
 import 'package:colette/features/household/presentation/providers/household_providers.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
@@ -92,13 +93,20 @@ class TimelineLimit extends _$TimelineLimit {
   int build() => timelinePageSize;
 
   void loadMore() => state += timelinePageSize;
+
+  void reset() => state = timelinePageSize;
 }
 
-/// Événements du journal, limités par [TimelineLimit].
+/// Événements du journal, limités par [TimelineLimit] et triés par
+/// [TimelineFilterController] ; vides quand le filtre n'affiche que les sommeils.
 @Riverpod(retry: noRetry)
 Stream<List<CareEvent>> timelineEvents(Ref ref) {
   final code = ref.watch(currentHouseholdCodeProvider);
   if (code == null) return Stream.value(const []);
+  final filter = ref.watch(timelineFilterControllerProvider);
+  if (!filter.showsCares) return Stream.value(const []);
   final limit = ref.watch(timelineLimitProvider);
-  return ref.watch(eventsRepositoryProvider).watchLatest(code, limit: limit);
+  return ref
+      .watch(eventsRepositoryProvider)
+      .watchLatest(code, limit: limit, only: filter.eventTag);
 }

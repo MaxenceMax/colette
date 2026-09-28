@@ -12,7 +12,8 @@ part of 'timeline_sleeps_provider.dart';
 /// que Riverpod garde la liste précédente pendant le rechargement au lieu de
 /// démarrer un nouveau flux vide à chaque élargissement de la fenêtre.
 /// `from` suit le plus ancien soin déjà chargé par [timelineEventsProvider],
-/// sinon J−7 à minuit.
+/// sinon J−7 à minuit. Avec [SleepFilter], les sommeils sont paginés seuls
+/// par [TimelineLimit] ; avec un filtre de soin, la liste est vide.
 
 @ProviderFor(timelineSleeps)
 final timelineSleepsProvider = TimelineSleepsProvider._();
@@ -21,7 +22,8 @@ final timelineSleepsProvider = TimelineSleepsProvider._();
 /// que Riverpod garde la liste précédente pendant le rechargement au lieu de
 /// démarrer un nouveau flux vide à chaque élargissement de la fenêtre.
 /// `from` suit le plus ancien soin déjà chargé par [timelineEventsProvider],
-/// sinon J−7 à minuit.
+/// sinon J−7 à minuit. Avec [SleepFilter], les sommeils sont paginés seuls
+/// par [TimelineLimit] ; avec un filtre de soin, la liste est vide.
 
 final class TimelineSleepsProvider
     extends
@@ -37,7 +39,8 @@ final class TimelineSleepsProvider
   /// que Riverpod garde la liste précédente pendant le rechargement au lieu de
   /// démarrer un nouveau flux vide à chaque élargissement de la fenêtre.
   /// `from` suit le plus ancien soin déjà chargé par [timelineEventsProvider],
-  /// sinon J−7 à minuit.
+  /// sinon J−7 à minuit. Avec [SleepFilter], les sommeils sont paginés seuls
+  /// par [TimelineLimit] ; avec un filtre de soin, la liste est vide.
   TimelineSleepsProvider._()
     : super(
         from: null,
@@ -64,4 +67,4 @@ final class TimelineSleepsProvider
   }
 }
 
-String _$timelineSleepsHash() => r'3dc392ab3538d1ca98e85c9b74b9e103cef434a1';
+String _$timelineSleepsHash() => r'12954550bd925651a075764727178edb8c92bcb9';

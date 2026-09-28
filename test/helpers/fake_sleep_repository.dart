@@ -30,6 +30,12 @@ class FakeSleepRepository implements SleepRepository {
       Stream.value(_sorted(sessions.where((s) => !s.startAt.isBefore(from))));
 
   @override
+  Stream<List<SleepSession>> watchLatestSessions(
+    String code, {
+    required int limit,
+  }) => Stream.value(_sorted(sessions).take(limit).toList());
+
+  @override
   Stream<SleepSession?> watchLatest(String code) =>
       Stream.value(_sorted(sessions).firstOrNull);
 

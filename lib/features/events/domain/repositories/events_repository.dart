@@ -1,13 +1,16 @@
 import 'package:colette/core/result/failure.dart';
 import 'package:colette/features/events/domain/entities/care_event.dart';
+import 'package:colette/features/events/domain/entities/event_tag.dart';
 import 'package:fpdart/fpdart.dart';
 
 /// Événements de soin d'un foyer.
 abstract interface class EventsRepository {
-  /// Les [limit] événements les plus récents, du plus récent au plus ancien.
+  /// Les [limit] événements les plus récents, du plus récent au plus ancien ;
+  /// seulement ceux qui portent [only] si renseigné.
   Stream<List<CareEvent>> watchLatest(
     String householdCode, {
     required int limit,
+    EventTag? only,
   });
 
   /// Événements dont `startAt` est dans `[from, to[`, du plus récent au plus ancien.
