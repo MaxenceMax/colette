@@ -33,6 +33,17 @@ class FirestoreSleepRepository implements SleepRepository {
           .map(_toList);
 
   @override
+  Stream<List<SleepSession>> watchLatestSessions(
+    String householdCode, {
+    required int limit,
+  }) =>
+      _sleeps(householdCode)
+          .orderBy('startAt', descending: true)
+          .limit(limit)
+          .snapshots()
+          .map(_toList);
+
+  @override
   Stream<SleepSession?> watchLatest(String householdCode) =>
       _sleeps(householdCode)
           .orderBy('startAt', descending: true)

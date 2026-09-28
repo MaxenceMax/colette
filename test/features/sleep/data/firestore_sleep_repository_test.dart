@@ -26,6 +26,12 @@ void main() {
     return repo;
   }
 
+  test('watchLatestSessions trie et respecte la limite', () async {
+    final repo = await seeded();
+    final list = await repo.watchLatestSessions(code, limit: 2).first;
+    expect(list.map((s) => s.id), ['c', 'b']);
+  });
+
   test(
     'watchStartedSince filtre et trie du plus récent au plus ancien',
     () async {

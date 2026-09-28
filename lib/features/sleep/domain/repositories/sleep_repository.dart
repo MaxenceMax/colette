@@ -10,6 +10,12 @@ abstract interface class SleepRepository {
     DateTime from,
   );
 
+  /// Les [limit] sommeils les plus récents, du plus récent au plus ancien.
+  Stream<List<SleepSession>> watchLatestSessions(
+    String householdCode, {
+    required int limit,
+  });
+
   /// Dernier sommeil par `startAt`, toutes dates confondues.
   Stream<SleepSession?> watchLatest(String householdCode);
 

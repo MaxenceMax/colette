@@ -4,7 +4,9 @@ import 'package:colette/core/result/failure.dart';
 import 'package:colette/core/result/failure_mapper.dart';
 import 'package:colette/features/events/data/dtos/care_event_dto.dart';
 import 'package:colette/features/events/domain/entities/care_event.dart';
+import 'package:colette/features/events/domain/entities/event_tag.dart';
 import 'package:colette/features/events/domain/repositories/events_repository.dart';
+import 'package:colette/shared/domain/care_type.dart';
 import 'package:fpdart/fpdart.dart';
 
 /// Événements dans `households/{code}/events/{id}`.
@@ -44,12 +46,33 @@ class FirestoreEventsRepository implements EventsRepository {
   Stream<List<CareEvent>> watchLatest(
     String householdCode, {
     required int limit,
-  }) =>
-      _events(householdCode)
-          .orderBy('startAt', descending: true)
-          .limit(limit)
-          .snapshots()
-          .map(_toList);
+    EventTag? only,
+  }) {
+    final Query<Map<String, dynamic>> events = _events(householdCode);
+    final filtered = only == null
+        ? events
+        : events.where(_tagField(only), isEqualTo: true);
+    return filtered
+        .orderBy('startAt', descending: true)
+        .limit(limit)
+        .snapshots()
+        .map(_toList);
+  }
+
+  /// Champ booléen du document qui porte [tag].
+  static String _tagField(EventTag tag) => switch (tag) {
+    BottleTag() => 'hasBottle',
+    CareTag(:final type) => switch (type) {
+      CareType.pee => 'pee',
+      CareType.poop => 'poop',
+      CareType.diaperChange => 'diaperChange',
+      CareType.adrigyl => 'adrigyl',
+      CareType.bath => 'bath',
+      CareType.eyeCare => 'eyeCare',
+      CareType.noseCare => 'noseCare',
+      CareType.umbilicalCare => 'umbilicalCare',
+    },
+  };
 
   @override
   Stream<List<CareEvent>> watchBetween(
