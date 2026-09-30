@@ -52,26 +52,26 @@ Penser à envoyer des nouvelles du bébé aux proches, et le faire vite :
 
 ## Pont natif
 
-`lib/core/device/photo_sharing_system.dart` : interface `PhotoSharingSystem`, implémentation `NativePhotoSharingSystem` (canal `colette/photo-sharing`), provider `photoSharingSystemProvider` (keepAlive). Erreurs natives converties en `Failure` via `guard()`.
+Comme Documents : interface `PhotoSharingSystem` dans `lib/features/photo_sharing/domain/repositories/photo_sharing_system.dart`, implémentation `NativePhotoSharingSystem` dans `data/native_photo_sharing_system.dart` (canal `colette/photo-sharing`), provider `photoSharingSystemProvider` (keepAlive). Les codes d'erreur du canal deviennent `PhotoSharingFailure(PhotoSharingReason)` (`messagesUnavailable`, `cameraUnavailable`, `busy`, `io`, ajoutés dans `core/result/failure.dart` et `failureMessage`) ; toute autre exception devient `UnknownFailure`. Une annulation par l'utilisateur n'est pas une erreur : `null` ou liste vide.
 
-| Méthode | Arguments | Retour |
+| Méthode | Arguments | Retour Dart |
 |---|---|---|
-| `pickContact` | — | `Recipient?` (`null` si annulé) |
-| `takePhoto` | — | `List<String>` chemins (0 ou 1) |
-| `pickPhotos` | — | `List<String>` chemins (0 à 10) |
-| `canSendMessages` | — | `bool` |
-| `sendMessages` | `recipients` (`[{name, phone}]`), `photoPaths`, `body` | `{sent, cancelled, failed}` |
-| `discardPhotos` | `photoPaths` | — |
-| `syncReminders` | `dates` (millisecondes epoch), `title`, `body` | — |
-| `takeLaunchRoute` | — | `String?` |
+| `pickContact` | — | `Either<Failure, Recipient?>` |
+| `takePhoto` | — | `Either<Failure, List<String>>` (0 ou 1 chemin) |
+| `pickPhotos` | — | `Either<Failure, List<String>>` (0 à 10) |
+| `sendMessages` | `phones`, `photoPaths`, `body` | `Either<Failure, SendReport>` (`messagesUnavailable` si `canSendText()` est faux) |
+| `discardPhotos` | `photoPaths` | `Future<void>`, échec logué |
+| `syncReminders` | `dates` (millisecondes epoch), `title`, `body` | `Future<void>`, échec logué |
+| `takePendingRoute` | — | `Future<String?>`, échec logué |
+| `pendingRouteSignals` | (Swift → Dart : `routePending`) | `Stream<void>` |
 
 Côté Swift (`ios/Runner/PhotoSharing/`) :
 
 - **Photos** : chaque image est réencodée en JPEG (qualité 0,8, grand côté ≤ 2048 px) dans `tmp/photo-sharing/<uuid>.jpg`. `discardPhotos` les supprime ; le dossier est vidé au lancement du plugin.
 - **Envoi** : `sendMessages` présente une `MFMessageComposeViewController` par destinataire, l'une après l'autre (la suivante après la fermeture de la précédente). Chaque feuille : `recipients = [phone]`, `body`, `addAttachmentData` pour chaque photo (`public.jpeg`). Le résultat de chaque feuille (`.sent`, `.cancelled`, `.failed`) est compté ; une annulation passe à la personne suivante. Le résultat global n'est rendu qu'après la dernière feuille.
 - **Exclusivité** : un seul appel de présentation à la fois (`pickContact`, `takePhoto`, `pickPhotos`, `sendMessages`), comme `exclusive` dans `DocumentsPlugin` ; un appel concurrent échoue avec `busy`.
-- **Notifications** : `syncReminders` supprime toutes les notifications en attente dont l'identifiant commence par `photo-reminder.`, puis programme une `UNCalendarNotificationTrigger` (non répétée) par date, identifiant `photo-reminder.YYYY-MM-DD`, son par défaut. Liste vide : tout est supprimé. L'autorisation est celle déjà demandée pour FCM ; rien n'est redemandé.
-- **Appui sur la notification** : `AppDelegate.userNotificationCenter(_:didReceive:)` repère le préfixe `photo-reminder.`, mémorise la route `/today/photos` dans le plugin et, si Flutter tourne, appelle `invokeMethod("openRoute", "/today/photos")` sur le canal. `takeLaunchRoute` rend et efface la route mémorisée (lancement à froid).
+- **Notifications** : `syncReminders` retire les identifiants `photo-reminder.YYYY-MM-DD` de la veille à J+15 (retrait synchrone, donc deux synchronisations rapprochées restent dans l'ordre), puis programme une `UNCalendarNotificationTrigger` (non répétée) par date, son par défaut. Liste vide : tout est retiré. L'autorisation est celle déjà demandée pour FCM ; rien n'est redemandé.
+- **Appui sur la notification** : `AppDelegate.userNotificationCenter(_:didReceive:)` repère le préfixe `photo-reminder.`, mémorise la route `/today/photos` dans le plugin et appelle `invokeMethod("routePending")` sur le canal (sans effet si Flutter n'écoute pas encore). `takePendingRoute` rend et efface la route mémorisée : appelé au démarrage (lancement à froid) et à chaque signal.
 - **Premier plan** : `willPresent` affiche la notification (bannière + son) pour le préfixe `photo-reminder.`.
 
 `Info.plist` : `NSCameraUsageDescription` devient « Colette utilise l'appareil photo pour scanner vos documents et photographier votre bébé. »
@@ -84,21 +84,21 @@ Côté Swift (`ios/Runner/PhotoSharing/`) :
   - `broadcastListsProvider` (classe, keepAlive) : charge les listes ; méthodes `create(name)`, `rename(id, name)`, `delete(id)`, `addRecipient(id, recipient)` (ignore un numéro déjà présent dans la liste), `removeRecipient(id, phone)` ; chaque modification enregistre via le repository. Identifiants via `idGeneratorProvider`.
   - `photoReminderEnabledProvider` (classe, keepAlive) : lit et écrit l'interrupteur, puis appelle `photoReminderSync`.
   - `photoReminderSyncProvider` (fonction ou classe) : calcule `planPhotoReminders(now: clock.now(), lastSentAt, …)` si l'interrupteur est actif, sinon liste vide, puis `syncReminders`. Titre et texte de la notification depuis `S` (via `lookupS(const Locale('fr'))`, pas de `BuildContext`), prénom depuis `babyProfileProvider` (feature `baby`, provider public).
-  - `photoSendControllerProvider` (`AsyncNotifier<SendReport?>`) : `send({list, photoPaths, body})` → `canSendMessages` (sinon `AsyncError` avec une failure dédiée), `sendMessages`, puis si `anySent` : `saveLastSentAt(clock.now())` et `photoReminderSync` (supprime la notification du jour). `discardPhotos` dans tous les cas.
+  - `photoSendControllerProvider` (`AsyncNotifier<SendReport?>`) : `send({list, photoPaths, body})` → `sendMessages` (`AsyncError(PhotoSharingFailure(messagesUnavailable))` si Messages est indisponible), puis si `anySent` : `saveLastSentAt(clock.now())` et `photoReminderSync` (supprime la notification du jour). `discardPhotos` dans tous les cas.
 - **Pages et widgets** :
   - `widgets/photos_card.dart` : carte sur Aujourd'hui, « Photos » + « Dernier envoi : hier à 18 h 12 » (ou « Aucun envoi »), ouvre `/today/photos`.
   - `pages/photos_page.dart` : en tête le dernier envoi, puis `ListView.builder` des listes (nom, « N personnes »), bouton « Nouvelle liste ». Appui sur une liste : feuille « Prendre une photo » / « Choisir dans la galerie » ; bouton d'édition sur chaque ligne. État vide : texte d'explication + bouton de création.
   - `widgets/broadcast_list_editor_sheet.dart` : champ nom (obligatoire), liste des personnes (suppression par glissement), bouton « Ajouter une personne » (sélecteur de contacts), bouton « Supprimer la liste » avec confirmation.
   - `widgets/photo_send_sheet.dart` : vignettes des photos, champ texte facultatif (vide), bouton « Envoyer à N personnes » (désactivé si la liste est vide). Pendant l'envoi, indicateur ; à la fin, bilan « 4 envoyés · 1 annulé » (échecs mentionnés s'il y en a) et fermeture. Fermer la feuille sans envoyer appelle `discardPhotos`.
 - **Paramètres** : `widgets/photo_reminder_switch.dart` (`SwitchListTile` « Rappel photo quotidien », sous-titre « Une notification par jour entre 8 h et 21 h ») ajouté dans `SettingsPage` sous `NotificationsSection`.
-- **`PhotoReminderGate`** (`lib/app/`, dans le shell comme `NotificationsGate`) : au démarrage et à chaque retour au premier plan (`AppLifecycleState.resumed`), lance `photoReminderSync` ; au démarrage, `takeLaunchRoute` puis `context.push` si une route est rendue ; écoute `openRoute` pour les appuis app ouverte.
+- **`PhotoReminderGate`** (`lib/app/`, comme `NotificationsGate`) : au démarrage, à chaque retour au premier plan (`AppLifecycleState.resumed`) et à chaque changement de prénom, lance `photoReminderSync` ; au démarrage et à chaque `pendingRouteSignals`, `takePendingRoute` puis navigation vers la page Photos (seulement si un foyer existe).
 - **Routes** : `AppRoutes.todayPhotos = '/today/photos'`, `GoRoute(path: 'photos')` sous Aujourd'hui.
 - **Strings** : toutes dans `app_fr.arb` (préfixe `photos…`), y compris le titre et le texte de la notification (« C'est l'heure d'une photo 📷 » / « Envoie des nouvelles de {prénom} à tes proches. », « bébé » si le profil manque).
 
 ## Erreurs
 
 - Échec d'écriture des listes : `SnackBar` via `failureMessage`, état précédent conservé.
-- Messages indisponibles (`canSendMessages` faux, dont le simulateur) : message « Messages n'est pas disponible sur cet appareil », photos effacées.
+- Messages indisponibles (`MFMessageComposeViewController.canSendText()` faux, dont le simulateur) : message « Messages n'est pas disponible sur cet appareil », photos effacées.
 - Échec natif du sélecteur ou de l'appareil photo : `SnackBar`, rien d'autre.
 - `syncReminders` en échec : log `dart:developer`, jamais affiché.
 
