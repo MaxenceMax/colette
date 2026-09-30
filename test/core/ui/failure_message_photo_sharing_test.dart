@@ -29,10 +29,15 @@ void main() {
     );
   });
 
-  test('busy et io → préparation impossible', () {
-    const expected = 'Impossible de préparer les photos.';
-    expect(message(PhotoSharingReason.busy), expected);
-    expect(message(PhotoSharingReason.io), expected);
+  test('io → préparation impossible', () {
+    expect(
+      message(PhotoSharingReason.io),
+      'Impossible de préparer les photos.',
+    );
+  });
+
+  test('busy → autre action en cours', () {
+    expect(message(PhotoSharingReason.busy), 'Une autre action est en cours.');
   });
 
   test('égalité par raison', () {

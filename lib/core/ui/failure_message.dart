@@ -56,7 +56,8 @@ String failureMessage(Object failure, S s) => switch (failure) {
   PhotoSharingFailure(:final reason) => switch (reason) {
     PhotoSharingReason.messagesUnavailable => s.photosErrorMessagesUnavailable,
     PhotoSharingReason.cameraUnavailable => s.photosErrorCameraUnavailable,
-    PhotoSharingReason.busy || PhotoSharingReason.io => s.photosErrorIo,
+    PhotoSharingReason.io => s.photosErrorIo,
+    PhotoSharingReason.busy => s.photosErrorBusy,
   },
   _ => s.errorUnknown,
 };

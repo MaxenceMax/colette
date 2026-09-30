@@ -98,4 +98,38 @@ void main() {
     );
     expect(seeds.take(2), [20260930, 20261001]);
   });
+
+  test('23:59 : le jour courant est passé, 13 dates dès le lendemain', () {
+    final dates = planPhotoReminders(
+      now: DateTime(2026, 9, 30, 23, 59),
+      lastSentAt: null,
+    );
+    expect(dates, hasLength(photoReminderDays - 1));
+    expect(
+      DateTime(dates.first.year, dates.first.month, dates.first.day),
+      DateTime(2026, 10, 1),
+    );
+  });
+
+  test('envoi à 23:59 la veille : la première date est le jour même', () {
+    final dates = planPhotoReminders(
+      now: DateTime(2026, 10, 1),
+      lastSentAt: DateTime(2026, 9, 30, 23, 59),
+    );
+    expect(dates, hasLength(photoReminderDays));
+    expect(
+      DateTime(dates.first.year, dates.first.month, dates.first.day),
+      DateTime(2026, 10, 1),
+    );
+  });
+
+  test('heure tirée égale à maintenant : exclue (≤ now)', () {
+    final dates = planPhotoReminders(
+      now: DateTime(2026, 9, 30, 9),
+      lastSentAt: null,
+      randomForDay: (_) => const _FixedMinute(60),
+    );
+    expect(dates, hasLength(photoReminderDays - 1));
+    expect(dates.first, DateTime(2026, 10, 1, 9));
+  });
 }

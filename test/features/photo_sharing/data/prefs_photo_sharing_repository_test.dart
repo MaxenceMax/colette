@@ -56,4 +56,11 @@ void main() {
     });
     expect((await repo.loadLists()).isLeft(), isTrue);
   });
+
+  for (final raw in ['{}', '[{"id":1}]']) {
+    test('JSON valide de mauvaise forme $raw : Left', () async {
+      final repo = await repoWith({PrefsPhotoSharingRepository.listsKey: raw});
+      expect((await repo.loadLists()).isLeft(), isTrue);
+    });
+  }
 }
