@@ -67,12 +67,12 @@ Les heures sont construites en heure locale par `DateTime(y, m, d, 0, minutes)`.
 
 ### `int get feedsPerDay`
 
-`1 + ⌈(lastBottle − firstBottle) ÷ interval⌉`, au moins 1. 7 h 00 → 23 h 30 toutes les 3 h : 1 + ⌈5,5⌉ = 7.
+`n = ⌈(lastBottle − firstBottle) ÷ interval⌉` ; `n + 1` si le dernier créneau est à au moins un demi-intervalle du soir, sinon `n` ; au moins 1. 7 h 00 → 23 h 30 toutes les 3 h : 7 ; 7 h 00 → 23 h 00 : 6.
 
 ## Plan du jour (`ComputeFeedingPlan`)
 
 - Reçoit un `BottleSchedule` à la place de `feedsPerDay`.
-- Avec un dernier biberon : `nextBottleAt = schedule.nextAfter(lastBottle.startAt)`, fourchette `schedule.windowAround(nextBottleAt)`.
+- Avec un dernier biberon : `nextBottleAt = schedule.nextDue(lastBottle.startAt, now)` (`nextAfter`, ou le premier biberon du matin si le biberon attendu est manqué et la soirée entamée ou passée), fourchette `schedule.windowAround(nextBottleAt)`.
 - Sans biberon enregistré : inchangé (`now`, fourchette vide).
 - `feedsPerDay` du plan = `schedule.feedsPerDay` ; répartition des ml inchangée.
 - Suppression de `intervalFor`, `minGap`, `maxGap`, `windowAfter`.
