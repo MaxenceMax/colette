@@ -1,5 +1,6 @@
 import 'package:colette/app/bottle_timer_resume_gate.dart';
 import 'package:colette/app/notifications_gate.dart';
+import 'package:colette/app/photo_reminder_gate.dart';
 import 'package:colette/app/router/app_router.dart';
 import 'package:colette/app/splash_intro.dart';
 import 'package:colette/core/theme/theme_mode_controller.dart';
@@ -28,7 +29,9 @@ class ColetteApp extends ConsumerWidget {
       builder: (context, child) => SplashIntro(
         child: NotificationsGate(
           child: BottleTimerResumeGate(
-            child: HealthSyncGate(child: child ?? const SizedBox.shrink()),
+            child: HealthSyncGate(
+              child: PhotoReminderGate(child: child ?? const SizedBox.shrink()),
+            ),
           ),
         ),
       ),

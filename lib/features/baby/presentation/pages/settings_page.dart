@@ -11,6 +11,7 @@ import 'package:colette/features/household/presentation/providers/household_prov
 import 'package:colette/features/household/presentation/widgets/household_section.dart';
 import 'package:colette/features/notifications/presentation/providers/notifications_providers.dart';
 import 'package:colette/features/notifications/presentation/widgets/notifications_section.dart';
+import 'package:colette/features/photo_sharing/presentation/widgets/photo_reminder_switch.dart';
 import 'package:colette/features/sleep/presentation/widgets/sleep_settings_section.dart';
 import 'package:colette/l10n/generated/app_localizations.dart';
 import 'package:colette/shared/ui/widgets/section_header.dart';
@@ -66,10 +67,12 @@ class SettingsPage extends ConsumerWidget {
             ),
           SectionHeader(title: s.settingsDiapersSection),
           const DiaperStockSection(),
+          SectionHeader(title: s.settingsNotificationsSection),
           if (device != null) ...[
-            SectionHeader(title: s.settingsNotificationsSection),
             NotificationsSection(device: device),
+            AppSpacing.sm.verticalSpace,
           ],
+          const PhotoReminderSwitch(),
           SectionHeader(title: s.settingsCalendarSection),
           const CalendarSettingsSection(),
           SectionHeader(title: s.settingsAppearanceSection),
