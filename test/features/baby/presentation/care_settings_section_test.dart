@@ -48,18 +48,18 @@ void main() {
       verify(() => repo.saveProfile('ABCDEFGH', captureAny())).captured
           .cast<BabyProfile>();
 
-  // Ordre des lignes : Adrigyl, yeux, nez, nombril, bain, puis le stepper biberons.
+  // Ordre des lignes : Adrigyl, yeux, nez, nombril, bain.
   final plusButtons = find.widgetWithIcon(IconButton, Icons.add);
   final minusButtons = find.widgetWithIcon(IconButton, Icons.remove);
 
-  testWidgets('cinq lignes de soin avec switch, puis le stepper biberons', (
+  testWidgets('cinq lignes de soin avec switch, sans stepper biberons', (
     tester,
   ) async {
     await pumpSection(tester);
     expect(find.byType(CareFrequencyRow), findsNWidgets(5));
     expect(find.byType(Switch), findsNWidgets(5));
     expect(find.text('Soin du nombril'), findsOneWidget);
-    expect(find.text('Biberons par jour'), findsOneWidget);
+    expect(find.text('Biberons par jour'), findsNothing);
     expect(find.text('tous les 2 jours'), findsOneWidget); // bain
   });
 

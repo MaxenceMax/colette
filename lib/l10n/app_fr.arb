@@ -186,7 +186,6 @@
   "whoCurvesLegend": "Zone teintée : du 3e au 97e percentile OMS. Pointillés : médiane.",
   "whoCurvesOutOfRange": "Les courbes OMS de l'app couvrent les 2 premières années.",
   "settingsCareSection": "Soins attendus",
-  "settingsFeedsPerDay": "Biberons par jour",
   "careFrequencyPerDay": "{n, plural, =1{1 fois par jour} other{{n} fois par jour}}",
   "@careFrequencyPerDay": { "placeholders": { "n": { "type": "int" } } },
   "careFrequencyEveryDays": "tous les {n} jours",

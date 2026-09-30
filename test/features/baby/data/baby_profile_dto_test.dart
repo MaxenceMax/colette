@@ -150,12 +150,14 @@ void main() {
     });
   });
 
-  test('CareSettingsDto.fromMap borne feedsPerDay', () {
-    expect(CareSettingsDto.fromMap(const {'feedsPerDay': 0}).feedsPerDay, 1);
+  test('feedsPerDay n\'est plus écrit et l\'ancien champ est ignoré', () {
     expect(
-      CareSettingsDto.fromMap(const {'feedsPerDay': double.infinity})
-          .feedsPerDay,
-      8,
+      CareSettingsDto.toMap(const CareSettings()).containsKey('feedsPerDay'),
+      isFalse,
+    );
+    expect(
+      CareSettingsDto.fromMap(const {'feedsPerDay': 12}),
+      const CareSettings(),
     );
   });
 

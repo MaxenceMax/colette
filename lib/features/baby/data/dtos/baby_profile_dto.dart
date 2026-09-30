@@ -65,7 +65,6 @@ abstract final class CareSettingsDto {
     'noseCare': CareFrequencyDto.toMap(settings.noseCare),
     'umbilicalCare': CareFrequencyDto.toMap(settings.umbilicalCare),
     'bath': CareFrequencyDto.toMap(settings.bath),
-    'feedsPerDay': settings.feedsPerDay,
     'nightStartHour': settings.nightStartHour,
     'nightEndHour': settings.nightEndHour,
     'dailyTargetMl': settings.dailyTargetMl?.clamp(
@@ -156,7 +155,6 @@ abstract final class CareSettingsDto {
       ),
       umbilicalCare: _readUmbilicalCare(map),
       bath: _readBath(map),
-      feedsPerDay: _readBoundedInt(map, 'feedsPerDay', 8, min: 1, max: 24),
       nightStartHour: _readBoundedInt(
         map,
         'nightStartHour',

@@ -192,13 +192,13 @@ void main() {
         .thenAnswer((_) async => right(null));
     final ok = await controller().updateCareSettings(
       profile,
-      const CareSettings(feedsPerDay: 7),
+      const CareSettings(bottleIntervalMinutes: 165),
     );
     expect(ok, isTrue);
     final saved =
         verify(() => repo.saveProfile('ABCDEFGH', captureAny())).captured.single
             as BabyProfile;
-    expect(saved.careSettings.feedsPerDay, 7);
+    expect(saved.careSettings.bottleIntervalMinutes, 165);
     verify(() => sync.sync()).called(1);
   });
 

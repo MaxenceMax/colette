@@ -16,7 +16,6 @@ abstract class CareSettings with _$CareSettings {
     @Default(CareFrequency()) CareFrequency noseCare,
     @Default(CareFrequency(timesPerDay: 3)) CareFrequency umbilicalCare,
     @Default(CareFrequency(everyDays: 2)) CareFrequency bath,
-    @Default(8) int feedsPerDay,
 
     /// Heure (0-23) à partir de laquelle un endormissement est une nuit.
     @Default(20) int nightStartHour,
