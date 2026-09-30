@@ -64,7 +64,7 @@ abstract class BottleSchedule with _$BottleSchedule {
   }
 
   /// Biberon attendu à [now] après un biberon donné à [last] : [nextAfter],
-  /// ou, une fois sa fourchette finie et la soirée entamée, le premier biberon
+  /// ou, une fois sa fourchette finie et la soirée entamée ou passée, le premier biberon
   /// du matin, pour ne pas compter de retard la nuit.
   DateTime nextDue(DateTime last, DateTime now) {
     final next = nextAfter(last);

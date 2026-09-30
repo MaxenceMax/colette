@@ -60,6 +60,8 @@
   "nextBottleTitle": "Prochain biberon",
   "nextBottleWindow": "entre {start} et {end}",
   "@nextBottleWindow": { "placeholders": { "start": { "type": "String" }, "end": { "type": "String" } } },
+  "nextBottleWindowTomorrow": "demain entre {start} et {end}",
+  "@nextBottleWindowTomorrow": { "placeholders": { "start": { "type": "String" }, "end": { "type": "String" } } },
   "nextBottleGo": "Go pour un biberon, jusqu'à {end}",
   "@nextBottleGo": { "placeholders": { "end": { "type": "String" } } },
   "nextBottleLate": "en retard de {duration}",

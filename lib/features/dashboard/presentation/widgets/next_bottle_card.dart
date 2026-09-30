@@ -1,4 +1,5 @@
 import 'package:colette/core/clock/now_providers.dart';
+import 'package:colette/core/dates/date_extensions.dart';
 import 'package:colette/core/dates/time_format.dart';
 import 'package:colette/core/theme/app_colors.dart';
 import 'package:colette/core/theme/design_tokens.dart';
@@ -176,9 +177,13 @@ class _WhenText extends StatelessWidget {
         ),
       );
     }
-    final text = plan.hasWindow
-        ? s.nextBottleWindow(formatHourMinute(plan.windowStart), end)
-        : s.nextBottleNow;
+    final start = formatHourMinute(plan.windowStart);
+    final text = switch (plan.hasWindow) {
+      false => s.nextBottleNow,
+      true when plan.windowStart.dateOnly.isAfter(now.dateOnly) =>
+        s.nextBottleWindowTomorrow(start, end),
+      true => s.nextBottleWindow(start, end),
+    };
     return Text(
       text,
       style: styles.bodyMedium.copyWith(

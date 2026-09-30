@@ -69,9 +69,10 @@ void main() {
     CareEvent? latest,
     bool noBottle = false,
     MedicalTimeline? timeline,
+    DateTime? at,
   }) => [
     documentsRepositoryOverride(),
-    clockProvider.overrideWithValue(FixedClock(now)),
+    clockProvider.overrideWithValue(FixedClock(at ?? now)),
     minuteTickerProvider.overrideWith((ref) => const Stream.empty()),
     householdLocalStoreProvider.overrideWithValue(
       InMemoryHouseholdLocalStore(householdCode: 'ABCDEFGH'),
@@ -203,6 +204,26 @@ void main() {
       ),
     );
     expect(find.text('entre 13h30 et 14h30'), findsOneWidget);
+    expect(find.textContaining('demain'), findsNothing);
+  });
+
+  testWidgets('le matin du lendemain, la fourchette est annoncée « demain »', (
+    tester,
+  ) async {
+    await pumpApp(
+      tester,
+      const DashboardPage(),
+      overrides: overridesFor(
+        MockEventsRepository(),
+        at: DateTime(2026, 9, 10, 23, 10),
+        latest: makeEvent(
+          id: 'r',
+          startAt: DateTime(2026, 9, 10, 23),
+          bottleMl: 60,
+        ),
+      ),
+    );
+    expect(find.text('demain entre 06h30 et 07h30'), findsOneWidget);
   });
 
   testWidgets('sans biberon connu, la carte ne montre pas de délai', (
