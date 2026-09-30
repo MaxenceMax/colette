@@ -53,5 +53,11 @@ String failureMessage(Object failure, S s) => switch (failure) {
     CalendarReason.calendarNotFound => s.calendarErrorNotFound,
     CalendarReason.io => s.calendarErrorIo,
   },
+  PhotoSharingFailure(:final reason) => switch (reason) {
+    PhotoSharingReason.messagesUnavailable => s.photosErrorMessagesUnavailable,
+    PhotoSharingReason.cameraUnavailable => s.photosErrorCameraUnavailable,
+    PhotoSharingReason.io => s.photosErrorIo,
+    PhotoSharingReason.busy => s.photosErrorBusy,
+  },
   _ => s.errorUnknown,
 };

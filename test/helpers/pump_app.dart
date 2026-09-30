@@ -2,6 +2,7 @@ import 'package:colette/core/connectivity/connectivity_provider.dart';
 import 'package:colette/core/device/bottle_timer_system.dart';
 import 'package:colette/core/theme/theme_service.dart';
 import 'package:colette/features/events/presentation/providers/bottle_timer_session_providers.dart';
+import 'package:colette/features/photo_sharing/presentation/providers/photo_sharing_providers.dart';
 import 'package:colette/l10n/generated/app_localizations.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -9,7 +10,9 @@ import 'package:flutter_riverpod/misc.dart' show Override;
 import 'package:flutter_test/flutter_test.dart';
 
 import 'fake_bottle_timer_system.dart';
+import 'fake_photo_sharing_system.dart';
 import 'in_memory_bottle_timer_session_repository.dart';
+import 'in_memory_photo_sharing_repository.dart';
 
 /// Monte [child] dans une `MaterialApp` fr avec le thème Colette
 /// et un `ProviderScope` surchargeable.
@@ -41,6 +44,14 @@ Future<void> pumpApp(
         if (!overridden(bottleTimerSessionRepositoryProvider))
           bottleTimerSessionRepositoryProvider.overrideWithValue(
             InMemoryBottleTimerSessionRepository(),
+          ),
+        if (!overridden(photoSharingRepositoryProvider))
+          photoSharingRepositoryProvider.overrideWithValue(
+            InMemoryPhotoSharingRepository(),
+          ),
+        if (!overridden(photoSharingSystemProvider))
+          photoSharingSystemProvider.overrideWithValue(
+            FakePhotoSharingSystem(),
           ),
         ...overrides,
       ],

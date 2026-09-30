@@ -11,6 +11,7 @@ import 'package:colette/features/household/presentation/pages/create_household_p
 import 'package:colette/features/household/presentation/pages/join_household_page.dart';
 import 'package:colette/features/household/presentation/pages/onboarding_page.dart';
 import 'package:colette/features/household/presentation/providers/household_providers.dart';
+import 'package:colette/features/photo_sharing/presentation/pages/photos_page.dart';
 import 'package:colette/features/sleep/presentation/pages/sleep_page.dart';
 import 'package:go_router/go_router.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
@@ -40,6 +41,9 @@ abstract final class AppRoutes {
 
   /// Page Documents, imbriquée sous Aujourd'hui pour garder la barre d'onglets.
   static const todayDocuments = '/today/documents';
+
+  /// Page Photos, imbriquée sous Aujourd'hui pour garder la barre d'onglets.
+  static const todayPhotos = '/today/photos';
 
   /// Paramètre de requête : chemin relatif du dossier affiché.
   static const documentsPathParam = 'path';
@@ -129,6 +133,10 @@ GoRouter appRouter(Ref ref) {
                               .documentsPathParam] ??
                           '',
                     ),
+                  ),
+                  GoRoute(
+                    path: 'photos',
+                    builder: (_, _) => const PhotosPage(),
                   ),
                 ],
               ),

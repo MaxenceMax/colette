@@ -12,6 +12,7 @@ import 'package:colette/features/events/presentation/providers/bottle_timer_sess
 import 'package:colette/features/events/presentation/widgets/event_form_sheet.dart';
 import 'package:colette/features/health/presentation/widgets/awaiting_appointment_card.dart';
 import 'package:colette/features/health/presentation/widgets/next_appointment_card.dart';
+import 'package:colette/features/photo_sharing/presentation/widgets/photos_card.dart';
 import 'package:colette/l10n/generated/app_localizations.dart';
 import 'package:colette/shared/ui/widgets/section_header.dart';
 import 'package:flutter/material.dart';
@@ -95,6 +96,8 @@ class _DashboardPageState extends ConsumerState<DashboardPage> {
             const WeightCard(),
             AppSpacing.md.verticalSpace,
             const DocumentsCard(),
+            AppSpacing.md.verticalSpace,
+            const PhotosCard(),
             AppSpacing.xl.verticalSpace,
           ],
         ),
