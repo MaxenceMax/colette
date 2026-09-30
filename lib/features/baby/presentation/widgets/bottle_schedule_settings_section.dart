@@ -92,7 +92,7 @@ class _BottleScheduleSettingsSectionState
             ),
           ),
           Padding(
-            padding: AppSpacing.xs.all,
+            padding: AppSpacing.xs.vertical,
             child: Text(
               s.settingsFeedsPerDaySummary(
                 _settings.bottleSchedule.feedsPerDay,

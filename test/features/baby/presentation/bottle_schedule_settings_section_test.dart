@@ -98,4 +98,37 @@ void main() {
     expect(tester.widget<IconButton>(plusButtons.at(1)).onPressed, isNull);
     expect(tester.widget<IconButton>(minusButtons.at(1)).onPressed, isNotNull);
   });
+
+  testWidgets('le − du premier biberon est désactivé à 4 h 00', (tester) async {
+    await pumpSection(
+      tester,
+      profile.copyWith(
+        careSettings: const CareSettings(
+          firstBottleMinutes: CareSettings.minFirstBottleMinutes,
+        ),
+      ),
+    );
+    expect(find.text('4 h 00'), findsOneWidget);
+    expect(tester.widget<IconButton>(minusButtons.first).onPressed, isNull);
+    expect(tester.widget<IconButton>(plusButtons.first).onPressed, isNotNull);
+  });
+
+  testWidgets('modifier un horaire conserve les deux autres', (tester) async {
+    await pumpSection(
+      tester,
+      profile.copyWith(
+        careSettings: const CareSettings(
+          firstBottleMinutes: 390,
+          lastBottleMinutes: 1380,
+          bottleIntervalMinutes: 165,
+        ),
+      ),
+    );
+    await tester.tap(plusButtons.at(1));
+    await tester.pumpAndSettle();
+    final saved = savedProfiles().last.careSettings;
+    expect(saved.lastBottleMinutes, 1395);
+    expect(saved.firstBottleMinutes, 390);
+    expect(saved.bottleIntervalMinutes, 165);
+  });
 }
