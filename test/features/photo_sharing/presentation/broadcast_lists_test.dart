@@ -98,6 +98,20 @@ void main() {
     expect((await lists()).single.recipients, isEmpty);
   });
 
+  test('markSent : date posée sur la liste et enregistrée', () async {
+    final sentAt = DateTime(2026, 9, 30, 15, 20);
+    await lists();
+    await notifier().markSent('l1', sentAt);
+    expect((await lists()).single.lastSentAt, sentAt);
+    expect(repo.lists.single.lastSentAt, sentAt);
+  });
+
+  test('markSent sur une liste supprimée : rien ne change', () async {
+    await lists();
+    await notifier().markSent('absente', DateTime(2026, 9, 30));
+    expect((await lists()).single.lastSentAt, isNull);
+  });
+
   test('deux retraits simultanés : les deux sont appliqués', () async {
     repo.lists = const [
       BroadcastList(id: 'l1', name: 'Famille', recipients: [mamie, papi]),

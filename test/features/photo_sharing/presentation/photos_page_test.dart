@@ -230,13 +230,23 @@ void main() {
     expect(find.text("L'appareil photo n'est pas disponible."), findsOneWidget);
   });
 
-  testWidgets('en-tête : dernier envoi', (tester) async {
+  testWidgets('dernier envoi affiché par liste, sans en-tête global', (
+    tester,
+  ) async {
     repo
-      ..lists = const [
-        BroadcastList(id: 'l1', name: 'Famille', recipients: [mamie]),
+      ..lists = [
+        BroadcastList(
+          id: 'l1',
+          name: 'Famille',
+          recipients: const [mamie],
+          lastSentAt: DateTime(2026, 9, 29, 18, 12),
+        ),
+        const BroadcastList(id: 'l2', name: 'Amis', recipients: [mamie]),
       ]
-      ..lastSentAt = DateTime(2026, 9, 29, 18, 12);
+      ..lastSentAt = DateTime(2026, 9, 30, 8, 5);
     await pumpPage(tester);
     expect(find.text('Dernier envoi · Hier, 18h12'), findsOneWidget);
+    expect(find.text('Aucun envoi'), findsOneWidget);
+    expect(find.textContaining('08h05'), findsNothing);
   });
 }

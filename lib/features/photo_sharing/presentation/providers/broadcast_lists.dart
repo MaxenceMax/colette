@@ -56,6 +56,11 @@ class BroadcastLists extends _$BroadcastLists {
   Future<Either<Failure, void>> removeRecipient(String id, String phone) =>
       _update(id, (list) => list.withoutRecipient(phone));
 
+  /// Date du dernier envoi réussi à la liste [id] ; sans effet si elle a été
+  /// supprimée entre-temps.
+  Future<Either<Failure, void>> markSent(String id, DateTime sentAt) =>
+      _update(id, (list) => list.copyWith(lastSentAt: sentAt));
+
   Future<Either<Failure, void>> _update(
     String id,
     BroadcastList Function(BroadcastList list) edit,

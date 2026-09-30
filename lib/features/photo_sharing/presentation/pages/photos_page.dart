@@ -7,7 +7,6 @@ import 'package:colette/features/photo_sharing/domain/entities/broadcast_list.da
 import 'package:colette/features/photo_sharing/presentation/photo_labels.dart';
 import 'package:colette/features/photo_sharing/presentation/providers/broadcast_lists.dart';
 import 'package:colette/features/photo_sharing/presentation/providers/photo_capture_controller.dart';
-import 'package:colette/features/photo_sharing/presentation/providers/photo_reminder.dart';
 import 'package:colette/features/photo_sharing/presentation/widgets/broadcast_list_editor_sheet.dart';
 import 'package:colette/features/photo_sharing/presentation/widgets/list_name_dialog.dart';
 import 'package:colette/features/photo_sharing/presentation/widgets/photo_send_flow.dart';
@@ -79,45 +78,29 @@ class PhotosPage extends ConsumerWidget {
   }
 }
 
-/// En-tête « dernier envoi » puis une carte par liste.
-class _Lists extends ConsumerWidget {
+/// Une carte par liste.
+class _Lists extends StatelessWidget {
   const _Lists({required this.lists});
 
   final List<BroadcastList> lists;
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
-    final s = S.of(context);
-    final now = ref.watch(currentMinuteProvider);
-    final lastSentAt = ref.watch(lastPhotoSentAtProvider).value;
-    return ListView.builder(
-      // En bas, la hauteur du bouton flottant étendu et sa marge : la dernière
-      // carte n'est jamais masquée.
-      padding:
-          AppSpacing.md.all +
-          EdgeInsets.only(bottom: AppSize.xxl.value + AppSpacing.md.value),
-      itemCount: lists.length + 1,
-      itemBuilder: (context, index) {
-        if (index == 0) {
-          return Padding(
-            padding: AppSpacing.md.bottom,
-            child: Text(
-              lastSentLabel(lastSentAt, now: now, s: s),
-              style: Theme.of(context).coletteTextStyles.small
-                  .copyWith(color: context.appColor(AppColors.textSecondary)),
-            ),
-          );
-        }
-        return Padding(
-          padding: AppSpacing.sm.bottom,
-          child: _ListCard(list: lists[index - 1]),
-        );
-      },
-    );
-  }
+  Widget build(BuildContext context) => ListView.builder(
+    // En bas, la hauteur du bouton flottant étendu et sa marge : la dernière
+    // carte n'est jamais masquée.
+    padding:
+        AppSpacing.md.all +
+        EdgeInsets.only(bottom: AppSize.xxl.value + AppSpacing.md.value),
+    itemCount: lists.length,
+    itemBuilder: (context, index) => Padding(
+      padding: AppSpacing.sm.bottom,
+      child: _ListCard(list: lists[index]),
+    ),
+  );
 }
 
-/// Carte d'une liste : appui pour envoyer (ou éditer si vide), bouton d'édition.
+/// Carte d'une liste : nombre de personnes et dernier envoi ; appui pour
+/// envoyer (ou éditer si vide), bouton d'édition.
 class _ListCard extends ConsumerWidget {
   const _ListCard({required this.list});
 
@@ -128,6 +111,7 @@ class _ListCard extends ConsumerWidget {
     final s = S.of(context);
     final styles = Theme.of(context).coletteTextStyles;
     final secondary = context.appColor(AppColors.textSecondary);
+    final now = ref.watch(currentMinuteProvider);
     return ColetteCardSurface(
       onTap: () => list.recipients.isEmpty
           ? showBroadcastListEditor(context, list.id)
@@ -146,6 +130,10 @@ class _ListCard extends ConsumerWidget {
                 Text(list.name, style: styles.bodyMedium),
                 Text(
                   s.photosRecipientCount(list.recipients.length),
+                  style: styles.small.copyWith(color: secondary),
+                ),
+                Text(
+                  listLastSentLabel(list.lastSentAt, now: now, s: s),
                   style: styles.small.copyWith(color: secondary),
                 ),
               ],

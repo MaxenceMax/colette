@@ -42,7 +42,7 @@ final class BroadcastListsProvider
   BroadcastLists create() => BroadcastLists();
 }
 
-String _$broadcastListsHash() => r'120e5215b66c821e092fe304ec544fae0158561c';
+String _$broadcastListsHash() => r'f10b3f03d1e1727151aac8ec6d098e89f25e503d';
 
 /// Listes de diffusion de cet iPhone. Chaque modification est enregistrée, à
 /// la suite de la précédente ; en cas d'échec, l'état reste inchangé et la

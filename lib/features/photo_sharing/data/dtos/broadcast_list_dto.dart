@@ -13,6 +13,8 @@ abstract final class BroadcastListDto {
         'recipients': [
           for (final r in list.recipients) {'name': r.name, 'phone': r.phone},
         ],
+        if (list.lastSentAt case final sentAt?)
+          'lastSentAt': sentAt.millisecondsSinceEpoch,
       },
   ]);
 
@@ -29,6 +31,10 @@ abstract final class BroadcastListDto {
       for (final r in map['recipients'] as List<dynamic>)
         _recipient(r as Map<String, dynamic>),
     ],
+    lastSentAt: switch (map['lastSentAt'] as int?) {
+      final ms? => DateTime.fromMillisecondsSinceEpoch(ms),
+      null => null,
+    },
   );
 
   static Recipient _recipient(Map<String, dynamic> map) =>

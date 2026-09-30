@@ -15,7 +15,7 @@ T _$identity<T>(T value) => value;
 /// @nodoc
 mixin _$BroadcastList {
 
- String get id; String get name; List<Recipient> get recipients;
+ String get id; String get name; List<Recipient> get recipients; DateTime? get lastSentAt;
 /// Create a copy of BroadcastList
 /// with the given fields replaced by the non-null parameter values.
 @JsonKey(includeFromJson: false, includeToJson: false)
@@ -27,20 +27,20 @@ $BroadcastListCopyWith<BroadcastList> get copyWith => _$BroadcastListCopyWithImp
 @override
 bool operator ==(Object other) {
   final _this = this as BroadcastList;
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is BroadcastList&&(identical(other.id, _this.id) || other.id == _this.id)&&(identical(other.name, _this.name) || other.name == _this.name)&&const DeepCollectionEquality().equals(other.recipients, _this.recipients));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is BroadcastList&&(identical(other.id, _this.id) || other.id == _this.id)&&(identical(other.name, _this.name) || other.name == _this.name)&&const DeepCollectionEquality().equals(other.recipients, _this.recipients)&&(identical(other.lastSentAt, _this.lastSentAt) || other.lastSentAt == _this.lastSentAt));
 }
 
 
 @override
 int get hashCode {
   final _this = this as BroadcastList;
-  return Object.hash(runtimeType,_this.id,_this.name,const DeepCollectionEquality().hash(_this.recipients));
+  return Object.hash(runtimeType,_this.id,_this.name,const DeepCollectionEquality().hash(_this.recipients),_this.lastSentAt);
 }
 
 @override
 String toString() {
   final _this = this as BroadcastList;
-  return 'BroadcastList(id: ${_this.id}, name: ${_this.name}, recipients: ${_this.recipients})';
+  return 'BroadcastList(id: ${_this.id}, name: ${_this.name}, recipients: ${_this.recipients}, lastSentAt: ${_this.lastSentAt})';
 }
 
 
@@ -51,7 +51,7 @@ abstract mixin class $BroadcastListCopyWith<$Res>  {
   factory $BroadcastListCopyWith(BroadcastList value, $Res Function(BroadcastList) _then) = _$BroadcastListCopyWithImpl;
 @useResult
 $Res call({
- String id, String name, List<Recipient> recipients
+ String id, String name, List<Recipient> recipients, DateTime? lastSentAt
 });
 
 
@@ -68,12 +68,13 @@ class _$BroadcastListCopyWithImpl<$Res>
 
 /// Create a copy of BroadcastList
 /// with the given fields replaced by the non-null parameter values.
-@pragma('vm:prefer-inline') @override $Res call({Object? id = null,Object? name = null,Object? recipients = null,}) {
+@pragma('vm:prefer-inline') @override $Res call({Object? id = null,Object? name = null,Object? recipients = null,Object? lastSentAt = freezed,}) {
   return _then(BroadcastList(
 id: null == id ? _self.id : id // ignore: cast_nullable_to_non_nullable
 as String,name: null == name ? _self.name : name // ignore: cast_nullable_to_non_nullable
 as String,recipients: null == recipients ? _self.recipients : recipients // ignore: cast_nullable_to_non_nullable
-as List<Recipient>,
+as List<Recipient>,lastSentAt: freezed == lastSentAt ? _self.lastSentAt : lastSentAt // ignore: cast_nullable_to_non_nullable
+as DateTime?,
   ));
 }
 
@@ -158,10 +159,10 @@ return $default(_that);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( String id,  String name,  List<Recipient> recipients)?  $default,{required TResult orElse(),}) {final _that = this;
+@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( String id,  String name,  List<Recipient> recipients,  DateTime? lastSentAt)?  $default,{required TResult orElse(),}) {final _that = this;
 switch (_that) {
 case _BroadcastList() when $default != null:
-return $default(_that.id,_that.name,_that.recipients);case _:
+return $default(_that.id,_that.name,_that.recipients,_that.lastSentAt);case _:
   return orElse();
 
 }
@@ -179,10 +180,10 @@ return $default(_that.id,_that.name,_that.recipients);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( String id,  String name,  List<Recipient> recipients)  $default,) {final _that = this;
+@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( String id,  String name,  List<Recipient> recipients,  DateTime? lastSentAt)  $default,) {final _that = this;
 switch (_that) {
 case _BroadcastList():
-return $default(_that.id,_that.name,_that.recipients);case _:
+return $default(_that.id,_that.name,_that.recipients,_that.lastSentAt);case _:
   throw StateError('Unexpected subclass');
 
 }
@@ -199,10 +200,10 @@ return $default(_that.id,_that.name,_that.recipients);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( String id,  String name,  List<Recipient> recipients)?  $default,) {final _that = this;
+@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( String id,  String name,  List<Recipient> recipients,  DateTime? lastSentAt)?  $default,) {final _that = this;
 switch (_that) {
 case _BroadcastList() when $default != null:
-return $default(_that.id,_that.name,_that.recipients);case _:
+return $default(_that.id,_that.name,_that.recipients,_that.lastSentAt);case _:
   return null;
 
 }
@@ -214,7 +215,7 @@ return $default(_that.id,_that.name,_that.recipients);case _:
 
 
 class _BroadcastList extends BroadcastList {
-  const _BroadcastList({required this.id, required this.name, required  List<Recipient> recipients}): _recipients = recipients,super._();
+  const _BroadcastList({required this.id, required this.name, required  List<Recipient> recipients, this.lastSentAt}): _recipients = recipients,super._();
   
 
 @override final  String id;
@@ -226,6 +227,7 @@ class _BroadcastList extends BroadcastList {
   return EqualUnmodifiableListView(_recipients);
 }
 
+@override final  DateTime? lastSentAt;
 
 /// Create a copy of BroadcastList
 /// with the given fields replaced by the non-null parameter values.
@@ -237,18 +239,18 @@ _$BroadcastListCopyWith<_BroadcastList> get copyWith => __$BroadcastListCopyWith
 
 @override
 bool operator ==(Object other) {
-    return identical(this, other) || (other.runtimeType == runtimeType&&other is _BroadcastList&&(identical(other.id, id) || other.id == id)&&(identical(other.name, name) || other.name == name)&&const DeepCollectionEquality().equals(other.recipients, _recipients));
+    return identical(this, other) || (other.runtimeType == runtimeType&&other is _BroadcastList&&(identical(other.id, id) || other.id == id)&&(identical(other.name, name) || other.name == name)&&const DeepCollectionEquality().equals(other.recipients, _recipients)&&(identical(other.lastSentAt, lastSentAt) || other.lastSentAt == lastSentAt));
 }
 
 
 @override
 int get hashCode {
-    return Object.hash(runtimeType,id,name,const DeepCollectionEquality().hash(_recipients));
+    return Object.hash(runtimeType,id,name,const DeepCollectionEquality().hash(_recipients),lastSentAt);
 }
 
 @override
 String toString() {
-    return 'BroadcastList(id: $id, name: $name, recipients: $recipients)';
+    return 'BroadcastList(id: $id, name: $name, recipients: $recipients, lastSentAt: $lastSentAt)';
 }
 
 
@@ -259,7 +261,7 @@ abstract mixin class _$BroadcastListCopyWith<$Res> implements $BroadcastListCopy
   factory _$BroadcastListCopyWith(_BroadcastList value, $Res Function(_BroadcastList) _then) = __$BroadcastListCopyWithImpl;
 @override @useResult
 $Res call({
- String id, String name, List<Recipient> recipients
+ String id, String name, List<Recipient> recipients, DateTime? lastSentAt
 });
 
 
@@ -276,12 +278,13 @@ class __$BroadcastListCopyWithImpl<$Res>
 
 /// Create a copy of BroadcastList
 /// with the given fields replaced by the non-null parameter values.
-@override @pragma('vm:prefer-inline') $Res call({Object? id = null,Object? name = null,Object? recipients = null,}) {
+@override @pragma('vm:prefer-inline') $Res call({Object? id = null,Object? name = null,Object? recipients = null,Object? lastSentAt = freezed,}) {
   return _then(_BroadcastList(
 id: null == id ? _self.id : id // ignore: cast_nullable_to_non_nullable
 as String,name: null == name ? _self.name : name // ignore: cast_nullable_to_non_nullable
 as String,recipients: null == recipients ? _self._recipients : recipients // ignore: cast_nullable_to_non_nullable
-as List<Recipient>,
+as List<Recipient>,lastSentAt: freezed == lastSentAt ? _self.lastSentAt : lastSentAt // ignore: cast_nullable_to_non_nullable
+as DateTime?,
   ));
 }
 

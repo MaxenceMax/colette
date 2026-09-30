@@ -33,7 +33,7 @@ void main() {
   late ProviderSubscription<AsyncValue<SendReport?>> sub;
 
   setUp(() {
-    repo = InMemoryPhotoSharingRepository();
+    repo = InMemoryPhotoSharingRepository(lists: const [list]);
     system = FakePhotoSharingSystem();
     container = ProviderContainer(
       overrides: [
@@ -70,6 +70,7 @@ void main() {
     system.report = const SendReport(sent: 1, cancelled: 1, failed: 0);
     await send();
     expect(repo.lastSentAt, now);
+    expect(repo.lists.single.lastSentAt, now);
     expect(system.syncedDates.single.first.day, 1);
   });
 
@@ -83,6 +84,7 @@ void main() {
     gate.complete();
     await sending;
     expect(repo.lastSentAt, now);
+    expect(repo.lists.single.lastSentAt, now);
     expect(system.syncedDates, isNotEmpty);
     expect(system.discarded, ['/tmp/a.jpg']);
   });
@@ -91,6 +93,7 @@ void main() {
     system.report = const SendReport(sent: 0, cancelled: 2, failed: 0);
     await send();
     expect(repo.lastSentAt, isNull);
+    expect(repo.lists.single.lastSentAt, isNull);
     expect(system.syncedDates, isEmpty);
   });
 

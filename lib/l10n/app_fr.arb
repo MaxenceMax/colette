@@ -587,6 +587,7 @@
   "photosLastSent": "Dernier envoi · {day}, {time}",
   "@photosLastSent": { "placeholders": { "day": { "type": "String" }, "time": { "type": "String" } } },
   "photosNeverSent": "Aucune photo envoyée pour l'instant",
+  "photosListNeverSent": "Aucun envoi",
   "photosPageTitle": "Photos aux proches",
   "photosEmptyBody": "Crée une liste de proches pour leur envoyer des photos en quelques appuis.",
   "photosNewList": "Nouvelle liste",
