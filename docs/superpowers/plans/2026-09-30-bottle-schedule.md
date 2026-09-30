@@ -1443,3 +1443,522 @@ Lancer l'app sur un simulateur iPhone (ouvrir d'abord le panneau Simulateur). Sa
 - [ ] **Step 3 : rendre compte**
 
 Lister les commits de la branche (`git log --oneline main..HEAD`), la divergence avec `main` et le résultat de `git merge-tree --write-tree main HEAD`, puis demander à Maxence la validation du merge. Pas de merge ni de push sans son accord.
+
+---
+
+## Ajouts du 2026-09-30 après la revue de la Task 3
+
+Décisions de Maxence : (1) un biberon trop proche du biberon du soir en tient lieu (écart minimum d'un demi-intervalle) ; (2) un biberon manqué ne laisse pas l'app « en retard » toute la nuit : le plan bascule sur le premier biberon du matin, avec un rappel push de secours à l'ouverture de sa fourchette ; (3) le retard s'affiche en heures et minutes. Ces tâches s'exécutent après la Task 6 ; la Task 7 (vérification finale) passe en dernier.
+
+### Task 8 : écart minimum avant le biberon du soir
+
+**Files :**
+- Modify : `lib/features/baby/domain/entities/bottle_schedule.dart`
+- Test : `test/features/baby/domain/bottle_schedule_test.dart`
+
+Règle : un biberon de journée dont `last + interval` dépasse le biberon du soir est rabattu sur le soir **seulement si** `soir − last ≥ interval / 2` ; sinon il tient lieu de biberon du soir et le suivant est le premier du matin (même calcul que la branche nuit). Avec 7 h / 23 h 30 / 3 h : 22 h 00 → 23 h 30 (écart 1 h 30, gardé) ; 22 h 01 → 7 h ; 22 h 45 → 7 h ; 22 h 59 → 7 h.
+
+`feedsPerDay` suit la même règle : `n = ⌈span / interval⌉`, `écart = span − (n − 1) × interval`, résultat `n` si `écart < interval / 2`, sinon `n + 1` (au moins 1 comme avant).
+
+- [ ] **Step 1 : tests (rouge)**
+
+Dans `bottle_schedule_test.dart`, groupe `nextAfter` :
+
+- remplacer le test `'journée : rabattu sur le biberon du soir'` par :
+
+```dart
+    test('journée : rabattu sur le biberon du soir à au moins 1 h 30', () {
+      expect(next(10, 21), DateTime(2026, 9, 10, 23, 30));
+      expect(next(10, 22), DateTime(2026, 9, 10, 23, 30));
+    });
+
+    test('trop près du biberon du soir : il en tient lieu', () {
+      expect(next(10, 22, 1), DateTime(2026, 9, 11, 7));
+      expect(next(10, 22, 45), DateTime(2026, 9, 11, 7));
+    });
+```
+
+- remplacer `'22 h 59 est encore la journée : rabattu sur 23 h 30'` par :
+
+```dart
+    test('22 h 59 tient lieu de biberon du soir', () {
+      expect(next(10, 22, 59), DateTime(2026, 9, 11, 7));
+    });
+```
+
+- dans `'réglages personnalisés'` (6 h 30 / 22 h / 2 h 45, demi-intervalle 1 h 22 min 30 s), remplacer les attentes par :
+
+```dart
+      expect(
+        custom.nextAfter(DateTime(2026, 9, 10, 18)),
+        DateTime(2026, 9, 10, 20, 45),
+      );
+      // Écart de 2 h ≥ 1 h 22 : rabattu sur 22 h.
+      expect(
+        custom.nextAfter(DateTime(2026, 9, 10, 20)),
+        DateTime(2026, 9, 10, 22),
+      );
+      // Écart de 1 h 15 < 1 h 22 : tient lieu de biberon du soir.
+      expect(
+        custom.nextAfter(DateTime(2026, 9, 10, 20, 45)),
+        DateTime(2026, 9, 11, 6, 30),
+      );
+      expect(
+        custom.nextAfter(DateTime(2026, 9, 10, 22)),
+        DateTime(2026, 9, 11, 6, 30),
+      );
+```
+
+Groupe `feedsPerDay`, ajouter :
+
+```dart
+    test('dernier créneau trop près du soir : il en tient lieu', () {
+      // 7 h, 10 h, 13 h, 16 h, 19 h, 22 h ; 23 h n'est qu'à 1 h de 22 h.
+      const close = BottleSchedule(lastBottle: Duration(hours: 23));
+      expect(close.feedsPerDay, 6);
+    });
+
+    test('plage plus courte que le demi-intervalle : 1', () {
+      const short = BottleSchedule(
+        firstBottle: Duration(hours: 10),
+        lastBottle: Duration(hours: 11),
+      );
+      expect(short.feedsPerDay, 1);
+    });
+```
+
+(Les attentes existantes 7 / 7 / 4 / 1 restent vraies.)
+
+- [ ] **Step 2 : vérifier l'échec** — `flutter test test/features/baby/domain/bottle_schedule_test.dart` : échecs sur 22 h 01, 22 h 45, 22 h 59, 20 h 45 personnalisé et `feedsPerDay` 6.
+
+- [ ] **Step 3 : implémentation**
+
+Dans `nextAfter`, remplacer la ligne `if (isDaytime) return planned.isAfter(evening) ? evening : planned;` et le calcul de `nextMorning` par :
+
+```dart
+    if (isDaytime && !planned.isAfter(evening)) return planned;
+    // Assez loin du biberon du soir : rabattu dessus ; sinon il en tient lieu.
+    if (isDaytime && evening.difference(last) >= interval ~/ 2) return evening;
+    final nextMorning = morning.isAfter(last)
+        ? morning
+        : _at(DateTime(day.year, day.month, day.day + 1), firstBottle);
+    return planned.isAfter(nextMorning) ? planned : nextMorning;
+```
+
+Mettre à jour la doc de `nextAfter` : « Biberon de journée (…) : `last + interval`, rabattu sur le biberon du soir s'il en est à au moins un demi-intervalle ; plus près, il tient lieu de biberon du soir. »
+
+`feedsPerDay` :
+
+```dart
+  /// Biberons de journée du premier au soir ; au moins 1. Le dernier créneau
+  /// tient lieu de biberon du soir s'il en est à moins d'un demi-intervalle.
+  int get feedsPerDay {
+    final span = lastBottle - firstBottle;
+    if (span <= Duration.zero || interval <= Duration.zero) return 1;
+    final slots = (span.inMinutes / interval.inMinutes).ceil();
+    final gap = span - interval * (slots - 1);
+    return gap < interval ~/ 2 ? slots : slots + 1;
+  }
+```
+
+- [ ] **Step 4 : vérifier le succès** — le fichier de test, puis `flutter test` complet (d'autres tests peuvent dépendre de 22 h 45 → 23 h 30 : mettre leurs attentes à jour selon la règle, avec un commentaire de calcul), `dart format`, `dart analyze`.
+
+- [ ] **Step 5 : commit** — `feat: un biberon trop proche du soir en tient lieu`
+
+---
+
+### Task 9 : bascule sur le matin après un biberon manqué (app)
+
+**Files :**
+- Modify : `lib/features/baby/domain/entities/bottle_schedule.dart` (`morningAfter`, `upcomingMorning`, `nextDue`)
+- Modify : `lib/features/dashboard/domain/use_cases/compute_feeding_plan.dart`
+- Modify : `lib/features/baby/domain/entities/feeding_plan_snapshot.dart`, `lib/features/baby/data/repositories/firestore_baby_repository.dart`, `lib/features/dashboard/presentation/providers/feeding_plan_sync.dart`
+- Test : `bottle_schedule_test.dart`, `compute_feeding_plan_test.dart`, `test/features/baby/data/firestore_baby_repository_test.dart`, `test/features/dashboard/presentation/feeding_plan_sync_test.dart`
+
+Règle : `nextDue(last, now)` = `nextAfter(last)`, sauf si sa fourchette est finie (`now > next + 30 min`) **et** que le premier biberon de la journée en cours à `now` (`upcomingMorning(now)` : celui du jour tant que la fourchette du soir n'est pas ouverte, sinon celui du lendemain) tombe après `next` ; on affiche alors ce biberon du matin. Un biberon de journée manqué reste « en retard » jusqu'à l'ouverture de la fourchette du soir, puis bascule sur le matin. Le snapshot écrit en plus le premier biberon du matin qui suit `nextBottleAt` (`morningAfter`) et sa fourchette, pour le rappel de secours des Cloud Functions (Task 10).
+
+- [ ] **Step 1 : tests `BottleSchedule` (rouge)**
+
+Ajouter à `bottle_schedule_test.dart` :
+
+```dart
+  group('morningAfter', () {
+    test('premier biberon strictement après', () {
+      expect(
+        schedule.morningAfter(DateTime(2026, 9, 10, 23, 30)),
+        DateTime(2026, 9, 11, 7),
+      );
+      expect(
+        schedule.morningAfter(DateTime(2026, 9, 11, 6, 59)),
+        DateTime(2026, 9, 11, 7),
+      );
+      expect(
+        schedule.morningAfter(DateTime(2026, 9, 11, 7)),
+        DateTime(2026, 9, 12, 7),
+      );
+    });
+  });
+
+  group('upcomingMorning', () {
+    test('celui du jour jusqu\'à l\'ouverture de la fourchette du soir', () {
+      expect(
+        schedule.upcomingMorning(DateTime(2026, 9, 11, 0, 5)),
+        DateTime(2026, 9, 11, 7),
+      );
+      expect(
+        schedule.upcomingMorning(DateTime(2026, 9, 11, 12)),
+        DateTime(2026, 9, 11, 7),
+      );
+      expect(
+        schedule.upcomingMorning(DateTime(2026, 9, 11, 22, 59)),
+        DateTime(2026, 9, 11, 7),
+      );
+    });
+
+    test('celui du lendemain dès 23 h', () {
+      expect(
+        schedule.upcomingMorning(DateTime(2026, 9, 11, 23)),
+        DateTime(2026, 9, 12, 7),
+      );
+    });
+  });
+
+  group('nextDue', () {
+    DateTime due(DateTime last, DateTime now) => schedule.nextDue(last, now);
+    final evening22 = DateTime(2026, 9, 10, 22);
+
+    test('fourchette pas finie : nextAfter', () {
+      expect(
+        due(evening22, DateTime(2026, 9, 10, 23, 50)),
+        DateTime(2026, 9, 10, 23, 30),
+      );
+      expect(
+        due(evening22, DateTime(2026, 9, 11, 0)),
+        DateTime(2026, 9, 10, 23, 30),
+      );
+    });
+
+    test('biberon du soir manqué : premier du matin', () {
+      expect(
+        due(evening22, DateTime(2026, 9, 11, 0, 5)),
+        DateTime(2026, 9, 11, 7),
+      );
+      expect(
+        due(evening22, DateTime(2026, 9, 11, 8)),
+        DateTime(2026, 9, 11, 7),
+      );
+    });
+
+    test('biberon de journée manqué : en retard jusqu\'au soir', () {
+      final ten = DateTime(2026, 9, 10, 10);
+      expect(due(ten, DateTime(2026, 9, 10, 15)), DateTime(2026, 9, 10, 13));
+      expect(
+        due(ten, DateTime(2026, 9, 10, 22, 59)),
+        DateTime(2026, 9, 10, 13),
+      );
+      expect(due(ten, DateTime(2026, 9, 10, 23, 10)), DateTime(2026, 9, 11, 7));
+    });
+  });
+```
+
+- [ ] **Step 2 : tests du plan (rouge)**
+
+Dans `compute_feeding_plan_test.dart`, ajouter :
+
+```dart
+  group('biberon manqué', () {
+    FeedingPlan planAt(DateTime lastAt, DateTime now) {
+      final last = makeEvent(id: 'a', startAt: lastAt, bottleMl: 60);
+      return compute(
+        birthDate: birth,
+        latestWeightGrams: 3600,
+        schedule: schedule,
+        todayBottles: lastAt.day == now.day ? [last] : const [],
+        lastBottle: last,
+        now: now,
+      );
+    }
+
+    test('biberon du soir manqué : la nuit, on attend le matin', () {
+      final now = DateTime(2026, 9, 11, 0, 5);
+      final plan = planAt(DateTime(2026, 9, 10, 22), now);
+      expect(plan.nextBottleAt, DateTime(2026, 9, 11, 7));
+      expect(plan.windowStart, DateTime(2026, 9, 11, 6, 30));
+      expect(plan.windowEnd, DateTime(2026, 9, 11, 7, 30));
+      expect(plan.lateBy(now), Duration.zero);
+    });
+
+    test('toujours rien à 8 h : en retard depuis 7 h 30', () {
+      final now = DateTime(2026, 9, 11, 8);
+      final plan = planAt(DateTime(2026, 9, 10, 22), now);
+      expect(plan.nextBottleAt, DateTime(2026, 9, 11, 7));
+      expect(plan.lateBy(now), const Duration(minutes: 30));
+    });
+
+    test('biberon de journée manqué : en retard l\'après-midi', () {
+      final now = DateTime(2026, 9, 10, 15);
+      final plan = planAt(DateTime(2026, 9, 10, 10), now);
+      expect(plan.nextBottleAt, DateTime(2026, 9, 10, 13));
+      expect(plan.lateBy(now), const Duration(hours: 1, minutes: 30));
+    });
+  });
+```
+
+`firestore_baby_repository_test.dart`, test `'saveFeedingPlan écrit feedingPlan sans effacer baby'` : ajouter au snapshot `morningBottleAt: DateTime(2026, 9, 22, 7)`, `morningWindowStartAt: DateTime(2026, 9, 22, 6, 30)`, `morningWindowEndAt: DateTime(2026, 9, 22, 7, 30)` et vérifier les trois `Timestamp` relus. Ajouter un test : snapshot sans ces champs → les trois clés valent `null`.
+
+`feeding_plan_sync_test.dart`, premier test (biberon à 9 h, maintenant 12 h) : vérifier en plus `morningBottleAt` = `DateTime(2026, 9, 11, 7)`, `morningWindowStartAt` = `DateTime(2026, 9, 11, 6, 30)`, `morningWindowEndAt` = `DateTime(2026, 9, 11, 7, 30)`.
+
+- [ ] **Step 3 : vérifier l'échec** — `flutter test test/features/baby test/features/dashboard` : erreurs de compilation attendues.
+
+- [ ] **Step 4 : implémentation**
+
+`BottleSchedule` :
+
+```dart
+  /// Premier biberon du matin strictement après [at].
+  DateTime morningAfter(DateTime at) {
+    final day = DateTime(at.year, at.month, at.day);
+    final morning = _at(day, firstBottle);
+    return morning.isAfter(at)
+        ? morning
+        : _at(DateTime(day.year, day.month, day.day + 1), firstBottle);
+  }
+
+  /// Premier biberon de la journée en cours à [now] : celui du jour, puis
+  /// celui du lendemain dès l'ouverture de la fourchette du soir.
+  DateTime upcomingMorning(DateTime now) {
+    final day = DateTime(now.year, now.month, now.day);
+    final eveningStart = _at(day, lastBottle).subtract(halfWindow);
+    return now.isBefore(eveningStart)
+        ? _at(day, firstBottle)
+        : _at(DateTime(day.year, day.month, day.day + 1), firstBottle);
+  }
+
+  /// Biberon attendu à [now] après un biberon donné à [last] : [nextAfter],
+  /// ou, une fois sa fourchette finie et la soirée entamée, le premier biberon
+  /// du matin, pour ne pas compter de retard la nuit.
+  DateTime nextDue(DateTime last, DateTime now) {
+    final next = nextAfter(last);
+    if (!now.isAfter(next.add(halfWindow))) return next;
+    final morning = upcomingMorning(now);
+    return morning.isAfter(next) ? morning : next;
+  }
+```
+
+Dans `nextAfter`, le calcul de `nextMorning` devient `final nextMorning = morningAfter(last);` (même résultat).
+
+`ComputeFeedingPlan.call` : `schedule.nextAfter(lastBottle.startAt)` → `schedule.nextDue(lastBottle.startAt, now)`. Doc de classe : ajouter « Un biberon manqué bascule sur le premier du matin une fois la soirée entamée. »
+
+`FeedingPlanSnapshot` : ajouter
+
+```dart
+    /// Premier biberon du matin après [nextBottleAt] et sa fourchette : rappel
+    /// de secours si aucun biberon n'est noté d'ici là ; `null` sans biberon.
+    DateTime? morningBottleAt,
+    DateTime? morningWindowStartAt,
+    DateTime? morningWindowEndAt,
+```
+
+`FirestoreBabyRepository.saveFeedingPlan` : écrire `'morningBottleAt'`, `'morningWindowStartAt'`, `'morningWindowEndAt'` (`Timestamp.fromDate(...)` ou `null`), avec un helper local si utile.
+
+`FirestoreFeedingPlanSync.sync` : après le calcul du plan, avec `final schedule = profile.careSettings.bottleSchedule;` (réutilisé pour `ComputeFeedingPlan`) :
+
+```dart
+      final morning = lastBottle == null
+          ? null
+          : schedule.morningAfter(plan.nextBottleAt);
+      final morningWindow = morning == null
+          ? null
+          : schedule.windowAround(morning);
+```
+
+puis passer `morningBottleAt: morning`, `morningWindowStartAt: morningWindow?.$1`, `morningWindowEndAt: morningWindow?.$2` au snapshot.
+
+`dart run build_runner build -d`.
+
+- [ ] **Step 5 : vérifier le succès** — `flutter test` complet, `dart format`, `dart analyze`.
+
+- [ ] **Step 6 : commit** — `feat: un biberon manqué bascule sur le premier du matin`
+
+---
+
+### Task 10 : rappel de secours du matin (Cloud Functions)
+
+**Files :**
+- Modify : `functions/src/lib/types.ts` (`FeedingPlanDoc`)
+- Modify : `functions/src/bottle-reminder.ts`
+- Test : `functions/src/bottle-reminder.test.ts`
+
+Aucun déploiement dans cette tâche : il sera demandé à Maxence après le merge.
+
+- [ ] **Step 0 : dépendances** — `npm --prefix functions ci` (le dossier `node_modules` n'existe pas dans le worktree).
+
+- [ ] **Step 1 : tests (rouge)**
+
+Dans `bottle-reminder.test.ts`, `describe('bottleReminder')`, ajouter :
+
+```ts
+  /** Plan dont la fourchette principale est finie depuis des heures, déjà notifiée. */
+  function expiredPlanWithMorning(morningStart: Date): FeedingPlanDoc {
+    const primaryEnd = new Date(morningStart.getTime() - 6 * 60 * 60 * 1000);
+    return {
+      nextBottleAt: Timestamp.fromDate(new Date(primaryEnd.getTime() - 30 * 60 * 1000)),
+      windowStartAt: Timestamp.fromDate(new Date(primaryEnd.getTime() - 60 * 60 * 1000)),
+      windowEndAt: Timestamp.fromDate(primaryEnd),
+      suggestedMl: 120,
+      computedAt: Timestamp.fromDate(new Date(primaryEnd.getTime() - 3 * 60 * 60 * 1000)),
+      morningBottleAt: Timestamp.fromDate(new Date(morningStart.getTime() + 30 * 60 * 1000)),
+      morningWindowStartAt: Timestamp.fromDate(morningStart),
+      morningWindowEndAt: Timestamp.fromDate(new Date(morningStart.getTime() + 60 * 60 * 1000)),
+    };
+  }
+
+  it('biberon manqué : rappel de secours à l\'ouverture de la fourchette du matin', async () => {
+    const morningStart = new Date(Date.now() - 60 * 1000);
+    const plan = expiredPlanWithMorning(morningStart);
+    households.push({
+      id: 'ABC123',
+      fields: { feedingPlan: plan, lastBottleNotifiedFor: plan.nextBottleAt },
+      devices: [{ id: 'd1' }],
+    });
+
+    await handler();
+
+    const [, , payload] = sendToDevices.mock.calls[0];
+    expect(payload.title).toBe('Biberon possible dès maintenant');
+    expect(payload.body).toBe(
+      `Environ 120 ml, d'ici ${formatHourMinute(plan.morningWindowEndAt!.toDate())}`,
+    );
+    expect(updates).toEqual([
+      { household: 'ABC123', data: { lastBottleNotifiedFor: plan.morningBottleAt } },
+    ]);
+  });
+
+  it('fourchette du matin pas encore ouverte : rien', async () => {
+    const plan = expiredPlanWithMorning(new Date(Date.now() + 5 * 60 * 1000));
+    households.push({
+      id: 'ABC123',
+      fields: { feedingPlan: plan, lastBottleNotifiedFor: plan.nextBottleAt },
+      devices: [{ id: 'd1' }],
+    });
+
+    await handler();
+
+    expect(sendToDevices).not.toHaveBeenCalled();
+    expect(updates).toEqual([]);
+  });
+
+  it('rappel du matin déjà envoyé : rien', async () => {
+    const plan = expiredPlanWithMorning(new Date(Date.now() - 60 * 1000));
+    households.push({
+      id: 'ABC123',
+      fields: { feedingPlan: plan, lastBottleNotifiedFor: plan.morningBottleAt },
+      devices: [{ id: 'd1' }],
+    });
+
+    await handler();
+
+    expect(sendToDevices).not.toHaveBeenCalled();
+  });
+```
+
+- [ ] **Step 2 : vérifier l'échec** — `npm --prefix functions test` : erreurs de type / premier test en échec.
+
+- [ ] **Step 3 : implémentation**
+
+`types.ts`, dans `FeedingPlanDoc` :
+
+```ts
+  /** Premier biberon du matin après `nextBottleAt` et sa fourchette : rappel de secours
+   *  si aucun biberon n'est noté d'ici là. Absents ou nuls sans biberon ou avant les horaires. */
+  morningBottleAt?: Timestamp | null;
+  morningWindowStartAt?: Timestamp | null;
+  morningWindowEndAt?: Timestamp | null;
+```
+
+`bottle-reminder.ts` : extraire les échéances candidates puis prendre la première due.
+
+```ts
+type Deadline = { key: Timestamp; nextBottleAt: Date; windowStartAt: Date | null; windowEndAt: Date | null };
+
+/** Échéances à rappeler : le prochain biberon, puis le premier du matin en secours. */
+export function deadlinesOf(plan: FeedingPlanDoc): Deadline[] {
+  const deadlines: Deadline[] = [
+    {
+      key: plan.nextBottleAt,
+      nextBottleAt: plan.nextBottleAt.toDate(),
+      windowStartAt: plan.windowStartAt?.toDate() ?? null,
+      windowEndAt: plan.windowEndAt?.toDate() ?? null,
+    },
+  ];
+  if (plan.morningBottleAt && plan.morningWindowStartAt && plan.morningWindowEndAt) {
+    deadlines.push({
+      key: plan.morningBottleAt,
+      nextBottleAt: plan.morningBottleAt.toDate(),
+      windowStartAt: plan.morningWindowStartAt.toDate(),
+      windowEndAt: plan.morningWindowEndAt.toDate(),
+    });
+  }
+  return deadlines;
+}
+```
+
+Dans la boucle du handler, remplacer le calcul unique par :
+
+```ts
+      const computedAt = plan.computedAt?.toDate() ?? null;
+      const deadline = deadlinesOf(plan).find((d) =>
+        isReminderDue({ ...d, computedAt, lastNotifiedFor, now }),
+      );
+      if (!deadline) continue;
+```
+
+(`isReminderDue` ignore la clé `key` en trop ; si TypeScript la refuse, passer les champs un à un), puis envoyer `bottleMessage(plan.suggestedMl, deadline.nextBottleAt, deadline.windowStartAt ? deadline.windowEndAt : null)` et écrire `lastBottleNotifiedFor: deadline.key`. Supprimer les variables devenues inutiles.
+
+- [ ] **Step 4 : vérifier le succès** — `npm --prefix functions test` (tous verts) et `npm --prefix functions run build` (tsc sans erreur). Ne pas commiter `functions/lib/` s'il est ignoré ; vérifier avec `git status`.
+
+- [ ] **Step 5 : commit** — `feat: rappel de secours au premier biberon du matin` (fichiers `functions/src/...` uniquement).
+
+---
+
+### Task 11 : retard affiché en heures et minutes
+
+**Files :**
+- Modify : `lib/l10n/app_fr.arb` (`nextBottleLate`)
+- Modify : `lib/features/dashboard/presentation/widgets/next_bottle_card.dart`, `lib/features/dashboard/presentation/widgets/bottle_schedule_sheet.dart`
+- Test : `test/features/dashboard/presentation/dashboard_page_test.dart`, `test/features/dashboard/presentation/bottle_schedule_sheet_test.dart`
+
+- [ ] **Step 1 : tests (rouge)**
+
+`dashboard_page_test.dart` : l'attente `'en retard de 125 min'` devient `'en retard de 2 h 05'`.
+
+`bottle_schedule_sheet_test.dart` (fixture : fourchette ± 25 min, maintenant 22 h le 10) :
+
+```dart
+  testWidgets('un retard de plus d\'une heure s\'affiche en heures', (
+    tester,
+  ) async {
+    await pumpSheet(tester, [bottle(DateTime(2026, 9, 10, 20), 70)]);
+    // Fin de fourchette 20 h 25 : 1 h 35 de retard à 22 h.
+    expect(find.text('en retard de 1 h 35'), findsOneWidget);
+  });
+```
+
+`'en retard de 35 min'` reste inchangé.
+
+- [ ] **Step 2 : vérifier l'échec** — les deux fichiers de test.
+
+- [ ] **Step 3 : implémentation**
+
+`app_fr.arb` :
+
+```json
+  "nextBottleLate": "en retard de {duration}",
+  "@nextBottleLate": { "placeholders": { "duration": { "type": "String" } } },
+```
+
+`next_bottle_card.dart` : `s.nextBottleLate(late.inMinutes)` → `s.nextBottleLate(formatDuration(late, s))`. `bottle_schedule_sheet.dart` : `s.nextBottleLate(now.difference(bottle.windowEnd).inMinutes)` → `s.nextBottleLate(formatDuration(now.difference(bottle.windowEnd), s))`. Importer `package:colette/shared/ui/duration_format.dart` si absent. `flutter gen-l10n`.
+
+- [ ] **Step 4 : vérifier le succès** — `flutter test` complet, `dart format`, `dart analyze`.
+
+- [ ] **Step 5 : commit** — `fix: retard du biberon affiché en heures et minutes`

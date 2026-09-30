@@ -57,7 +57,7 @@ Soit `prévu = last + interval`, `soir = jour de last à lastBottle`, `débutSoi
 1. **Biberon de journée** : `last` est dans `[jour de last à firstBottle − halfWindow, débutSoir[`. Le suivant est `prévu`, rabattu sur `soir` s'il le dépasse.
 2. **Biberon du soir ou de nuit** : sinon. Le suivant est `matin`, sauf si `prévu` est plus tard (biberon à 6 h 00 → 9 h 00).
 
-Exemples (7 h 00 / 23 h 30 / 3 h) : 10 h → 13 h ; 22 h → 23 h 30 ; 22 h 45 → 23 h 30 ; 23 h 10 → 7 h ; 0 h 30 → 7 h ; 5 h → 8 h ; 6 h 40 → 9 h 40.
+Exemples (7 h 00 / 23 h 30 / 3 h) : 10 h → 13 h ; 22 h → 23 h 30 ; 22 h 45 → 7 h (écart minimum, voir « Ajustements ») ; 23 h 10 → 7 h ; 0 h 30 → 7 h ; 5 h → 8 h ; 6 h 40 → 9 h 40.
 
 Les heures sont construites en heure locale par `DateTime(y, m, d, 0, minutes)`.
 
@@ -112,3 +112,10 @@ Cloud Functions inchangées. `bottleReminder` notifie à l'ouverture de la fourc
 - `bottle_schedule_settings_section_test.dart` : affichage formaté, −/+ par 15 min, bornes désactivant les boutons, appel de `updateCareSettings`, résumé mis à jour.
 - `care_settings_section_test.dart` : plus de stepper « Biberons par jour ».
 - Vérification finale : `dart format lib test`, `dart analyze`, `flutter test`, puis carte Réglages en clair et en sombre sur simulateur.
+
+## Ajustements validés après revue (2026-09-30)
+
+- **Écart minimum avant le biberon du soir** : un biberon de journée n'est rabattu sur le biberon du soir que s'il en est à au moins un demi-intervalle (1 h 30 pour 3 h). Plus près, il tient lieu de biberon du soir et le suivant est le premier du matin : 22 h 00 → 23 h 30, mais 22 h 15, 22 h 45 ou 22 h 59 → 7 h. `feedsPerDay` suit la même règle (7 h → 23 h 00 toutes les 3 h : 6 biberons). Évite un rappel push 10 min après un biberon tardif.
+- **Biberon manqué** : une fois la fourchette du prochain biberon finie, si la soirée est entamée (fourchette du soir ouverte) ou passée, le plan affiche le premier biberon du matin au lieu d'un retard toute la nuit (`BottleSchedule.nextDue`). Un biberon de journée manqué reste « en retard » jusqu'à 23 h.
+- **Rappel de secours** : le snapshot `feedingPlan` porte en plus `morningBottleAt`, `morningWindowStartAt`, `morningWindowEndAt` (premier biberon du matin après `nextBottleAt`). `bottleReminder` notifie à l'ouverture de cette fourchette si la précédente a été manquée et qu'aucun biberon n'a été noté depuis. Nécessite un redéploiement des Cloud Functions, à faire après accord.
+- **Libellé du retard** : « en retard de 2 h 05 » au lieu de « en retard de 125 min » (`formatDuration`).
