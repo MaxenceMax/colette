@@ -40,10 +40,37 @@ abstract class BottleSchedule with _$BottleSchedule {
     if (isDaytime && !planned.isAfter(evening)) return planned;
     // Assez loin du biberon du soir : rabattu dessus ; sinon il en tient lieu.
     if (isDaytime && evening.difference(last) >= interval ~/ 2) return evening;
-    final nextMorning = morning.isAfter(last)
+    final nextMorning = morningAfter(last);
+    return planned.isAfter(nextMorning) ? planned : nextMorning;
+  }
+
+  /// Premier biberon du matin strictement après [at].
+  DateTime morningAfter(DateTime at) {
+    final day = DateTime(at.year, at.month, at.day);
+    final morning = _at(day, firstBottle);
+    return morning.isAfter(at)
         ? morning
         : _at(DateTime(day.year, day.month, day.day + 1), firstBottle);
-    return planned.isAfter(nextMorning) ? planned : nextMorning;
+  }
+
+  /// Premier biberon de la journée en cours à [now] : celui du jour, puis
+  /// celui du lendemain dès l'ouverture de la fourchette du soir.
+  DateTime upcomingMorning(DateTime now) {
+    final day = DateTime(now.year, now.month, now.day);
+    final eveningStart = _at(day, lastBottle).subtract(halfWindow);
+    return now.isBefore(eveningStart)
+        ? _at(day, firstBottle)
+        : _at(DateTime(day.year, day.month, day.day + 1), firstBottle);
+  }
+
+  /// Biberon attendu à [now] après un biberon donné à [last] : [nextAfter],
+  /// ou, une fois sa fourchette finie et la soirée entamée, le premier biberon
+  /// du matin, pour ne pas compter de retard la nuit.
+  DateTime nextDue(DateTime last, DateTime now) {
+    final next = nextAfter(last);
+    if (!now.isAfter(next.add(halfWindow))) return next;
+    final morning = upcomingMorning(now);
+    return morning.isAfter(next) ? morning : next;
   }
 
   /// Fourchette de 30 min avant à 30 min après [at].

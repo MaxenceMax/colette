@@ -11,5 +11,11 @@ abstract class FeedingPlanSnapshot with _$FeedingPlanSnapshot {
     required DateTime windowEndAt,
     required int suggestedMl,
     required DateTime computedAt,
+
+    /// Premier biberon du matin après [nextBottleAt] et sa fourchette : rappel
+    /// de secours si aucun biberon n'est noté d'ici là ; `null` sans biberon.
+    DateTime? morningBottleAt,
+    DateTime? morningWindowStartAt,
+    DateTime? morningWindowEndAt,
   }) = _FeedingPlanSnapshot;
 }

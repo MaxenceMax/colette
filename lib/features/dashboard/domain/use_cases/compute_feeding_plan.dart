@@ -10,6 +10,7 @@ import 'package:colette/features/events/domain/entities/care_event.dart';
 /// réparti sur les biberons du jour du [BottleSchedule] ; repères par âge sans pesée.
 /// Une cible ajustée (`dailyTargetMlOverride`) remplace la cible OMS.
 /// Le prochain biberon suit le rythme du foyer, fourchette de ± 30 min.
+/// Un biberon manqué bascule sur le premier du matin une fois la soirée entamée.
 class ComputeFeedingPlan {
   const ComputeFeedingPlan();
 
@@ -34,7 +35,7 @@ class ComputeFeedingPlan {
     final dailyTargetMl = dailyTargetMlOverride ?? omsTargetMl;
     final nextBottleAt = lastBottle == null
         ? now
-        : schedule.nextAfter(lastBottle.startAt);
+        : schedule.nextDue(lastBottle.startAt, now);
     final (windowStart, windowEnd) = lastBottle == null
         ? (now, now)
         : schedule.windowAround(nextBottleAt);

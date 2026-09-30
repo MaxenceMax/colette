@@ -51,15 +51,22 @@ final class FirestoreFeedingPlanSync implements FeedingPlanSync {
       )).getOrElse((_) => const []);
       final lastBottle = (await events.getLatestBottle(code))
           .getOrElse((_) => null);
+      final schedule = profile.careSettings.bottleSchedule;
       final plan = const ComputeFeedingPlan()(
         birthDate: profile.birthDate,
         latestWeightGrams: GrowthMetric.weight.latestOf(measurements)?.grams,
-        schedule: profile.careSettings.bottleSchedule,
+        schedule: schedule,
         todayBottles: today.where((e) => e.hasBottle).toList(),
         lastBottle: lastBottle,
         now: now,
         dailyTargetMlOverride: profile.careSettings.dailyTargetMl,
       );
+      final morning = lastBottle == null
+          ? null
+          : schedule.morningAfter(plan.nextBottleAt);
+      final morningWindow = morning == null
+          ? null
+          : schedule.windowAround(morning);
       await babyRepository.saveFeedingPlan(
         code,
         FeedingPlanSnapshot(
@@ -68,6 +75,9 @@ final class FirestoreFeedingPlanSync implements FeedingPlanSync {
           windowEndAt: plan.windowEnd,
           suggestedMl: plan.suggestedMl,
           computedAt: now,
+          morningBottleAt: morning,
+          morningWindowStartAt: morningWindow?.$1,
+          morningWindowEndAt: morningWindow?.$2,
         ),
       );
     } catch (e, stackTrace) {

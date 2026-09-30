@@ -383,4 +383,41 @@ void main() {
       expect(plan.suggestedMl, ComputeFeedingPlan.maxSuggestedMl);
     });
   });
+
+  group('biberon manqué', () {
+    FeedingPlan planAt(DateTime lastAt, DateTime now) {
+      final last = makeEvent(id: 'a', startAt: lastAt, bottleMl: 60);
+      return compute(
+        birthDate: birth,
+        latestWeightGrams: 3600,
+        schedule: schedule,
+        todayBottles: lastAt.day == now.day ? [last] : const [],
+        lastBottle: last,
+        now: now,
+      );
+    }
+
+    test('biberon du soir manqué : la nuit, on attend le matin', () {
+      final now = DateTime(2026, 9, 11, 0, 5);
+      final plan = planAt(DateTime(2026, 9, 10, 22), now);
+      expect(plan.nextBottleAt, DateTime(2026, 9, 11, 7));
+      expect(plan.windowStart, DateTime(2026, 9, 11, 6, 30));
+      expect(plan.windowEnd, DateTime(2026, 9, 11, 7, 30));
+      expect(plan.lateBy(now), Duration.zero);
+    });
+
+    test('toujours rien à 8 h : en retard depuis 7 h 30', () {
+      final now = DateTime(2026, 9, 11, 8);
+      final plan = planAt(DateTime(2026, 9, 10, 22), now);
+      expect(plan.nextBottleAt, DateTime(2026, 9, 11, 7));
+      expect(plan.lateBy(now), const Duration(minutes: 30));
+    });
+
+    test('biberon de journée manqué : en retard l\'après-midi', () {
+      final now = DateTime(2026, 9, 10, 15);
+      final plan = planAt(DateTime(2026, 9, 10, 10), now);
+      expect(plan.nextBottleAt, DateTime(2026, 9, 10, 13));
+      expect(plan.lateBy(now), const Duration(hours: 1, minutes: 30));
+    });
+  });
 }

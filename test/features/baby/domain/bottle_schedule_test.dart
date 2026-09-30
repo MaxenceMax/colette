@@ -139,4 +139,82 @@ void main() {
       expect(empty.feedsPerDay, 1);
     });
   });
+
+  group('morningAfter', () {
+    test('premier biberon strictement après', () {
+      expect(
+        schedule.morningAfter(DateTime(2026, 9, 10, 23, 30)),
+        DateTime(2026, 9, 11, 7),
+      );
+      expect(
+        schedule.morningAfter(DateTime(2026, 9, 11, 6, 59)),
+        DateTime(2026, 9, 11, 7),
+      );
+      expect(
+        schedule.morningAfter(DateTime(2026, 9, 11, 7)),
+        DateTime(2026, 9, 12, 7),
+      );
+    });
+  });
+
+  group('upcomingMorning', () {
+    test('celui du jour jusqu\'à l\'ouverture de la fourchette du soir', () {
+      expect(
+        schedule.upcomingMorning(DateTime(2026, 9, 11, 0, 5)),
+        DateTime(2026, 9, 11, 7),
+      );
+      expect(
+        schedule.upcomingMorning(DateTime(2026, 9, 11, 12)),
+        DateTime(2026, 9, 11, 7),
+      );
+      expect(
+        schedule.upcomingMorning(DateTime(2026, 9, 11, 22, 59)),
+        DateTime(2026, 9, 11, 7),
+      );
+    });
+
+    test('celui du lendemain dès 23 h', () {
+      expect(
+        schedule.upcomingMorning(DateTime(2026, 9, 11, 23)),
+        DateTime(2026, 9, 12, 7),
+      );
+    });
+  });
+
+  group('nextDue', () {
+    DateTime due(DateTime last, DateTime now) => schedule.nextDue(last, now);
+    final evening22 = DateTime(2026, 9, 10, 22);
+
+    test('fourchette pas finie : nextAfter', () {
+      expect(
+        due(evening22, DateTime(2026, 9, 10, 23, 50)),
+        DateTime(2026, 9, 10, 23, 30),
+      );
+      expect(
+        due(evening22, DateTime(2026, 9, 11, 0)),
+        DateTime(2026, 9, 10, 23, 30),
+      );
+    });
+
+    test('biberon du soir manqué : premier du matin', () {
+      expect(
+        due(evening22, DateTime(2026, 9, 11, 0, 5)),
+        DateTime(2026, 9, 11, 7),
+      );
+      expect(
+        due(evening22, DateTime(2026, 9, 11, 8)),
+        DateTime(2026, 9, 11, 7),
+      );
+    });
+
+    test('biberon de journée manqué : en retard jusqu\'au soir', () {
+      final ten = DateTime(2026, 9, 10, 10);
+      expect(due(ten, DateTime(2026, 9, 10, 15)), DateTime(2026, 9, 10, 13));
+      expect(
+        due(ten, DateTime(2026, 9, 10, 22, 59)),
+        DateTime(2026, 9, 10, 13),
+      );
+      expect(due(ten, DateTime(2026, 9, 10, 23, 10)), DateTime(2026, 9, 11, 7));
+    });
+  });
 }
