@@ -60,7 +60,7 @@ vi.mock('./lib/firestore', async (importOriginal) => ({
   }),
 }));
 
-const { selectBottleRecipients, bottleReminder } = await import('./bottle-reminder');
+const { selectBottleRecipients, deadlinesOf, bottleReminder } = await import('./bottle-reminder');
 
 const handler = bottleReminder as unknown as () => Promise<void>;
 
@@ -101,6 +101,48 @@ describe('selectBottleRecipients', () => {
     const devices: Device[] = [{ id: 'd1', notifyBottleReminder: false }];
 
     expect(selectBottleRecipients(devices)).toEqual([]);
+  });
+});
+
+describe('deadlinesOf', () => {
+  const at = (iso: string) => Timestamp.fromDate(new Date(iso));
+
+  function planWithMorning(morningBottleAt: Timestamp | null): FeedingPlanDoc {
+    return {
+      nextBottleAt: at('2026-09-30T21:30:00Z'),
+      windowStartAt: at('2026-09-30T21:00:00Z'),
+      windowEndAt: at('2026-09-30T22:00:00Z'),
+      suggestedMl: 120,
+      morningBottleAt,
+      morningWindowStartAt: morningBottleAt && at('2026-10-01T04:30:00Z'),
+      morningWindowEndAt: morningBottleAt && at('2026-10-01T05:30:00Z'),
+    };
+  }
+
+  it('ajoute le rappel du matin après le prochain biberon, principal en premier', () => {
+    const plan = planWithMorning(at('2026-10-01T05:00:00Z'));
+
+    const deadlines = deadlinesOf(plan);
+
+    expect(deadlines.map((d) => d.key)).toEqual([plan.nextBottleAt, plan.morningBottleAt]);
+  });
+
+  it('ignore un rappel du matin qui précède le prochain biberon (champs périmés)', () => {
+    const plan = planWithMorning(at('2026-09-30T20:00:00Z'));
+
+    expect(deadlinesOf(plan).map((d) => d.key)).toEqual([plan.nextBottleAt]);
+  });
+
+  it('ignore un rappel du matin égal au prochain biberon', () => {
+    const plan = planWithMorning(at('2026-09-30T21:30:00Z'));
+
+    expect(deadlinesOf(plan)).toHaveLength(1);
+  });
+
+  it('ignore les champs du matin explicitement nuls', () => {
+    const plan = planWithMorning(null);
+
+    expect(deadlinesOf(plan).map((d) => d.key)).toEqual([plan.nextBottleAt]);
   });
 });
 
@@ -299,5 +341,26 @@ describe('bottleReminder', () => {
     await handler();
 
     expect(sendToDevices).not.toHaveBeenCalled();
+  });
+
+  it('fourchette du matin périmée (avant le prochain biberon, ancienne app) : rien', async () => {
+    const now = Date.now();
+    const next = new Date(now + 60 * 60 * 1000);
+    const plan: FeedingPlanDoc = {
+      nextBottleAt: Timestamp.fromDate(next),
+      windowStartAt: Timestamp.fromDate(new Date(now + 30 * 60 * 1000)),
+      windowEndAt: Timestamp.fromDate(new Date(now + 90 * 60 * 1000)),
+      suggestedMl: 120,
+      computedAt: Timestamp.fromDate(new Date(now - 10 * 60 * 1000)),
+      morningBottleAt: Timestamp.fromDate(new Date(now + 30 * 60 * 1000)),
+      morningWindowStartAt: Timestamp.fromDate(new Date(now - 60 * 1000)),
+      morningWindowEndAt: Timestamp.fromDate(new Date(now + 60 * 60 * 1000)),
+    };
+    households.push({ id: 'ABC123', fields: { feedingPlan: plan }, devices: [{ id: 'd1' }] });
+
+    await handler();
+
+    expect(sendToDevices).not.toHaveBeenCalled();
+    expect(updates).toEqual([]);
   });
 });
