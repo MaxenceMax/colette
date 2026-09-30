@@ -72,6 +72,9 @@ abstract final class CareSettingsDto {
       CareSettings.minDailyTargetMl,
       CareSettings.maxDailyTargetMl,
     ),
+    'firstBottleMinutes': settings.firstBottleMinutes,
+    'lastBottleMinutes': settings.lastBottleMinutes,
+    'bottleIntervalMinutes': settings.bottleIntervalMinutes,
   };
 
   /// Entier optionnel borné ; absent ou non numérique → `null`.
@@ -168,6 +171,27 @@ abstract final class CareSettingsDto {
         min: CareSettings.minDailyTargetMl,
         max: CareSettings.maxDailyTargetMl,
         step: CareSettings.dailyTargetStepMl,
+      ),
+      firstBottleMinutes: _readBoundedInt(
+        map,
+        'firstBottleMinutes',
+        420,
+        min: CareSettings.minFirstBottleMinutes,
+        max: CareSettings.maxFirstBottleMinutes,
+      ),
+      lastBottleMinutes: _readBoundedInt(
+        map,
+        'lastBottleMinutes',
+        1410,
+        min: CareSettings.minLastBottleMinutes,
+        max: CareSettings.maxLastBottleMinutes,
+      ),
+      bottleIntervalMinutes: _readBoundedInt(
+        map,
+        'bottleIntervalMinutes',
+        180,
+        min: CareSettings.minBottleIntervalMinutes,
+        max: CareSettings.maxBottleIntervalMinutes,
       ),
     );
   }

@@ -2,6 +2,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:colette/features/baby/data/dtos/baby_profile_dto.dart';
 import 'package:colette/features/baby/domain/entities/baby_profile.dart';
 import 'package:colette/features/baby/domain/entities/baby_sex.dart';
+import 'package:colette/features/baby/domain/entities/bottle_schedule.dart';
 import 'package:colette/features/baby/domain/entities/care_frequency.dart';
 import 'package:colette/features/baby/domain/entities/care_settings.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -243,6 +244,63 @@ void main() {
       });
       expect(clamped.nightStartHour, 23);
       expect(clamped.nightEndHour, 0);
+    });
+  });
+  group('horaires des biberons', () {
+    test('défauts sur document vide : 7 h, 23 h 30, 3 h', () {
+      final settings = CareSettingsDto.fromMap(const {});
+      expect(settings.firstBottleMinutes, 420);
+      expect(settings.lastBottleMinutes, 1410);
+      expect(settings.bottleIntervalMinutes, 180);
+      expect(settings.bottleSchedule, const BottleSchedule());
+    });
+
+    test('aller-retour', () {
+      const settings = CareSettings(
+        firstBottleMinutes: 390,
+        lastBottleMinutes: 1380,
+        bottleIntervalMinutes: 165,
+      );
+      final map = CareSettingsDto.toMap(settings);
+      expect(map['firstBottleMinutes'], 390);
+      expect(map['lastBottleMinutes'], 1380);
+      expect(map['bottleIntervalMinutes'], 165);
+      expect(CareSettingsDto.fromMap(map), settings);
+    });
+
+    test('valeurs hors bornes ramenées aux bornes', () {
+      final low = CareSettingsDto.fromMap(const {
+        'firstBottleMinutes': 0,
+        'lastBottleMinutes': 0,
+        'bottleIntervalMinutes': 10,
+      });
+      expect(low.firstBottleMinutes, CareSettings.minFirstBottleMinutes);
+      expect(low.lastBottleMinutes, CareSettings.minLastBottleMinutes);
+      expect(low.bottleIntervalMinutes, CareSettings.minBottleIntervalMinutes);
+      final high = CareSettingsDto.fromMap(const {
+        'firstBottleMinutes': 5000,
+        'lastBottleMinutes': 5000,
+        'bottleIntervalMinutes': 5000,
+      });
+      expect(high.firstBottleMinutes, CareSettings.maxFirstBottleMinutes);
+      expect(high.lastBottleMinutes, CareSettings.maxLastBottleMinutes);
+      expect(high.bottleIntervalMinutes, CareSettings.maxBottleIntervalMinutes);
+    });
+
+    test('bottleSchedule reprend les trois réglages', () {
+      const settings = CareSettings(
+        firstBottleMinutes: 390,
+        lastBottleMinutes: 1380,
+        bottleIntervalMinutes: 165,
+      );
+      expect(
+        settings.bottleSchedule,
+        const BottleSchedule(
+          firstBottle: Duration(hours: 6, minutes: 30),
+          lastBottle: Duration(hours: 23),
+          interval: Duration(hours: 2, minutes: 45),
+        ),
+      );
     });
   });
 }
