@@ -24,6 +24,17 @@ void main() {
       expect(next(10, 23, 30), DateTime(2026, 9, 11, 7));
     });
 
+    test('22 h 59 est encore la journée : rabattu sur 23 h 30', () {
+      expect(next(10, 22, 59), DateTime(2026, 9, 10, 23, 30));
+    });
+
+    test('biberon du soir en fin de mois : premier biberon le 1er', () {
+      expect(
+        schedule.nextAfter(DateTime(2026, 9, 30, 23, 10)),
+        DateTime(2026, 10, 1, 7),
+      );
+    });
+
     test('nuit après minuit : premier du matin le jour même', () {
       expect(next(11, 0, 30), DateTime(2026, 9, 11, 7));
     });

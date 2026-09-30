@@ -28,6 +28,7 @@ abstract class BottleSchedule with _$BottleSchedule {
   /// Biberon du soir ou de nuit : premier biberon du matin suivant, ou
   /// `last + interval` s'il tombe plus tard.
   DateTime nextAfter(DateTime last) {
+    assert(interval > Duration.zero, 'interval must be positive');
     final planned = last.add(interval);
     final day = DateTime(last.year, last.month, last.day);
     final morning = _at(day, firstBottle);
