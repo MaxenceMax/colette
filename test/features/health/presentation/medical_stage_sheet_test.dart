@@ -212,4 +212,33 @@ void main() {
     completer.complete(right(null));
     await tester.pumpAndSettle();
   });
+
+  testWidgets('échec d\'écriture : message affiché, feuille ouverte', (
+    tester,
+  ) async {
+    when(() => repo.saveVisit(any(), any()))
+        .thenAnswer((_) async => left(const NetworkFailure()));
+    await pumpApp(
+      tester,
+      Scaffold(
+        body: MedicalStageSheet(
+          entry: m2Entry(makeVisit(MedicalStageId.m2, note: 'x')),
+        ),
+      ),
+      overrides: overrides(),
+    );
+    await tester.scrollUntilVisible(
+      find.text('Enregistrer'),
+      300,
+      scrollable: sheetScrollable(),
+    );
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Enregistrer'));
+    await tester.pumpAndSettle();
+    expect(
+      find.text('Pas de connexion. Réessaie dans un instant.'),
+      findsOneWidget,
+    );
+    expect(find.byType(MedicalStageSheet), findsOneWidget);
+  });
 }

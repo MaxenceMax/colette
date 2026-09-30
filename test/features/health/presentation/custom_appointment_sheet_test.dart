@@ -169,4 +169,22 @@ void main() {
     completer.complete(right(null));
     await tester.pumpAndSettle();
   });
+
+  testWidgets('échec d\'écriture : message affiché, feuille ouverte', (
+    tester,
+  ) async {
+    when(() => repo.saveAppointment(any(), any()))
+        .thenAnswer((_) async => left(const NetworkFailure()));
+    await pumpApp(
+      tester,
+      Scaffold(body: CustomAppointmentSheet(initial: makeAppointment())),
+      overrides: overrides(),
+    );
+    await tapAfterScroll(tester, find.text('Enregistrer'));
+    expect(
+      find.text('Pas de connexion. Réessaie dans un instant.'),
+      findsOneWidget,
+    );
+    expect(find.byType(CustomAppointmentSheet), findsOneWidget);
+  });
 }

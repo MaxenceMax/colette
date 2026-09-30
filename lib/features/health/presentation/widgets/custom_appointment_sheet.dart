@@ -11,6 +11,7 @@ import 'package:colette/features/health/domain/entities/custom_vaccine.dart';
 import 'package:colette/features/health/domain/use_cases/reconcile_calendar.dart';
 import 'package:colette/features/health/presentation/providers/custom_appointment_controller.dart';
 import 'package:colette/features/health/presentation/widgets/custom_vaccine_fields.dart';
+import 'package:colette/features/health/presentation/widgets/sheet_failure_text.dart';
 import 'package:colette/features/health/presentation/widgets/stage_visit_fields.dart';
 import 'package:colette/l10n/generated/app_localizations.dart';
 import 'package:colette/shared/ui/widgets/date_field.dart';
@@ -138,8 +139,8 @@ class _CustomAppointmentSheetState
     final s = S.of(context);
     final initial = widget.initial;
     final birthDate = ref.watch(babyProfileProvider).value?.birthDate;
-    final isSaving =
-        ref.watch(customAppointmentControllerProvider) is AsyncLoading;
+    final saveState = ref.watch(customAppointmentControllerProvider);
+    final isSaving = saveState is AsyncLoading;
     final now = ref.watch(clockProvider).now();
     final minimum = birthDate ?? now;
     final appointmentAt = _appointmentAt;
@@ -197,6 +198,8 @@ class _CustomAppointmentSheetState
             maximum: now,
             onDoneChanged: (value) => setState(() => _doneAt = value),
           ),
+          if (saveState case AsyncError(:final error))
+            SheetFailureText(failure: error),
           AppSpacing.lg.verticalSpace,
           FilledButton(
             onPressed: isSaving || birthDate == null

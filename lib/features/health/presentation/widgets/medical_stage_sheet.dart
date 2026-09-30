@@ -9,6 +9,7 @@ import 'package:colette/features/health/domain/entities/vaccine_code.dart';
 import 'package:colette/features/health/domain/use_cases/reconcile_calendar.dart';
 import 'package:colette/features/health/presentation/labels/health_labels.dart';
 import 'package:colette/features/health/presentation/providers/medical_visit_controller.dart';
+import 'package:colette/features/health/presentation/widgets/sheet_failure_text.dart';
 import 'package:colette/features/health/presentation/widgets/stage_appointment_fields.dart';
 import 'package:colette/features/health/presentation/widgets/stage_vaccine_row.dart';
 import 'package:colette/features/health/presentation/widgets/stage_visit_fields.dart';
@@ -84,7 +85,8 @@ class _MedicalStageSheetState extends ConsumerState<MedicalStageSheet> {
     final s = S.of(context);
     final stage = widget.entry.stage;
     final birthDate = ref.watch(babyProfileProvider).value?.birthDate;
-    final isSaving = ref.watch(medicalVisitControllerProvider) is AsyncLoading;
+    final saveState = ref.watch(medicalVisitControllerProvider);
+    final isSaving = saveState is AsyncLoading;
     final now = ref.watch(clockProvider).now();
     final minimum = birthDate ?? widget.entry.dueFrom;
     final defaultDate = _doneAt ?? _appointmentAt ?? now;
@@ -138,6 +140,8 @@ class _MedicalStageSheetState extends ConsumerState<MedicalStageSheet> {
             maximum: now,
             onDoneChanged: (value) => setState(() => _doneAt = value),
           ),
+          if (saveState case AsyncError(:final error))
+            SheetFailureText(failure: error),
           AppSpacing.lg.verticalSpace,
           FilledButton(
             onPressed: isSaving || birthDate == null
