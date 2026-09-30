@@ -73,7 +73,11 @@ final class PhotoSharingPlugin: NSObject {
       return
     }
     busy = true
+    // Une seule réponse par appel, même si le présentateur répondait deux fois.
+    var replied = false
     let reply: FlutterResult = { [weak self] value in
+      guard !replied else { return }
+      replied = true
       self?.busy = false
       result(value)
     }

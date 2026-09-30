@@ -2,6 +2,8 @@ import ContactsUI
 import MessageUI
 import PhotosUI
 import UIKit
+import UniformTypeIdentifiers
+import os.log
 
 /// Présente les écrans système du partage de photos : contacts, appareil photo,
 /// galerie, feuilles Messages successives. Thread principal uniquement.
@@ -27,9 +29,24 @@ final class PhotoSharingPresenter: NSObject {
       scenes.first { $0.activationState == .foregroundActive }?.keyWindow
       ?? scenes.compactMap(\.keyWindow).first
     var controller = window?.rootViewController
-    while let presented = controller?.presentedViewController { controller = presented }
+    while let presented = controller?.presentedViewController, !presented.isBeingDismissed {
+      controller = presented
+    }
     return controller
   }
+
+  /// Présente l'écran et signale l'échec si la présentation n'a pas eu lieu.
+  private func present(
+    _ controller: UIViewController, from host: UIViewController,
+    onFailure: @escaping () -> Void
+  ) {
+    host.present(controller, animated: true) {
+      guard controller.presentingViewController == nil else { return }
+      onFailure()
+    }
+  }
+
+  private static let presentationFailure = "Présentation impossible"
 
   // MARK: - Contacts
 
@@ -47,7 +64,14 @@ final class PhotoSharingPresenter: NSObject {
     picker.predicateForSelectionOfContact = NSPredicate(format: "phoneNumbers.@count == 1")
     picker.predicateForSelectionOfProperty = NSPredicate(
       format: "key == %@", CNContactPhoneNumbersKey)
-    host.present(picker, animated: true)
+    // Pas de fermeture par glissement : « Annuler » appelle toujours le délégué.
+    picker.isModalInPresentation = true
+    present(picker, from: host) { [weak self] in
+      guard let self else { return }
+      let pending = contactCompletion
+      contactCompletion = nil
+      pending?(.failure(.io(Self.presentationFailure)))
+    }
   }
 
   private func finishContact(_ contact: CNContact, phone: String?) {
@@ -76,7 +100,9 @@ final class PhotoSharingPresenter: NSObject {
     let picker = UIImagePickerController()
     picker.sourceType = .camera
     picker.delegate = self
-    host.present(picker, animated: true)
+    present(picker, from: host) { [weak self] in
+      self?.finishImages(.failure(.io(Self.presentationFailure)))
+    }
   }
 
   func pickPhotos(completion: @escaping (Result<[String], PhotoSharingError>) -> Void) {
@@ -90,22 +116,31 @@ final class PhotoSharingPresenter: NSObject {
     configuration.selectionLimit = 10
     let picker = PHPickerViewController(configuration: configuration)
     picker.delegate = self
-    host.present(picker, animated: true)
+    picker.isModalInPresentation = true
+    present(picker, from: host) { [weak self] in
+      self?.finishImages(.failure(.io(Self.presentationFailure)))
+    }
   }
 
-  /// Encode hors du thread principal, répond sur le thread principal.
+  /// Encode hors du thread principal, répond sur le thread principal. Tout ou rien :
+  /// si une écriture échoue, les JPEG déjà écrits sont supprimés.
   private func write(_ images: [UIImage]) {
     DispatchQueue.global(qos: .userInitiated).async { [weak self] in
+      var paths: [String] = []
       let outcome: Result<[String], PhotoSharingError>
       do {
-        outcome = .success(try images.map(PhotoSharingImages.write))
-      } catch let error as PhotoSharingError {
-        outcome = .failure(error)
+        for image in images { paths.append(try PhotoSharingImages.write(image)) }
+        outcome = .success(paths)
       } catch {
-        outcome = .failure(.io(error.localizedDescription))
+        PhotoSharingImages.discard(paths)
+        outcome = .failure(Self.failure(error))
       }
       DispatchQueue.main.async { self?.finishImages(outcome) }
     }
+  }
+
+  private static func failure(_ error: Error) -> PhotoSharingError {
+    error as? PhotoSharingError ?? .io(error.localizedDescription)
   }
 
   private func finishImages(_ outcome: Result<[String], PhotoSharingError>) {
@@ -153,13 +188,25 @@ final class PhotoSharingPresenter: NSObject {
     composer.messageComposeDelegate = self
     composer.recipients = [pendingPhones.removeFirst()]
     composer.body = messageBody.isEmpty ? nil : messageBody
+    composer.isModalInPresentation = true
     if MFMessageComposeViewController.canSendAttachments() {
       for (index, data) in attachments.enumerated() {
-        _ = composer.addAttachmentData(
-          data, typeIdentifier: "public.jpeg", filename: "photo-\(index + 1).jpg")
+        let attached = composer.addAttachmentData(
+          data, typeIdentifier: UTType.jpeg.identifier, filename: "photo-\(index + 1).jpg")
+        if !attached {
+          os_log("Photo %ld non jointe au message", type: .error, index + 1)
+        }
       }
+    } else if !attachments.isEmpty {
+      os_log("Messages refuse les pièces jointes : photos non jointes", type: .error)
     }
-    host.present(composer, animated: true)
+    present(composer, from: host) { [weak self] in
+      guard let self else { return }
+      // La personne courante et les suivantes ne recevront rien.
+      tally.failed += 1 + pendingPhones.count
+      pendingPhones = []
+      finishMessages()
+    }
   }
 
   private func finishMessages() {
@@ -217,20 +264,47 @@ extension PhotoSharingPresenter: PHPickerViewControllerDelegate {
       finishImages(.success([]))
       return
     }
-    // Ordre de sélection conservé ; chaque chargement répond sur le thread principal.
-    var images = [UIImage?](repeating: nil, count: results.count)
+    // Fichier réduit à la lecture (ImageIO), jamais d'image pleine résolution en mémoire.
+    // Ordre de sélection conservé ; chemins et erreurs rangés sur le thread principal.
+    let type = UTType.image.identifier
+    var paths = [String?](repeating: nil, count: results.count)
+    var errors: [PhotoSharingError] = []
     let group = DispatchGroup()
-    for (index, result) in results.enumerated()
-    where result.itemProvider.canLoadObject(ofClass: UIImage.self) {
+    for (index, result) in results.enumerated() {
+      guard result.itemProvider.hasItemConformingToTypeIdentifier(type) else {
+        errors.append(.io("Format non pris en charge"))
+        continue
+      }
       group.enter()
-      result.itemProvider.loadObject(ofClass: UIImage.self) { object, _ in
+      result.itemProvider.loadFileRepresentation(forTypeIdentifier: type) { url, error in
+        // Synchrone : le fichier temporaire est supprimé au retour du bloc.
+        let outcome: Result<String, PhotoSharingError>
+        if let url {
+          do {
+            outcome = .success(try PhotoSharingImages.write(fileAt: url))
+          } catch {
+            outcome = .failure(Self.failure(error))
+          }
+        } else {
+          outcome = .failure(.io(error?.localizedDescription ?? "Photo illisible"))
+        }
         DispatchQueue.main.async {
-          images[index] = object as? UIImage
+          switch outcome {
+          case .success(let path): paths[index] = path
+          case .failure(let error): errors.append(error)
+          }
           group.leave()
         }
       }
     }
-    group.notify(queue: .main) { [weak self] in self?.write(images.compactMap { $0 }) }
+    group.notify(queue: .main) { [weak self] in
+      let written = paths.compactMap { $0 }
+      if written.isEmpty, let error = errors.first {
+        self?.finishImages(.failure(error))
+      } else {
+        self?.finishImages(.success(written))
+      }
+    }
   }
 }
 

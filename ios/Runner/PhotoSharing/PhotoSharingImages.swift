@@ -1,3 +1,4 @@
+import ImageIO
 import UIKit
 
 /// Photos préparées pour Messages : JPEG réduits dans `tmp/photo-sharing/`.
@@ -10,15 +11,43 @@ enum PhotoSharingImages {
       .appendingPathComponent("photo-sharing", isDirectory: true)
   }
 
-  /// Réduit l'image (grand côté ≤ 2048 px), l'écrit en JPEG et renvoie son chemin.
+  /// Photo de l'appareil : réduit l'image (grand côté ≤ 2048 px), l'écrit en JPEG et renvoie son chemin.
   static func write(_ image: UIImage) throws -> String {
-    try FileManager.default.createDirectory(at: directory, withIntermediateDirectories: true)
     guard let data = resized(image).jpegData(compressionQuality: quality) else {
       throw PhotoSharingError.io("Encodage JPEG impossible")
     }
+    return try store(data)
+  }
+
+  /// Écrit le JPEG dans le dossier des photos et renvoie son chemin.
+  private static func store(_ data: Data) throws -> String {
+    try FileManager.default.createDirectory(at: directory, withIntermediateDirectories: true)
     let url = directory.appendingPathComponent(UUID().uuidString).appendingPathExtension("jpg")
     try data.write(to: url, options: .atomic)
     return url.path
+  }
+
+  /// Réduit à la lecture le fichier image donné (ImageIO, sans décoder la pleine
+  /// résolution), orientation EXIF appliquée, l'écrit en JPEG et renvoie son chemin.
+  /// Sûr hors du thread principal.
+  static func write(fileAt source: URL) throws -> String {
+    let sourceOptions = [kCGImageSourceShouldCache: false] as CFDictionary
+    guard let imageSource = CGImageSourceCreateWithURL(source as CFURL, sourceOptions) else {
+      throw PhotoSharingError.io("Photo illisible")
+    }
+    let thumbnailOptions =
+      [
+        kCGImageSourceCreateThumbnailFromImageAlways: true,
+        kCGImageSourceCreateThumbnailWithTransform: true,
+        kCGImageSourceThumbnailMaxPixelSize: maxDimension,
+        kCGImageSourceShouldCacheImmediately: true,
+      ] as CFDictionary
+    guard let image = CGImageSourceCreateThumbnailAtIndex(imageSource, 0, thumbnailOptions),
+      let data = UIImage(cgImage: image).jpegData(compressionQuality: quality)
+    else {
+      throw PhotoSharingError.io("Encodage JPEG impossible")
+    }
+    return try store(data)
   }
 
   /// Supprime les fichiers donnés, uniquement s'ils sont dans le dossier des photos.

@@ -5,15 +5,19 @@ import os.log
 enum PhotoSharingReminders {
   static let prefix = "photo-reminder."
 
-  /// Retire les rappels de la veille à J+15 (retrait synchrone, donc ordonné),
-  /// puis programme une notification non répétée par date.
+  /// Retire les rappels de la veille à J+15 qui ne sont pas reprogrammés, puis programme
+  /// une notification non répétée par date. Le retrait est asynchrone : les jours
+  /// reprogrammés n'y figurent donc pas, et un `add` sur le même identifiant remplace
+  /// l'ancienne notification.
   static func sync(dates: [Date], title: String, body: String) {
     let center = UNUserNotificationCenter.current()
     let calendar = Calendar.current
     let today = calendar.startOfDay(for: Date())
+    let keep = Set(dates.map(identifier))
     let stale = (-1...15)
       .compactMap { calendar.date(byAdding: .day, value: $0, to: today) }
       .map(identifier)
+      .filter { !keep.contains($0) }
     center.removePendingNotificationRequests(withIdentifiers: stale)
     for date in dates {
       let content = UNMutableNotificationContent()

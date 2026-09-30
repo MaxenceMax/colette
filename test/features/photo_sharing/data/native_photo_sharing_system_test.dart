@@ -73,18 +73,22 @@ void main() {
     });
   });
 
-  test('code natif connu → PhotoSharingFailure', () async {
-    mock((_) => throw PlatformException(code: 'messagesUnavailable'));
-    final result = await system.sendMessages(
-      phones: ['0611'],
-      photoPaths: [],
-      body: '',
-    );
-    expect(
-      result.getLeft().toNullable(),
-      const PhotoSharingFailure(PhotoSharingReason.messagesUnavailable),
-    );
-  });
+  for (final (code, reason) in [
+    ('messagesUnavailable', PhotoSharingReason.messagesUnavailable),
+    ('cameraUnavailable', PhotoSharingReason.cameraUnavailable),
+    ('busy', PhotoSharingReason.busy),
+    ('io', PhotoSharingReason.io),
+  ]) {
+    test('code natif $code → PhotoSharingFailure($reason)', () async {
+      mock((_) => throw PlatformException(code: code, message: 'détail'));
+      final result = await system.sendMessages(
+        phones: ['0611'],
+        photoPaths: [],
+        body: '',
+      );
+      expect(result.getLeft().toNullable(), PhotoSharingFailure(reason));
+    });
+  }
 
   test('code inconnu → UnknownFailure', () async {
     mock((_) => throw PlatformException(code: 'boom'));
@@ -112,6 +116,11 @@ void main() {
     expect(await system.takePendingRoute(), isNull);
   });
 
+  test('takePendingRoute : valeur non String → null sans exception', () async {
+    mock((_) => 42);
+    expect(await system.takePendingRoute(), isNull);
+  });
+
   test('takePendingRoute rend la route', () async {
     mock((_) => '/today/photos');
     expect(await system.takePendingRoute(), '/today/photos');
@@ -127,5 +136,17 @@ void main() {
       (_) {},
     );
     await expectLater(signal, completes);
+  });
+
+  test('méthode venue de Swift inconnue → non implémentée', () async {
+    ByteData? reply = ByteData(0);
+    await messenger.handlePlatformMessage(
+      NativePhotoSharingSystem.channelName,
+      const StandardMethodCodec().encodeMethodCall(
+        const MethodCall('inconnue'),
+      ),
+      (data) => reply = data,
+    );
+    expect(reply, isNull);
   });
 }

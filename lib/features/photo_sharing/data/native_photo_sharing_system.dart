@@ -28,8 +28,13 @@ class NativePhotoSharingSystem implements PhotoSharingSystem {
   final _routeSignals = StreamController<void>.broadcast();
 
   Future<Object?> _onNativeCall(MethodCall call) async {
-    if (call.method == 'routePending') _routeSignals.add(null);
-    return null;
+    switch (call.method) {
+      case 'routePending':
+        _routeSignals.add(null);
+        return null;
+      default:
+        throw MissingPluginException(call.method);
+    }
   }
 
   @override
@@ -87,7 +92,7 @@ class NativePhotoSharingSystem implements PhotoSharingSystem {
   Future<String?> takePendingRoute() async {
     try {
       return await _channel.invokeMethod<String>('takePendingRoute');
-    } on Exception catch (error, stackTrace) {
+    } catch (error, stackTrace) {
       _log('takePendingRoute', error, stackTrace);
       return null;
     }
@@ -101,27 +106,33 @@ class NativePhotoSharingSystem implements PhotoSharingSystem {
   Future<void> _quiet(String method, Object? arguments) async {
     try {
       await _channel.invokeMethod<void>(method, arguments);
-    } on Exception catch (error, stackTrace) {
+    } catch (error, stackTrace) {
       _log(method, error, stackTrace);
     }
   }
 
-  /// Codes du canal → [PhotoSharingFailure], sinon [UnknownFailure] logué.
+  /// Codes du canal → [PhotoSharingFailure] (`io` logué), sinon [UnknownFailure] logué.
   Future<Either<Failure, T>> _call<T>(Future<T> Function() action) async {
     try {
       return right(await action());
     } catch (error, stackTrace) {
       if (error is PlatformException) {
         final reason = _reasons[error.code];
-        if (reason != null) return left(PhotoSharingFailure(reason));
+        if (reason != null) {
+          // `io` porte un message natif utile au diagnostic.
+          if (reason == .io) _log('appel natif', error, stackTrace);
+          return left(PhotoSharingFailure(reason));
+        }
       }
       _log('appel natif', error, stackTrace);
       return left(UnknownFailure(error, stackTrace));
     }
   }
 
+  /// Le message d'une [PlatformException] (diagnostic `io`) est inclus.
   void _log(String what, Object error, StackTrace stackTrace) => developer.log(
-    'colette/photo-sharing $what a échoué',
+    'colette/photo-sharing $what a échoué'
+    '${error is PlatformException ? ' : ${error.message}' : ''}',
     name: 'colette',
     error: error,
     stackTrace: stackTrace,
