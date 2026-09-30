@@ -36,15 +36,15 @@ Sous les lignes, un résumé : « ≈ 7 biberons par jour ».
 - `lastBottleMinutes` (défaut 1410)
 - `bottleIntervalMinutes` (défaut 180)
 
-avec leurs bornes et leur pas (15) en constantes statiques. `feedsPerDay` sort de l'entité ; `CareSettingsDto` ne l'écrit plus et l'ignore à la lecture. Les trois champs sont lus avec `_readBoundedInt` : une valeur absente ou hors bornes retombe sur le défaut. Un foyer existant démarre donc sur 7 h 00 / 23 h 30 / 3 h 00.
+avec leurs bornes et leur pas (15) en constantes statiques. `feedsPerDay` sort de l'entité ; `CareSettingsDto` ne l'écrit plus et l'ignore à la lecture. Les trois champs sont lus avec `_readBoundedInt` : une valeur absente retombe sur le défaut, une valeur hors bornes est ramenée à la borne. Un foyer existant démarre donc sur 7 h 00 / 23 h 30 / 3 h 00.
 
-`CareSettings` expose `feedsPerDay` en getter calculé (voir la règle ci-dessous), pour que les consommateurs actuels (`ComputeFeedingPlan`, `ProjectBottleSchedule`, carte « Prochain biberon ») gardent la même source.
+`CareSettings` expose `BottleSchedule get bottleSchedule`, construit depuis ces trois champs ; les consommateurs lisent `bottleSchedule.feedsPerDay`.
 
 Modifier les réglages passe par `babySettingsControllerProvider.updateCareSettings`, qui déclenche déjà `feedingPlanSyncProvider`.
 
 ## Règle de calcul
 
-Value object pur `BottleSchedule` (`lib/features/dashboard/domain/entities/bottle_schedule.dart`), construit depuis `CareSettings` (`firstBottle`, `lastBottle`, `interval` en `Duration`).
+Value object pur `BottleSchedule` (`lib/features/baby/domain/entities/bottle_schedule.dart`, à côté de `CareSettings` pour ne pas faire dépendre `baby` de `dashboard`), champs `firstBottle`, `lastBottle`, `interval` en `Duration`, défauts 7 h / 23 h 30 / 3 h.
 
 ### Constantes
 
@@ -67,7 +67,7 @@ Les heures sont construites en heure locale par `DateTime(y, m, d, 0, minutes)`.
 
 ### `int get feedsPerDay`
 
-`1 + ⌈(lastBottle − firstBottle) ÷ interval⌉`. 7 h 00 → 23 h 30 toutes les 3 h : 1 + ⌈5,5⌉ = 7.
+`1 + ⌈(lastBottle − firstBottle) ÷ interval⌉`, au moins 1. 7 h 00 → 23 h 30 toutes les 3 h : 1 + ⌈5,5⌉ = 7.
 
 ## Plan du jour (`ComputeFeedingPlan`)
 
@@ -95,12 +95,12 @@ Cloud Functions inchangées. `bottleReminder` notifie à l'ouverture de la fourc
 
 ## Libellés (`app_fr.arb`)
 
-- `settingsBottleSectionTitle` : « Biberons »
+- `settingsBottlesSection` : « Biberons » (titre de section, comme `settingsSleepSection`)
 - `settingsFirstBottle` : « Premier biberon »
 - `settingsLastBottle` : « Biberon du soir »
 - `settingsBottleInterval` : « Intervalle »
-- `settingsFeedsPerDaySummary` : « ≈ {count} biberons par jour »
-- `timeOfDay` : « {hours} h {minutes} » (minutes sur deux chiffres, formatées côté widget), pour les trois lignes.
+- `settingsFeedsPerDaySummary` : « ≈ {count} biberons par jour » (pluriel ICU)
+- Valeurs des trois lignes : clé existante `durationHoursMinutes` (« {hours} h {minutes} »), minutes sur deux chiffres formatées côté widget.
 
 `settingsFeedsPerDay` est supprimé (seul usage : `CareSettingsSection`).
 
