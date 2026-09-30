@@ -10,19 +10,22 @@ part of 'photo_send_controller.dart';
 // ignore_for_file: type=lint, type=warning
 /// Envoi des photos à chaque personne d'une liste, une feuille Messages par
 /// personne ; `AsyncData(bilan)` à la fin, `null` avant tout envoi. La date
-/// d'envoi et le rappel sont enregistrés même si l'écran a été fermé entre-temps.
+/// d'envoi (globale et de la liste) et le rappel sont enregistrés même si
+/// l'écran a été fermé entre-temps.
 
 @ProviderFor(PhotoSendController)
 final photoSendControllerProvider = PhotoSendControllerProvider._();
 
 /// Envoi des photos à chaque personne d'une liste, une feuille Messages par
 /// personne ; `AsyncData(bilan)` à la fin, `null` avant tout envoi. La date
-/// d'envoi et le rappel sont enregistrés même si l'écran a été fermé entre-temps.
+/// d'envoi (globale et de la liste) et le rappel sont enregistrés même si
+/// l'écran a été fermé entre-temps.
 final class PhotoSendControllerProvider
     extends $AsyncNotifierProvider<PhotoSendController, SendReport?> {
   /// Envoi des photos à chaque personne d'une liste, une feuille Messages par
   /// personne ; `AsyncData(bilan)` à la fin, `null` avant tout envoi. La date
-  /// d'envoi et le rappel sont enregistrés même si l'écran a été fermé entre-temps.
+  /// d'envoi (globale et de la liste) et le rappel sont enregistrés même si
+  /// l'écran a été fermé entre-temps.
   PhotoSendControllerProvider._()
     : super(
         from: null,
@@ -43,11 +46,12 @@ final class PhotoSendControllerProvider
 }
 
 String _$photoSendControllerHash() =>
-    r'b27d6288ba462924a0acd5650faa31d442aa8fe4';
+    r'bb1727bc9a117be97324219c07da418b4a1985f7';
 
 /// Envoi des photos à chaque personne d'une liste, une feuille Messages par
 /// personne ; `AsyncData(bilan)` à la fin, `null` avant tout envoi. La date
-/// d'envoi et le rappel sont enregistrés même si l'écran a été fermé entre-temps.
+/// d'envoi (globale et de la liste) et le rappel sont enregistrés même si
+/// l'écran a été fermé entre-temps.
 
 abstract class _$PhotoSendController extends $AsyncNotifier<SendReport?> {
   FutureOr<SendReport?> build();

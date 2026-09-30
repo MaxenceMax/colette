@@ -4,7 +4,8 @@ import 'package:freezed_annotation/freezed_annotation.dart';
 
 part 'broadcast_list.freezed.dart';
 
-/// Liste de diffusion : un nom et les proches qui reçoivent chacun un message.
+/// Liste de diffusion : un nom, les proches qui reçoivent chacun un message et
+/// la date du dernier envoi réussi (`null` si jamais envoyée).
 @freezed
 abstract class BroadcastList with _$BroadcastList {
   const BroadcastList._();
@@ -13,6 +14,7 @@ abstract class BroadcastList with _$BroadcastList {
     required String id,
     required String name,
     required List<Recipient> recipients,
+    DateTime? lastSentAt,
   }) = _BroadcastList;
 
   /// Ajoute [recipient], sauf si son numéro (normalisé) est déjà présent.

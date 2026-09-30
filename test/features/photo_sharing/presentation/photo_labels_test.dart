@@ -27,6 +27,17 @@ void main() {
     );
   });
 
+  test('liste jamais envoyée', () {
+    expect(listLastSentLabel(null, now: now, s: s), 'Aucun envoi');
+  });
+
+  test("liste envoyée hier", () {
+    expect(
+      listLastSentLabel(DateTime(2026, 9, 29, 18, 12), now: now, s: s),
+      'Dernier envoi · Hier, 18h12',
+    );
+  });
+
   test('bilan : annulés et échecs omis à zéro', () {
     expect(
       sendReportLabel(const SendReport(sent: 2, cancelled: 0, failed: 0), s),

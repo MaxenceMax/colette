@@ -5,16 +5,17 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 void main() {
-  const lists = [
+  final lists = [
     BroadcastList(
       id: 'l1',
       name: 'Grands-parents',
-      recipients: [
+      recipients: const [
         Recipient(name: 'Mamie', phone: '0612345678'),
         Recipient(name: 'Papi', phone: '+33698765432'),
       ],
+      lastSentAt: DateTime(2026, 9, 29, 18, 12, 5, 42),
     ),
-    BroadcastList(id: 'l2', name: 'Amis', recipients: []),
+    const BroadcastList(id: 'l2', name: 'Amis', recipients: []),
   ];
 
   Future<PrefsPhotoSharingRepository> repoWith(
@@ -35,6 +36,14 @@ void main() {
     final repo = await repoWith({});
     await repo.saveLists(lists);
     expect((await repo.loadLists()).toNullable(), lists);
+  });
+
+  test('liste enregistrée sans dernier envoi : jamais envoyée', () async {
+    final repo = await repoWith({
+      PrefsPhotoSharingRepository.listsKey:
+          '[{"id":"l1","name":"Amis","recipients":[]}]',
+    });
+    expect((await repo.loadLists()).toNullable()!.single.lastSentAt, isNull);
   });
 
   test('dernier envoi : aller-retour à la milliseconde', () async {
