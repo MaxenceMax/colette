@@ -78,39 +78,45 @@ class _PhotoSendSheetState extends ConsumerState<PhotoSendSheet> {
     // Garde le contrôleur autoDispose vivant pendant l'await de send.
     final busy = ref.watch(photoSendControllerProvider).isLoading;
     final count = widget.list.recipients.length;
-    return Padding(
-      padding:
-          AppSpacing.md.all +
-          EdgeInsets.only(bottom: MediaQuery.viewInsetsOf(context).bottom),
-      child: Column(
-        mainAxisSize: .min,
-        crossAxisAlignment: .stretch,
-        spacing: AppSpacing.md.value,
-        children: [
-          Text(
-            widget.list.name,
-            style: Theme.of(context).coletteTextStyles.heading2,
+    // Pas de fermeture par le fond pendant l'envoi.
+    return PopScope(
+      canPop: !busy,
+      child: Padding(
+        padding:
+            AppSpacing.md.all +
+            EdgeInsets.only(bottom: MediaQuery.viewInsetsOf(context).bottom),
+        child: SingleChildScrollView(
+          child: Column(
+            mainAxisSize: .min,
+            crossAxisAlignment: .stretch,
+            spacing: AppSpacing.md.value,
+            children: [
+              Text(
+                widget.list.name,
+                style: Theme.of(context).coletteTextStyles.heading2,
+              ),
+              _Thumbnails(photoPaths: widget.photoPaths),
+              TextField(
+                controller: _message,
+                minLines: 1,
+                maxLines: 4,
+                textCapitalization: .sentences,
+                decoration: InputDecoration(labelText: s.photosMessageLabel),
+              ),
+              FilledButton(
+                onPressed: busy || count == 0 ? null : _send,
+                child: busy
+                    ? SizedBox.square(
+                        dimension: AppSize.xs.value,
+                        child: CircularProgressIndicator(
+                          strokeWidth: AppSpacing.xxs.value,
+                        ),
+                      )
+                    : Text(s.photosSendTo(count)),
+              ),
+            ],
           ),
-          _Thumbnails(photoPaths: widget.photoPaths),
-          TextField(
-            controller: _message,
-            minLines: 1,
-            maxLines: 4,
-            textCapitalization: .sentences,
-            decoration: InputDecoration(labelText: s.photosMessageLabel),
-          ),
-          FilledButton(
-            onPressed: busy || count == 0 ? null : _send,
-            child: busy
-                ? SizedBox.square(
-                    dimension: AppSize.xs.value,
-                    child: CircularProgressIndicator(
-                      strokeWidth: AppSpacing.xxs.value,
-                    ),
-                  )
-                : Text(s.photosSendTo(count)),
-          ),
-        ],
+        ),
       ),
     );
   }
@@ -136,6 +142,10 @@ class _Thumbnails extends StatelessWidget {
           child: Image.file(
             File(photoPaths[index]),
             fit: .cover,
+            // Décodée à la taille affichée, pas en pleine résolution.
+            cacheHeight:
+                (AppSize.massive.value * MediaQuery.devicePixelRatioOf(context))
+                    .round(),
             errorBuilder: (context, _, _) => ColoredBox(
               color: context.appColor(AppColors.border),
               child: Icon(

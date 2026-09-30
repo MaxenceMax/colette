@@ -48,10 +48,19 @@ void main() {
     expect(system.syncedDates.last, hasLength(photoReminderDays));
   });
 
-  testWidgets("sans foyer : rien n'est programmé", (tester) async {
+  testWidgets('sans foyer : rappels déjà programmés retirés', (tester) async {
     final system = FakePhotoSharingSystem();
     await pumpColetteApp(tester, system: system, code: null);
-    expect(system.syncedDates, isEmpty);
+    expect(system.syncedDates, hasLength(1));
+    expect(system.syncedDates.single, isEmpty);
+  });
+
+  testWidgets('notification en attente sans foyer : pas de page Photos', (
+    tester,
+  ) async {
+    final system = FakePhotoSharingSystem(pendingRoute: '/today/photos');
+    await pumpColetteApp(tester, system: system, code: null);
+    expect(find.byType(PhotosPage), findsNothing);
   });
 
   testWidgets('retour au premier plan : reprogrammation', (tester) async {

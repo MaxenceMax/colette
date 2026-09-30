@@ -8,6 +8,7 @@ import 'package:colette/features/photo_sharing/domain/entities/recipient.dart';
 import 'package:colette/features/photo_sharing/presentation/pages/photos_page.dart';
 import 'package:colette/features/photo_sharing/presentation/providers/photo_sharing_providers.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/semantics.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 import '../../../helpers/fake_photo_sharing_system.dart';
@@ -92,6 +93,58 @@ void main() {
     expect(repo.lists.single.recipients, isEmpty);
   });
 
+  testWidgets('VoiceOver : action « Retirer de la liste »', (tester) async {
+    final semantics = tester.ensureSemantics();
+    repo.lists = const [
+      BroadcastList(id: 'l1', name: 'Famille', recipients: [mamie]),
+    ];
+    await pumpPage(tester);
+    await tester.tap(find.byTooltip('Modifier la liste'));
+    await tester.pumpAndSettle();
+    const remove = CustomSemanticsAction(label: 'Retirer de la liste');
+    tester.semantics.customAction(
+      find.semantics.byLabel(RegExp('Mamie')),
+      remove,
+    );
+    await tester.pumpAndSettle();
+    expect(repo.lists.single.recipients, isEmpty);
+    expect(find.text('Mamie'), findsNothing);
+    semantics.dispose();
+  });
+
+  testWidgets('retrait en échec : message', (tester) async {
+    repo.lists = const [
+      BroadcastList(id: 'l1', name: 'Famille', recipients: [mamie]),
+    ];
+    await pumpPage(tester);
+    await tester.tap(find.byTooltip('Modifier la liste'));
+    await tester.pumpAndSettle();
+    repo.failSaves = true;
+    await tester.drag(find.text('Mamie'), const Offset(-500, 0));
+    await tester.pumpAndSettle();
+    expect(find.byType(SnackBar), findsOneWidget);
+    expect(repo.lists.single.recipients, [mamie]);
+    expect(find.text('Mamie'), findsOneWidget);
+  });
+
+  testWidgets('renommer la liste', (tester) async {
+    repo.lists = const [
+      BroadcastList(id: 'l1', name: 'Famille', recipients: [mamie]),
+    ];
+    await pumpPage(tester);
+    await tester.tap(find.byTooltip('Modifier la liste'));
+    await tester.pumpAndSettle();
+    await tester.tap(find.byTooltip('Renommer la liste'));
+    await tester.pumpAndSettle();
+    await tester.enterText(find.byType(TextField), 'Grands-parents');
+    await tester.pump();
+    await tester.tap(find.text('Enregistrer'));
+    await tester.pumpAndSettle();
+    expect(repo.lists.single.name, 'Grands-parents');
+    expect(find.text('Grands-parents'), findsWidgets);
+    expect(find.text('Famille'), findsNothing);
+  });
+
   testWidgets('supprimer la liste après confirmation', (tester) async {
     repo.lists = const [
       BroadcastList(id: 'l1', name: 'Famille', recipients: []),
@@ -105,6 +158,38 @@ void main() {
     await tester.pumpAndSettle();
     expect(repo.lists, isEmpty);
     expect(find.text('Famille'), findsNothing);
+  });
+
+  testWidgets('suppression en échec : feuille fermée et message', (
+    tester,
+  ) async {
+    repo.lists = const [
+      BroadcastList(id: 'l1', name: 'Famille', recipients: []),
+    ];
+    await pumpPage(tester);
+    await tester.tap(find.byTooltip('Modifier la liste'));
+    await tester.pumpAndSettle();
+    repo.failSaves = true;
+    await tester.tap(find.text('Supprimer la liste'));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Supprimer'));
+    await tester.pumpAndSettle();
+    expect(find.text('Ajouter une personne'), findsNothing);
+    expect(find.byType(SnackBar), findsOneWidget);
+    expect(find.text('Famille'), findsOneWidget);
+  });
+
+  testWidgets('dernière carte au-dessus du bouton flottant', (tester) async {
+    repo.lists = [
+      for (var i = 0; i < 12; i++)
+        BroadcastList(id: 'l$i', name: 'Liste $i', recipients: const []),
+    ];
+    await pumpPage(tester);
+    await tester.drag(find.byType(ListView), const Offset(0, -5000));
+    await tester.pumpAndSettle();
+    final card = tester.getRect(find.text('Liste 11'));
+    final fab = tester.getRect(find.byType(FloatingActionButton));
+    expect(card.bottom, lessThanOrEqualTo(fab.top));
   });
 
   testWidgets("liste vide : l'appui ouvre l'édition", (tester) async {

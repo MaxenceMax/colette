@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:colette/core/result/failure.dart';
 import 'package:colette/core/theme/app_colors.dart';
 import 'package:colette/core/theme/design_tokens.dart';
@@ -8,6 +10,7 @@ import 'package:colette/features/photo_sharing/presentation/providers/broadcast_
 import 'package:colette/features/photo_sharing/presentation/widgets/list_name_dialog.dart';
 import 'package:colette/l10n/generated/app_localizations.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/semantics.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:fpdart/fpdart.dart';
 
@@ -97,11 +100,10 @@ class BroadcastListEditorSheet extends ConsumerWidget {
       ),
     );
     if (confirmed != true || !context.mounted) return;
-    final result = await ref
-        .read(broadcastListsProvider.notifier)
-        .delete(list.id);
-    _showFailure(messenger, s, result);
-    if (result.isRight()) navigator.pop();
+    // Lu avant de fermer : la feuille (et son ref) disparaît avec le pop.
+    final lists = ref.read(broadcastListsProvider.notifier);
+    navigator.pop();
+    _showFailure(messenger, s, await lists.delete(list.id));
   }
 
   @override
@@ -155,12 +157,27 @@ class BroadcastListEditorSheet extends ConsumerWidget {
   }
 }
 
-/// Personnes de la liste ; un glissement vers la gauche retire la personne.
-/// La ligne disparaît avec la mise à jour de l'état, jamais d'elle-même.
+/// Personnes de la liste ; un glissement vers la gauche (ou l'action VoiceOver)
+/// retire la personne. La ligne disparaît avec la mise à jour de l'état, jamais
+/// d'elle-même.
 class _Recipients extends ConsumerWidget {
   const _Recipients({required this.list});
 
   final BroadcastList list;
+
+  /// Retire [phone] de la liste ; affiche la failure éventuelle.
+  Future<void> _remove(
+    BuildContext context,
+    WidgetRef ref,
+    String phone,
+  ) async {
+    final s = S.of(context);
+    final messenger = ScaffoldMessenger.of(context);
+    final result = await ref
+        .read(broadcastListsProvider.notifier)
+        .removeRecipient(list.id, phone);
+    _showFailure(messenger, s, result);
+  }
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -185,11 +202,7 @@ class _Recipients extends ConsumerWidget {
           key: ValueKey(recipient.phone),
           direction: .endToStart,
           confirmDismiss: (_) async {
-            final messenger = ScaffoldMessenger.of(context);
-            final result = await ref
-                .read(broadcastListsProvider.notifier)
-                .removeRecipient(list.id, recipient.phone);
-            _showFailure(messenger, s, result);
+            await _remove(context, ref, recipient.phone);
             return false;
           },
           background: Container(
@@ -201,13 +214,21 @@ class _Recipients extends ConsumerWidget {
               color: context.appColor(AppColors.onPrimary),
             ),
           ),
-          child: ListTile(
-            contentPadding: EdgeInsets.zero,
-            leading: Icon(Icons.person_outline, color: secondary),
-            title: Text(recipient.name, style: styles.body),
-            subtitle: Text(
-              recipient.phone,
-              style: styles.small.copyWith(color: secondary),
+          child: MergeSemantics(
+            child: Semantics(
+              customSemanticsActions: {
+                CustomSemanticsAction(label: s.photosRemoveRecipient): () =>
+                    unawaited(_remove(context, ref, recipient.phone)),
+              },
+              child: ListTile(
+                contentPadding: EdgeInsets.zero,
+                leading: Icon(Icons.person_outline, color: secondary),
+                title: Text(recipient.name, style: styles.body),
+                subtitle: Text(
+                  recipient.phone,
+                  style: styles.small.copyWith(color: secondary),
+                ),
+              ),
             ),
           ),
         );

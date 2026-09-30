@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:developer' as developer;
 
 import 'package:colette/app/router/app_router.dart';
 import 'package:colette/features/baby/presentation/providers/baby_providers.dart';
@@ -46,8 +47,27 @@ class _PhotoReminderGateState extends ConsumerState<PhotoReminderGate>
   }
 
   void _sync() {
-    if (ref.read(currentHouseholdCodeProvider) == null) return;
+    if (ref.read(currentHouseholdCodeProvider) == null) {
+      unawaited(_clearReminders());
+      return;
+    }
     unawaited(ref.read(photoReminderSyncProvider).sync());
+  }
+
+  /// Sans foyer : retire les rappels programmés avant d'avoir quitté le foyer.
+  Future<void> _clearReminders() async {
+    try {
+      await ref
+          .read(photoSharingSystemProvider)
+          .syncReminders(dates: const [], title: '', body: '');
+    } catch (error, stackTrace) {
+      developer.log(
+        'Photo reminders not cleared',
+        error: error,
+        stackTrace: stackTrace,
+        name: 'colette',
+      );
+    }
   }
 
   Future<void> _openPendingRoute() async {

@@ -590,6 +590,7 @@
   "photosRecipientCount": "{count, plural, =0{Aucune personne} =1{1 personne} other{{count} personnes}}",
   "@photosRecipientCount": { "placeholders": { "count": { "type": "int" } } },
   "photosAddRecipient": "Ajouter une personne",
+  "photosRemoveRecipient": "Retirer de la liste",
   "photosNoRecipients": "Aucune personne dans cette liste.",
   "photosDeleteList": "Supprimer la liste",
   "photosDeleteListTitle": "Supprimer cette liste ?",

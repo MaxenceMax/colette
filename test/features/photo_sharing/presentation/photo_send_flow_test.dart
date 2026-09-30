@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:colette/core/clock/app_clock.dart';
 import 'package:colette/core/result/failure.dart';
 import 'package:colette/features/household/presentation/providers/household_providers.dart';
@@ -89,6 +91,26 @@ void main() {
     expect(system.sendCalls.single.body, 'Coucou');
     expect(find.text('2 envoyés'), findsOneWidget);
     expect(find.text('Envoyer à 2 personnes'), findsNothing);
+    expect(system.discarded, ['/tmp/a.jpg', '/tmp/b.jpg']);
+    expect(repo.lastSentAt, DateTime(2026, 9, 30, 15));
+  });
+
+  testWidgets("pendant l'envoi : la feuille ne se ferme pas par le fond", (
+    tester,
+  ) async {
+    system.sendGate = Completer<void>();
+    await start(tester);
+    await tester.tap(find.text('Envoyer à 2 personnes'));
+    await tester.pump();
+    await tester.tapAt(const Offset(10, 10));
+    // Indicateur de progression animé : pas de pumpAndSettle pendant l'envoi.
+    await tester.pump(const Duration(seconds: 1));
+    expect(find.byType(TextField), findsOneWidget);
+    expect(system.discarded, isEmpty);
+    system.sendGate!.complete();
+    await tester.pumpAndSettle();
+    expect(find.byType(TextField), findsNothing);
+    expect(system.discarded, ['/tmp/a.jpg', '/tmp/b.jpg']);
   });
 
   testWidgets('feuille fermée sans envoyer : photos effacées', (tester) async {
@@ -116,5 +138,7 @@ void main() {
       find.text("Messages n'est pas disponible sur cet appareil."),
       findsOneWidget,
     );
+    expect(system.discarded, ['/tmp/a.jpg', '/tmp/b.jpg']);
+    expect(repo.lastSentAt, isNull);
   });
 }

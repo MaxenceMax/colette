@@ -91,7 +91,11 @@ class _Lists extends ConsumerWidget {
     final now = ref.watch(currentMinuteProvider);
     final lastSentAt = ref.watch(lastPhotoSentAtProvider).value;
     return ListView.builder(
-      padding: AppSpacing.md.all,
+      // En bas, la hauteur du bouton flottant étendu et sa marge : la dernière
+      // carte n'est jamais masquée.
+      padding:
+          AppSpacing.md.all +
+          EdgeInsets.only(bottom: AppSize.xxl.value + AppSpacing.md.value),
       itemCount: lists.length + 1,
       itemBuilder: (context, index) {
         if (index == 0) {
