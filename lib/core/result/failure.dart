@@ -108,3 +108,20 @@ final class SleepOverlapFailure extends Failure {
   @override
   int get hashCode => Object.hash(startAt, endAt);
 }
+
+/// Raison d'une [PhotoSharingFailure].
+enum PhotoSharingReason { messagesUnavailable, cameraUnavailable, busy, io }
+
+/// Erreur du pont natif de partage de photos (contacts, photos, Messages).
+final class PhotoSharingFailure extends Failure {
+  const PhotoSharingFailure(this.reason);
+
+  final PhotoSharingReason reason;
+
+  @override
+  bool operator ==(Object other) =>
+      other is PhotoSharingFailure && other.reason == reason;
+
+  @override
+  int get hashCode => reason.hashCode;
+}
