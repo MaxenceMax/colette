@@ -9,17 +9,20 @@ part of 'photo_send_controller.dart';
 // GENERATED CODE - DO NOT MODIFY BY HAND
 // ignore_for_file: type=lint, type=warning
 /// Envoi des photos à chaque personne d'une liste, une feuille Messages par
-/// personne ; `AsyncData(bilan)` à la fin, `null` avant tout envoi.
+/// personne ; `AsyncData(bilan)` à la fin, `null` avant tout envoi. La date
+/// d'envoi et le rappel sont enregistrés même si l'écran a été fermé entre-temps.
 
 @ProviderFor(PhotoSendController)
 final photoSendControllerProvider = PhotoSendControllerProvider._();
 
 /// Envoi des photos à chaque personne d'une liste, une feuille Messages par
-/// personne ; `AsyncData(bilan)` à la fin, `null` avant tout envoi.
+/// personne ; `AsyncData(bilan)` à la fin, `null` avant tout envoi. La date
+/// d'envoi et le rappel sont enregistrés même si l'écran a été fermé entre-temps.
 final class PhotoSendControllerProvider
     extends $AsyncNotifierProvider<PhotoSendController, SendReport?> {
   /// Envoi des photos à chaque personne d'une liste, une feuille Messages par
-  /// personne ; `AsyncData(bilan)` à la fin, `null` avant tout envoi.
+  /// personne ; `AsyncData(bilan)` à la fin, `null` avant tout envoi. La date
+  /// d'envoi et le rappel sont enregistrés même si l'écran a été fermé entre-temps.
   PhotoSendControllerProvider._()
     : super(
         from: null,
@@ -40,10 +43,11 @@ final class PhotoSendControllerProvider
 }
 
 String _$photoSendControllerHash() =>
-    r'a08d45c5f974b2bf6defc61b989396f0998f13e5';
+    r'b27d6288ba462924a0acd5650faa31d442aa8fe4';
 
 /// Envoi des photos à chaque personne d'une liste, une feuille Messages par
-/// personne ; `AsyncData(bilan)` à la fin, `null` avant tout envoi.
+/// personne ; `AsyncData(bilan)` à la fin, `null` avant tout envoi. La date
+/// d'envoi et le rappel sont enregistrés même si l'écran a été fermé entre-temps.
 
 abstract class _$PhotoSendController extends $AsyncNotifier<SendReport?> {
   FutureOr<SendReport?> build();
