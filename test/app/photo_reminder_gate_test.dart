@@ -1,5 +1,6 @@
 import 'package:colette/app/colette_app.dart';
 import 'package:colette/core/clock/app_clock.dart';
+import 'package:colette/features/household/presentation/providers/household_providers.dart';
 import 'package:colette/features/photo_sharing/domain/use_cases/photo_reminder_schedule.dart';
 import 'package:colette/features/photo_sharing/presentation/pages/photos_page.dart';
 import 'package:flutter/widgets.dart';
@@ -8,6 +9,7 @@ import 'package:flutter_test/flutter_test.dart';
 
 import '../helpers/colette_app_overrides.dart';
 import '../helpers/fake_photo_sharing_system.dart';
+import '../helpers/fake_push_token_source.dart';
 
 void main() {
   // La relecture du prénom dans Firestore (faux) demande un tour de boucle
@@ -22,6 +24,7 @@ void main() {
     WidgetTester tester, {
     required FakePhotoSharingSystem system,
     String? code = 'ABCDEFGH',
+    FakePushTokenSource? pushSource,
   }) async {
     await tester.pumpWidget(
       ProviderScope(
@@ -30,6 +33,7 @@ void main() {
             householdCode: code,
             deviceId: 'dev-1',
             photoSharingSystem: system,
+            pushTokenSource: pushSource,
           ),
           clockProvider.overrideWithValue(FixedClock(DateTime(2026, 9, 30, 7))),
         ],
@@ -54,6 +58,41 @@ void main() {
     expect(system.syncedDates, hasLength(1));
     expect(system.syncedDates.single, isEmpty);
   });
+
+  testWidgets('foyer quitté sans prénom : rappels retirés', (tester) async {
+    final system = FakePhotoSharingSystem();
+    await pumpColetteApp(tester, system: system);
+    expect(system.syncedDates.last, isNotEmpty);
+    final container = ProviderScope.containerOf(
+      tester.element(find.byType(ColetteApp)),
+    );
+    await container.read(currentHouseholdCodeProvider.notifier).clear();
+    await settle(tester);
+    expect(system.syncedDates.last, isEmpty);
+  });
+
+  testWidgets('autorisation des notifications obtenue : reprogrammation', (
+    tester,
+  ) async {
+    final system = FakePhotoSharingSystem();
+    await pumpColetteApp(
+      tester,
+      system: system,
+      pushSource: FakePushTokenSource(granted: true, token: 'tok'),
+    );
+    await settle(tester);
+    expect(system.syncedDates, hasLength(2));
+    expect(system.syncedDates.last, hasLength(photoReminderDays));
+  });
+
+  testWidgets(
+    'autorisation des notifications refusée : pas de reprogrammation',
+    (tester) async {
+      final system = FakePhotoSharingSystem();
+      await pumpColetteApp(tester, system: system);
+      expect(system.syncedDates, hasLength(1));
+    },
+  );
 
   testWidgets('notification en attente sans foyer : pas de page Photos', (
     tester,

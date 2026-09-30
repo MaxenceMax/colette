@@ -1,16 +1,17 @@
 import 'dart:async';
-import 'dart:developer' as developer;
 
 import 'package:colette/app/router/app_router.dart';
 import 'package:colette/features/baby/presentation/providers/baby_providers.dart';
 import 'package:colette/features/household/presentation/providers/household_providers.dart';
+import 'package:colette/features/notifications/presentation/providers/notifications_providers.dart';
 import 'package:colette/features/photo_sharing/presentation/providers/photo_reminder.dart';
 import 'package:colette/features/photo_sharing/presentation/providers/photo_sharing_providers.dart';
 import 'package:flutter/widgets.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 /// Reprogramme le rappel photo (démarrage, retour au premier plan, prénom
-/// chargé ou modifié) et ouvre la page Photos à l'appui sur la notification.
+/// chargé ou modifié, foyer rejoint ou quitté, autorisation des notifications
+/// demandée) et ouvre la page Photos à l'appui sur la notification.
 class PhotoReminderGate extends ConsumerStatefulWidget {
   const PhotoReminderGate({super.key, required this.child});
 
@@ -34,6 +35,14 @@ class _PhotoReminderGateState extends ConsumerState<PhotoReminderGate>
       (_, _) => _sync(),
       fireImmediately: true,
     );
+    // Sans foyer, les rappels sont retirés ; en rejoignant un foyer, ils
+    // sont reprogrammés.
+    ref.listenManual(currentHouseholdCodeProvider, (_, _) => _sync());
+    // Première installation : l'autorisation est demandée par l'enregistrement
+    // push ; une fois accordée, les rappels peuvent enfin être programmés.
+    ref.listenManual(pushRegistrationProvider, (previous, next) {
+      if (previous is AsyncLoading && next is AsyncData) _sync();
+    });
     final system = ref.read(photoSharingSystemProvider);
     _routeSignals = system.pendingRouteSignals.listen(
       (_) => unawaited(_openPendingRoute()),
@@ -46,29 +55,7 @@ class _PhotoReminderGateState extends ConsumerState<PhotoReminderGate>
     if (state == AppLifecycleState.resumed) _sync();
   }
 
-  void _sync() {
-    if (ref.read(currentHouseholdCodeProvider) == null) {
-      unawaited(_clearReminders());
-      return;
-    }
-    unawaited(ref.read(photoReminderSyncProvider).sync());
-  }
-
-  /// Sans foyer : retire les rappels programmés avant d'avoir quitté le foyer.
-  Future<void> _clearReminders() async {
-    try {
-      await ref
-          .read(photoSharingSystemProvider)
-          .syncReminders(dates: const [], title: '', body: '');
-    } catch (error, stackTrace) {
-      developer.log(
-        'Photo reminders not cleared',
-        error: error,
-        stackTrace: stackTrace,
-        name: 'colette',
-      );
-    }
-  }
+  void _sync() => unawaited(ref.read(photoReminderSyncProvider).sync());
 
   Future<void> _openPendingRoute() async {
     final route = await ref.read(photoSharingSystemProvider).takePendingRoute();

@@ -1,6 +1,7 @@
 import 'dart:async';
 
 import 'package:colette/core/clock/app_clock.dart';
+import 'package:colette/core/firebase/firebase_providers.dart';
 import 'package:colette/core/result/failure.dart';
 import 'package:colette/features/household/presentation/providers/household_providers.dart';
 import 'package:colette/features/photo_sharing/domain/entities/broadcast_list.dart';
@@ -8,6 +9,7 @@ import 'package:colette/features/photo_sharing/domain/entities/recipient.dart';
 import 'package:colette/features/photo_sharing/domain/entities/send_report.dart';
 import 'package:colette/features/photo_sharing/presentation/providers/photo_send_controller.dart';
 import 'package:colette/features/photo_sharing/presentation/providers/photo_sharing_providers.dart';
+import 'package:fake_cloud_firestore/fake_cloud_firestore.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 
@@ -38,8 +40,9 @@ void main() {
         photoSharingRepositoryProvider.overrideWithValue(repo),
         photoSharingSystemProvider.overrideWithValue(system),
         clockProvider.overrideWithValue(FixedClock(now)),
+        firestoreProvider.overrideWithValue(FakeFirebaseFirestore()),
         householdLocalStoreProvider.overrideWithValue(
-          InMemoryHouseholdLocalStore(),
+          InMemoryHouseholdLocalStore(householdCode: 'ABCDEFGH'),
         ),
       ],
     );

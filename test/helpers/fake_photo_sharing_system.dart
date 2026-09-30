@@ -29,6 +29,7 @@ class FakePhotoSharingSystem implements PhotoSharingSystem {
       <({List<String> phones, List<String> photoPaths, String body})>[];
   final discarded = <String>[];
   final syncedDates = <List<DateTime>>[];
+  final syncedBodies = <String>[];
   String? lastTitle;
   String? lastBody;
 
@@ -67,6 +68,7 @@ class FakePhotoSharingSystem implements PhotoSharingSystem {
   }) async {
     if (syncError case final error?) throw error;
     syncedDates.add(dates);
+    syncedBodies.add(body);
     lastTitle = title;
     lastBody = body;
   }

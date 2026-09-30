@@ -1,7 +1,10 @@
+import 'dart:async';
+
 import 'package:colette/core/clock/app_clock.dart';
 import 'package:colette/core/firebase/firebase_providers.dart';
 import 'package:colette/core/result/failure.dart';
 import 'package:colette/features/baby/domain/entities/baby_profile.dart';
+import 'package:colette/features/baby/domain/repositories/baby_repository.dart';
 import 'package:colette/features/baby/presentation/providers/baby_providers.dart';
 import 'package:colette/features/household/presentation/providers/household_providers.dart';
 import 'package:colette/features/photo_sharing/domain/use_cases/photo_reminder_schedule.dart';
@@ -10,10 +13,13 @@ import 'package:colette/features/photo_sharing/presentation/providers/photo_shar
 import 'package:fake_cloud_firestore/fake_cloud_firestore.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:mocktail/mocktail.dart';
 
 import '../../../helpers/fake_photo_sharing_system.dart';
 import '../../../helpers/in_memory_household_local_store.dart';
 import '../../../helpers/in_memory_photo_sharing_repository.dart';
+
+class _MockBabyRepository extends Mock implements BabyRepository {}
 
 void main() {
   const code = 'ABCDEFGH';
@@ -64,11 +70,98 @@ void main() {
     expect(system.lastBody, 'Envoie des nouvelles de bébé à tes proches.');
   });
 
-  test('sync sans foyer : texte générique', () async {
+  test('sync sans foyer : rappels retirés', () async {
     final container = await makeContainer(householdCode: null);
     await container.read(photoReminderSyncProvider).sync();
-    expect(system.syncedDates.single, hasLength(photoReminderDays));
-    expect(system.lastBody, 'Envoie des nouvelles de bébé à tes proches.');
+    expect(system.syncedDates.single, isEmpty);
+  });
+
+  group('profil relu via un dépôt simulé', () {
+    late _MockBabyRepository babyRepo;
+
+    Future<ProviderContainer> makeMockedContainer() async {
+      babyRepo = _MockBabyRepository();
+      final container = ProviderContainer(
+        overrides: [
+          photoSharingRepositoryProvider.overrideWithValue(repo),
+          photoSharingSystemProvider.overrideWithValue(system),
+          clockProvider.overrideWithValue(FixedClock(now)),
+          babyRepositoryProvider.overrideWithValue(babyRepo),
+          householdLocalStoreProvider.overrideWithValue(
+            InMemoryHouseholdLocalStore(householdCode: code),
+          ),
+        ],
+      );
+      addTearDown(container.dispose);
+      return container;
+    }
+
+    test(
+      'deux sync simultanés : programmés dans l\'ordre des appels',
+      () async {
+        final container = await makeMockedContainer();
+        final slowProfile = StreamController<BabyProfile?>();
+        addTearDown(slowProfile.close);
+        var calls = 0;
+        when(() => babyRepo.watchProfile(code)).thenAnswer(
+          (_) => ++calls == 1
+              ? slowProfile.stream
+              : Stream.value(
+                  BabyProfile(name: 'Louise', birthDate: DateTime(2026, 9, 1)),
+                ),
+        );
+        final sync = container.read(photoReminderSyncProvider);
+        final first = sync.sync();
+        final second = sync.sync();
+        await pumpEventQueue();
+        slowProfile.add(
+          BabyProfile(name: 'Colette', birthDate: DateTime(2026, 9, 1)),
+        );
+        await Future.wait([first, second]);
+        expect(system.syncedBodies, [
+          'Envoie des nouvelles de Colette à tes proches.',
+          'Envoie des nouvelles de Louise à tes proches.',
+        ]);
+      },
+    );
+
+    test(
+      'foyer quitté pendant la lecture du profil : rappels retirés',
+      () async {
+        final container = await makeMockedContainer();
+        final slowProfile = StreamController<BabyProfile?>();
+        addTearDown(slowProfile.close);
+        when(() => babyRepo.watchProfile(code))
+            .thenAnswer((_) => slowProfile.stream);
+        final pending = container.read(photoReminderSyncProvider).sync();
+        await pumpEventQueue();
+        await container.read(currentHouseholdCodeProvider.notifier).clear();
+        slowProfile.add(
+          BabyProfile(name: 'Colette', birthDate: DateTime(2026, 9, 1)),
+        );
+        await pending;
+        expect(system.syncedDates.single, isEmpty);
+      },
+    );
+
+    testWidgets('profil muet : prénom abandonné après 5 s', (tester) async {
+      final container = await makeMockedContainer();
+      final silent = StreamController<BabyProfile?>();
+      addTearDown(silent.close);
+      when(() => babyRepo.watchProfile(code)).thenAnswer((_) => silent.stream);
+      var done = false;
+      unawaited(
+        container.read(photoReminderSyncProvider).sync().then((_) {
+          done = true;
+        }),
+      );
+      await tester.pump(const Duration(seconds: 4));
+      expect(done, isFalse);
+      await tester.pump(const Duration(seconds: 2));
+      expect(done, isTrue);
+      expect(system.syncedDates.single, hasLength(photoReminderDays));
+      expect(system.lastBody, 'Envoie des nouvelles de bébé à tes proches.');
+    });
   });
 
   test("sync après un envoi aujourd'hui : pas de date aujourd'hui", () async {
