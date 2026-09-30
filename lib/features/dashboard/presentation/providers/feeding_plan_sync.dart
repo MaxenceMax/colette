@@ -54,7 +54,7 @@ final class FirestoreFeedingPlanSync implements FeedingPlanSync {
       final plan = const ComputeFeedingPlan()(
         birthDate: profile.birthDate,
         latestWeightGrams: GrowthMetric.weight.latestOf(measurements)?.grams,
-        feedsPerDay: profile.careSettings.feedsPerDay,
+        schedule: profile.careSettings.bottleSchedule,
         todayBottles: today.where((e) => e.hasBottle).toList(),
         lastBottle: lastBottle,
         now: now,

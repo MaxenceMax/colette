@@ -1,3 +1,4 @@
+import 'package:colette/features/baby/domain/entities/bottle_schedule.dart';
 import 'package:colette/features/dashboard/domain/entities/feeding_plan.dart';
 import 'package:colette/features/dashboard/domain/use_cases/compute_feeding_plan.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -7,6 +8,12 @@ import '../../../helpers/care_event_factory.dart';
 void main() {
   const compute = ComputeFeedingPlan();
   final birth = DateTime(2026, 9, 1, 6);
+  const schedule = BottleSchedule();
+  // 7 h → 22 h toutes les 5 h : 4 biberons par jour.
+  const fourFeeds = BottleSchedule(
+    lastBottle: Duration(hours: 22),
+    interval: Duration(hours: 5),
+  );
 
   group('règles OMS', () {
     test('jour de vie : 1 le jour de la naissance', () {
@@ -70,7 +77,7 @@ void main() {
   });
 
   test(
-    'jour 10, 3 600 g, 2 biberons de 60 : cible 540, reste 420 sur 6 prises',
+    'jour 10, 3 600 g, 2 biberons de 60 : cible 540, reste 420 sur 5 prises',
     () {
       final now = DateTime(2026, 9, 10, 12);
       final bottles = [
@@ -80,18 +87,20 @@ void main() {
       final plan = compute(
         birthDate: birth,
         latestWeightGrams: 3600,
-        feedsPerDay: 8,
+        schedule: schedule,
         todayBottles: bottles,
         lastBottle: bottles.last,
         now: now,
       );
       expect(plan.dailyTargetMl, 540);
       expect(plan.isEstimatedFromAge, isFalse);
+      expect(plan.feedsPerDay, 7);
       expect(plan.bottlesGiven, 2);
-      expect(plan.bottlesRemaining, 6);
+      expect(plan.bottlesRemaining, 5);
       expect(plan.givenMl, 120);
       expect(plan.remainingMl, 420);
-      expect(plan.suggestedMl, 70);
+      // 420 / 5 = 84 → 80.
+      expect(plan.suggestedMl, 80);
       expect(plan.nextBottleAt, DateTime(2026, 9, 10, 12));
       expect(plan.lateBy(now), Duration.zero);
     },
@@ -102,7 +111,7 @@ void main() {
     final plan = compute(
       birthDate: birth,
       latestWeightGrams: 3500,
-      feedsPerDay: 8,
+      schedule: schedule,
       todayBottles: const [],
       lastBottle: null,
       now: now,
@@ -116,17 +125,19 @@ void main() {
     final plan = compute(
       birthDate: birth,
       latestWeightGrams: null,
-      feedsPerDay: 8,
+      schedule: schedule,
       todayBottles: const [],
       lastBottle: null,
       now: DateTime(2026, 9, 20, 12),
     );
     expect(plan.dailyTargetMl, 480);
     expect(plan.isEstimatedFromAge, isTrue);
-    expect(plan.suggestedMl, 60);
+    // 480 / 7 = 68,6 → 70.
+    expect(plan.suggestedMl, 70);
   });
 
   test('le retard est compté depuis la fin de la fourchette', () {
+    // 6 h est un biberon de nuit : matin 7 h, mais 6 h + 3 h = 9 h plus tard.
     final last = makeEvent(
       id: 'a',
       startAt: DateTime(2026, 9, 10, 6),
@@ -135,28 +146,28 @@ void main() {
     final plan = compute(
       birthDate: birth,
       latestWeightGrams: 3600,
-      feedsPerDay: 8,
+      schedule: schedule,
       todayBottles: [last],
       lastBottle: last,
       now: DateTime(2026, 9, 10, 10),
     );
     expect(plan.nextBottleAt, DateTime(2026, 9, 10, 9));
-    expect(plan.windowEnd, DateTime(2026, 9, 10, 11));
+    expect(plan.windowEnd, DateTime(2026, 9, 10, 9, 30));
     expect(plan.hasWindow, isTrue);
-    expect(plan.lateBy(DateTime(2026, 9, 10, 10)), Duration.zero);
+    expect(plan.lateBy(DateTime(2026, 9, 10, 9, 30)), Duration.zero);
     expect(
-      plan.lateBy(DateTime(2026, 9, 10, 11, 35)),
+      plan.lateBy(DateTime(2026, 9, 10, 10, 5)),
       const Duration(minutes: 35),
     );
   });
 
   group('fourchette', () {
-    (DateTime, DateTime) windowFor(int feeds, DateTime last) {
+    (DateTime, DateTime) windowFor(DateTime last) {
       final bottle = makeEvent(id: 'a', startAt: last, bottleMl: 60);
       final plan = compute(
         birthDate: birth,
         latestWeightGrams: 3600,
-        feedsPerDay: feeds,
+        schedule: schedule,
         todayBottles: [bottle],
         lastBottle: bottle,
         now: last,
@@ -164,45 +175,55 @@ void main() {
       return (plan.windowStart, plan.windowEnd);
     }
 
-    test('de 2 h 30 à 5 h après le dernier, quel que soit le rythme', () {
-      expect(windowFor(8, DateTime(2026, 9, 10, 5, 10)), (
-        DateTime(2026, 9, 10, 7, 40),
-        DateTime(2026, 9, 10, 10, 10),
-      ));
-      expect(windowFor(6, DateTime(2026, 9, 10, 6)), (
-        DateTime(2026, 9, 10, 8, 30),
-        DateTime(2026, 9, 10, 11),
+    test('de 30 min avant à 30 min après l\'heure prévue', () {
+      expect(windowFor(DateTime(2026, 9, 10, 10)), (
+        DateTime(2026, 9, 10, 12, 30),
+        DateTime(2026, 9, 10, 13, 30),
       ));
     });
 
-    test('ouverte dès 2 h 30 après le dernier biberon', () {
+    test('biberon de 22 h : fourchette du soir autour de 23 h 30', () {
+      expect(windowFor(DateTime(2026, 9, 10, 22)), (
+        DateTime(2026, 9, 10, 23),
+        DateTime(2026, 9, 11, 0),
+      ));
+    });
+
+    test('biberon du soir : fourchette du matin, 6 h 30 – 7 h 30', () {
+      expect(windowFor(DateTime(2026, 9, 10, 23, 10)), (
+        DateTime(2026, 9, 11, 6, 30),
+        DateTime(2026, 9, 11, 7, 30),
+      ));
+    });
+
+    test('ouverte 30 min avant l\'heure prévue, fermée 30 min après', () {
       final last = makeEvent(
         id: 'a',
-        startAt: DateTime(2026, 9, 10, 6),
+        startAt: DateTime(2026, 9, 10, 10),
         bottleMl: 60,
       );
       FeedingPlan at(DateTime now) => compute(
         birthDate: birth,
         latestWeightGrams: 3600,
-        feedsPerDay: 8,
+        schedule: schedule,
         todayBottles: [last],
         lastBottle: last,
         now: now,
       );
       expect(
-        at(DateTime(2026, 9, 10, 8, 29)).isOpen(DateTime(2026, 9, 10, 8, 29)),
+        at(DateTime(2026, 9, 10, 12, 29)).isOpen(DateTime(2026, 9, 10, 12, 29)),
         isFalse,
       );
       expect(
-        at(DateTime(2026, 9, 10, 8, 30)).isOpen(DateTime(2026, 9, 10, 8, 30)),
+        at(DateTime(2026, 9, 10, 12, 30)).isOpen(DateTime(2026, 9, 10, 12, 30)),
         isTrue,
       );
       expect(
-        at(DateTime(2026, 9, 10, 11)).isOpen(DateTime(2026, 9, 10, 11)),
+        at(DateTime(2026, 9, 10, 13, 30)).isOpen(DateTime(2026, 9, 10, 13, 30)),
         isTrue,
       );
       expect(
-        at(DateTime(2026, 9, 10, 11, 1)).isOpen(DateTime(2026, 9, 10, 11, 1)),
+        at(DateTime(2026, 9, 10, 13, 31)).isOpen(DateTime(2026, 9, 10, 13, 31)),
         isFalse,
       );
     });
@@ -212,7 +233,7 @@ void main() {
       final plan = compute(
         birthDate: birth,
         latestWeightGrams: 3600,
-        feedsPerDay: 8,
+        schedule: schedule,
         todayBottles: const [],
         lastBottle: null,
         now: now,
@@ -228,7 +249,7 @@ void main() {
     final high = compute(
       birthDate: birth,
       latestWeightGrams: 8000,
-      feedsPerDay: 4,
+      schedule: fourFeeds,
       todayBottles: const [],
       lastBottle: null,
       now: DateTime(2026, 12, 10, 12),
@@ -238,7 +259,7 @@ void main() {
 
   test('toutes les prises données : suggestion = cible / prises', () {
     final bottles = List.generate(
-      8,
+      7,
       (i) => makeEvent(
         id: '$i',
         startAt: DateTime(2026, 9, 10, i * 2),
@@ -248,26 +269,14 @@ void main() {
     final plan = compute(
       birthDate: birth,
       latestWeightGrams: 3600,
-      feedsPerDay: 8,
+      schedule: schedule,
       todayBottles: bottles,
       lastBottle: bottles.last,
       now: DateTime(2026, 9, 10, 16),
     );
     expect(plan.bottlesRemaining, 0);
-    expect(plan.suggestedMl, 70);
-  });
-
-  test('feedsPerDay à 0 est traité comme 1 sans planter', () {
-    final plan = compute(
-      birthDate: birth,
-      latestWeightGrams: 3600,
-      feedsPerDay: 0,
-      todayBottles: const [],
-      lastBottle: null,
-      now: DateTime(2026, 9, 10, 12),
-    );
-    expect(plan.feedsPerDay, 1);
-    expect(plan.suggestedMl, 240);
+    // 540 / 7 = 77,1 → 80.
+    expect(plan.suggestedMl, 80);
   });
 
   group('cible ajustée', () {
@@ -280,7 +289,7 @@ void main() {
       final plan = compute(
         birthDate: birth,
         latestWeightGrams: 4200,
-        feedsPerDay: 8,
+        schedule: schedule,
         todayBottles: [bottle],
         lastBottle: bottle,
         now: DateTime(2026, 9, 10, 12),
@@ -291,15 +300,15 @@ void main() {
       expect(plan.isTargetOverridden, isTrue);
       expect(plan.isEstimatedFromAge, isFalse);
       expect(plan.remainingMl, 540);
-      // 540 / 7 = 77,1 → 80.
-      expect(plan.suggestedMl, 80);
+      // 540 / 6 = 90.
+      expect(plan.suggestedMl, 90);
     });
 
     test('sans override, la cible effective est la cible OMS', () {
       final plan = compute(
         birthDate: birth,
         latestWeightGrams: 4200,
-        feedsPerDay: 8,
+        schedule: schedule,
         todayBottles: const [],
         lastBottle: null,
         now: DateTime(2026, 9, 10, 12),
@@ -313,7 +322,7 @@ void main() {
       final plan = compute(
         birthDate: birth,
         latestWeightGrams: null,
-        feedsPerDay: 8,
+        schedule: schedule,
         todayBottles: const [],
         lastBottle: null,
         now: DateTime(2026, 9, 20, 12),
@@ -329,7 +338,7 @@ void main() {
       final plan = compute(
         birthDate: birth,
         latestWeightGrams: 4200,
-        feedsPerDay: 8,
+        schedule: schedule,
         todayBottles: const [],
         lastBottle: null,
         now: DateTime(2026, 9, 10, 12),
@@ -350,7 +359,7 @@ void main() {
         final plan = compute(
           birthDate: birth,
           latestWeightGrams: 4200,
-          feedsPerDay: 8,
+          schedule: schedule,
           todayBottles: [bottle],
           lastBottle: bottle,
           now: DateTime(2026, 9, 10, 12),
@@ -365,7 +374,7 @@ void main() {
       final plan = compute(
         birthDate: birth,
         latestWeightGrams: 4200,
-        feedsPerDay: 4,
+        schedule: fourFeeds,
         todayBottles: const [],
         lastBottle: null,
         now: DateTime(2026, 9, 10, 12),

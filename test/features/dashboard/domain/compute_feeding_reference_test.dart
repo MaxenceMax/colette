@@ -1,3 +1,4 @@
+import 'package:colette/features/baby/domain/entities/bottle_schedule.dart';
 import 'package:colette/features/dashboard/domain/entities/feeding_age_band.dart';
 import 'package:colette/features/dashboard/domain/use_cases/compute_feeding_plan.dart';
 import 'package:colette/features/dashboard/domain/use_cases/compute_feeding_reference.dart';
@@ -53,7 +54,7 @@ void main() {
     final plan = const ComputeFeedingPlan()(
       birthDate: birth,
       latestWeightGrams: 4200,
-      feedsPerDay: 8,
+      schedule: const BottleSchedule(),
       todayBottles: const [],
       lastBottle: null,
       now: now,

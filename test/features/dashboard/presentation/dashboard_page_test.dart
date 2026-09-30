@@ -38,7 +38,7 @@ void main() {
   final profile = BabyProfile(name: 'Colette', birthDate: DateTime(2026, 9, 1));
   final bottle = makeEvent(
     id: 'b',
-    startAt: DateTime(2026, 9, 10, 8),
+    startAt: DateTime(2026, 9, 10, 9),
     bottleMl: 60,
   );
   final adrigyl = makeEvent(
@@ -111,9 +111,10 @@ void main() {
 
       expect(find.text('Colette a 9 jours'), findsOneWidget);
       expect(find.text('Prochain biberon'), findsOneWidget);
-      expect(find.text('70 ml'), findsOneWidget);
-      expect(find.text('Go pour un biberon, jusqu\'à 13h00'), findsOneWidget);
-      expect(find.text('4 h depuis le dernier biberon'), findsOneWidget);
+      // (540 − 60) / 6 = 80 ; dernier biberon à 9 h : prochain à 12 h, 11 h 30 – 12 h 30.
+      expect(find.text('80 ml'), findsOneWidget);
+      expect(find.text('Go pour un biberon, jusqu\'à 12h30'), findsOneWidget);
+      expect(find.text('3 h depuis le dernier biberon'), findsOneWidget);
       expect(find.text('fait à 09h00'), findsOneWidget);
       expect(
         find.text('2 biberons · 150 ml sur les dernières 24 h'),
@@ -201,7 +202,7 @@ void main() {
         ),
       ),
     );
-    expect(find.text('entre 13h30 et 16h00'), findsOneWidget);
+    expect(find.text('entre 13h30 et 14h30'), findsOneWidget);
   });
 
   testWidgets('sans biberon connu, la carte ne montre pas de délai', (
@@ -228,7 +229,7 @@ void main() {
         ),
       ),
     );
-    expect(find.text('Go pour un biberon, jusqu\'à 14h10'), findsOneWidget);
+    expect(find.text('Go pour un biberon, jusqu\'à 12h40'), findsOneWidget);
     expect(find.text('2 h 50 depuis le dernier biberon'), findsOneWidget);
   });
 
@@ -247,7 +248,9 @@ void main() {
         ),
       ),
     );
-    expect(find.text('en retard de 35 min'), findsOneWidget);
+    // 6 h 25 est un biberon de nuit : prochain à 9 h 25, fourchette jusqu'à 9 h 55,
+    // soit 125 min de retard à midi.
+    expect(find.text('en retard de 125 min'), findsOneWidget);
     expect(find.text('5 h 35 depuis le dernier biberon'), findsOneWidget);
   });
 
@@ -311,8 +314,8 @@ void main() {
           ),
         ),
       );
-      // (600 − 60) / 7 = 77,1 → 80 ; cible OMS : 150 × 3,6 = 540.
-      expect(find.text('80 ml'), findsOneWidget);
+      // (600 − 60) / 6 = 90 ; cible OMS : 150 × 3,6 = 540.
+      expect(find.text('90 ml'), findsOneWidget);
       expect(
         find.text('Cible ajustée à 600 ml · OMS : 540 ml'),
         findsOneWidget,
