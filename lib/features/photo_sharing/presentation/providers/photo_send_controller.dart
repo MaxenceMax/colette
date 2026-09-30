@@ -1,3 +1,5 @@
+import 'dart:developer' as developer;
+
 import 'package:colette/core/clock/app_clock.dart';
 import 'package:colette/features/photo_sharing/domain/entities/broadcast_list.dart';
 import 'package:colette/features/photo_sharing/domain/entities/send_report.dart';
@@ -9,7 +11,8 @@ import 'package:riverpod_annotation/riverpod_annotation.dart';
 part 'photo_send_controller.g.dart';
 
 /// Envoi des photos à chaque personne d'une liste, une feuille Messages par
-/// personne ; `AsyncData(bilan)` à la fin, `null` avant tout envoi.
+/// personne ; `AsyncData(bilan)` à la fin, `null` avant tout envoi. La date
+/// d'envoi et le rappel sont enregistrés même si l'écran a été fermé entre-temps.
 @riverpod
 class PhotoSendController extends _$PhotoSendController {
   @override
@@ -22,24 +25,32 @@ class PhotoSendController extends _$PhotoSendController {
     required String body,
   }) async {
     state = const AsyncLoading();
+    // Lus avant toute attente : le Ref peut être détruit pendant l'envoi.
     final system = ref.read(photoSharingSystemProvider);
+    final lastSentAt = ref.read(lastPhotoSentAtProvider.notifier);
+    final reminderSync = ref.read(photoReminderSyncProvider);
+    final clock = ref.read(clockProvider);
     final result = await system.sendMessages(
       phones: [for (final recipient in list.recipients) recipient.phone],
       photoPaths: photoPaths,
       body: body.trim(),
     );
     await system.discardPhotos(photoPaths);
-    if (!ref.mounted) return;
-    switch (result) {
-      case Left(:final value):
-        state = AsyncError(value, StackTrace.current);
-      case Right(:final value):
-        if (value.anySent) {
-          final now = ref.read(clockProvider).now();
-          await ref.read(lastPhotoSentAtProvider.notifier).markSent(now);
-          await ref.read(photoReminderSyncProvider).sync();
-        }
-        if (ref.mounted) state = AsyncData(value);
+    if (result case Right(value: SendReport(anySent: true))) {
+      final marked = await lastSentAt.markSent(clock.now());
+      if (marked case Left(value: final failure)) {
+        developer.log(
+          'Photo send date not saved',
+          error: failure,
+          name: 'colette',
+        );
+      }
+      await reminderSync.sync();
     }
+    if (!ref.mounted) return;
+    state = switch (result) {
+      Left(:final value) => AsyncError(value, StackTrace.current),
+      Right(:final value) => AsyncData(value),
+    };
   }
 }

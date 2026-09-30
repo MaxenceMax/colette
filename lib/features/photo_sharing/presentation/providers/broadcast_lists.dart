@@ -8,10 +8,14 @@ import 'package:riverpod_annotation/riverpod_annotation.dart';
 
 part 'broadcast_lists.g.dart';
 
-/// Listes de diffusion de cet iPhone. Chaque modification est enregistrée ;
-/// en cas d'échec, l'état reste inchangé et la failure est renvoyée.
+/// Listes de diffusion de cet iPhone. Chaque modification est enregistrée, à
+/// la suite de la précédente ; en cas d'échec, l'état reste inchangé et la
+/// failure est renvoyée.
 @Riverpod(keepAlive: true, retry: noRetry)
 class BroadcastLists extends _$BroadcastLists {
+  /// File des écritures : chacune part de l'état laissé par la précédente.
+  Future<void> _queue = Future.value();
+
   @override
   Future<List<BroadcastList>> build() async {
     final result = await ref.watch(photoSharingRepositoryProvider).loadLists();
@@ -60,6 +64,15 @@ class BroadcastLists extends _$BroadcastLists {
   );
 
   Future<Either<Failure, void>> _save(
+    List<BroadcastList> Function(List<BroadcastList> lists) edit,
+  ) {
+    final saved = _queue.then((_) => _saveNow(edit));
+    // L'erreur est rendue à l'appelant par `saved` ; la file continue.
+    _queue = saved.then<void>((_) {}, onError: (Object _) {});
+    return saved;
+  }
+
+  Future<Either<Failure, void>> _saveNow(
     List<BroadcastList> Function(List<BroadcastList> lists) edit,
   ) async {
     final List<BroadcastList> current;

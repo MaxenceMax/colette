@@ -12,6 +12,7 @@ import '../../../helpers/in_memory_photo_sharing_repository.dart';
 
 void main() {
   const mamie = Recipient(name: 'Mamie', phone: '0612345678');
+  const papi = Recipient(name: 'Papi', phone: '0698765432');
   late InMemoryPhotoSharingRepository repo;
   late FakePhotoSharingSystem system;
   late ProviderContainer container;
@@ -65,6 +66,20 @@ void main() {
     await lists();
     await notifier().addFromContacts('l1');
     expect((await lists()).single.recipients, [mamie]);
+    expect(repo.lists.single.recipients, [mamie]);
+  });
+
+  test('addFromContacts en échec : failure renvoyée, rien ne change', () async {
+    system.contact = mamie;
+    system.contactFailure = const PhotoSharingFailure(PhotoSharingReason.busy);
+    await lists();
+    final result = await notifier().addFromContacts('l1');
+    expect(
+      result.getLeft().toNullable(),
+      const PhotoSharingFailure(PhotoSharingReason.busy),
+    );
+    expect((await lists()).single.recipients, isEmpty);
+    expect(repo.lists.single.recipients, isEmpty);
   });
 
   test('addFromContacts annulé : rien ne change', () async {
@@ -82,6 +97,42 @@ void main() {
     await notifier().removeRecipient('l1', mamie.phone);
     expect((await lists()).single.recipients, isEmpty);
   });
+
+  test('deux retraits simultanés : les deux sont appliqués', () async {
+    repo.lists = const [
+      BroadcastList(id: 'l1', name: 'Famille', recipients: [mamie, papi]),
+    ];
+    await lists();
+    final results = await Future.wait([
+      notifier().removeRecipient('l1', mamie.phone),
+      notifier().removeRecipient('l1', papi.phone),
+    ]);
+    expect(results.every((result) => result.isRight()), isTrue);
+    expect((await lists()).single.recipients, isEmpty);
+    expect(repo.lists.single.recipients, isEmpty);
+  });
+
+  test('listes illisibles puis create : la nouvelle liste est seule', () async {
+    repo.failLoads = true;
+    await expectLater(lists(), throwsA(isA<UnknownFailure>()));
+    final id = await notifier().create('Amis');
+    expect(id.toNullable(), 'l2');
+    const created = BroadcastList(id: 'l2', name: 'Amis', recipients: []);
+    expect(await lists(), [created]);
+    expect(repo.lists, [created]);
+  });
+
+  test(
+    "create avec écriture en échec : failure, aucune liste ajoutée",
+    () async {
+      await lists();
+      repo.failSaves = true;
+      final result = await notifier().create('Amis');
+      expect(result.getLeft().toNullable(), isA<UnknownFailure>());
+      expect((await lists()).single.id, 'l1');
+      expect(repo.lists.single.id, 'l1');
+    },
+  );
 
   test("échec d'écriture : état inchangé, failure renvoyée", () async {
     await lists();

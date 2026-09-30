@@ -11,11 +11,18 @@ class FakePhotoSharingSystem implements PhotoSharingSystem {
   FakePhotoSharingSystem({this.pendingRoute});
 
   Recipient? contact;
+  Failure? contactFailure;
   List<String> photos = const [];
   Failure? photosFailure;
   SendReport report = const SendReport(sent: 0, cancelled: 0, failed: 0);
   Failure? sendFailure;
   String? pendingRoute;
+
+  /// Retient `sendMessages` jusqu'à sa complétion.
+  Completer<void>? sendGate;
+
+  /// Levée par `syncReminders` si non nulle.
+  Object? syncError;
 
   final signals = StreamController<void>.broadcast();
   final sendCalls =
@@ -26,7 +33,8 @@ class FakePhotoSharingSystem implements PhotoSharingSystem {
   String? lastBody;
 
   @override
-  Future<Either<Failure, Recipient?>> pickContact() async => right(contact);
+  Future<Either<Failure, Recipient?>> pickContact() async =>
+      contactFailure == null ? right(contact) : left(contactFailure!);
 
   @override
   Future<Either<Failure, List<String>>> takePhoto() async =>
@@ -43,6 +51,7 @@ class FakePhotoSharingSystem implements PhotoSharingSystem {
     required String body,
   }) async {
     sendCalls.add((phones: phones, photoPaths: photoPaths, body: body));
+    await sendGate?.future;
     return sendFailure == null ? right(report) : left(sendFailure!);
   }
 
@@ -56,6 +65,7 @@ class FakePhotoSharingSystem implements PhotoSharingSystem {
     required String title,
     required String body,
   }) async {
+    if (syncError case final error?) throw error;
     syncedDates.add(dates);
     lastTitle = title;
     lastBody = body;

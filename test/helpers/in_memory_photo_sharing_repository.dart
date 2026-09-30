@@ -3,7 +3,8 @@ import 'package:colette/features/photo_sharing/domain/entities/broadcast_list.da
 import 'package:colette/features/photo_sharing/domain/repositories/photo_sharing_repository.dart';
 import 'package:fpdart/fpdart.dart';
 
-/// Stockage en mémoire ; [failSaves] fait échouer toutes les écritures.
+/// Stockage en mémoire ; [failSaves] fait échouer toutes les écritures,
+/// [failLoads] la lecture des listes.
 class InMemoryPhotoSharingRepository implements PhotoSharingRepository {
   InMemoryPhotoSharingRepository({
     this.lists = const [],
@@ -15,6 +16,7 @@ class InMemoryPhotoSharingRepository implements PhotoSharingRepository {
   DateTime? lastSentAt;
   bool reminderEnabled;
   bool failSaves = false;
+  bool failLoads = false;
 
   Future<Either<Failure, void>> _write(void Function() apply) async {
     if (failSaves) return left(const UnknownFailure('écriture refusée'));
@@ -24,7 +26,7 @@ class InMemoryPhotoSharingRepository implements PhotoSharingRepository {
 
   @override
   Future<Either<Failure, List<BroadcastList>>> loadLists() async =>
-      right(lists);
+      failLoads ? left(const UnknownFailure('lecture refusée')) : right(lists);
 
   @override
   Future<Either<Failure, void>> saveLists(List<BroadcastList> lists) =>
