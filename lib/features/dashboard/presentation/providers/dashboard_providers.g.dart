@@ -52,7 +52,7 @@ final class FeedingPlanProvider
   }
 }
 
-String _$feedingPlanHash() => r'528f633c90907a1354b0dd13d9006bc1f4932f81';
+String _$feedingPlanHash() => r'6bb04a1500f43b2ff63e553655e969ca4ef4669f';
 
 /// Biberons prévus sur les 24 prochaines heures ; `null` sans plan.
 
@@ -104,7 +104,7 @@ final class BottleScheduleProvider
   }
 }
 
-String _$bottleScheduleHash() => r'a371a5cd036479b5f2fe9b0554b9b629bb408546';
+String _$bottleScheduleHash() => r'8c0d1d0f19561a7d2001ed628bd83e61331044e7';
 
 /// Repères OMS du jour ; `null` sans profil.
 

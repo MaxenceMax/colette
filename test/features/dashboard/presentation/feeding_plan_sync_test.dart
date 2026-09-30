@@ -16,54 +16,64 @@ import '../../../helpers/care_event_factory.dart';
 import '../../../helpers/in_memory_household_local_store.dart';
 
 void main() {
-  test(
-    'sync écrit nextBottleAt = dernier biberon + 3 h et la suggestion',
-    () async {
-      final db = FakeFirebaseFirestore();
-      final now = DateTime(2026, 9, 10, 12);
-      final container = ProviderContainer(
-        overrides: [
-          firestoreProvider.overrideWithValue(db),
-          clockProvider.overrideWithValue(FixedClock(now)),
-          householdLocalStoreProvider.overrideWithValue(
-            InMemoryHouseholdLocalStore(householdCode: 'ABCDEFGH'),
-          ),
-        ],
-      );
-      addTearDown(container.dispose);
-      await container
-          .read(babyRepositoryProvider)
-          .saveProfile(
-            'ABCDEFGH',
-            BabyProfile(name: 'Colette', birthDate: DateTime(2026, 9, 1)),
-          );
-      final bottle = makeEvent(
-        id: 'b',
-        startAt: DateTime(2026, 9, 10, 9),
-        bottleMl: 60,
-      );
-      await container.read(eventsRepositoryProvider).save('ABCDEFGH', bottle);
+  test('sync écrit nextBottleAt = dernier biberon + 3 h, sa fourchette et la suggestion', () async {
+    final db = FakeFirebaseFirestore();
+    final now = DateTime(2026, 9, 10, 12);
+    final container = ProviderContainer(
+      overrides: [
+        firestoreProvider.overrideWithValue(db),
+        clockProvider.overrideWithValue(FixedClock(now)),
+        householdLocalStoreProvider.overrideWithValue(
+          InMemoryHouseholdLocalStore(householdCode: 'ABCDEFGH'),
+        ),
+      ],
+    );
+    addTearDown(container.dispose);
+    await container
+        .read(babyRepositoryProvider)
+        .saveProfile(
+          'ABCDEFGH',
+          BabyProfile(name: 'Colette', birthDate: DateTime(2026, 9, 1)),
+        );
+    final bottle = makeEvent(
+      id: 'b',
+      startAt: DateTime(2026, 9, 10, 9),
+      bottleMl: 60,
+    );
+    await container.read(eventsRepositoryProvider).save('ABCDEFGH', bottle);
 
-      await container.read(feedingPlanSyncProvider).sync();
+    await container.read(feedingPlanSyncProvider).sync();
 
-      final data = (await db.collection('households').doc('ABCDEFGH').get())
-          .data()!;
-      final plan = data['feedingPlan'] as Map<String, dynamic>;
-      expect(
-        (plan['nextBottleAt'] as Timestamp).toDate(),
-        DateTime(2026, 9, 10, 12),
-      );
-      expect(
-        (plan['windowStartAt'] as Timestamp).toDate(),
-        DateTime(2026, 9, 10, 11, 30),
-      );
-      expect(
-        (plan['windowEndAt'] as Timestamp).toDate(),
-        DateTime(2026, 9, 10, 14),
-      );
-      expect(plan['suggestedMl'], 60);
-    },
-  );
+    final data = (await db.collection('households').doc('ABCDEFGH').get())
+        .data()!;
+    final plan = data['feedingPlan'] as Map<String, dynamic>;
+    expect(
+      (plan['nextBottleAt'] as Timestamp).toDate(),
+      DateTime(2026, 9, 10, 12),
+    );
+    expect(
+      (plan['windowStartAt'] as Timestamp).toDate(),
+      DateTime(2026, 9, 10, 11, 30),
+    );
+    expect(
+      (plan['windowEndAt'] as Timestamp).toDate(),
+      DateTime(2026, 9, 10, 12, 30),
+    );
+    expect(plan['suggestedMl'], 70);
+    // Dernier biberon 9 h + 3 h = 12 h ; premier du matin après : le 11 à 7 h.
+    expect(
+      (plan['morningBottleAt'] as Timestamp).toDate(),
+      DateTime(2026, 9, 11, 7),
+    );
+    expect(
+      (plan['morningWindowStartAt'] as Timestamp).toDate(),
+      DateTime(2026, 9, 11, 6, 30),
+    );
+    expect(
+      (plan['morningWindowEndAt'] as Timestamp).toDate(),
+      DateTime(2026, 9, 11, 7, 30),
+    );
+  });
 
   test('sync utilise la cible ajustée du profil pour la suggestion', () async {
     final db = FakeFirebaseFirestore();
@@ -100,8 +110,8 @@ void main() {
     final data = (await db.collection('households').doc('ABCDEFGH').get())
         .data()!;
     final plan = data['feedingPlan'] as Map<String, dynamic>;
-    // Sans pesée la cible OMS serait 480 (suggestion 60) ; avec 600 : (600 − 60) / 7 → 80.
-    expect(plan['suggestedMl'], 80);
+    // Sans pesée la cible OMS serait 480 (suggestion 70) ; avec 600 : (600 − 60) / 6 → 90.
+    expect(plan['suggestedMl'], 90);
   });
 
   test(
@@ -146,9 +156,9 @@ void main() {
       final data = (await db.collection('households').doc('ABCDEFGH').get())
           .data()!;
       final plan = data['feedingPlan'] as Map<String, dynamic>;
-      // Jour de vie 10 : 150 ml/kg × 4,2 kg = 630 ml, 8 biberons → 80 ml.
-      // Sans pesée, la table par âge donnerait 480 / 8 = 60 ml.
-      expect(plan['suggestedMl'], 80);
+      // Jour de vie 10 : 150 ml/kg × 4,2 kg = 630 ml, 7 biberons → 630 / 7 = 90 ml.
+      // Sans pesée, la table par âge donnerait 480 / 7 = 68,6 → 70 ml.
+      expect(plan['suggestedMl'], 90);
     },
   );
 

@@ -3,6 +3,7 @@ import 'package:colette/core/ui/failure_message.dart';
 import 'package:colette/features/baby/presentation/providers/baby_providers.dart';
 import 'package:colette/features/baby/presentation/providers/baby_settings_controller.dart';
 import 'package:colette/features/baby/presentation/widgets/baby_section.dart';
+import 'package:colette/features/baby/presentation/widgets/bottle_schedule_settings_section.dart';
 import 'package:colette/features/baby/presentation/widgets/care_settings_section.dart';
 import 'package:colette/features/diapers/presentation/providers/diaper_stock_controller.dart';
 import 'package:colette/features/diapers/presentation/widgets/diaper_stock_section.dart';
@@ -57,6 +58,8 @@ class SettingsPage extends ConsumerWidget {
             SectionHeader(title: s.settingsMeasurementsSection),
             SectionHeader(title: s.settingsCareSection),
             CareSettingsSection(profile: profile),
+            SectionHeader(title: s.settingsBottlesSection),
+            BottleScheduleSettingsSection(profile: profile),
             SectionHeader(title: s.settingsSleepSection),
             SleepSettingsSection(profile: profile),
           ] else

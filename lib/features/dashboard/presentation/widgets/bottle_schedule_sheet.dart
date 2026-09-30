@@ -7,6 +7,7 @@ import 'package:colette/core/theme/text_styles.dart';
 import 'package:colette/features/dashboard/domain/entities/projected_bottle.dart';
 import 'package:colette/features/dashboard/presentation/providers/dashboard_providers.dart';
 import 'package:colette/l10n/generated/app_localizations.dart';
+import 'package:colette/shared/ui/duration_format.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
@@ -202,7 +203,7 @@ class _BottleRow extends StatelessWidget {
   (String, AppColors)? _status(S s) {
     if (now.isAfter(bottle.windowEnd)) {
       return (
-        s.nextBottleLate(now.difference(bottle.windowEnd).inMinutes),
+        s.nextBottleLate(formatDuration(now.difference(bottle.windowEnd), s)),
         AppColors.warning,
       );
     }

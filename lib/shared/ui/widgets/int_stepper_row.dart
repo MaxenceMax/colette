@@ -15,6 +15,7 @@ class IntStepperRow extends StatelessWidget {
     required this.onChanged,
     this.step = 1,
     this.suffix,
+    this.format,
   });
 
   final String label;
@@ -23,6 +24,10 @@ class IntStepperRow extends StatelessWidget {
   final int max;
   final int step;
   final String? suffix;
+
+  /// Affichage de la valeur ; prime sur [suffix].
+  final String Function(int value)? format;
+
   final ValueChanged<int> onChanged;
 
   @override
@@ -38,7 +43,7 @@ class IntStepperRow extends StatelessWidget {
           tooltip: S.of(context).actionDecrease,
         ),
         Text(
-          suffix == null ? '$value' : '$value $suffix',
+          format?.call(value) ?? (suffix == null ? '$value' : '$value $suffix'),
           style: styles.numberMedium.copyWith(
             color: context.appColor(AppColors.onSurface),
           ),

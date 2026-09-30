@@ -29,7 +29,7 @@ FeedingPlan? feedingPlan(Ref ref) {
   return const ComputeFeedingPlan()(
     birthDate: profile.birthDate,
     latestWeightGrams: ref.watch(latestWeightProvider)?.grams,
-    feedsPerDay: profile.careSettings.feedsPerDay,
+    schedule: profile.careSettings.bottleSchedule,
     todayBottles: today.where((e) => e.hasBottle).toList(),
     lastBottle: ref.watch(latestBottleProvider).value,
     now: ref.watch(currentMinuteProvider),
@@ -45,6 +45,7 @@ List<ProjectedBottle>? bottleSchedule(Ref ref) {
   if (plan == null || profile == null) return null;
   return const ProjectBottleSchedule()(
     plan: plan,
+    schedule: profile.careSettings.bottleSchedule,
     birthDate: profile.birthDate,
     latestWeightGrams: ref.watch(latestWeightProvider)?.grams,
     now: ref.watch(currentMinuteProvider),

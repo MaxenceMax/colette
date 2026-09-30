@@ -65,13 +65,15 @@ abstract final class CareSettingsDto {
     'noseCare': CareFrequencyDto.toMap(settings.noseCare),
     'umbilicalCare': CareFrequencyDto.toMap(settings.umbilicalCare),
     'bath': CareFrequencyDto.toMap(settings.bath),
-    'feedsPerDay': settings.feedsPerDay,
     'nightStartHour': settings.nightStartHour,
     'nightEndHour': settings.nightEndHour,
     'dailyTargetMl': settings.dailyTargetMl?.clamp(
       CareSettings.minDailyTargetMl,
       CareSettings.maxDailyTargetMl,
     ),
+    'firstBottleMinutes': settings.firstBottleMinutes,
+    'lastBottleMinutes': settings.lastBottleMinutes,
+    'bottleIntervalMinutes': settings.bottleIntervalMinutes,
   };
 
   /// Entier optionnel borné ; absent ou non numérique → `null`.
@@ -153,7 +155,6 @@ abstract final class CareSettingsDto {
       ),
       umbilicalCare: _readUmbilicalCare(map),
       bath: _readBath(map),
-      feedsPerDay: _readBoundedInt(map, 'feedsPerDay', 8, min: 1, max: 24),
       nightStartHour: _readBoundedInt(
         map,
         'nightStartHour',
@@ -168,6 +169,27 @@ abstract final class CareSettingsDto {
         min: CareSettings.minDailyTargetMl,
         max: CareSettings.maxDailyTargetMl,
         step: CareSettings.dailyTargetStepMl,
+      ),
+      firstBottleMinutes: _readBoundedInt(
+        map,
+        'firstBottleMinutes',
+        defaults.firstBottleMinutes,
+        min: CareSettings.minFirstBottleMinutes,
+        max: CareSettings.maxFirstBottleMinutes,
+      ),
+      lastBottleMinutes: _readBoundedInt(
+        map,
+        'lastBottleMinutes',
+        defaults.lastBottleMinutes,
+        min: CareSettings.minLastBottleMinutes,
+        max: CareSettings.maxLastBottleMinutes,
+      ),
+      bottleIntervalMinutes: _readBoundedInt(
+        map,
+        'bottleIntervalMinutes',
+        defaults.bottleIntervalMinutes,
+        min: CareSettings.minBottleIntervalMinutes,
+        max: CareSettings.maxBottleIntervalMinutes,
       ),
     );
   }

@@ -75,7 +75,13 @@ class FirestoreBabyRepository implements BabyRepository {
         'windowEndAt': Timestamp.fromDate(snapshot.windowEndAt),
         'suggestedMl': snapshot.suggestedMl,
         'computedAt': Timestamp.fromDate(snapshot.computedAt),
+        'morningBottleAt': _timestampOrNull(snapshot.morningBottleAt),
+        'morningWindowStartAt': _timestampOrNull(snapshot.morningWindowStartAt),
+        'morningWindowEndAt': _timestampOrNull(snapshot.morningWindowEndAt),
       },
     }, SetOptions(merge: true)),
   );
+
+  static Timestamp? _timestampOrNull(DateTime? date) =>
+      date == null ? null : Timestamp.fromDate(date);
 }

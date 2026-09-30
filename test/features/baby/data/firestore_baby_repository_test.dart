@@ -46,6 +46,9 @@ void main() {
         windowEndAt: DateTime(2026, 9, 21, 14, 25),
         suggestedMl: 120,
         computedAt: DateTime(2026, 9, 21, 11),
+        morningBottleAt: DateTime(2026, 9, 22, 7),
+        morningWindowStartAt: DateTime(2026, 9, 22, 6, 30),
+        morningWindowEndAt: DateTime(2026, 9, 22, 7, 30),
       ),
     );
     final data = (await db.collection('households').doc(code).get()).data()!;
@@ -59,7 +62,44 @@ void main() {
       (plan['windowEndAt'] as Timestamp).toDate(),
       DateTime(2026, 9, 21, 14, 25),
     );
+    expect(
+      (plan['morningBottleAt'] as Timestamp).toDate(),
+      DateTime(2026, 9, 22, 7),
+    );
+    expect(
+      (plan['morningWindowStartAt'] as Timestamp).toDate(),
+      DateTime(2026, 9, 22, 6, 30),
+    );
+    expect(
+      (plan['morningWindowEndAt'] as Timestamp).toDate(),
+      DateTime(2026, 9, 22, 7, 30),
+    );
     expect(data['baby'], isNotNull);
+  });
+
+  test('saveFeedingPlan sans biberon du matin écrit des clés nulles', () async {
+    final db = FakeFirebaseFirestore();
+    final repo = FirestoreBabyRepository(db);
+    await repo.saveFeedingPlan(
+      code,
+      FeedingPlanSnapshot(
+        nextBottleAt: DateTime(2026, 9, 21, 14),
+        windowStartAt: DateTime(2026, 9, 21, 13, 35),
+        windowEndAt: DateTime(2026, 9, 21, 14, 25),
+        suggestedMl: 120,
+        computedAt: DateTime(2026, 9, 21, 11),
+      ),
+    );
+    final data = (await db.collection('households').doc(code).get()).data()!;
+    final plan = data['feedingPlan'] as Map<String, dynamic>;
+    for (final key in [
+      'morningBottleAt',
+      'morningWindowStartAt',
+      'morningWindowEndAt',
+    ]) {
+      expect(plan.containsKey(key), isTrue);
+      expect(plan[key], isNull);
+    }
   });
 
   test('saveProfile efface une cible ajustée retirée', () async {

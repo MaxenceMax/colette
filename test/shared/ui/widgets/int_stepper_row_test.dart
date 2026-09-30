@@ -52,4 +52,23 @@ void main() {
     );
     expect(button.onPressed, isNull);
   });
+
+  testWidgets('format remplace l\'affichage de la valeur', (tester) async {
+    await pumpApp(
+      tester,
+      Scaffold(
+        body: IntStepperRow(
+          label: 'Intervalle',
+          value: 165,
+          min: 90,
+          max: 300,
+          step: 15,
+          format: (v) => '${v ~/ 60} h ${(v % 60).toString().padLeft(2, '0')}',
+          onChanged: (_) {},
+        ),
+      ),
+    );
+    expect(find.text('2 h 45'), findsOneWidget);
+    expect(find.text('165'), findsNothing);
+  });
 }

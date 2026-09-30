@@ -1,14 +1,15 @@
 import 'package:colette/core/dates/date_extensions.dart';
+import 'package:colette/features/baby/domain/entities/bottle_schedule.dart';
 import 'package:colette/features/dashboard/domain/entities/feeding_plan.dart';
 import 'package:colette/features/dashboard/domain/entities/projected_bottle.dart';
 import 'package:colette/features/dashboard/domain/use_cases/compute_feeding_plan.dart';
 
 /// Projette les biberons des 24 prochaines heures à partir du plan du jour.
 ///
-/// Le premier est le prochain biberon du plan. Les suivants supposent chaque
-/// biberon donné au plus tôt : la fourchette suivante (2 h 30 – 5 h) part du
-/// début de la précédente, la première de `max(windowStart, now)`. Les prises
-/// du lendemain suivent la cible de demain répartie sur `feedsPerDay`.
+/// Le premier est le prochain biberon du plan. Les suivants enchaînent le
+/// rythme du foyer ([BottleSchedule.nextAfter]), chacun supposé donné à son
+/// heure prévue, en partant de `max(nextBottleAt, now)`. Les prises du
+/// lendemain suivent la cible de demain répartie sur `feedsPerDay`.
 class ProjectBottleSchedule {
   const ProjectBottleSchedule();
 
@@ -16,6 +17,7 @@ class ProjectBottleSchedule {
 
   List<ProjectedBottle> call({
     required FeedingPlan plan,
+    required BottleSchedule schedule,
     required DateTime birthDate,
     required int? latestWeightGrams,
     required DateTime now,
@@ -29,7 +31,7 @@ class ProjectBottleSchedule {
       now: now,
       dailyTargetMlOverride: dailyTargetMlOverride,
     );
-    final firstGiven = plan.windowStart.isAfter(now) ? plan.windowStart : now;
+    final firstGiven = plan.nextBottleAt.isAfter(now) ? plan.nextBottleAt : now;
     final bottles = [
       ProjectedBottle(
         at: plan.nextBottleAt,
@@ -39,16 +41,17 @@ class ProjectBottleSchedule {
       ),
     ];
     for (
-      var (windowStart, windowEnd) = ComputeFeedingPlan.windowAfter(firstGiven);
-      windowStart.isBefore(end);
-      (windowStart, windowEnd) = ComputeFeedingPlan.windowAfter(windowStart)
+      var at = schedule.nextAfter(firstGiven);
+      at.isBefore(end);
+      at = schedule.nextAfter(at)
     ) {
+      final (windowStart, windowEnd) = schedule.windowAround(at);
       bottles.add(
         ProjectedBottle(
-          at: windowStart,
+          at: at,
           windowStart: windowStart,
           windowEnd: windowEnd,
-          suggestedMl: windowStart.dateOnly == now.dateOnly
+          suggestedMl: at.dateOnly == now.dateOnly
               ? plan.suggestedMl
               : tomorrowMl,
         ),
