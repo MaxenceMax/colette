@@ -3,7 +3,7 @@ import 'package:colette/core/theme/app_colors.dart';
 import 'package:colette/core/theme/design_tokens.dart';
 import 'package:colette/core/theme/text_styles.dart';
 import 'package:colette/features/events/domain/entities/care_event.dart';
-import 'package:colette/features/events/presentation/day_label.dart';
+import 'package:colette/core/dates/day_label.dart';
 import 'package:colette/features/events/presentation/providers/event_form_controller.dart';
 import 'package:colette/features/events/domain/entities/timeline_filter.dart';
 import 'package:colette/features/events/presentation/providers/events_providers.dart';

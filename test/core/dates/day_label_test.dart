@@ -1,4 +1,4 @@
-import 'package:colette/features/events/presentation/day_label.dart';
+import 'package:colette/core/dates/day_label.dart';
 import 'package:colette/l10n/generated/app_localizations.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
