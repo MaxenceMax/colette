@@ -29,7 +29,7 @@
 	<key>LSRequiresIPhoneOS</key>
 	<true/>
 	<key>NSCameraUsageDescription</key>
-	<string>Colette utilise l'appareil photo pour scanner vos documents.</string>
+	<string>Colette utilise l'appareil photo pour scanner vos documents et photographier votre bébé.</string>
 	<key>NSCalendarsFullAccessUsageDescription</key>
 	<string>Colette ajoute les rendez-vous médicaux de votre bébé au calendrier que vous choisissez.</string>
 	<key>NSCalendarsUsageDescription</key>

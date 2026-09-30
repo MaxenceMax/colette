@@ -23,6 +23,10 @@ import UserNotifications
     withCompletionHandler completionHandler:
       @escaping (UNNotificationPresentationOptions) -> Void
   ) {
+    if notification.request.identifier.hasPrefix(PhotoSharingReminders.prefix) {
+      completionHandler([.banner, .list, .sound])
+      return
+    }
     if notification.request.identifier.hasPrefix(BottleTimerChannel.notificationPrefix) {
       completionHandler([])
       return
@@ -31,12 +35,28 @@ import UserNotifications
       center, willPresent: notification, withCompletionHandler: completionHandler)
   }
 
+  /// Appui sur le rappel photo : la page Photos s'ouvre (voir `PhotoSharingPlugin`).
+  override func userNotificationCenter(
+    _ center: UNUserNotificationCenter,
+    didReceive response: UNNotificationResponse,
+    withCompletionHandler completionHandler: @escaping () -> Void
+  ) {
+    if response.notification.request.identifier.hasPrefix(PhotoSharingReminders.prefix) {
+      PhotoSharingPlugin.notificationOpened()
+      completionHandler()
+      return
+    }
+    super.userNotificationCenter(
+      center, didReceive: response, withCompletionHandler: completionHandler)
+  }
+
   func didInitializeImplicitFlutterEngine(_ engineBridge: FlutterImplicitEngineBridge) {
     GeneratedPluginRegistrant.register(with: engineBridge.pluginRegistry)
     DocumentsPlugin.register(with: engineBridge.pluginRegistry)
     CalendarPlugin.register(with: engineBridge.pluginRegistry)
     registerDeviceChannel(with: engineBridge.pluginRegistry)
     BottleTimerChannel.register(with: engineBridge.pluginRegistry)
+    PhotoSharingPlugin.register(with: engineBridge.pluginRegistry)
   }
 
   /// Canal `colette/device` : écran maintenu allumé et sons système
