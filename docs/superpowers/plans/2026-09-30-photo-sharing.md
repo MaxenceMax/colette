@@ -10,6 +10,8 @@
 
 **Spec :** `docs/superpowers/specs/2026-09-30-photo-sharing-design.md`.
 
+**Exécuté le 2026-09-30.** Les relectures ont conduit à des correctifs hors plan (commits `fix:` db1da31, 175f4ed, 6923659, 7555bbd et `chore:` b0b03a6) ; ils sont résumés dans la section « Écarts retenus à l'implémentation » de la spec. Le code des tâches ci-dessous est la version initiale.
+
 **Règles pour chaque tâche :**
 - Toutes les commandes depuis la racine du worktree `.claude/worktrees/photo-sharing`.
 - `git add` de chemins explicites uniquement ; ne jamais toucher `docs/`.
