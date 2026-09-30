@@ -19,6 +19,34 @@ export function bottleMessage(suggestedMl: number, nextBottleAt: Date, windowEnd
     : { title: 'Biberon dans 10 min', body: `Environ ${suggestedMl} ml, prévu vers ${formatHourMinute(nextBottleAt)}` };
 }
 
+type Deadline = {
+  key: Timestamp;
+  nextBottleAt: Date;
+  windowStartAt: Date | null;
+  windowEndAt: Date | null;
+};
+
+/** Échéances à rappeler : le prochain biberon, puis le premier du matin en secours. */
+export function deadlinesOf(plan: FeedingPlanDoc): Deadline[] {
+  const deadlines: Deadline[] = [
+    {
+      key: plan.nextBottleAt,
+      nextBottleAt: plan.nextBottleAt.toDate(),
+      windowStartAt: plan.windowStartAt?.toDate() ?? null,
+      windowEndAt: plan.windowEndAt?.toDate() ?? null,
+    },
+  ];
+  if (plan.morningBottleAt && plan.morningWindowStartAt && plan.morningWindowEndAt) {
+    deadlines.push({
+      key: plan.morningBottleAt,
+      nextBottleAt: plan.morningBottleAt.toDate(),
+      windowStartAt: plan.morningWindowStartAt.toDate(),
+      windowEndAt: plan.morningWindowEndAt.toDate(),
+    });
+  }
+  return deadlines;
+}
+
 export const bottleReminder = onSchedule({ schedule: 'every 5 minutes', timeZone: ZONE, maxInstances: 1 }, async () => {
   const now = new Date();
   const households = await db().collection('households').get();
@@ -27,30 +55,30 @@ export const bottleReminder = onSchedule({ schedule: 'every 5 minutes', timeZone
     try {
       const plan = doc.get('feedingPlan') as FeedingPlanDoc | undefined;
       if (!plan?.nextBottleAt) continue;
-      const nextBottleAt = plan.nextBottleAt.toDate();
-      const windowStartAt = plan.windowStartAt?.toDate() ?? null;
-      const windowEndAt = plan.windowEndAt?.toDate() ?? null;
       const lastNotifiedFor = (doc.get('lastBottleNotifiedFor') as Timestamp | undefined)?.toDate() ?? null;
-      const due = isReminderDue({
-        nextBottleAt,
-        windowStartAt,
-        windowEndAt,
-        computedAt: plan.computedAt?.toDate() ?? null,
-        lastNotifiedFor,
-        now,
-      });
-      if (!due) continue;
+      const computedAt = plan.computedAt?.toDate() ?? null;
+      const deadline = deadlinesOf(plan).find((d) =>
+        isReminderDue({
+          nextBottleAt: d.nextBottleAt,
+          windowStartAt: d.windowStartAt,
+          windowEndAt: d.windowEndAt,
+          computedAt,
+          lastNotifiedFor,
+          now,
+        }),
+      );
+      if (!deadline) continue;
 
       const recipients = selectBottleRecipients(await loadDevices(doc.ref));
       const sent = await sendToDevices(doc.id, recipients, {
-        ...bottleMessage(plan.suggestedMl, nextBottleAt, windowStartAt ? windowEndAt : null),
+        ...bottleMessage(plan.suggestedMl, deadline.nextBottleAt, deadline.windowStartAt ? deadline.windowEndAt : null),
         data: { route: '/today?bottle=1' },
       });
 
       // L'échéance n'est consommée que si le rappel est parti, ou si personne ne l'attend :
       // sinon le tick suivant réessaie, dans la limite de la tolérance de 15 min.
       if (sent > 0 || recipients.length === 0) {
-        await doc.ref.update({ lastBottleNotifiedFor: plan.nextBottleAt });
+        await doc.ref.update({ lastBottleNotifiedFor: deadline.key });
       }
     } catch (err) {
       logger.error('Rappel biberon en échec pour un foyer', { household: doc.id, err });

@@ -57,6 +57,11 @@ export type FeedingPlanDoc = {
   windowEndAt?: Timestamp;
   suggestedMl: number;
   computedAt?: Timestamp;
+  /** Premier biberon du matin après `nextBottleAt` et sa fourchette : rappel de secours
+   *  si aucun biberon n'est noté d'ici là. Absents ou nuls sans biberon ou avant les horaires. */
+  morningBottleAt?: Timestamp | null;
+  morningWindowStartAt?: Timestamp | null;
+  morningWindowEndAt?: Timestamp | null;
 };
 
 export type DeviceDoc = {
