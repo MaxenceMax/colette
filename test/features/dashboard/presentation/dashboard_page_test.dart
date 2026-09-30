@@ -270,7 +270,7 @@ void main() {
       ),
     );
     // 6 h 25 est un biberon de nuit : prochain à 9 h 25, fourchette jusqu'à 9 h 55,
-    // soit 125 min de retard à midi.
+    // soit 2 h 05 de retard à midi.
     expect(find.text('en retard de 2 h 05'), findsOneWidget);
     expect(find.text('5 h 35 depuis le dernier biberon'), findsOneWidget);
   });
