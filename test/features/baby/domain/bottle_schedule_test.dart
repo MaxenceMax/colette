@@ -13,9 +13,14 @@ void main() {
       expect(next(10, 10), DateTime(2026, 9, 10, 13));
     });
 
-    test('journée : rabattu sur le biberon du soir', () {
+    test('journée : rabattu sur le biberon du soir à au moins 1 h 30', () {
+      expect(next(10, 21), DateTime(2026, 9, 10, 23, 30));
       expect(next(10, 22), DateTime(2026, 9, 10, 23, 30));
-      expect(next(10, 22, 45), DateTime(2026, 9, 10, 23, 30));
+    });
+
+    test('trop près du biberon du soir : il en tient lieu', () {
+      expect(next(10, 22, 1), DateTime(2026, 9, 11, 7));
+      expect(next(10, 22, 45), DateTime(2026, 9, 11, 7));
     });
 
     test('biberon du soir : le suivant est le premier du matin', () {
@@ -24,8 +29,8 @@ void main() {
       expect(next(10, 23, 30), DateTime(2026, 9, 11, 7));
     });
 
-    test('22 h 59 est encore la journée : rabattu sur 23 h 30', () {
-      expect(next(10, 22, 59), DateTime(2026, 9, 10, 23, 30));
+    test('22 h 59 tient lieu de biberon du soir', () {
+      expect(next(10, 22, 59), DateTime(2026, 9, 11, 7));
     });
 
     test('biberon du soir en fin de mois : premier biberon le 1er', () {
@@ -59,9 +64,15 @@ void main() {
         custom.nextAfter(DateTime(2026, 9, 10, 18)),
         DateTime(2026, 9, 10, 20, 45),
       );
+      // Écart de 2 h ≥ 1 h 22 : rabattu sur 22 h.
+      expect(
+        custom.nextAfter(DateTime(2026, 9, 10, 20)),
+        DateTime(2026, 9, 10, 22),
+      );
+      // Écart de 1 h 15 < 1 h 22 : tient lieu de biberon du soir.
       expect(
         custom.nextAfter(DateTime(2026, 9, 10, 20, 45)),
-        DateTime(2026, 9, 10, 22),
+        DateTime(2026, 9, 11, 6, 30),
       );
       expect(
         custom.nextAfter(DateTime(2026, 9, 10, 22)),
@@ -104,6 +115,20 @@ void main() {
         interval: Duration(hours: 5),
       );
       expect(sparse.feedsPerDay, 4);
+    });
+
+    test('dernier créneau trop près du soir : il en tient lieu', () {
+      // 7 h, 10 h, 13 h, 16 h, 19 h, 22 h ; 23 h n'est qu'à 1 h de 22 h.
+      const close = BottleSchedule(lastBottle: Duration(hours: 23));
+      expect(close.feedsPerDay, 6);
+    });
+
+    test('plage plus courte que le demi-intervalle : 1', () {
+      const short = BottleSchedule(
+        firstBottle: Duration(hours: 10),
+        lastBottle: Duration(hours: 11),
+      );
+      expect(short.feedsPerDay, 1);
     });
 
     test('plage vide : au moins 1', () {
