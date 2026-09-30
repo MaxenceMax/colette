@@ -10,7 +10,8 @@ import 'package:colette/features/diapers/presentation/widgets/diaper_stock_alert
 import 'package:colette/features/documents/presentation/widgets/documents_card.dart';
 import 'package:colette/features/events/presentation/providers/bottle_timer_session_providers.dart';
 import 'package:colette/features/events/presentation/widgets/event_form_sheet.dart';
-import 'package:colette/features/health/presentation/widgets/appointment_card.dart';
+import 'package:colette/features/health/presentation/widgets/awaiting_appointment_card.dart';
+import 'package:colette/features/health/presentation/widgets/next_appointment_card.dart';
 import 'package:colette/l10n/generated/app_localizations.dart';
 import 'package:colette/shared/ui/widgets/section_header.dart';
 import 'package:flutter/material.dart';
@@ -87,8 +88,9 @@ class _DashboardPageState extends ConsumerState<DashboardPage> {
             // à remettre plus tard
             // const SleepCard(),
             const DayCountersRow(),
-            AppSpacing.md.verticalSpace,
-            const AppointmentCard(),
+            // Chacune porte son espacement du haut, absente si rien à montrer.
+            const AwaitingAppointmentCard(),
+            const NextAppointmentCard(),
             AppSpacing.md.verticalSpace,
             const WeightCard(),
             AppSpacing.md.verticalSpace,

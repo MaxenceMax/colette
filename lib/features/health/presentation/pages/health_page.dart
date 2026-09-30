@@ -6,10 +6,8 @@ import 'package:colette/core/ui/failure_message.dart';
 import 'package:colette/features/health/domain/entities/calendar_choice.dart';
 import 'package:colette/features/health/domain/entities/medical_timeline.dart';
 import 'package:colette/features/health/presentation/providers/calendar_sync_issue.dart';
-import 'package:colette/features/health/presentation/providers/custom_appointment_controller.dart';
 import 'package:colette/features/health/presentation/providers/health_providers.dart';
 import 'package:colette/features/health/presentation/providers/health_sync.dart';
-import 'package:colette/features/health/presentation/providers/medical_visit_controller.dart';
 import 'package:colette/features/health/presentation/providers/selected_calendar.dart';
 import 'package:colette/features/health/presentation/widgets/awaiting_confirmation_section.dart';
 import 'package:colette/features/health/presentation/widgets/custom_appointment_sheet.dart';
@@ -43,19 +41,6 @@ class _HealthPageState extends ConsumerState<HealthPage> {
   @override
   Widget build(BuildContext context) {
     final s = S.of(context);
-    // Garde les contrôleurs autoDispose vivants pendant les écritures des feuilles.
-    void showError(AsyncValue<void> next) {
-      if (next case AsyncError(:final error)) {
-        ScaffoldMessenger.of(context)
-            .showSnackBar(SnackBar(content: Text(failureMessage(error, s))));
-      }
-    }
-
-    ref.listen(medicalVisitControllerProvider, (_, next) => showError(next));
-    ref.listen(
-      customAppointmentControllerProvider,
-      (_, next) => showError(next),
-    );
     final timeline = ref.watch(medicalTimelineProvider);
     final hasIssue = ref.watch(calendarSyncIssueProvider) != null;
     return Scaffold(

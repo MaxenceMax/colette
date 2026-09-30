@@ -7,14 +7,20 @@ import 'package:colette/features/baby/domain/entities/growth_measurement.dart';
 import 'package:colette/features/baby/presentation/providers/baby_providers.dart';
 import 'package:colette/features/dashboard/presentation/pages/dashboard_page.dart';
 import 'package:colette/features/dashboard/presentation/providers/feeding_plan_sync.dart';
+import 'package:colette/features/dashboard/presentation/widgets/weight_card.dart';
 import 'package:colette/features/diapers/domain/entities/diaper_stock_status.dart';
 import 'package:colette/features/diapers/presentation/providers/diaper_stock_providers.dart';
 import 'package:colette/features/events/domain/entities/care_event.dart';
 import 'package:colette/features/events/domain/repositories/events_repository.dart';
 import 'package:colette/features/events/presentation/providers/events_providers.dart';
 import 'package:colette/features/events/presentation/widgets/event_form_sheet.dart';
+import 'package:colette/features/health/domain/entities/medical_stage.dart';
+import 'package:colette/features/health/domain/entities/medical_stage_status.dart';
 import 'package:colette/features/health/domain/entities/medical_timeline.dart';
 import 'package:colette/features/health/presentation/providers/health_providers.dart';
+import 'package:colette/features/health/presentation/widgets/appointment_carousel.dart';
+import 'package:colette/features/health/presentation/widgets/awaiting_appointment_card.dart';
+import 'package:colette/features/health/presentation/widgets/next_appointment_card.dart';
 import 'package:colette/features/household/presentation/providers/household_providers.dart';
 import 'package:colette/features/sleep/presentation/providers/sleep_providers.dart';
 import 'package:flutter/material.dart';
@@ -30,6 +36,7 @@ import '../../../helpers/documents_repository_override.dart';
 import '../../../helpers/fake_sleep_repository.dart';
 import '../../../helpers/in_memory_household_local_store.dart';
 import '../../../helpers/pump_app.dart';
+import '../../health/health_factories.dart';
 
 class MockEventsRepository extends Mock implements EventsRepository {}
 
@@ -134,14 +141,60 @@ void main() {
     expect(find.text('Aucun sommeil noté'), findsNothing);
   });
 
-  testWidgets('affiche la tuile Rendez-vous même sans frise médicale', (
-    tester,
-  ) async {
+  testWidgets('frise en chargement : pas de bloc Rendez-vous', (tester) async {
     final repo = MockEventsRepository();
     await pumpApp(tester, const DashboardPage(), overrides: overridesFor(repo));
-    await tester.scrollUntilVisible(find.text('Rendez-vous'), 200);
-    expect(find.text('Rendez-vous'), findsOneWidget);
+    await tester.scrollUntilVisible(find.byType(WeightCard), 200);
+    expect(find.byType(NextAppointmentCard), findsOneWidget);
+    expect(find.text('Prochain rendez-vous'), findsNothing);
+    expect(find.text('Pas de rendez-vous programmé'), findsNothing);
   });
+
+  testWidgets(
+    'RDV programmés : même carrousel que Santé, alerte du RDV passé au-dessus',
+    (tester) async {
+      final repo = MockEventsRepository();
+      await pumpApp(
+        tester,
+        const DashboardPage(),
+        overrides: overridesFor(
+          repo,
+          timeline: MedicalTimeline(
+            entries: [
+              entry(
+                MedicalStageId.m1,
+                MedicalStageStatus.appointmentPassed,
+                appointmentAt: DateTime(2026, 9, 8, 9),
+              ),
+              entry(
+                MedicalStageId.m2,
+                MedicalStageStatus.scheduled,
+                appointmentAt: DateTime(2026, 10, 3, 10),
+              ),
+              entry(
+                MedicalStageId.m3,
+                MedicalStageStatus.scheduled,
+                appointmentAt: DateTime(2026, 11, 3, 10),
+              ),
+            ],
+          ),
+        ),
+      );
+      await tester.scrollUntilVisible(
+        find.byType(AppointmentCarousel),
+        200,
+        scrollable: find.byType(Scrollable).first,
+      );
+      expect(find.byType(NextAppointmentCard), findsOneWidget);
+      expect(find.text('Prochain rendez-vous'), findsOneWidget);
+      expect(find.text('Examen et vaccins des 2 mois'), findsOneWidget);
+      expect(find.text('RDV passé · à marquer comme faite'), findsOneWidget);
+      expect(
+        tester.getTopLeft(find.byType(AwaitingAppointmentCard)).dy,
+        lessThan(tester.getTopLeft(find.byType(NextAppointmentCard)).dy),
+      );
+    },
+  );
 
   testWidgets('affiche l\'absence de RDV programmé quand la frise est vide', (
     tester,
@@ -158,6 +211,7 @@ void main() {
     await tester.scrollUntilVisible(
       find.text('Pas de rendez-vous programmé'),
       200,
+      scrollable: find.byType(Scrollable).first,
     );
     expect(find.text('Pas de rendez-vous programmé'), findsOneWidget);
   });
