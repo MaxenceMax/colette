@@ -52,6 +52,14 @@ void main() {
     expect(find.text('Aujourd\'hui'), findsOneWidget);
   });
 
+  testWidgets('un retard de plus d\'une heure s\'affiche en heures', (
+    tester,
+  ) async {
+    await pumpSheet(tester, [bottle(DateTime(2026, 9, 10, 20), 70)]);
+    // Fin de fourchette 20 h 25 : 1 h 35 de retard à 22 h.
+    expect(find.text('en retard de 1 h 35'), findsOneWidget);
+  });
+
   testWidgets('le prochain biberon en cours porte « maintenant »', (
     tester,
   ) async {

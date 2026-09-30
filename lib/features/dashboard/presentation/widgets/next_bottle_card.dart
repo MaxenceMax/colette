@@ -161,7 +161,7 @@ class _WhenText extends StatelessWidget {
     final late = plan.lateBy(now);
     if (late > Duration.zero) {
       return Text(
-        s.nextBottleLate(late.inMinutes),
+        s.nextBottleLate(formatDuration(late, s)),
         style: styles.bodyMedium.copyWith(
           color: context.appColor(AppColors.warning),
         ),
