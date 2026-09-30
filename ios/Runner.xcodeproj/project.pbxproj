@@ -180,7 +180,6 @@
 				221F7E3B168C87EA58CD7689 /* CalendarError.swift */,
 				378BC72813F9DBAFE47E6756 /* CalendarPlugin.swift */,
 			);
-			name = Calendar;
 			path = Calendar;
 			sourceTree = "<group>";
 		};
@@ -226,7 +225,6 @@
 				921D69F2B532018408C9E192 /* DocumentsWriter.swift */,
 				AA42176EFF0FFEA71BDED313 /* DocumentsFolderWatcher.swift */,
 			);
-			name = Documents;
 			path = Documents;
 			sourceTree = "<group>";
 		};
@@ -316,7 +314,6 @@
 				22E72974F326CB66AC2B8301 /* BottleTimerChannel.swift */,
 				EA4747269937D893B7B3AD14 /* Localizable.strings */,
 			);
-			name = BottleTimer;
 			path = BottleTimer;
 			sourceTree = "<group>";
 		};
@@ -330,7 +327,6 @@
 				2D739DA89E7F2E6770B7D4D5 /* Assets.xcassets */,
 				2818C335E3C2A663B3AEAFD2 /* Localizable.strings */,
 			);
-			name = BottleTimerWidget;
 			path = BottleTimerWidget;
 			sourceTree = "<group>";
 		};
