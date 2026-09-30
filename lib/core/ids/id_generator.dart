@@ -26,6 +26,7 @@ final class FixedIdGenerator implements IdGenerator {
   String newId() => id;
 }
 
-/// Générateur d'identifiants de l'app.
-@riverpod
+/// Générateur d'identifiants de l'app. Sans état : `keepAlive` car consommé
+/// par `BroadcastLists` (keepAlive).
+@Riverpod(keepAlive: true)
 IdGenerator idGenerator(Ref ref) => const UuidIdGenerator();

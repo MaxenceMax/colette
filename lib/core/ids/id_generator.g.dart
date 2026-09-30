@@ -8,24 +8,27 @@ part of 'id_generator.dart';
 
 // GENERATED CODE - DO NOT MODIFY BY HAND
 // ignore_for_file: type=lint, type=warning
-/// Générateur d'identifiants de l'app.
+/// Générateur d'identifiants de l'app. Sans état : `keepAlive` car consommé
+/// par `BroadcastLists` (keepAlive).
 
 @ProviderFor(idGenerator)
 final idGeneratorProvider = IdGeneratorProvider._();
 
-/// Générateur d'identifiants de l'app.
+/// Générateur d'identifiants de l'app. Sans état : `keepAlive` car consommé
+/// par `BroadcastLists` (keepAlive).
 
 final class IdGeneratorProvider
     extends $FunctionalProvider<IdGenerator, IdGenerator, IdGenerator>
     with $Provider<IdGenerator> {
-  /// Générateur d'identifiants de l'app.
+  /// Générateur d'identifiants de l'app. Sans état : `keepAlive` car consommé
+  /// par `BroadcastLists` (keepAlive).
   IdGeneratorProvider._()
     : super(
         from: null,
         argument: null,
         retry: null,
         name: r'idGeneratorProvider',
-        isAutoDispose: true,
+        isAutoDispose: false,
         dependencies: null,
         $allTransitiveDependencies: null,
       );
@@ -52,4 +55,4 @@ final class IdGeneratorProvider
   }
 }
 
-String _$idGeneratorHash() => r'532e07a51b2cbe324ea25c5114a268733186ddbb';
+String _$idGeneratorHash() => r'd55eadccc5a017e0c06fc9f75a5620e9b9ae0ab8';
