@@ -21,15 +21,18 @@ Future<DateTime?> showColetteDateTimePicker(
       child: Column(
         mainAxisSize: .min,
         children: [
-          SizedBox(
-            height: AppSize.massive.value * 2,
-            child: CupertinoDatePicker(
-              mode: mode,
-              initialDateTime: safeInitial,
-              maximumDate: maximum,
-              minimumDate: minimum,
-              use24hFormat: true,
-              onDateTimeChanged: (value) => selected = value,
+          // La roue cède la place au bouton quand la feuille est trop basse.
+          Flexible(
+            child: SizedBox(
+              height: AppSize.massive.value * 2,
+              child: CupertinoDatePicker(
+                mode: mode,
+                initialDateTime: safeInitial,
+                maximumDate: maximum,
+                minimumDate: minimum,
+                use24hFormat: true,
+                onDateTimeChanged: (value) => selected = value,
+              ),
             ),
           ),
           Padding(
