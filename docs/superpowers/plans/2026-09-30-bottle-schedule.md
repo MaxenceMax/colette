@@ -4,7 +4,7 @@
 
 **Goal :** remplacer la fourchette codée en dur (2 h 30 – 5 h) par trois réglages du foyer (premier biberon, biberon du soir, intervalle) qui pilotent le prochain biberon, la projection 24 h et le nombre de biberons par jour.
 
-**Architecture :** un value object pur `BottleSchedule` (`baby/domain`) porte la règle (`nextAfter`, `windowAround`, `feedsPerDay`). `CareSettings` stocke trois entiers en minutes et expose `bottleSchedule`. `ComputeFeedingPlan` et `ProjectBottleSchedule` reçoivent ce `BottleSchedule` à la place de `feedsPerDay`. Une nouvelle carte Réglages édite les trois valeurs. Cloud Functions inchangées.
+**Architecture :** un value object pur `BottleSchedule` (`baby/domain`) porte la règle (`nextAfter`, `windowAround`, `feedsPerDay`). `CareSettings` stocke trois entiers en minutes et expose `bottleSchedule`. `ComputeFeedingPlan` et `ProjectBottleSchedule` reçoivent ce `BottleSchedule` à la place de `feedsPerDay`. Une nouvelle carte Réglages édite les trois valeurs. Cloud Functions : rappel de secours du matin ajouté en Task 10 (redéploiement après accord).
 
 **Tech stack :** Flutter, Dart 3, freezed, Riverpod 3 codegen, fake_cloud_firestore, mocktail.
 
