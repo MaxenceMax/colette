@@ -43,7 +43,7 @@ L'état vert « Go pour un biberon, jusqu'à … » disparaît.
 
 Feuille « Prochaines 24 h » : chaque ligne affiche l'heure (« 13h00 ») ; la mention du prochain biberon suit la même règle (retard, « maintenant », sinon rien).
 
-Clés l10n : ajout `nextBottleAt` (« à {time} ») et `nextBottleAtTomorrow` (« demain à {time} ») ; retrait de `nextBottleWindow`, `nextBottleWindowTomorrow`, `nextBottleGo`, `bottleScheduleRange`.
+Clés l10n : ajout `nextBottleAtTime` (« à {time} ») et `nextBottleAtTimeTomorrow` (« demain à {time} ») ; retrait de `nextBottleWindow`, `nextBottleWindowTomorrow`, `nextBottleGo`, `bottleScheduleRange`.
 
 ## Snapshot Firestore et rappels
 
