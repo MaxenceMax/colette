@@ -51,28 +51,20 @@ void main() {
       (plan['nextBottleAt'] as Timestamp).toDate(),
       DateTime(2026, 9, 10, 12),
     );
-    expect(
-      (plan['windowStartAt'] as Timestamp).toDate(),
-      DateTime(2026, 9, 10, 11, 30),
-    );
-    expect(
-      (plan['windowEndAt'] as Timestamp).toDate(),
-      DateTime(2026, 9, 10, 12, 30),
-    );
     expect(plan['suggestedMl'], 70);
     // Dernier biberon 9 h + 3 h = 12 h ; premier du matin après : le 11 à 7 h.
     expect(
       (plan['morningBottleAt'] as Timestamp).toDate(),
       DateTime(2026, 9, 11, 7),
     );
-    expect(
-      (plan['morningWindowStartAt'] as Timestamp).toDate(),
-      DateTime(2026, 9, 11, 6, 30),
-    );
-    expect(
-      (plan['morningWindowEndAt'] as Timestamp).toDate(),
-      DateTime(2026, 9, 11, 7, 30),
-    );
+    for (final key in [
+      'windowStartAt',
+      'windowEndAt',
+      'morningWindowStartAt',
+      'morningWindowEndAt',
+    ]) {
+      expect(plan[key], isNull, reason: key);
+    }
   });
 
   test('sync utilise la cible ajustée du profil pour la suggestion', () async {

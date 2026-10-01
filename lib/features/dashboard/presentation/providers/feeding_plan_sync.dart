@@ -64,20 +64,13 @@ final class FirestoreFeedingPlanSync implements FeedingPlanSync {
       final morning = lastBottle == null
           ? null
           : schedule.morningAfter(plan.nextBottleAt);
-      final morningWindow = morning == null
-          ? null
-          : schedule.windowAround(morning);
       await babyRepository.saveFeedingPlan(
         code,
         FeedingPlanSnapshot(
           nextBottleAt: plan.nextBottleAt,
-          windowStartAt: plan.windowStart,
-          windowEndAt: plan.windowEnd,
           suggestedMl: plan.suggestedMl,
           computedAt: now,
           morningBottleAt: morning,
-          morningWindowStartAt: morningWindow?.$1,
-          morningWindowEndAt: morningWindow?.$2,
         ),
       );
     } catch (e, stackTrace) {

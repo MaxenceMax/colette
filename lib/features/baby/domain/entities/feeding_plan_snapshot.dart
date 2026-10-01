@@ -7,15 +7,11 @@ part 'feeding_plan_snapshot.freezed.dart';
 abstract class FeedingPlanSnapshot with _$FeedingPlanSnapshot {
   const factory FeedingPlanSnapshot({
     required DateTime nextBottleAt,
-    required DateTime windowStartAt,
-    required DateTime windowEndAt,
     required int suggestedMl,
     required DateTime computedAt,
 
-    /// Premier biberon du matin après [nextBottleAt] et sa fourchette : rappel
-    /// de secours si aucun biberon n'est noté d'ici là ; `null` sans biberon.
+    /// Premier biberon du matin après [nextBottleAt] : rappel de secours si
+    /// aucun biberon n'est noté d'ici là ; `null` sans biberon.
     DateTime? morningBottleAt,
-    DateTime? morningWindowStartAt,
-    DateTime? morningWindowEndAt,
   }) = _FeedingPlanSnapshot;
 }

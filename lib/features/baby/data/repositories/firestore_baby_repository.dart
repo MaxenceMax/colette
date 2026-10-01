@@ -71,13 +71,15 @@ class FirestoreBabyRepository implements BabyRepository {
     () => _household(householdCode).set({
       'feedingPlan': {
         'nextBottleAt': Timestamp.fromDate(snapshot.nextBottleAt),
-        'windowStartAt': Timestamp.fromDate(snapshot.windowStartAt),
-        'windowEndAt': Timestamp.fromDate(snapshot.windowEndAt),
         'suggestedMl': snapshot.suggestedMl,
         'computedAt': Timestamp.fromDate(snapshot.computedAt),
         'morningBottleAt': _timestampOrNull(snapshot.morningBottleAt),
-        'morningWindowStartAt': _timestampOrNull(snapshot.morningWindowStartAt),
-        'morningWindowEndAt': _timestampOrNull(snapshot.morningWindowEndAt),
+        // Écriture merge : efface les fourchettes des versions précédentes,
+        // la Cloud Function rappelle alors 10 min avant l'heure prévue.
+        'windowStartAt': null,
+        'windowEndAt': null,
+        'morningWindowStartAt': null,
+        'morningWindowEndAt': null,
       },
     }, SetOptions(merge: true)),
   );
