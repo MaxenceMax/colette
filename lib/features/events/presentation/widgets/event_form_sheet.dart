@@ -5,7 +5,6 @@ import 'package:colette/core/ids/id_generator.dart';
 import 'package:colette/core/theme/design_tokens.dart';
 import 'package:colette/core/ui/date_time_picker.dart';
 import 'package:colette/core/ui/failure_message.dart';
-import 'package:colette/features/baby/presentation/providers/baby_providers.dart';
 import 'package:colette/features/events/domain/entities/bottle_timer_run.dart';
 import 'package:colette/features/events/domain/entities/bottle_timer_session.dart';
 import 'package:colette/features/events/domain/entities/care_event.dart';
@@ -16,12 +15,12 @@ import 'package:colette/features/events/presentation/providers/bottle_timer_sess
 import 'package:colette/features/events/presentation/providers/event_form_controller.dart';
 import 'package:colette/features/events/presentation/widgets/bottle_field.dart';
 import 'package:colette/features/events/presentation/widgets/bottle_timer_stop_dialog.dart';
+import 'package:colette/features/events/presentation/widgets/event_care_chips.dart';
 import 'package:colette/features/events/presentation/widgets/event_form_header.dart';
 import 'package:colette/features/events/presentation/widgets/event_time_fields.dart';
 import 'package:colette/features/household/presentation/providers/household_providers.dart';
 import 'package:colette/l10n/generated/app_localizations.dart';
 import 'package:colette/shared/domain/care_type.dart';
-import 'package:colette/shared/ui/widgets/care_chip.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -108,9 +107,25 @@ class _EventFormSheetState extends ConsumerState<EventFormSheet> {
     if (!mounted) return;
     ref.read(bottleTimerControllerProvider.notifier).restore(run);
     final now = ref.read(clockProvider).now();
-    if (computeBottleTimerPhase(run: run, now: now) is BottleTimerDone) {
-      _autoSave();
+    switch (computeBottleTimerPhase(run: run, now: now)) {
+      case BottleUpright():
+        _setDraft(_withTimerTimes(run));
+      case BottleTimerDone():
+        _autoSave();
+      case BottleFeeding():
+        break;
     }
+  }
+
+  /// Brouillon aux heures du minuteur : début au lancement, fin à la fin
+  /// (prévue ou anticipée) du biberon.
+  CareEvent _withTimerTimes(BottleTimerRun run) =>
+      _draft.copyWith(startAt: run.startedAt, endAt: run.feedingEndsAt);
+
+  /// Fin du biberon (minuteur ou « Biberon terminé ») : heures reportées.
+  void _onFeedingEnded() {
+    final run = ref.read(bottleTimerControllerProvider);
+    if (run != null) _setDraft(_withTimerTimes(run));
   }
 
   void _setDraft(CareEvent draft) {
@@ -177,12 +192,7 @@ class _EventFormSheetState extends ConsumerState<EventFormSheet> {
         ref.read(eventFormControllerProvider) is AsyncLoading) {
       return;
     }
-    setState(
-      () => _draft = _draft.copyWith(
-        startAt: run.startedAt,
-        endAt: run.feedingEndsAt,
-      ),
-    );
+    setState(() => _draft = _withTimerTimes(run));
     await _save();
   }
 
@@ -206,7 +216,14 @@ class _EventFormSheetState extends ConsumerState<EventFormSheet> {
     ref
       ..watch(bottleTimerEffectsProvider)
       ..listen(bottleTimerPhaseProvider, (previous, next) {
-        if (bottleTimerTransition(previous, next) == .finished) _autoSave();
+        switch (bottleTimerTransition(previous, next)) {
+          case .feedingEnded:
+            _onFeedingEnded();
+          case .finished:
+            _autoSave();
+          case _:
+            break;
+        }
       })
       ..listen(bottleTimerControllerProvider, (_, run) {
         if (run != null) _persistSession();
@@ -214,22 +231,6 @@ class _EventFormSheetState extends ConsumerState<EventFormSheet> {
     final timerPhase = ref.watch(bottleTimerPhaseProvider);
     final timerRunning =
         timerPhase is BottleFeeding || timerPhase is BottleUpright;
-    final umbilicalEnabled =
-        ref
-            .watch(babyProfileProvider)
-            .value
-            ?.careSettings
-            .umbilicalCare
-            .enabled ??
-        true;
-    final visibleCares = CareType.values
-        .where(
-          (type) =>
-              type != CareType.umbilicalCare ||
-              umbilicalEnabled ||
-              _draft.umbilicalCare,
-        )
-        .toList();
 
     return PopScope(
       canPop: !timerRunning && !isLoading,
@@ -253,18 +254,7 @@ class _EventFormSheetState extends ConsumerState<EventFormSheet> {
               onPickEnd: () => _pickTime(isStart: false),
             ),
             AppSpacing.md.verticalSpace,
-            Wrap(
-              spacing: AppSpacing.sm.value,
-              runSpacing: AppSpacing.sm.value,
-              children: [
-                for (final type in visibleCares)
-                  CareChip(
-                    type: type,
-                    selected: _draft.has(type),
-                    onChanged: (value) => _setDraft(_draft.toggle(type, value)),
-                  ),
-              ],
-            ),
+            EventCareChips(draft: _draft, onChanged: _setDraft),
             AppSpacing.md.verticalSpace,
             BottleField(
               bottleMl: _draft.bottleMl,

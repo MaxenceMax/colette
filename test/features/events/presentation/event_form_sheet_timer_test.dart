@@ -1,6 +1,7 @@
 import 'dart:async';
 
 import 'package:colette/core/clock/app_clock.dart';
+import 'package:colette/core/dates/time_format.dart';
 import 'package:colette/core/device/device_feedback.dart';
 import 'package:colette/core/ids/id_generator.dart';
 import 'package:colette/features/baby/presentation/providers/baby_providers.dart';
@@ -233,6 +234,49 @@ void main() {
     expect(find.byType(EventFormSheet), findsNothing);
   });
 
+  testWidgets('fin du biberon : le formulaire prend les heures du minuteur', (
+    tester,
+  ) async {
+    await openSheet(tester);
+    clock.current = now.add(const Duration(minutes: 2));
+    await enableBottleAndStart(tester);
+
+    await advanceTo(tester, const Duration(minutes: 33));
+
+    expect(find.text('Biberon terminé'), findsNothing);
+    expect(find.text('14h02'), findsOneWidget);
+    expect(find.text('14h32'), findsOneWidget);
+    expect(
+      sessions.session?.draft.startAt,
+      now.add(const Duration(minutes: 2)),
+    );
+    expect(sessions.session?.draft.endAt, now.add(const Duration(minutes: 32)));
+    verifyNever(() => repo.save(any(), any()));
+  });
+
+  testWidgets('« Biberon terminé » met à jour la fin dans le formulaire', (
+    tester,
+  ) async {
+    await openSheet(tester);
+    await enableBottleAndStart(tester);
+    clock.current = now.add(const Duration(minutes: 12));
+    await tester.tap(find.text('Biberon terminé'));
+    await tester.pump();
+
+    expect(find.text('14h00'), findsOneWidget);
+    expect(find.text('14h12'), findsOneWidget);
+    expect(sessions.session?.draft.endAt, now.add(const Duration(minutes: 12)));
+
+    final save = find.widgetWithText(FilledButton, 'Enregistrer');
+    await tester.ensureVisible(save);
+    await tester.tap(save);
+    await tester.pumpAndSettle();
+    final saved =
+        verify(() => repo.save('ABCDEFGH', captureAny())).captured.single
+            as CareEvent;
+    expect(saved.endAt, now.add(const Duration(minutes: 12)));
+  });
+
   BottleTimerSession restoredSession({
     required Duration startedAgo,
     bool editing = false,
@@ -294,6 +338,19 @@ void main() {
     expect(find.byType(EventFormSheet), findsNothing);
     expect(feedback.calls, isNot(contains('sound:uprightEnded')));
     expect(sessions.session, isNull);
+  });
+
+  testWidgets('session reprise à la verticale : heures du minuteur reprises', (
+    tester,
+  ) async {
+    final session = restoredSession(startedAgo: const Duration(minutes: 35));
+    await openSheet(tester, restored: session);
+    expect(find.text(formatHourMinute(session.run.startedAt)), findsOneWidget);
+    expect(
+      find.text(formatHourMinute(session.run.feedingEndsAt)),
+      findsOneWidget,
+    );
+    verifyNever(() => repo.save(any(), any()));
   });
 
   testWidgets('session reprise en édition : titre de modification', (
