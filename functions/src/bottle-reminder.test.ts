@@ -144,6 +144,32 @@ describe('deadlinesOf', () => {
 
     expect(deadlinesOf(plan).map((d) => d.key)).toEqual([plan.nextBottleAt]);
   });
+
+  it('garde le rappel du matin sans fourchette (app sans fourchette)', () => {
+    const plan: FeedingPlanDoc = {
+      nextBottleAt: at('2026-09-30T21:30:00Z'),
+      windowStartAt: null,
+      windowEndAt: null,
+      suggestedMl: 120,
+      morningBottleAt: at('2026-10-01T05:00:00Z'),
+      morningWindowStartAt: null,
+      morningWindowEndAt: null,
+    };
+
+    const deadlines = deadlinesOf(plan);
+
+    expect(deadlines.map((d) => d.key)).toEqual([plan.nextBottleAt, plan.morningBottleAt]);
+    expect(deadlines.every((d) => d.windowStartAt === null && d.windowEndAt === null)).toBe(true);
+  });
+
+  it('garde les fourchettes du matin écrites par une ancienne version', () => {
+    const plan = planWithMorning(at('2026-10-01T05:00:00Z'));
+
+    const morning = deadlinesOf(plan)[1];
+
+    expect(morning.windowStartAt).toEqual(new Date('2026-10-01T04:30:00Z'));
+    expect(morning.windowEndAt).toEqual(new Date('2026-10-01T05:30:00Z'));
+  });
 });
 
 describe('bottleReminder', () => {

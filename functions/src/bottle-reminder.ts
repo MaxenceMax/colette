@@ -38,17 +38,12 @@ export function deadlinesOf(plan: FeedingPlanDoc): Deadline[] {
   ];
   // L'app calcule toujours le matin strictement après nextBottleAt : s'il le précède, ce sont des
   // champs périmés laissés par une ancienne version de l'app qui a réécrit nextBottleAt (écriture merge).
-  if (
-    plan.morningBottleAt &&
-    plan.morningWindowStartAt &&
-    plan.morningWindowEndAt &&
-    plan.morningBottleAt.toMillis() > plan.nextBottleAt.toMillis()
-  ) {
+  if (plan.morningBottleAt && plan.morningBottleAt.toMillis() > plan.nextBottleAt.toMillis()) {
     deadlines.push({
       key: plan.morningBottleAt,
       nextBottleAt: plan.morningBottleAt.toDate(),
-      windowStartAt: plan.morningWindowStartAt.toDate(),
-      windowEndAt: plan.morningWindowEndAt.toDate(),
+      windowStartAt: plan.morningWindowStartAt?.toDate() ?? null,
+      windowEndAt: plan.morningWindowEndAt?.toDate() ?? null,
     });
   }
   return deadlines;

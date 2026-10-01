@@ -52,13 +52,14 @@ export type BabyDoc = {
 
 export type FeedingPlanDoc = {
   nextBottleAt: Timestamp;
-  /** Absents dans les snapshots écrits par une version de l'app antérieure à la fourchette. */
-  windowStartAt?: Timestamp;
-  windowEndAt?: Timestamp;
+  /** Fourchette des versions de l'app qui en écrivaient une ; absente ou nulle sinon
+   *  (rappel 10 min avant `nextBottleAt`). */
+  windowStartAt?: Timestamp | null;
+  windowEndAt?: Timestamp | null;
   suggestedMl: number;
   computedAt?: Timestamp;
-  /** Premier biberon du matin après `nextBottleAt` et sa fourchette : rappel de secours
-   *  si aucun biberon n'est noté d'ici là. Absents ou nuls sans biberon ou avant les horaires. */
+  /** Premier biberon du matin après `nextBottleAt` : rappel de secours si aucun biberon
+   *  n'est noté d'ici là. Absent ou nul sans biberon. Fourchette du matin : comme ci-dessus. */
   morningBottleAt?: Timestamp | null;
   morningWindowStartAt?: Timestamp | null;
   morningWindowEndAt?: Timestamp | null;
