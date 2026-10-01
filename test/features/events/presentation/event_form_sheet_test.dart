@@ -111,6 +111,19 @@ void main() {
     expect(saved.createdAt, initial.createdAt);
   });
 
+  testWidgets('en édition, le minuteur de biberon n\'apparaît pas', (
+    tester,
+  ) async {
+    final initial = makeEvent(
+      id: 'e-existing',
+      startAt: now.subtract(const Duration(hours: 2)),
+      bottleMl: 120,
+    );
+    await pumpSheet(tester, initial: initial);
+    expect(find.text('Quantité'), findsOneWidget);
+    expect(find.text('Lancer le minuteur (30 + 12 min)'), findsNothing);
+  });
+
   testWidgets('la puce nombril est masquée quand le soin est désactivé', (
     tester,
   ) async {

@@ -13,6 +13,7 @@ class BottleField extends StatelessWidget {
     super.key,
     required this.bottleMl,
     required this.onChanged,
+    this.showTimer = true,
   });
 
   static const presets = [60, 90, 120, 150, 180, 210];
@@ -21,6 +22,9 @@ class BottleField extends StatelessWidget {
   /// `null` quand aucun biberon.
   final int? bottleMl;
   final ValueChanged<int?> onChanged;
+
+  /// `false` pour un soin déjà enregistré : pas de minuteur à lancer.
+  final bool showTimer;
 
   @override
   Widget build(BuildContext context) {
@@ -69,8 +73,10 @@ class BottleField extends StatelessWidget {
                 ),
             ],
           ),
-          AppSpacing.sm.verticalSpace,
-          const BottleTimerSection(),
+          if (showTimer) ...[
+            AppSpacing.sm.verticalSpace,
+            const BottleTimerSection(),
+          ],
         ],
       ],
     );

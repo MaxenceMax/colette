@@ -258,6 +258,8 @@ class _EventFormSheetState extends ConsumerState<EventFormSheet> {
             AppSpacing.md.verticalSpace,
             BottleField(
               bottleMl: _draft.bottleMl,
+              // Une session d'édition reprise garde son minuteur à l'écran.
+              showTimer: !_isEditing || timerPhase != null,
               onChanged: (ml) {
                 if (ml == null) {
                   ref.read(bottleTimerControllerProvider.notifier).reset();
