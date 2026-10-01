@@ -15,9 +15,8 @@ T _$identity<T>(T value) => value;
 /// @nodoc
 mixin _$ProjectedBottle {
 
-/// Heure supposée de la prise : le centre du plan pour le prochain
-/// biberon, le début de la fourchette pour les suivants.
- DateTime get at; DateTime get windowStart; DateTime get windowEnd; int get suggestedMl;
+/// Heure prévue de la prise.
+ DateTime get at; int get suggestedMl;
 /// Create a copy of ProjectedBottle
 /// with the given fields replaced by the non-null parameter values.
 @JsonKey(includeFromJson: false, includeToJson: false)
@@ -29,20 +28,20 @@ $ProjectedBottleCopyWith<ProjectedBottle> get copyWith => _$ProjectedBottleCopyW
 @override
 bool operator ==(Object other) {
   final _this = this as ProjectedBottle;
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is ProjectedBottle&&(identical(other.at, _this.at) || other.at == _this.at)&&(identical(other.windowStart, _this.windowStart) || other.windowStart == _this.windowStart)&&(identical(other.windowEnd, _this.windowEnd) || other.windowEnd == _this.windowEnd)&&(identical(other.suggestedMl, _this.suggestedMl) || other.suggestedMl == _this.suggestedMl));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is ProjectedBottle&&(identical(other.at, _this.at) || other.at == _this.at)&&(identical(other.suggestedMl, _this.suggestedMl) || other.suggestedMl == _this.suggestedMl));
 }
 
 
 @override
 int get hashCode {
   final _this = this as ProjectedBottle;
-  return Object.hash(runtimeType,_this.at,_this.windowStart,_this.windowEnd,_this.suggestedMl);
+  return Object.hash(runtimeType,_this.at,_this.suggestedMl);
 }
 
 @override
 String toString() {
   final _this = this as ProjectedBottle;
-  return 'ProjectedBottle(at: ${_this.at}, windowStart: ${_this.windowStart}, windowEnd: ${_this.windowEnd}, suggestedMl: ${_this.suggestedMl})';
+  return 'ProjectedBottle(at: ${_this.at}, suggestedMl: ${_this.suggestedMl})';
 }
 
 
@@ -53,7 +52,7 @@ abstract mixin class $ProjectedBottleCopyWith<$Res>  {
   factory $ProjectedBottleCopyWith(ProjectedBottle value, $Res Function(ProjectedBottle) _then) = _$ProjectedBottleCopyWithImpl;
 @useResult
 $Res call({
- DateTime at, DateTime windowStart, DateTime windowEnd, int suggestedMl
+ DateTime at, int suggestedMl
 });
 
 
@@ -70,11 +69,9 @@ class _$ProjectedBottleCopyWithImpl<$Res>
 
 /// Create a copy of ProjectedBottle
 /// with the given fields replaced by the non-null parameter values.
-@pragma('vm:prefer-inline') @override $Res call({Object? at = null,Object? windowStart = null,Object? windowEnd = null,Object? suggestedMl = null,}) {
+@pragma('vm:prefer-inline') @override $Res call({Object? at = null,Object? suggestedMl = null,}) {
   return _then(ProjectedBottle(
 at: null == at ? _self.at : at // ignore: cast_nullable_to_non_nullable
-as DateTime,windowStart: null == windowStart ? _self.windowStart : windowStart // ignore: cast_nullable_to_non_nullable
-as DateTime,windowEnd: null == windowEnd ? _self.windowEnd : windowEnd // ignore: cast_nullable_to_non_nullable
 as DateTime,suggestedMl: null == suggestedMl ? _self.suggestedMl : suggestedMl // ignore: cast_nullable_to_non_nullable
 as int,
   ));
@@ -161,10 +158,10 @@ return $default(_that);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( DateTime at,  DateTime windowStart,  DateTime windowEnd,  int suggestedMl)?  $default,{required TResult orElse(),}) {final _that = this;
+@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( DateTime at,  int suggestedMl)?  $default,{required TResult orElse(),}) {final _that = this;
 switch (_that) {
 case _ProjectedBottle() when $default != null:
-return $default(_that.at,_that.windowStart,_that.windowEnd,_that.suggestedMl);case _:
+return $default(_that.at,_that.suggestedMl);case _:
   return orElse();
 
 }
@@ -182,10 +179,10 @@ return $default(_that.at,_that.windowStart,_that.windowEnd,_that.suggestedMl);ca
 /// }
 /// ```
 
-@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( DateTime at,  DateTime windowStart,  DateTime windowEnd,  int suggestedMl)  $default,) {final _that = this;
+@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( DateTime at,  int suggestedMl)  $default,) {final _that = this;
 switch (_that) {
 case _ProjectedBottle():
-return $default(_that.at,_that.windowStart,_that.windowEnd,_that.suggestedMl);case _:
+return $default(_that.at,_that.suggestedMl);case _:
   throw StateError('Unexpected subclass');
 
 }
@@ -202,10 +199,10 @@ return $default(_that.at,_that.windowStart,_that.windowEnd,_that.suggestedMl);ca
 /// }
 /// ```
 
-@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( DateTime at,  DateTime windowStart,  DateTime windowEnd,  int suggestedMl)?  $default,) {final _that = this;
+@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( DateTime at,  int suggestedMl)?  $default,) {final _that = this;
 switch (_that) {
 case _ProjectedBottle() when $default != null:
-return $default(_that.at,_that.windowStart,_that.windowEnd,_that.suggestedMl);case _:
+return $default(_that.at,_that.suggestedMl);case _:
   return null;
 
 }
@@ -217,14 +214,11 @@ return $default(_that.at,_that.windowStart,_that.windowEnd,_that.suggestedMl);ca
 
 
 class _ProjectedBottle implements ProjectedBottle {
-  const _ProjectedBottle({required this.at, required this.windowStart, required this.windowEnd, required this.suggestedMl});
+  const _ProjectedBottle({required this.at, required this.suggestedMl});
   
 
-/// Heure supposée de la prise : le centre du plan pour le prochain
-/// biberon, le début de la fourchette pour les suivants.
+/// Heure prévue de la prise.
 @override final  DateTime at;
-@override final  DateTime windowStart;
-@override final  DateTime windowEnd;
 @override final  int suggestedMl;
 
 /// Create a copy of ProjectedBottle
@@ -237,18 +231,18 @@ _$ProjectedBottleCopyWith<_ProjectedBottle> get copyWith => __$ProjectedBottleCo
 
 @override
 bool operator ==(Object other) {
-    return identical(this, other) || (other.runtimeType == runtimeType&&other is _ProjectedBottle&&(identical(other.at, at) || other.at == at)&&(identical(other.windowStart, windowStart) || other.windowStart == windowStart)&&(identical(other.windowEnd, windowEnd) || other.windowEnd == windowEnd)&&(identical(other.suggestedMl, suggestedMl) || other.suggestedMl == suggestedMl));
+    return identical(this, other) || (other.runtimeType == runtimeType&&other is _ProjectedBottle&&(identical(other.at, at) || other.at == at)&&(identical(other.suggestedMl, suggestedMl) || other.suggestedMl == suggestedMl));
 }
 
 
 @override
 int get hashCode {
-    return Object.hash(runtimeType,at,windowStart,windowEnd,suggestedMl);
+    return Object.hash(runtimeType,at,suggestedMl);
 }
 
 @override
 String toString() {
-    return 'ProjectedBottle(at: $at, windowStart: $windowStart, windowEnd: $windowEnd, suggestedMl: $suggestedMl)';
+    return 'ProjectedBottle(at: $at, suggestedMl: $suggestedMl)';
 }
 
 
@@ -259,7 +253,7 @@ abstract mixin class _$ProjectedBottleCopyWith<$Res> implements $ProjectedBottle
   factory _$ProjectedBottleCopyWith(_ProjectedBottle value, $Res Function(_ProjectedBottle) _then) = __$ProjectedBottleCopyWithImpl;
 @override @useResult
 $Res call({
- DateTime at, DateTime windowStart, DateTime windowEnd, int suggestedMl
+ DateTime at, int suggestedMl
 });
 
 
@@ -276,11 +270,9 @@ class __$ProjectedBottleCopyWithImpl<$Res>
 
 /// Create a copy of ProjectedBottle
 /// with the given fields replaced by the non-null parameter values.
-@override @pragma('vm:prefer-inline') $Res call({Object? at = null,Object? windowStart = null,Object? windowEnd = null,Object? suggestedMl = null,}) {
+@override @pragma('vm:prefer-inline') $Res call({Object? at = null,Object? suggestedMl = null,}) {
   return _then(_ProjectedBottle(
 at: null == at ? _self.at : at // ignore: cast_nullable_to_non_nullable
-as DateTime,windowStart: null == windowStart ? _self.windowStart : windowStart // ignore: cast_nullable_to_non_nullable
-as DateTime,windowEnd: null == windowEnd ? _self.windowEnd : windowEnd // ignore: cast_nullable_to_non_nullable
 as DateTime,suggestedMl: null == suggestedMl ? _self.suggestedMl : suggestedMl // ignore: cast_nullable_to_non_nullable
 as int,
   ));

@@ -59,10 +59,6 @@ void main() {
       DateTime(2026, 9, 10, 23, 30),
       DateTime(2026, 9, 11, 7),
     ]);
-    for (final b in bottles) {
-      expect(b.windowStart, b.at.subtract(BottleSchedule.halfWindow));
-      expect(b.windowEnd, b.at.add(BottleSchedule.halfWindow));
-    }
     // Aujourd'hui : (360 − 60) / 6 = 50. Demain : 430 / 7 = 61,4 → 60.
     expect(bottles.take(5).map((b) => b.suggestedMl), everyElement(50));
     expect(bottles.last.suggestedMl, 60);
@@ -85,7 +81,7 @@ void main() {
     ]);
   });
 
-  test('fourchette ouverte : la suite part de maintenant', () {
+  test('heure prévue passée : la suite part de maintenant', () {
     final now = DateTime(2026, 9, 10, 10, 15);
     final bottles = projectFor(
       planFor(now: now, lastAt: DateTime(2026, 9, 10, 7)),
@@ -93,8 +89,6 @@ void main() {
     );
     expect(bottles.first.at, DateTime(2026, 9, 10, 10));
     expect(bottles[1].at, DateTime(2026, 9, 10, 13, 15));
-    expect(bottles[1].windowStart, DateTime(2026, 9, 10, 12, 45));
-    expect(bottles[1].windowEnd, DateTime(2026, 9, 10, 13, 45));
   });
 
   test('en retard : la suite part de maintenant', () {
@@ -104,7 +98,6 @@ void main() {
       now,
     );
     expect(bottles.first.at, DateTime(2026, 9, 10, 7));
-    expect(bottles.first.windowEnd, DateTime(2026, 9, 10, 7, 30));
     expect(bottles[1].at, DateTime(2026, 9, 10, 13));
     expect(bottles.last.at, DateTime(2026, 9, 11, 7));
   });
@@ -112,11 +105,8 @@ void main() {
   test('sans biberon : maintenant, puis selon l\'intervalle', () {
     final now = DateTime(2026, 9, 10, 10);
     final bottles = projectFor(planFor(now: now), now);
-    expect(bottles.first.windowStart, now);
-    expect(bottles.first.windowEnd, now);
+    expect(bottles.first.at, now);
     expect(bottles[1].at, DateTime(2026, 9, 10, 13));
-    expect(bottles[1].windowStart, DateTime(2026, 9, 10, 12, 30));
-    expect(bottles[1].windowEnd, DateTime(2026, 9, 10, 13, 30));
   });
 
   test('cible ajustée pour demain, bornée à 240 ml', () {

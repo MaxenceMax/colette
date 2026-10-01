@@ -88,13 +88,6 @@ void main() {
     });
   });
 
-  test('windowAround : de 30 min avant à 30 min après', () {
-    expect(schedule.windowAround(DateTime(2026, 9, 11, 7)), (
-      DateTime(2026, 9, 11, 6, 30),
-      DateTime(2026, 9, 11, 7, 30),
-    ));
-  });
-
   group('feedsPerDay', () {
     test('7 h → 23 h 30 toutes les 3 h : 7', () {
       expect(schedule.feedsPerDay, 7);
@@ -158,7 +151,7 @@ void main() {
   });
 
   group('upcomingMorning', () {
-    test('celui du jour jusqu\'à l\'ouverture de la fourchette du soir', () {
+    test('celui du jour jusqu\'à 30 min avant le biberon du soir', () {
       expect(
         schedule.upcomingMorning(DateTime(2026, 9, 11, 0, 5)),
         DateTime(2026, 9, 11, 7),
@@ -185,7 +178,7 @@ void main() {
     DateTime due(DateTime last, DateTime now) => schedule.nextDue(last, now);
     final evening22 = DateTime(2026, 9, 10, 22);
 
-    test('fourchette pas finie : nextAfter', () {
+    test('moins de 30 min de retard : nextAfter', () {
       expect(
         due(evening22, DateTime(2026, 9, 10, 23, 50)),
         DateTime(2026, 9, 10, 23, 30),

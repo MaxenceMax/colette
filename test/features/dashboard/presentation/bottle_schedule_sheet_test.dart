@@ -11,12 +11,8 @@ import '../../../helpers/pump_app.dart';
 void main() {
   final now = DateTime(2026, 9, 10, 22);
 
-  ProjectedBottle bottle(DateTime at, int ml) => ProjectedBottle(
-    at: at,
-    windowStart: at.subtract(const Duration(minutes: 25)),
-    windowEnd: at.add(const Duration(minutes: 25)),
-    suggestedMl: ml,
-  );
+  ProjectedBottle bottle(DateTime at, int ml) =>
+      ProjectedBottle(at: at, suggestedMl: ml);
 
   Future<void> pumpSheet(WidgetTester tester, List<ProjectedBottle> bottles) =>
       pumpApp(
@@ -68,7 +64,6 @@ void main() {
   });
 
   testWidgets('un biberon à venir ne porte aucune mention', (tester) async {
-    // Fourchette ouverte à 21 h 45 : ignorée, seul compte 22 h 10.
     await pumpSheet(tester, [bottle(DateTime(2026, 9, 10, 22, 10), 70)]);
     expect(find.text('maintenant'), findsNothing);
     expect(find.textContaining('en retard'), findsNothing);

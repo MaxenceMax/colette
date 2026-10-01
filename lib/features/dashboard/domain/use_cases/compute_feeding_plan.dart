@@ -9,7 +9,7 @@ import 'package:colette/features/events/domain/entities/care_event.dart';
 /// Plan biberons selon l'OMS : 150 ml/kg/jour (montée progressive la 1re semaine),
 /// réparti sur les biberons du jour du [BottleSchedule] ; repères par âge sans pesée.
 /// Une cible ajustée (`dailyTargetMlOverride`) remplace la cible OMS.
-/// Le prochain biberon suit le rythme du foyer, fourchette de ± 30 min.
+/// Le prochain biberon suit le rythme du foyer, à heure fixe.
 /// Un biberon manqué bascule sur le premier du matin une fois la soirée entamée.
 class ComputeFeedingPlan {
   const ComputeFeedingPlan();
@@ -36,9 +36,6 @@ class ComputeFeedingPlan {
     final nextBottleAt = lastBottle == null
         ? now
         : schedule.nextDue(lastBottle.startAt, now);
-    final (windowStart, windowEnd) = lastBottle == null
-        ? (now, now)
-        : schedule.windowAround(nextBottleAt);
     final givenMl = todayBottles.fold(0, (sum, e) => sum + (e.bottleMl ?? 0));
     final bottlesGiven = todayBottles.length;
     final bottlesRemaining = max(0, feedsPerDay - bottlesGiven);
@@ -53,8 +50,6 @@ class ComputeFeedingPlan {
       isTargetOverridden: dailyTargetMlOverride != null,
       feedsPerDay: feedsPerDay,
       nextBottleAt: nextBottleAt,
-      windowStart: windowStart,
-      windowEnd: windowEnd,
       suggestedMl: suggestedMl,
       bottlesGiven: bottlesGiven,
       givenMl: givenMl,

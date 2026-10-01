@@ -176,90 +176,6 @@ void main() {
     );
   });
 
-  group('fourchette', () {
-    (DateTime, DateTime) windowFor(DateTime last) {
-      final bottle = makeEvent(id: 'a', startAt: last, bottleMl: 60);
-      final plan = compute(
-        birthDate: birth,
-        latestWeightGrams: 3600,
-        schedule: schedule,
-        todayBottles: [bottle],
-        lastBottle: bottle,
-        now: last,
-      );
-      return (plan.windowStart, plan.windowEnd);
-    }
-
-    test('de 30 min avant à 30 min après l\'heure prévue', () {
-      expect(windowFor(DateTime(2026, 9, 10, 10)), (
-        DateTime(2026, 9, 10, 12, 30),
-        DateTime(2026, 9, 10, 13, 30),
-      ));
-    });
-
-    test('biberon de 22 h : fourchette du soir autour de 23 h 30', () {
-      expect(windowFor(DateTime(2026, 9, 10, 22)), (
-        DateTime(2026, 9, 10, 23),
-        DateTime(2026, 9, 11, 0),
-      ));
-    });
-
-    test('biberon du soir : fourchette du matin, 6 h 30 – 7 h 30', () {
-      expect(windowFor(DateTime(2026, 9, 10, 23, 10)), (
-        DateTime(2026, 9, 11, 6, 30),
-        DateTime(2026, 9, 11, 7, 30),
-      ));
-    });
-
-    test('ouverte 30 min avant l\'heure prévue, fermée 30 min après', () {
-      final last = makeEvent(
-        id: 'a',
-        startAt: DateTime(2026, 9, 10, 10),
-        bottleMl: 60,
-      );
-      FeedingPlan at(DateTime now) => compute(
-        birthDate: birth,
-        latestWeightGrams: 3600,
-        schedule: schedule,
-        todayBottles: [last],
-        lastBottle: last,
-        now: now,
-      );
-      expect(
-        at(DateTime(2026, 9, 10, 12, 29)).isOpen(DateTime(2026, 9, 10, 12, 29)),
-        isFalse,
-      );
-      expect(
-        at(DateTime(2026, 9, 10, 12, 30)).isOpen(DateTime(2026, 9, 10, 12, 30)),
-        isTrue,
-      );
-      expect(
-        at(DateTime(2026, 9, 10, 13, 30)).isOpen(DateTime(2026, 9, 10, 13, 30)),
-        isTrue,
-      );
-      expect(
-        at(DateTime(2026, 9, 10, 13, 31)).isOpen(DateTime(2026, 9, 10, 13, 31)),
-        isFalse,
-      );
-    });
-
-    test('sans biberon : fourchette réduite à maintenant', () {
-      final now = DateTime(2026, 9, 10, 12, 3);
-      final plan = compute(
-        birthDate: birth,
-        latestWeightGrams: 3600,
-        schedule: schedule,
-        todayBottles: const [],
-        lastBottle: null,
-        now: now,
-      );
-      expect(plan.windowStart, now);
-      expect(plan.windowEnd, now);
-      expect(plan.hasWindow, isFalse);
-      expect(plan.isOpen(now), isFalse);
-    });
-  });
-
   test('la suggestion est bornée entre 30 et 240 ml', () {
     final high = compute(
       birthDate: birth,
@@ -416,8 +332,6 @@ void main() {
       final now = DateTime(2026, 9, 11, 0, 5);
       final plan = planAt(DateTime(2026, 9, 10, 22), now);
       expect(plan.nextBottleAt, DateTime(2026, 9, 11, 7));
-      expect(plan.windowStart, DateTime(2026, 9, 11, 6, 30));
-      expect(plan.windowEnd, DateTime(2026, 9, 11, 7, 30));
       expect(plan.lateBy(now), Duration.zero);
     });
 

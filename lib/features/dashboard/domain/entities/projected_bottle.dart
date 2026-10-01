@@ -6,11 +6,8 @@ part 'projected_bottle.freezed.dart';
 @freezed
 abstract class ProjectedBottle with _$ProjectedBottle {
   const factory ProjectedBottle({
-    /// Heure supposée de la prise : le centre du plan pour le prochain
-    /// biberon, le début de la fourchette pour les suivants.
+    /// Heure prévue de la prise.
     required DateTime at,
-    required DateTime windowStart,
-    required DateTime windowEnd,
     required int suggestedMl,
   }) = _ProjectedBottle;
 }
