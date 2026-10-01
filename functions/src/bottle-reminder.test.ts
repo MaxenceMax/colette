@@ -199,7 +199,7 @@ describe('bottleReminder', () => {
     expect(updates).toEqual([{ household: 'ABC123', data: { lastBottleNotifiedFor: plan.nextBottleAt } }]);
   });
 
-  it('sans fourchette (ancienne app) : ancienne formulation', async () => {
+  it('sans fourchette : rappel 10 min avant', async () => {
     households.push({ id: 'ABC123', fields: { feedingPlan: duePlan() }, devices: [{ id: 'd1' }] });
 
     await handler();

@@ -12,7 +12,7 @@ export function selectBottleRecipients(devices: Device[]): Device[] {
   return devices.filter((d) => d.notifyBottleReminder !== false);
 }
 
-/** Texte du rappel : fourchette si le snapshot en porte une, sinon ancienne formulation. */
+/** Texte du rappel : « possible dès maintenant » si le snapshot porte une fourchette (ancienne version de l'app), sinon rappel 10 min avant. */
 export function bottleMessage(suggestedMl: number, nextBottleAt: Date, windowEndAt: Date | null) {
   return windowEndAt
     ? { title: 'Biberon possible dès maintenant', body: `Environ ${suggestedMl} ml, d'ici ${formatHourMinute(windowEndAt)}` }
