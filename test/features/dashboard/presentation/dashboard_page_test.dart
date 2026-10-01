@@ -287,11 +287,10 @@ void main() {
       overrides: overridesFor(MockEventsRepository(), noBottle: true),
     );
     expect(find.textContaining('depuis le dernier biberon'), findsNothing);
+    expect(find.text('maintenant'), findsOneWidget);
   });
 
-  testWidgets('avant l\'heure prévue, la carte affiche l\'heure', (
-    tester,
-  ) async {
+  testWidgets('l\'heure prévue s\'affiche à la minute près', (tester) async {
     await pumpApp(
       tester,
       const DashboardPage(),

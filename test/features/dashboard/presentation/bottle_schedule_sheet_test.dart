@@ -73,4 +73,13 @@ void main() {
     expect(find.text('maintenant'), findsNothing);
     expect(find.textContaining('en retard'), findsNothing);
   });
+
+  testWidgets(
+    'moins d\'une minute après l\'heure prévue : « maintenant », pas de retard',
+    (tester) async {
+      await pumpSheet(tester, [bottle(DateTime(2026, 9, 10, 21, 59, 30), 70)]);
+      expect(find.text('maintenant'), findsOneWidget);
+      expect(find.textContaining('en retard'), findsNothing);
+    },
+  );
 }

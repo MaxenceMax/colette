@@ -203,7 +203,7 @@ class _BottleRow extends StatelessWidget {
     if (late > Duration.zero) {
       return (s.nextBottleLate(formatDuration(late, s)), AppColors.warning);
     }
-    if (!now.isBefore(bottle.at)) return (s.nextBottleNow, AppColors.primary);
+    if (!now.isBefore(bottle.at)) return (s.nextBottleNow, AppColors.success);
     return null;
   }
 }
