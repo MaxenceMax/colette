@@ -159,7 +159,10 @@ describe('deadlinesOf', () => {
     const deadlines = deadlinesOf(plan);
 
     expect(deadlines.map((d) => d.key)).toEqual([plan.nextBottleAt, plan.morningBottleAt]);
-    expect(deadlines.every((d) => d.windowStartAt === null && d.windowEndAt === null)).toBe(true);
+    expect(deadlines.map((d) => [d.windowStartAt, d.windowEndAt])).toEqual([
+      [null, null],
+      [null, null],
+    ]);
   });
 
   it('garde les fourchettes du matin écrites par une ancienne version', () => {
@@ -337,6 +340,36 @@ describe('bottleReminder', () => {
     expect(payload.body).toBe(
       `Environ 120 ml, d'ici ${formatHourMinute(plan.morningWindowEndAt!.toDate())}`,
     );
+    expect(updates).toEqual([
+      { household: 'ABC123', data: { lastBottleNotifiedFor: plan.morningBottleAt } },
+    ]);
+  });
+
+  it('biberon manqué sans fourchette : rappel de secours 10 min avant le matin', async () => {
+    const morning = new Date(Date.now() + 5 * 60 * 1000);
+    const nextBottleAt = Timestamp.fromDate(new Date(morning.getTime() - 6 * 60 * 60 * 1000));
+    const plan: FeedingPlanDoc = {
+      nextBottleAt,
+      windowStartAt: null,
+      windowEndAt: null,
+      suggestedMl: 120,
+      computedAt: Timestamp.fromDate(new Date(nextBottleAt.toMillis() - 3 * 60 * 60 * 1000)),
+      morningBottleAt: Timestamp.fromDate(morning),
+      morningWindowStartAt: null,
+      morningWindowEndAt: null,
+    };
+    households.push({
+      id: 'ABC123',
+      fields: { feedingPlan: plan, lastBottleNotifiedFor: plan.nextBottleAt },
+      devices: [{ id: 'd1' }],
+    });
+
+    await handler();
+
+    expect(sendToDevices).toHaveBeenCalledTimes(1);
+    const [, , payload] = sendToDevices.mock.calls[0];
+    expect(payload.title).toBe('Biberon dans 10 min');
+    expect(payload.body).toBe(`Environ 120 ml, prévu vers ${formatHourMinute(morning)}`);
     expect(updates).toEqual([
       { household: 'ABC123', data: { lastBottleNotifiedFor: plan.morningBottleAt } },
     ]);
