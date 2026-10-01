@@ -42,65 +42,64 @@ void main() {
       code,
       FeedingPlanSnapshot(
         nextBottleAt: DateTime(2026, 9, 21, 14),
-        windowStartAt: DateTime(2026, 9, 21, 13, 35),
-        windowEndAt: DateTime(2026, 9, 21, 14, 25),
         suggestedMl: 120,
         computedAt: DateTime(2026, 9, 21, 11),
         morningBottleAt: DateTime(2026, 9, 22, 7),
-        morningWindowStartAt: DateTime(2026, 9, 22, 6, 30),
-        morningWindowEndAt: DateTime(2026, 9, 22, 7, 30),
       ),
     );
     final data = (await db.collection('households').doc(code).get()).data()!;
     final plan = data['feedingPlan'] as Map<String, dynamic>;
     expect(plan['suggestedMl'], 120);
     expect(
-      (plan['windowStartAt'] as Timestamp).toDate(),
-      DateTime(2026, 9, 21, 13, 35),
-    );
-    expect(
-      (plan['windowEndAt'] as Timestamp).toDate(),
-      DateTime(2026, 9, 21, 14, 25),
+      (plan['nextBottleAt'] as Timestamp).toDate(),
+      DateTime(2026, 9, 21, 14),
     );
     expect(
       (plan['morningBottleAt'] as Timestamp).toDate(),
       DateTime(2026, 9, 22, 7),
     );
-    expect(
-      (plan['morningWindowStartAt'] as Timestamp).toDate(),
-      DateTime(2026, 9, 22, 6, 30),
-    );
-    expect(
-      (plan['morningWindowEndAt'] as Timestamp).toDate(),
-      DateTime(2026, 9, 22, 7, 30),
-    );
     expect(data['baby'], isNotNull);
   });
 
-  test('saveFeedingPlan sans biberon du matin écrit des clés nulles', () async {
-    final db = FakeFirebaseFirestore();
-    final repo = FirestoreBabyRepository(db);
-    await repo.saveFeedingPlan(
-      code,
-      FeedingPlanSnapshot(
-        nextBottleAt: DateTime(2026, 9, 21, 14),
-        windowStartAt: DateTime(2026, 9, 21, 13, 35),
-        windowEndAt: DateTime(2026, 9, 21, 14, 25),
-        suggestedMl: 120,
-        computedAt: DateTime(2026, 9, 21, 11),
-      ),
-    );
-    final data = (await db.collection('households').doc(code).get()).data()!;
-    final plan = data['feedingPlan'] as Map<String, dynamic>;
-    for (final key in [
-      'morningBottleAt',
-      'morningWindowStartAt',
-      'morningWindowEndAt',
-    ]) {
-      expect(plan.containsKey(key), isTrue);
-      expect(plan[key], isNull);
-    }
-  });
+  test(
+    'saveFeedingPlan efface les fourchettes d\'une ancienne version',
+    () async {
+      final db = FakeFirebaseFirestore();
+      final repo = FirestoreBabyRepository(db);
+      await db.collection('households').doc(code).set({
+        'feedingPlan': {
+          'windowStartAt': Timestamp.fromDate(DateTime(2026, 9, 21, 13, 30)),
+          'windowEndAt': Timestamp.fromDate(DateTime(2026, 9, 21, 14, 30)),
+          'morningWindowStartAt': Timestamp.fromDate(
+            DateTime(2026, 9, 22, 6, 30),
+          ),
+          'morningWindowEndAt': Timestamp.fromDate(
+            DateTime(2026, 9, 22, 7, 30),
+          ),
+        },
+      });
+      await repo.saveFeedingPlan(
+        code,
+        FeedingPlanSnapshot(
+          nextBottleAt: DateTime(2026, 9, 21, 14),
+          suggestedMl: 120,
+          computedAt: DateTime(2026, 9, 21, 11),
+        ),
+      );
+      final data = (await db.collection('households').doc(code).get()).data()!;
+      final plan = data['feedingPlan'] as Map<String, dynamic>;
+      for (final key in [
+        'windowStartAt',
+        'windowEndAt',
+        'morningBottleAt',
+        'morningWindowStartAt',
+        'morningWindowEndAt',
+      ]) {
+        expect(plan.containsKey(key), isTrue, reason: key);
+        expect(plan[key], isNull, reason: key);
+      }
+    },
+  );
 
   test('saveProfile efface une cible ajustée retirée', () async {
     final repo = FirestoreBabyRepository(FakeFirebaseFirestore());

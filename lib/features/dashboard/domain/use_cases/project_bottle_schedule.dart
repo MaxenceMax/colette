@@ -33,24 +33,16 @@ class ProjectBottleSchedule {
     );
     final firstGiven = plan.nextBottleAt.isAfter(now) ? plan.nextBottleAt : now;
     final bottles = [
-      ProjectedBottle(
-        at: plan.nextBottleAt,
-        windowStart: plan.windowStart,
-        windowEnd: plan.windowEnd,
-        suggestedMl: plan.suggestedMl,
-      ),
+      ProjectedBottle(at: plan.nextBottleAt, suggestedMl: plan.suggestedMl),
     ];
     for (
       var at = schedule.nextAfter(firstGiven);
       at.isBefore(end);
       at = schedule.nextAfter(at)
     ) {
-      final (windowStart, windowEnd) = schedule.windowAround(at);
       bottles.add(
         ProjectedBottle(
           at: at,
-          windowStart: windowStart,
-          windowEnd: windowEnd,
           suggestedMl: at.dateOnly == now.dateOnly
               ? plan.suggestedMl
               : tomorrowMl,

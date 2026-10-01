@@ -15,9 +15,9 @@ T _$identity<T>(T value) => value;
 /// @nodoc
 mixin _$FeedingPlanSnapshot {
 
- DateTime get nextBottleAt; DateTime get windowStartAt; DateTime get windowEndAt; int get suggestedMl; DateTime get computedAt;/// Premier biberon du matin après [nextBottleAt] et sa fourchette : rappel
-/// de secours si aucun biberon n'est noté d'ici là ; `null` sans biberon.
- DateTime? get morningBottleAt; DateTime? get morningWindowStartAt; DateTime? get morningWindowEndAt;
+ DateTime get nextBottleAt; int get suggestedMl; DateTime get computedAt;/// Premier biberon du matin après [nextBottleAt] : rappel de secours si
+/// aucun biberon n'est noté d'ici là ; `null` sans biberon.
+ DateTime? get morningBottleAt;
 /// Create a copy of FeedingPlanSnapshot
 /// with the given fields replaced by the non-null parameter values.
 @JsonKey(includeFromJson: false, includeToJson: false)
@@ -29,20 +29,20 @@ $FeedingPlanSnapshotCopyWith<FeedingPlanSnapshot> get copyWith => _$FeedingPlanS
 @override
 bool operator ==(Object other) {
   final _this = this as FeedingPlanSnapshot;
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is FeedingPlanSnapshot&&(identical(other.nextBottleAt, _this.nextBottleAt) || other.nextBottleAt == _this.nextBottleAt)&&(identical(other.windowStartAt, _this.windowStartAt) || other.windowStartAt == _this.windowStartAt)&&(identical(other.windowEndAt, _this.windowEndAt) || other.windowEndAt == _this.windowEndAt)&&(identical(other.suggestedMl, _this.suggestedMl) || other.suggestedMl == _this.suggestedMl)&&(identical(other.computedAt, _this.computedAt) || other.computedAt == _this.computedAt)&&(identical(other.morningBottleAt, _this.morningBottleAt) || other.morningBottleAt == _this.morningBottleAt)&&(identical(other.morningWindowStartAt, _this.morningWindowStartAt) || other.morningWindowStartAt == _this.morningWindowStartAt)&&(identical(other.morningWindowEndAt, _this.morningWindowEndAt) || other.morningWindowEndAt == _this.morningWindowEndAt));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is FeedingPlanSnapshot&&(identical(other.nextBottleAt, _this.nextBottleAt) || other.nextBottleAt == _this.nextBottleAt)&&(identical(other.suggestedMl, _this.suggestedMl) || other.suggestedMl == _this.suggestedMl)&&(identical(other.computedAt, _this.computedAt) || other.computedAt == _this.computedAt)&&(identical(other.morningBottleAt, _this.morningBottleAt) || other.morningBottleAt == _this.morningBottleAt));
 }
 
 
 @override
 int get hashCode {
   final _this = this as FeedingPlanSnapshot;
-  return Object.hash(runtimeType,_this.nextBottleAt,_this.windowStartAt,_this.windowEndAt,_this.suggestedMl,_this.computedAt,_this.morningBottleAt,_this.morningWindowStartAt,_this.morningWindowEndAt);
+  return Object.hash(runtimeType,_this.nextBottleAt,_this.suggestedMl,_this.computedAt,_this.morningBottleAt);
 }
 
 @override
 String toString() {
   final _this = this as FeedingPlanSnapshot;
-  return 'FeedingPlanSnapshot(nextBottleAt: ${_this.nextBottleAt}, windowStartAt: ${_this.windowStartAt}, windowEndAt: ${_this.windowEndAt}, suggestedMl: ${_this.suggestedMl}, computedAt: ${_this.computedAt}, morningBottleAt: ${_this.morningBottleAt}, morningWindowStartAt: ${_this.morningWindowStartAt}, morningWindowEndAt: ${_this.morningWindowEndAt})';
+  return 'FeedingPlanSnapshot(nextBottleAt: ${_this.nextBottleAt}, suggestedMl: ${_this.suggestedMl}, computedAt: ${_this.computedAt}, morningBottleAt: ${_this.morningBottleAt})';
 }
 
 
@@ -53,7 +53,7 @@ abstract mixin class $FeedingPlanSnapshotCopyWith<$Res>  {
   factory $FeedingPlanSnapshotCopyWith(FeedingPlanSnapshot value, $Res Function(FeedingPlanSnapshot) _then) = _$FeedingPlanSnapshotCopyWithImpl;
 @useResult
 $Res call({
- DateTime nextBottleAt, DateTime windowStartAt, DateTime windowEndAt, int suggestedMl, DateTime computedAt, DateTime? morningBottleAt, DateTime? morningWindowStartAt, DateTime? morningWindowEndAt
+ DateTime nextBottleAt, int suggestedMl, DateTime computedAt, DateTime? morningBottleAt
 });
 
 
@@ -70,16 +70,12 @@ class _$FeedingPlanSnapshotCopyWithImpl<$Res>
 
 /// Create a copy of FeedingPlanSnapshot
 /// with the given fields replaced by the non-null parameter values.
-@pragma('vm:prefer-inline') @override $Res call({Object? nextBottleAt = null,Object? windowStartAt = null,Object? windowEndAt = null,Object? suggestedMl = null,Object? computedAt = null,Object? morningBottleAt = freezed,Object? morningWindowStartAt = freezed,Object? morningWindowEndAt = freezed,}) {
+@pragma('vm:prefer-inline') @override $Res call({Object? nextBottleAt = null,Object? suggestedMl = null,Object? computedAt = null,Object? morningBottleAt = freezed,}) {
   return _then(FeedingPlanSnapshot(
 nextBottleAt: null == nextBottleAt ? _self.nextBottleAt : nextBottleAt // ignore: cast_nullable_to_non_nullable
-as DateTime,windowStartAt: null == windowStartAt ? _self.windowStartAt : windowStartAt // ignore: cast_nullable_to_non_nullable
-as DateTime,windowEndAt: null == windowEndAt ? _self.windowEndAt : windowEndAt // ignore: cast_nullable_to_non_nullable
 as DateTime,suggestedMl: null == suggestedMl ? _self.suggestedMl : suggestedMl // ignore: cast_nullable_to_non_nullable
 as int,computedAt: null == computedAt ? _self.computedAt : computedAt // ignore: cast_nullable_to_non_nullable
 as DateTime,morningBottleAt: freezed == morningBottleAt ? _self.morningBottleAt : morningBottleAt // ignore: cast_nullable_to_non_nullable
-as DateTime?,morningWindowStartAt: freezed == morningWindowStartAt ? _self.morningWindowStartAt : morningWindowStartAt // ignore: cast_nullable_to_non_nullable
-as DateTime?,morningWindowEndAt: freezed == morningWindowEndAt ? _self.morningWindowEndAt : morningWindowEndAt // ignore: cast_nullable_to_non_nullable
 as DateTime?,
   ));
 }
@@ -165,10 +161,10 @@ return $default(_that);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( DateTime nextBottleAt,  DateTime windowStartAt,  DateTime windowEndAt,  int suggestedMl,  DateTime computedAt,  DateTime? morningBottleAt,  DateTime? morningWindowStartAt,  DateTime? morningWindowEndAt)?  $default,{required TResult orElse(),}) {final _that = this;
+@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( DateTime nextBottleAt,  int suggestedMl,  DateTime computedAt,  DateTime? morningBottleAt)?  $default,{required TResult orElse(),}) {final _that = this;
 switch (_that) {
 case _FeedingPlanSnapshot() when $default != null:
-return $default(_that.nextBottleAt,_that.windowStartAt,_that.windowEndAt,_that.suggestedMl,_that.computedAt,_that.morningBottleAt,_that.morningWindowStartAt,_that.morningWindowEndAt);case _:
+return $default(_that.nextBottleAt,_that.suggestedMl,_that.computedAt,_that.morningBottleAt);case _:
   return orElse();
 
 }
@@ -186,10 +182,10 @@ return $default(_that.nextBottleAt,_that.windowStartAt,_that.windowEndAt,_that.s
 /// }
 /// ```
 
-@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( DateTime nextBottleAt,  DateTime windowStartAt,  DateTime windowEndAt,  int suggestedMl,  DateTime computedAt,  DateTime? morningBottleAt,  DateTime? morningWindowStartAt,  DateTime? morningWindowEndAt)  $default,) {final _that = this;
+@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( DateTime nextBottleAt,  int suggestedMl,  DateTime computedAt,  DateTime? morningBottleAt)  $default,) {final _that = this;
 switch (_that) {
 case _FeedingPlanSnapshot():
-return $default(_that.nextBottleAt,_that.windowStartAt,_that.windowEndAt,_that.suggestedMl,_that.computedAt,_that.morningBottleAt,_that.morningWindowStartAt,_that.morningWindowEndAt);case _:
+return $default(_that.nextBottleAt,_that.suggestedMl,_that.computedAt,_that.morningBottleAt);case _:
   throw StateError('Unexpected subclass');
 
 }
@@ -206,10 +202,10 @@ return $default(_that.nextBottleAt,_that.windowStartAt,_that.windowEndAt,_that.s
 /// }
 /// ```
 
-@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( DateTime nextBottleAt,  DateTime windowStartAt,  DateTime windowEndAt,  int suggestedMl,  DateTime computedAt,  DateTime? morningBottleAt,  DateTime? morningWindowStartAt,  DateTime? morningWindowEndAt)?  $default,) {final _that = this;
+@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( DateTime nextBottleAt,  int suggestedMl,  DateTime computedAt,  DateTime? morningBottleAt)?  $default,) {final _that = this;
 switch (_that) {
 case _FeedingPlanSnapshot() when $default != null:
-return $default(_that.nextBottleAt,_that.windowStartAt,_that.windowEndAt,_that.suggestedMl,_that.computedAt,_that.morningBottleAt,_that.morningWindowStartAt,_that.morningWindowEndAt);case _:
+return $default(_that.nextBottleAt,_that.suggestedMl,_that.computedAt,_that.morningBottleAt);case _:
   return null;
 
 }
@@ -221,19 +217,15 @@ return $default(_that.nextBottleAt,_that.windowStartAt,_that.windowEndAt,_that.s
 
 
 class _FeedingPlanSnapshot implements FeedingPlanSnapshot {
-  const _FeedingPlanSnapshot({required this.nextBottleAt, required this.windowStartAt, required this.windowEndAt, required this.suggestedMl, required this.computedAt, this.morningBottleAt, this.morningWindowStartAt, this.morningWindowEndAt});
+  const _FeedingPlanSnapshot({required this.nextBottleAt, required this.suggestedMl, required this.computedAt, this.morningBottleAt});
   
 
 @override final  DateTime nextBottleAt;
-@override final  DateTime windowStartAt;
-@override final  DateTime windowEndAt;
 @override final  int suggestedMl;
 @override final  DateTime computedAt;
-/// Premier biberon du matin après [nextBottleAt] et sa fourchette : rappel
-/// de secours si aucun biberon n'est noté d'ici là ; `null` sans biberon.
+/// Premier biberon du matin après [nextBottleAt] : rappel de secours si
+/// aucun biberon n'est noté d'ici là ; `null` sans biberon.
 @override final  DateTime? morningBottleAt;
-@override final  DateTime? morningWindowStartAt;
-@override final  DateTime? morningWindowEndAt;
 
 /// Create a copy of FeedingPlanSnapshot
 /// with the given fields replaced by the non-null parameter values.
@@ -245,18 +237,18 @@ _$FeedingPlanSnapshotCopyWith<_FeedingPlanSnapshot> get copyWith => __$FeedingPl
 
 @override
 bool operator ==(Object other) {
-    return identical(this, other) || (other.runtimeType == runtimeType&&other is _FeedingPlanSnapshot&&(identical(other.nextBottleAt, nextBottleAt) || other.nextBottleAt == nextBottleAt)&&(identical(other.windowStartAt, windowStartAt) || other.windowStartAt == windowStartAt)&&(identical(other.windowEndAt, windowEndAt) || other.windowEndAt == windowEndAt)&&(identical(other.suggestedMl, suggestedMl) || other.suggestedMl == suggestedMl)&&(identical(other.computedAt, computedAt) || other.computedAt == computedAt)&&(identical(other.morningBottleAt, morningBottleAt) || other.morningBottleAt == morningBottleAt)&&(identical(other.morningWindowStartAt, morningWindowStartAt) || other.morningWindowStartAt == morningWindowStartAt)&&(identical(other.morningWindowEndAt, morningWindowEndAt) || other.morningWindowEndAt == morningWindowEndAt));
+    return identical(this, other) || (other.runtimeType == runtimeType&&other is _FeedingPlanSnapshot&&(identical(other.nextBottleAt, nextBottleAt) || other.nextBottleAt == nextBottleAt)&&(identical(other.suggestedMl, suggestedMl) || other.suggestedMl == suggestedMl)&&(identical(other.computedAt, computedAt) || other.computedAt == computedAt)&&(identical(other.morningBottleAt, morningBottleAt) || other.morningBottleAt == morningBottleAt));
 }
 
 
 @override
 int get hashCode {
-    return Object.hash(runtimeType,nextBottleAt,windowStartAt,windowEndAt,suggestedMl,computedAt,morningBottleAt,morningWindowStartAt,morningWindowEndAt);
+    return Object.hash(runtimeType,nextBottleAt,suggestedMl,computedAt,morningBottleAt);
 }
 
 @override
 String toString() {
-    return 'FeedingPlanSnapshot(nextBottleAt: $nextBottleAt, windowStartAt: $windowStartAt, windowEndAt: $windowEndAt, suggestedMl: $suggestedMl, computedAt: $computedAt, morningBottleAt: $morningBottleAt, morningWindowStartAt: $morningWindowStartAt, morningWindowEndAt: $morningWindowEndAt)';
+    return 'FeedingPlanSnapshot(nextBottleAt: $nextBottleAt, suggestedMl: $suggestedMl, computedAt: $computedAt, morningBottleAt: $morningBottleAt)';
 }
 
 
@@ -267,7 +259,7 @@ abstract mixin class _$FeedingPlanSnapshotCopyWith<$Res> implements $FeedingPlan
   factory _$FeedingPlanSnapshotCopyWith(_FeedingPlanSnapshot value, $Res Function(_FeedingPlanSnapshot) _then) = __$FeedingPlanSnapshotCopyWithImpl;
 @override @useResult
 $Res call({
- DateTime nextBottleAt, DateTime windowStartAt, DateTime windowEndAt, int suggestedMl, DateTime computedAt, DateTime? morningBottleAt, DateTime? morningWindowStartAt, DateTime? morningWindowEndAt
+ DateTime nextBottleAt, int suggestedMl, DateTime computedAt, DateTime? morningBottleAt
 });
 
 
@@ -284,16 +276,12 @@ class __$FeedingPlanSnapshotCopyWithImpl<$Res>
 
 /// Create a copy of FeedingPlanSnapshot
 /// with the given fields replaced by the non-null parameter values.
-@override @pragma('vm:prefer-inline') $Res call({Object? nextBottleAt = null,Object? windowStartAt = null,Object? windowEndAt = null,Object? suggestedMl = null,Object? computedAt = null,Object? morningBottleAt = freezed,Object? morningWindowStartAt = freezed,Object? morningWindowEndAt = freezed,}) {
+@override @pragma('vm:prefer-inline') $Res call({Object? nextBottleAt = null,Object? suggestedMl = null,Object? computedAt = null,Object? morningBottleAt = freezed,}) {
   return _then(_FeedingPlanSnapshot(
 nextBottleAt: null == nextBottleAt ? _self.nextBottleAt : nextBottleAt // ignore: cast_nullable_to_non_nullable
-as DateTime,windowStartAt: null == windowStartAt ? _self.windowStartAt : windowStartAt // ignore: cast_nullable_to_non_nullable
-as DateTime,windowEndAt: null == windowEndAt ? _self.windowEndAt : windowEndAt // ignore: cast_nullable_to_non_nullable
 as DateTime,suggestedMl: null == suggestedMl ? _self.suggestedMl : suggestedMl // ignore: cast_nullable_to_non_nullable
 as int,computedAt: null == computedAt ? _self.computedAt : computedAt // ignore: cast_nullable_to_non_nullable
 as DateTime,morningBottleAt: freezed == morningBottleAt ? _self.morningBottleAt : morningBottleAt // ignore: cast_nullable_to_non_nullable
-as DateTime?,morningWindowStartAt: freezed == morningWindowStartAt ? _self.morningWindowStartAt : morningWindowStartAt // ignore: cast_nullable_to_non_nullable
-as DateTime?,morningWindowEndAt: freezed == morningWindowEndAt ? _self.morningWindowEndAt : morningWindowEndAt // ignore: cast_nullable_to_non_nullable
 as DateTime?,
   ));
 }

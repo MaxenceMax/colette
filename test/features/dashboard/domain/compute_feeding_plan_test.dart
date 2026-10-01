@@ -136,7 +136,7 @@ void main() {
     expect(plan.suggestedMl, 70);
   });
 
-  test('le retard est compté depuis la fin de la fourchette', () {
+  test('le retard est compté depuis l\'heure prévue', () {
     // 6 h est un biberon de nuit : matin 7 h, mais 6 h + 3 h = 9 h plus tard.
     final last = makeEvent(
       id: 'a',
@@ -152,97 +152,28 @@ void main() {
       now: DateTime(2026, 9, 10, 10),
     );
     expect(plan.nextBottleAt, DateTime(2026, 9, 10, 9));
-    expect(plan.windowEnd, DateTime(2026, 9, 10, 9, 30));
-    expect(plan.hasWindow, isTrue);
-    expect(plan.lateBy(DateTime(2026, 9, 10, 9, 30)), Duration.zero);
+    expect(plan.lateBy(DateTime(2026, 9, 10, 9)), Duration.zero);
+    expect(
+      plan.lateBy(DateTime(2026, 9, 10, 9, 30)),
+      const Duration(minutes: 30),
+    );
     expect(
       plan.lateBy(DateTime(2026, 9, 10, 10, 5)),
-      const Duration(minutes: 35),
+      const Duration(hours: 1, minutes: 5),
     );
   });
 
-  group('fourchette', () {
-    (DateTime, DateTime) windowFor(DateTime last) {
-      final bottle = makeEvent(id: 'a', startAt: last, bottleMl: 60);
-      final plan = compute(
-        birthDate: birth,
-        latestWeightGrams: 3600,
-        schedule: schedule,
-        todayBottles: [bottle],
-        lastBottle: bottle,
-        now: last,
-      );
-      return (plan.windowStart, plan.windowEnd);
-    }
-
-    test('de 30 min avant à 30 min après l\'heure prévue', () {
-      expect(windowFor(DateTime(2026, 9, 10, 10)), (
-        DateTime(2026, 9, 10, 12, 30),
-        DateTime(2026, 9, 10, 13, 30),
-      ));
-    });
-
-    test('biberon de 22 h : fourchette du soir autour de 23 h 30', () {
-      expect(windowFor(DateTime(2026, 9, 10, 22)), (
-        DateTime(2026, 9, 10, 23),
-        DateTime(2026, 9, 11, 0),
-      ));
-    });
-
-    test('biberon du soir : fourchette du matin, 6 h 30 – 7 h 30', () {
-      expect(windowFor(DateTime(2026, 9, 10, 23, 10)), (
-        DateTime(2026, 9, 11, 6, 30),
-        DateTime(2026, 9, 11, 7, 30),
-      ));
-    });
-
-    test('ouverte 30 min avant l\'heure prévue, fermée 30 min après', () {
-      final last = makeEvent(
-        id: 'a',
-        startAt: DateTime(2026, 9, 10, 10),
-        bottleMl: 60,
-      );
-      FeedingPlan at(DateTime now) => compute(
-        birthDate: birth,
-        latestWeightGrams: 3600,
-        schedule: schedule,
-        todayBottles: [last],
-        lastBottle: last,
-        now: now,
-      );
-      expect(
-        at(DateTime(2026, 9, 10, 12, 29)).isOpen(DateTime(2026, 9, 10, 12, 29)),
-        isFalse,
-      );
-      expect(
-        at(DateTime(2026, 9, 10, 12, 30)).isOpen(DateTime(2026, 9, 10, 12, 30)),
-        isTrue,
-      );
-      expect(
-        at(DateTime(2026, 9, 10, 13, 30)).isOpen(DateTime(2026, 9, 10, 13, 30)),
-        isTrue,
-      );
-      expect(
-        at(DateTime(2026, 9, 10, 13, 31)).isOpen(DateTime(2026, 9, 10, 13, 31)),
-        isFalse,
-      );
-    });
-
-    test('sans biberon : fourchette réduite à maintenant', () {
-      final now = DateTime(2026, 9, 10, 12, 3);
-      final plan = compute(
-        birthDate: birth,
-        latestWeightGrams: 3600,
-        schedule: schedule,
-        todayBottles: const [],
-        lastBottle: null,
-        now: now,
-      );
-      expect(plan.windowStart, now);
-      expect(plan.windowEnd, now);
-      expect(plan.hasWindow, isFalse);
-      expect(plan.isOpen(now), isFalse);
-    });
+  test('latenessAt ignore un dépassement de moins d\'une minute', () {
+    final at = DateTime(2026, 9, 10, 9, 0, 23);
+    expect(FeedingPlan.latenessAt(at, DateTime(2026, 9, 10, 9)), Duration.zero);
+    expect(
+      FeedingPlan.latenessAt(at, DateTime(2026, 9, 10, 9, 1)),
+      Duration.zero,
+    );
+    expect(
+      FeedingPlan.latenessAt(at, DateTime(2026, 9, 10, 9, 2)),
+      const Duration(minutes: 1, seconds: 37),
+    );
   });
 
   test('la suggestion est bornée entre 30 et 240 ml', () {
@@ -401,23 +332,21 @@ void main() {
       final now = DateTime(2026, 9, 11, 0, 5);
       final plan = planAt(DateTime(2026, 9, 10, 22), now);
       expect(plan.nextBottleAt, DateTime(2026, 9, 11, 7));
-      expect(plan.windowStart, DateTime(2026, 9, 11, 6, 30));
-      expect(plan.windowEnd, DateTime(2026, 9, 11, 7, 30));
       expect(plan.lateBy(now), Duration.zero);
     });
 
-    test('toujours rien à 8 h : en retard depuis 7 h 30', () {
+    test('toujours rien à 8 h : en retard depuis 7 h', () {
       final now = DateTime(2026, 9, 11, 8);
       final plan = planAt(DateTime(2026, 9, 10, 22), now);
       expect(plan.nextBottleAt, DateTime(2026, 9, 11, 7));
-      expect(plan.lateBy(now), const Duration(minutes: 30));
+      expect(plan.lateBy(now), const Duration(hours: 1));
     });
 
     test('biberon de journée manqué : en retard l\'après-midi', () {
       final now = DateTime(2026, 9, 10, 15);
       final plan = planAt(DateTime(2026, 9, 10, 10), now);
       expect(plan.nextBottleAt, DateTime(2026, 9, 10, 13));
-      expect(plan.lateBy(now), const Duration(hours: 1, minutes: 30));
+      expect(plan.lateBy(now), const Duration(hours: 2));
     });
   });
 }

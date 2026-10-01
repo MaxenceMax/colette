@@ -4,7 +4,7 @@ import 'package:freezed_annotation/freezed_annotation.dart';
 
 part 'feeding_plan.freezed.dart';
 
-/// Plan biberons du jour : cible, progression, fourchette du prochain biberon.
+/// Plan biberons du jour : cible, progression, heure du prochain biberon.
 @freezed
 abstract class FeedingPlan with _$FeedingPlan {
   const FeedingPlan._();
@@ -20,14 +20,8 @@ abstract class FeedingPlan with _$FeedingPlan {
     required bool isTargetOverridden,
     required int feedsPerDay,
 
-    /// Heure centrale du prochain biberon.
+    /// Heure prévue du prochain biberon ; `now` sans biberon enregistré.
     required DateTime nextBottleAt,
-
-    /// Début de la fourchette du prochain biberon.
-    required DateTime windowStart,
-
-    /// Fin de la fourchette ; égale au début sans biberon enregistré.
-    required DateTime windowEnd,
     required int suggestedMl,
     required int bottlesGiven,
     required int givenMl,
@@ -38,14 +32,13 @@ abstract class FeedingPlan with _$FeedingPlan {
 
   int get remainingMl => max(0, dailyTargetMl - givenMl);
 
-  /// Vrai si la fourchette a une largeur (au moins un biberon enregistré).
-  bool get hasWindow => windowStart.isBefore(windowEnd);
+  /// Retard sur l'heure prévue du prochain biberon, ou zéro.
+  Duration lateBy(DateTime now) => latenessAt(nextBottleAt, now);
 
-  /// Vrai quand `now` est dans la fourchette : un biberon peut être donné.
-  bool isOpen(DateTime now) =>
-      hasWindow && !now.isBefore(windowStart) && !now.isAfter(windowEnd);
-
-  /// Retard compté depuis la fin de la fourchette, ou zéro.
-  Duration lateBy(DateTime now) =>
-      now.isAfter(windowEnd) ? now.difference(windowEnd) : Duration.zero;
+  /// Retard de [now] sur [at] ; zéro sous une minute, pour ne pas afficher
+  /// « en retard de 0 min » quand l'heure prévue porte des secondes.
+  static Duration latenessAt(DateTime at, DateTime now) {
+    final late = now.difference(at);
+    return late >= const Duration(minutes: 1) ? late : Duration.zero;
+  }
 }

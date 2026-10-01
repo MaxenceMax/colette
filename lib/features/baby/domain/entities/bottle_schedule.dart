@@ -18,8 +18,10 @@ abstract class BottleSchedule with _$BottleSchedule {
     @Default(Duration(hours: 3)) Duration interval,
   }) = _BottleSchedule;
 
-  /// Demi-largeur de la fourchette autour de l'heure prévue.
-  static const halfWindow = Duration(minutes: 30);
+  /// Marge de classement, jamais affichée : un biberon donné jusqu'à 30 min
+  /// avant le premier du matin compte comme celui-ci, à moins de 30 min du
+  /// soir comme celui du soir ; un biberon manqué reste dû 30 min.
+  static const margin = Duration(minutes: 30);
 
   /// Heure prévue du biberon qui suit celui donné à [last].
   ///
@@ -35,8 +37,8 @@ abstract class BottleSchedule with _$BottleSchedule {
     final morning = _at(day, firstBottle);
     final evening = _at(day, lastBottle);
     final isDaytime =
-        !last.isBefore(morning.subtract(halfWindow)) &&
-        last.isBefore(evening.subtract(halfWindow));
+        !last.isBefore(morning.subtract(margin)) &&
+        last.isBefore(evening.subtract(margin));
     if (isDaytime && !planned.isAfter(evening)) return planned;
     // Assez loin du biberon du soir : rabattu dessus ; sinon il en tient lieu.
     if (isDaytime && evening.difference(last) >= interval ~/ 2) return evening;
@@ -54,28 +56,24 @@ abstract class BottleSchedule with _$BottleSchedule {
   }
 
   /// Premier biberon de la journée en cours à [now] : celui du jour, puis
-  /// celui du lendemain dès l'ouverture de la fourchette du soir.
+  /// celui du lendemain dès 30 min avant le biberon du soir.
   DateTime upcomingMorning(DateTime now) {
     final day = DateTime(now.year, now.month, now.day);
-    final eveningStart = _at(day, lastBottle).subtract(halfWindow);
+    final eveningStart = _at(day, lastBottle).subtract(margin);
     return now.isBefore(eveningStart)
         ? _at(day, firstBottle)
         : _at(DateTime(day.year, day.month, day.day + 1), firstBottle);
   }
 
   /// Biberon attendu à [now] après un biberon donné à [last] : [nextAfter],
-  /// ou, une fois sa fourchette finie et la soirée entamée ou passée, le premier biberon
-  /// du matin, pour ne pas compter de retard la nuit.
+  /// ou, une fois passées 30 min de retard et la soirée entamée ou passée, le
+  /// premier biberon du matin, pour ne pas compter de retard la nuit.
   DateTime nextDue(DateTime last, DateTime now) {
     final next = nextAfter(last);
-    if (!now.isAfter(next.add(halfWindow))) return next;
+    if (!now.isAfter(next.add(margin))) return next;
     final morning = upcomingMorning(now);
     return morning.isAfter(next) ? morning : next;
   }
-
-  /// Fourchette de 30 min avant à 30 min après [at].
-  (DateTime, DateTime) windowAround(DateTime at) =>
-      (at.subtract(halfWindow), at.add(halfWindow));
 
   /// Biberons de journée du premier au soir ; au moins 1. Le dernier créneau
   /// tient lieu de biberon du soir s'il en est à moins d'un demi-intervalle.

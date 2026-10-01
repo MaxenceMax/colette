@@ -12,11 +12,11 @@ type Input = {
 
 /**
  * Une seule fois par échéance (`nextBottleAt`).
- * Avec fourchette : dû de son ouverture à sa fermeture ; un plan calculé fourchette
- * déjà ouverte (aucun biberon encore enregistré, ou dernier biberon trop ancien)
- * ne déclenche rien : le parent sait déjà.
- * Sans fourchette (snapshot d'une ancienne version de l'app) : dû entre 10 min avant
- * l'échéance et 15 min après ; un plan calculé à ou après son échéance ne déclenche rien.
+ * Sans fourchette (app actuelle) : dû entre 10 min avant l'échéance et 15 min après ;
+ * un plan calculé à ou après son échéance ne déclenche rien.
+ * Avec fourchette (snapshot d'une ancienne version de l'app) : dû de son ouverture à sa
+ * fermeture ; un plan calculé fourchette déjà ouverte (aucun biberon encore enregistré,
+ * ou dernier biberon trop ancien) ne déclenche rien : le parent sait déjà.
  */
 export function isReminderDue({
   nextBottleAt,
