@@ -16,7 +16,7 @@ import '../../../helpers/care_event_factory.dart';
 import '../../../helpers/in_memory_household_local_store.dart';
 
 void main() {
-  test('sync écrit nextBottleAt = dernier biberon + 3 h, sa fourchette et la suggestion', () async {
+  test('sync écrit nextBottleAt = dernier biberon + 3 h, la suggestion et le matin, sans fourchette', () async {
     final db = FakeFirebaseFirestore();
     final now = DateTime(2026, 9, 10, 12);
     final container = ProviderContainer(
@@ -63,6 +63,7 @@ void main() {
       'morningWindowStartAt',
       'morningWindowEndAt',
     ]) {
+      expect(plan.containsKey(key), isTrue, reason: key);
       expect(plan[key], isNull, reason: key);
     }
   });
