@@ -45,7 +45,13 @@ abstract class FeedingPlan with _$FeedingPlan {
   bool isOpen(DateTime now) =>
       hasWindow && !now.isBefore(windowStart) && !now.isAfter(windowEnd);
 
-  /// Retard compté depuis la fin de la fourchette, ou zéro.
-  Duration lateBy(DateTime now) =>
-      now.isAfter(windowEnd) ? now.difference(windowEnd) : Duration.zero;
+  /// Retard sur l'heure prévue du prochain biberon, ou zéro.
+  Duration lateBy(DateTime now) => latenessAt(nextBottleAt, now);
+
+  /// Retard de [now] sur [at] ; zéro sous une minute, pour ne pas afficher
+  /// « en retard de 0 min » quand l'heure prévue porte des secondes.
+  static Duration latenessAt(DateTime at, DateTime now) {
+    final late = now.difference(at);
+    return late >= const Duration(minutes: 1) ? late : Duration.zero;
+  }
 }

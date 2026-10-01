@@ -119,9 +119,9 @@ void main() {
 
       expect(find.text('Colette a 9 jours'), findsOneWidget);
       expect(find.text('Prochain biberon'), findsOneWidget);
-      // (540 − 60) / 6 = 80 ; dernier biberon à 9 h : prochain à 12 h, 11 h 30 – 12 h 30.
+      // (540 − 60) / 6 = 80 ; dernier biberon à 9 h : prochain à 12 h, soit maintenant.
       expect(find.text('80 ml'), findsOneWidget);
-      expect(find.text('Go pour un biberon, jusqu\'à 12h30'), findsOneWidget);
+      expect(find.text('maintenant'), findsOneWidget);
       expect(find.text('3 h depuis le dernier biberon'), findsOneWidget);
       expect(find.text('fait à 09h00'), findsOneWidget);
       expect(
@@ -242,9 +242,7 @@ void main() {
     },
   );
 
-  testWidgets('avant la fourchette, la carte affiche ses bornes', (
-    tester,
-  ) async {
+  testWidgets('avant l\'heure prévue, la carte l\'affiche', (tester) async {
     await pumpApp(
       tester,
       const DashboardPage(),
@@ -257,11 +255,11 @@ void main() {
         ),
       ),
     );
-    expect(find.text('entre 13h30 et 14h30'), findsOneWidget);
+    expect(find.text('à 14h00'), findsOneWidget);
     expect(find.textContaining('demain'), findsNothing);
   });
 
-  testWidgets('le matin du lendemain, la fourchette est annoncée « demain »', (
+  testWidgets('le premier biberon du lendemain est annoncé « demain »', (
     tester,
   ) async {
     await pumpApp(
@@ -277,7 +275,7 @@ void main() {
         ),
       ),
     );
-    expect(find.text('demain entre 06h30 et 07h30'), findsOneWidget);
+    expect(find.text('demain à 07h00'), findsOneWidget);
   });
 
   testWidgets('sans biberon connu, la carte ne montre pas de délai', (
@@ -291,7 +289,9 @@ void main() {
     expect(find.textContaining('depuis le dernier biberon'), findsNothing);
   });
 
-  testWidgets('dans la fourchette, la carte affiche sa fin', (tester) async {
+  testWidgets('avant l\'heure prévue, la carte affiche l\'heure', (
+    tester,
+  ) async {
     await pumpApp(
       tester,
       const DashboardPage(),
@@ -304,11 +304,11 @@ void main() {
         ),
       ),
     );
-    expect(find.text('Go pour un biberon, jusqu\'à 12h40'), findsOneWidget);
+    expect(find.text('à 12h10'), findsOneWidget);
     expect(find.text('2 h 50 depuis le dernier biberon'), findsOneWidget);
   });
 
-  testWidgets('après la fourchette, la carte affiche le retard', (
+  testWidgets('après l\'heure prévue, la carte affiche le retard', (
     tester,
   ) async {
     await pumpApp(
@@ -323,9 +323,8 @@ void main() {
         ),
       ),
     );
-    // 6 h 25 est un biberon de nuit : prochain à 9 h 25, fourchette jusqu'à 9 h 55,
-    // soit 2 h 05 de retard à midi.
-    expect(find.text('en retard de 2 h 05'), findsOneWidget);
+    // 6 h 25 est un biberon de nuit : prochain à 9 h 25, soit 2 h 35 de retard à midi.
+    expect(find.text('en retard de 2 h 35'), findsOneWidget);
     expect(find.text('5 h 35 depuis le dernier biberon'), findsOneWidget);
   });
 

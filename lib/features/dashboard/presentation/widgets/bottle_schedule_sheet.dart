@@ -4,6 +4,7 @@ import 'package:colette/core/dates/time_format.dart';
 import 'package:colette/core/theme/app_colors.dart';
 import 'package:colette/core/theme/design_tokens.dart';
 import 'package:colette/core/theme/text_styles.dart';
+import 'package:colette/features/dashboard/domain/entities/feeding_plan.dart';
 import 'package:colette/features/dashboard/domain/entities/projected_bottle.dart';
 import 'package:colette/features/dashboard/presentation/providers/dashboard_providers.dart';
 import 'package:colette/l10n/generated/app_localizations.dart';
@@ -137,7 +138,7 @@ class _DayHeader extends StatelessWidget {
   }
 }
 
-/// Ligne « fourchette … quantité » ; le prochain biberon est surligné.
+/// Ligne « heure … quantité » ; le prochain biberon est surligné.
 class _BottleRow extends StatelessWidget {
   const _BottleRow({
     required this.bottle,
@@ -170,10 +171,7 @@ class _BottleRow extends StatelessWidget {
               crossAxisAlignment: .start,
               children: [
                 Text(
-                  s.bottleScheduleRange(
-                    formatHourMinute(bottle.windowStart),
-                    formatHourMinute(bottle.windowEnd),
-                  ),
+                  formatHourMinute(bottle.at),
                   style: isNext ? styles.bodyMedium : styles.body,
                 ),
                 if (status case (final text, final color))
@@ -199,17 +197,13 @@ class _BottleRow extends StatelessWidget {
     );
   }
 
-  /// Mention du prochain biberon : en retard, en cours, ou rien s'il est à venir.
+  /// Mention du prochain biberon : en retard, à l'heure, ou rien s'il est à venir.
   (String, AppColors)? _status(S s) {
-    if (now.isAfter(bottle.windowEnd)) {
-      return (
-        s.nextBottleLate(formatDuration(now.difference(bottle.windowEnd), s)),
-        AppColors.warning,
-      );
+    final late = FeedingPlan.latenessAt(bottle.at, now);
+    if (late > Duration.zero) {
+      return (s.nextBottleLate(formatDuration(late, s)), AppColors.warning);
     }
-    if (!now.isBefore(bottle.windowStart)) {
-      return (s.nextBottleNow, AppColors.primary);
-    }
+    if (!now.isBefore(bottle.at)) return (s.nextBottleNow, AppColors.primary);
     return null;
   }
 }

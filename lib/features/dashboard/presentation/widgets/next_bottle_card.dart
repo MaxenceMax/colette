@@ -16,7 +16,7 @@ import 'package:colette/shared/ui/widgets/colette_card_surface.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-/// Carte « Prochain biberon » : quantité suggérée, fourchette, progression du jour.
+/// Carte « Prochain biberon » : quantité suggérée, heure prévue, progression du jour.
 class NextBottleCard extends ConsumerWidget {
   const NextBottleCard({super.key});
 
@@ -158,37 +158,24 @@ class _WhenText extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final s = S.of(context);
-    final styles = Theme.of(context).coletteTextStyles;
+    final at = plan.nextBottleAt;
     final late = plan.lateBy(now);
-    if (late > Duration.zero) {
-      return Text(
+    final (text, color) = switch (at) {
+      _ when late > Duration.zero => (
         s.nextBottleLate(formatDuration(late, s)),
-        style: styles.bodyMedium.copyWith(
-          color: context.appColor(AppColors.warning),
-        ),
-      );
-    }
-    final end = formatHourMinute(plan.windowEnd);
-    if (plan.isOpen(now)) {
-      return Text(
-        s.nextBottleGo(end),
-        style: styles.bodyMedium.copyWith(
-          color: context.appColor(AppColors.success),
-        ),
-      );
-    }
-    final start = formatHourMinute(plan.windowStart);
-    final text = switch (plan.hasWindow) {
-      false => s.nextBottleNow,
-      true when plan.windowStart.dateOnly.isAfter(now.dateOnly) =>
-        s.nextBottleWindowTomorrow(start, end),
-      true => s.nextBottleWindow(start, end),
+        AppColors.warning,
+      ),
+      _ when !now.isBefore(at) => (s.nextBottleNow, AppColors.success),
+      _ when at.dateOnly.isAfter(now.dateOnly) => (
+        s.nextBottleAtTimeTomorrow(formatHourMinute(at)),
+        AppColors.textSecondary,
+      ),
+      _ => (s.nextBottleAtTime(formatHourMinute(at)), AppColors.textSecondary),
     };
     return Text(
       text,
-      style: styles.bodyMedium.copyWith(
-        color: context.appColor(AppColors.textSecondary),
-      ),
+      style: Theme.of(context).coletteTextStyles.bodyMedium
+          .copyWith(color: context.appColor(color)),
     );
   }
 }

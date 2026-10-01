@@ -136,7 +136,7 @@ void main() {
     expect(plan.suggestedMl, 70);
   });
 
-  test('le retard est compté depuis la fin de la fourchette', () {
+  test('le retard est compté depuis l\'heure prévue', () {
     // 6 h est un biberon de nuit : matin 7 h, mais 6 h + 3 h = 9 h plus tard.
     final last = makeEvent(
       id: 'a',
@@ -152,12 +152,27 @@ void main() {
       now: DateTime(2026, 9, 10, 10),
     );
     expect(plan.nextBottleAt, DateTime(2026, 9, 10, 9));
-    expect(plan.windowEnd, DateTime(2026, 9, 10, 9, 30));
-    expect(plan.hasWindow, isTrue);
-    expect(plan.lateBy(DateTime(2026, 9, 10, 9, 30)), Duration.zero);
+    expect(plan.lateBy(DateTime(2026, 9, 10, 9)), Duration.zero);
+    expect(
+      plan.lateBy(DateTime(2026, 9, 10, 9, 30)),
+      const Duration(minutes: 30),
+    );
     expect(
       plan.lateBy(DateTime(2026, 9, 10, 10, 5)),
-      const Duration(minutes: 35),
+      const Duration(hours: 1, minutes: 5),
+    );
+  });
+
+  test('latenessAt ignore un dépassement de moins d\'une minute', () {
+    final at = DateTime(2026, 9, 10, 9, 0, 23);
+    expect(FeedingPlan.latenessAt(at, DateTime(2026, 9, 10, 9)), Duration.zero);
+    expect(
+      FeedingPlan.latenessAt(at, DateTime(2026, 9, 10, 9, 1)),
+      Duration.zero,
+    );
+    expect(
+      FeedingPlan.latenessAt(at, DateTime(2026, 9, 10, 9, 2)),
+      const Duration(minutes: 1, seconds: 37),
     );
   });
 
@@ -406,18 +421,18 @@ void main() {
       expect(plan.lateBy(now), Duration.zero);
     });
 
-    test('toujours rien à 8 h : en retard depuis 7 h 30', () {
+    test('toujours rien à 8 h : en retard depuis 7 h', () {
       final now = DateTime(2026, 9, 11, 8);
       final plan = planAt(DateTime(2026, 9, 10, 22), now);
       expect(plan.nextBottleAt, DateTime(2026, 9, 11, 7));
-      expect(plan.lateBy(now), const Duration(minutes: 30));
+      expect(plan.lateBy(now), const Duration(hours: 1));
     });
 
     test('biberon de journée manqué : en retard l\'après-midi', () {
       final now = DateTime(2026, 9, 10, 15);
       final plan = planAt(DateTime(2026, 9, 10, 10), now);
       expect(plan.nextBottleAt, DateTime(2026, 9, 10, 13));
-      expect(plan.lateBy(now), const Duration(hours: 1, minutes: 30));
+      expect(plan.lateBy(now), const Duration(hours: 2));
     });
   });
 }
