@@ -88,6 +88,10 @@ void main() {
       DateTime(2026, 9, 10, 16),
     );
     expect(upcoming[1]['suggestedMl'], 90);
+    expect(
+      (plan['upcomingComputedAt'] as Timestamp).toDate(),
+      DateTime(2026, 9, 10, 11),
+    );
   });
 
   test(

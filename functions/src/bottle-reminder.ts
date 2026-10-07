@@ -27,9 +27,19 @@ type Deadline = {
   suggestedMl: number;
 };
 
-/** Échéances à rappeler : chaque créneau de la grille, sinon (ancienne app) le prochain biberon puis le premier du matin en secours. */
+/** La grille est exploitable si la liste n'est pas vide et date du même calcul que le plan : sinon une ancienne app a réécrit le plan en laissant une liste périmée. */
+export function usesGrid(plan: FeedingPlanDoc): boolean {
+  return (
+    Boolean(plan.upcomingBottles?.length) &&
+    plan.upcomingComputedAt != null &&
+    plan.computedAt != null &&
+    plan.upcomingComputedAt.toMillis() === plan.computedAt.toMillis()
+  );
+}
+
+/** Échéances à rappeler : chaque créneau de la grille si elle est à jour, sinon (ancienne app ou liste périmée) le prochain biberon puis le premier du matin en secours. */
 export function deadlinesOf(plan: FeedingPlanDoc): Deadline[] {
-  if (plan.upcomingBottles && plan.upcomingBottles.length > 0) {
+  if (usesGrid(plan) && plan.upcomingBottles) {
     return [...plan.upcomingBottles]
       .sort((a, b) => a.at.toMillis() - b.at.toMillis())
       .map((b) => ({
@@ -74,7 +84,7 @@ export const bottleReminder = onSchedule({ schedule: 'every 5 minutes', timeZone
       const lastNotifiedFor = (doc.get('lastBottleNotifiedFor') as Timestamp | undefined)?.toDate() ?? null;
       const computedAt = plan.computedAt?.toDate() ?? null;
       // Avec la grille, on n'écarte que les créneaux antérieurs ou égaux au dernier rappelé.
-      const fromGrid = Boolean(plan.upcomingBottles?.length);
+      const fromGrid = usesGrid(plan);
       const deadline = deadlinesOf(plan)
         .filter((d) => !fromGrid || !lastNotifiedFor || d.nextBottleAt.getTime() > lastNotifiedFor.getTime())
         .find((d) =>

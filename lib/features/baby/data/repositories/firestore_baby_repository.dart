@@ -74,6 +74,9 @@ class FirestoreBabyRepository implements BabyRepository {
         'suggestedMl': snapshot.suggestedMl,
         'computedAt': Timestamp.fromDate(snapshot.computedAt),
         'morningBottleAt': _timestampOrNull(snapshot.morningBottleAt),
+        // Permet à la Cloud Function de détecter une liste laissée par une
+        // version plus récente quand une ancienne version a réécrit le plan.
+        'upcomingComputedAt': Timestamp.fromDate(snapshot.computedAt),
         'upcomingBottles': [
           for (final bottle in snapshot.upcomingBottles)
             {
