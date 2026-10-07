@@ -44,14 +44,23 @@ class _BottleScheduleSettingsSectionState
         .updateCareSettings(widget.profile, apply(widget.profile.careSettings));
   }
 
+  /// Grille calculée une seule fois depuis la copie locale, puis fusionnée
+  /// seule (`bottleTimesMinutes`) dans le profil frais.
+  void _setTimes(List<int> times) =>
+      _update((settings) => settings.copyWith(bottleTimesMinutes: times));
+
+  void _setCount(int count) =>
+      _setTimes(_settings.withBottleCount(count).bottleTimesMinutes);
+
   void _setTime(int index, int minutes) {
-    if (_settings.withBottleTime(index, minutes) == null) {
+    final next = _settings.withBottleTime(index, minutes);
+    if (next == null) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text(S.of(context).settingsBottleTimeTooClose)),
       );
       return;
     }
-    _update((settings) => settings.withBottleTime(index, minutes) ?? settings);
+    _setTimes(next.bottleTimesMinutes);
   }
 
   @override
@@ -73,8 +82,7 @@ class _BottleScheduleSettingsSectionState
                 ? count
                 : CareSettings.minBottlesPerDay,
             max: _settings.canAddBottle ? count + 1 : count,
-            onChanged: (v) =>
-                _update((settings) => settings.withBottleCount(v)),
+            onChanged: _setCount,
           ),
           for (var i = 0; i < count; i++)
             BottleTimeRow(
