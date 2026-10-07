@@ -61,7 +61,9 @@ abstract class BottleSchedule with _$BottleSchedule {
 
   /// Horaire attendu à [now] : le plus tardif de [nextAfter] et de
   /// l'horaire le plus proche de [now]. Un horaire sauté reste dû jusqu'au
-  /// milieu de l'écart avec le suivant ; la nuit ne compte aucun retard.
+  /// milieu de l'écart avec le suivant ; une fois le biberon du soir donné, la
+  /// nuit ne compte aucun retard, mais un biberon du soir manqué reste dû
+  /// jusqu'au milieu de la nuit.
   DateTime nextDue(DateTime last, DateTime now) {
     final next = nextAfter(last);
     final current = slotOf(now);

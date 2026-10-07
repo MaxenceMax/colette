@@ -93,15 +93,15 @@ void main() {
   });
 
   test('en retard : la suite reste sur la grille', () {
-    final now = DateTime(2026, 9, 10, 10);
+    final now = DateTime(2026, 9, 10, 11);
     final bottles = projectFor(
       planFor(now: now, lastAt: DateTime(2026, 9, 10, 4)),
       now,
     );
-    // 4 h compte pour 7 h : le suivant est 10 h, déjà dû à 10 h.
+    // 4 h compte pour 7 h : le suivant est 10 h, en retard d'une heure à 11 h.
     expect(bottles.first.at, DateTime(2026, 9, 10, 10));
     expect(bottles[1].at, DateTime(2026, 9, 10, 13));
-    expect(bottles.last.at, DateTime(2026, 9, 11, 7));
+    expect(bottles.last.at, DateTime(2026, 9, 11, 10));
   });
 
   test('sans biberon : maintenant, puis selon la grille', () {

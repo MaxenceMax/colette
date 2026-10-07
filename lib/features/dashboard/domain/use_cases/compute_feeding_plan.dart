@@ -10,8 +10,9 @@ import 'package:colette/features/events/domain/entities/care_event.dart';
 /// réparti sur les biberons du jour du [BottleSchedule] ; repères par âge sans pesée.
 /// Une cible ajustée (`dailyTargetMlOverride`) remplace la cible OMS.
 /// Le prochain biberon suit la grille d'horaires du foyer.
-/// Un horaire sauté reste dû jusqu'au milieu de l'écart avec le suivant ; la nuit
-/// ne compte aucun retard.
+/// Un horaire sauté reste dû jusqu'au milieu de l'écart avec le suivant ; une
+/// fois le biberon du soir donné, la nuit ne compte aucun retard, mais un
+/// biberon du soir manqué reste dû jusqu'au milieu de la nuit.
 class ComputeFeedingPlan {
   const ComputeFeedingPlan();
 

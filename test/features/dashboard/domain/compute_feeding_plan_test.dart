@@ -105,7 +105,7 @@ void main() {
       expect(plan.remainingMl, 420);
       // 420 / 5 = 84 → 80.
       expect(plan.suggestedMl, 80);
-      // 9 h compte pour 10 h : le suivant est 13 h, plus près de 12 h que 10 h.
+      // 9 h compte pour 10 h : le suivant est 13 h ; à 12 h, l'horaire le plus proche est 13 h.
       expect(plan.nextBottleAt, DateTime(2026, 9, 10, 13));
       expect(plan.lateBy(now), Duration.zero);
     },
