@@ -298,9 +298,15 @@ void main() {
       expect(
         settings.bottleSchedule,
         const BottleSchedule(
-          firstBottle: Duration(hours: 6, minutes: 30),
-          lastBottle: Duration(hours: 23),
-          interval: Duration(hours: 2, minutes: 45),
+          times: [
+            Duration(hours: 6, minutes: 30),
+            Duration(hours: 9, minutes: 15),
+            Duration(hours: 12),
+            Duration(hours: 14, minutes: 45),
+            Duration(hours: 17, minutes: 30),
+            Duration(hours: 20, minutes: 15),
+            Duration(hours: 23),
+          ],
         ),
       );
     });

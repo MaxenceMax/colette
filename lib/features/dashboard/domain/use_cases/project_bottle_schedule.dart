@@ -6,8 +6,8 @@ import 'package:colette/features/dashboard/domain/use_cases/compute_feeding_plan
 
 /// Projette les biberons des 24 prochaines heures à partir du plan du jour.
 ///
-/// Le premier est le prochain biberon du plan. Les suivants enchaînent le
-/// rythme du foyer ([BottleSchedule.nextAfter]), chacun supposé donné à son
+/// Le premier est le prochain biberon du plan. Les suivants enchaînent la
+/// grille du foyer ([BottleSchedule.nextAfter]), chacun supposé donné à son
 /// heure prévue, en partant de `max(nextBottleAt, now)`. Les prises du
 /// lendemain suivent la cible de demain répartie sur `feedsPerDay`.
 class ProjectBottleSchedule {

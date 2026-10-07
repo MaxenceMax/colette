@@ -16,7 +16,7 @@ import '../../../helpers/care_event_factory.dart';
 import '../../../helpers/in_memory_household_local_store.dart';
 
 void main() {
-  test('sync écrit nextBottleAt = dernier biberon + 3 h, la suggestion et le matin, sans fourchette', () async {
+  test('sync écrit nextBottleAt = horaire suivant le dernier biberon, la suggestion et le matin, sans fourchette', () async {
     final db = FakeFirebaseFirestore();
     final now = DateTime(2026, 9, 10, 12);
     final container = ProviderContainer(
@@ -49,10 +49,10 @@ void main() {
     final plan = data['feedingPlan'] as Map<String, dynamic>;
     expect(
       (plan['nextBottleAt'] as Timestamp).toDate(),
-      DateTime(2026, 9, 10, 12),
+      DateTime(2026, 9, 10, 13),
     );
     expect(plan['suggestedMl'], 70);
-    // Dernier biberon 9 h + 3 h = 12 h ; premier du matin après : le 11 à 7 h.
+    // Dernier biberon 9 h, rattaché à 10 h : suivant 13 h ; matin suivant : le 11 à 7 h.
     expect(
       (plan['morningBottleAt'] as Timestamp).toDate(),
       DateTime(2026, 9, 11, 7),

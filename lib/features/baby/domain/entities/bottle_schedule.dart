@@ -2,90 +2,104 @@ import 'package:freezed_annotation/freezed_annotation.dart';
 
 part 'bottle_schedule.freezed.dart';
 
-/// Rythme des biberons : premier du matin, biberon du soir et intervalle.
+/// Grille des biberons : horaires fixes de la journée, triés.
 @freezed
 abstract class BottleSchedule with _$BottleSchedule {
   const BottleSchedule._();
 
   const factory BottleSchedule({
-    /// Heure du premier biberon, depuis minuit.
-    @Default(Duration(hours: 7)) Duration firstBottle,
-
-    /// Heure du biberon du soir, depuis minuit ; rien n'est prévu après.
-    @Default(Duration(hours: 23, minutes: 30)) Duration lastBottle,
-
-    /// Temps entre deux biberons de journée.
-    @Default(Duration(hours: 3)) Duration interval,
+    /// Horaires depuis minuit, triés, espacés d'au moins 30 min (y compris du
+    /// dernier au premier du lendemain). Jamais vide (non vérifiable en `const`).
+    @Default(defaultBottleTimes) List<Duration> times,
   }) = _BottleSchedule;
 
-  /// Marge de classement, jamais affichée : un biberon donné jusqu'à 30 min
-  /// avant le premier du matin compte comme celui-ci, à moins de 30 min du
-  /// soir comme celui du soir ; un biberon manqué reste dû 30 min.
-  static const margin = Duration(minutes: 30);
-
-  /// Heure prévue du biberon qui suit celui donné à [last].
-  ///
-  /// Biberon de journée (dès 30 min avant le premier, jusqu'à 30 min avant
-  /// celui du soir) : `last + interval`, rabattu sur le biberon du soir s'il en
-  /// est à au moins un demi-intervalle ; plus près, il tient lieu de biberon du
-  /// soir. Biberon du soir ou de nuit : premier biberon du matin suivant, ou
-  /// `last + interval` s'il tombe plus tard.
-  DateTime nextAfter(DateTime last) {
-    assert(interval > Duration.zero, 'interval must be positive');
-    final planned = last.add(interval);
-    final day = DateTime(last.year, last.month, last.day);
-    final morning = _at(day, firstBottle);
-    final evening = _at(day, lastBottle);
-    final isDaytime =
-        !last.isBefore(morning.subtract(margin)) &&
-        last.isBefore(evening.subtract(margin));
-    if (isDaytime && !planned.isAfter(evening)) return planned;
-    // Assez loin du biberon du soir : rabattu dessus ; sinon il en tient lieu.
-    if (isDaytime && evening.difference(last) >= interval ~/ 2) return evening;
-    final nextMorning = morningAfter(last);
-    return planned.isAfter(nextMorning) ? planned : nextMorning;
+  /// Grille tirée des anciens réglages (premier, soir, intervalle) : chaîne
+  /// `first + k × interval` avant le soir ; le soir s'ajoute s'il est à au moins
+  /// un demi-intervalle du dernier créneau, sinon il le remplace.
+  factory BottleSchedule.fromLegacy({
+    required Duration first,
+    required Duration last,
+    required Duration interval,
+  }) {
+    final span = last - first;
+    if (span <= Duration.zero || interval <= Duration.zero) {
+      return BottleSchedule(times: [first]);
+    }
+    final slots = (span.inMinutes / interval.inMinutes).ceil();
+    final chain = [for (var i = 0; i < slots; i++) first + interval * i];
+    final gap = span - interval * (slots - 1);
+    final replaces = gap < interval ~/ 2 && slots > 1;
+    return BottleSchedule(
+      times: [...replaces ? chain.sublist(0, slots - 1) : chain, last],
+    );
   }
 
-  /// Premier biberon du matin strictement après [at].
-  DateTime morningAfter(DateTime at) {
+  /// Biberons par jour.
+  int get feedsPerDay => times.length;
+
+  /// Créneau daté le plus proche de [at] ; au milieu exact, le plus tardif.
+  DateTime slotOf(DateTime at) {
     final day = DateTime(at.year, at.month, at.day);
-    final morning = _at(day, firstBottle);
-    return morning.isAfter(at)
-        ? morning
-        : _at(DateTime(day.year, day.month, day.day + 1), firstBottle);
+    final slots = [
+      _at(_shift(day, -1), times.last),
+      for (final time in times) _at(day, time),
+      _at(_shift(day, 1), times.first),
+    ];
+    for (var i = 0; i < slots.length - 1; i++) {
+      final from = slots[i];
+      final to = slots[i + 1];
+      if (at.isBefore(from) || !at.isBefore(to)) continue;
+      final middle = from.add(to.difference(from) ~/ 2);
+      return at.isBefore(middle) ? from : to;
+    }
+    return slots.last;
   }
 
-  /// Premier biberon de la journée en cours à [now] : celui du jour, puis
-  /// celui du lendemain dès 30 min avant le biberon du soir.
-  DateTime upcomingMorning(DateTime now) {
-    final day = DateTime(now.year, now.month, now.day);
-    final eveningStart = _at(day, lastBottle).subtract(margin);
-    return now.isBefore(eveningStart)
-        ? _at(day, firstBottle)
-        : _at(DateTime(day.year, day.month, day.day + 1), firstBottle);
-  }
+  /// Horaire prévu après un biberon donné à [last] : celui qui suit
+  /// l'horaire auquel [last] est rattaché ([slotOf]).
+  DateTime nextAfter(DateTime last) => _slotAfter(slotOf(last));
 
-  /// Biberon attendu à [now] après un biberon donné à [last] : [nextAfter],
-  /// ou, une fois passées 30 min de retard et la soirée entamée ou passée, le
-  /// premier biberon du matin, pour ne pas compter de retard la nuit.
+  /// Horaire attendu à [now] : le plus tardif de [nextAfter] et de
+  /// l'horaire le plus proche de [now]. Un horaire sauté reste dû jusqu'au
+  /// milieu de l'écart avec le suivant ; la nuit ne compte aucun retard.
   DateTime nextDue(DateTime last, DateTime now) {
     final next = nextAfter(last);
-    if (!now.isAfter(next.add(margin))) return next;
-    final morning = upcomingMorning(now);
-    return morning.isAfter(next) ? morning : next;
+    final current = slotOf(now);
+    return current.isAfter(next) ? current : next;
   }
 
-  /// Biberons de journée du premier au soir ; au moins 1. Le dernier créneau
-  /// tient lieu de biberon du soir s'il en est à moins d'un demi-intervalle.
-  int get feedsPerDay {
-    final span = lastBottle - firstBottle;
-    if (span <= Duration.zero || interval <= Duration.zero) return 1;
-    final slots = (span.inMinutes / interval.inMinutes).ceil();
-    final gap = span - interval * (slots - 1);
-    return gap < interval ~/ 2 ? slots : slots + 1;
+  /// Premier horaire de la journée strictement après [at].
+  DateTime morningAfter(DateTime at) {
+    final day = DateTime(at.year, at.month, at.day);
+    final morning = _at(day, times.first);
+    return morning.isAfter(at) ? morning : _at(_shift(day, 1), times.first);
   }
+
+  /// Créneau qui suit [slot] dans la grille.
+  DateTime _slotAfter(DateTime slot) {
+    final day = DateTime(slot.year, slot.month, slot.day);
+    final minutes = slot.hour * 60 + slot.minute;
+    for (final time in times) {
+      if (time.inMinutes > minutes) return _at(day, time);
+    }
+    return _at(_shift(day, 1), times.first);
+  }
+
+  static DateTime _shift(DateTime day, int days) =>
+      DateTime(day.year, day.month, day.day + days);
 
   /// [day] (à minuit) décalé de [time], en heure locale.
   static DateTime _at(DateTime day, Duration time) =>
       DateTime(day.year, day.month, day.day, 0, time.inMinutes);
 }
+
+/// Grille par défaut : 07h00, 10h00, 13h00, 16h00, 19h00, 22h00, 23h30.
+const defaultBottleTimes = [
+  Duration(hours: 7),
+  Duration(hours: 10),
+  Duration(hours: 13),
+  Duration(hours: 16),
+  Duration(hours: 19),
+  Duration(hours: 22),
+  Duration(hours: 23, minutes: 30),
+];

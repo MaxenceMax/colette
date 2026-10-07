@@ -9,7 +9,7 @@ import '../../../helpers/care_event_factory.dart';
 
 void main() {
   const project = ProjectBottleSchedule();
-  // 7 h / 23 h 30 / 3 h : 7 biberons par jour.
+  // Grille par défaut : 7 horaires par jour, de 7 h à 23 h 30.
   const schedule = BottleSchedule();
   // Jour 3 le 10 septembre (100 ml/kg), jour 4 le 11 (120 ml/kg).
   final birth = DateTime(2026, 9, 8);
@@ -45,17 +45,18 @@ void main() {
     for (final b in bottles) b.at,
   ];
 
-  test('suit l\'intervalle, le biberon du soir puis le matin, sur 24 h', () {
+  test('suit la grille, puis le premier horaire du lendemain, sur 24 h', () {
     final now = DateTime(2026, 9, 10, 10);
     final bottles = projectFor(
       planFor(now: now, lastAt: DateTime(2026, 9, 10, 9)),
       now,
     );
+    // 9 h est rattaché à l'horaire de 10 h : le suivant est 13 h.
     expect(times(bottles), [
-      DateTime(2026, 9, 10, 12),
-      DateTime(2026, 9, 10, 15),
-      DateTime(2026, 9, 10, 18),
-      DateTime(2026, 9, 10, 21),
+      DateTime(2026, 9, 10, 13),
+      DateTime(2026, 9, 10, 16),
+      DateTime(2026, 9, 10, 19),
+      DateTime(2026, 9, 10, 22),
       DateTime(2026, 9, 10, 23, 30),
       DateTime(2026, 9, 11, 7),
     ]);
@@ -81,28 +82,29 @@ void main() {
     ]);
   });
 
-  test('heure prévue passée : la suite part de maintenant', () {
+  test('heure prévue passée : la suite reste sur la grille', () {
     final now = DateTime(2026, 9, 10, 10, 15);
     final bottles = projectFor(
       planFor(now: now, lastAt: DateTime(2026, 9, 10, 7)),
       now,
     );
     expect(bottles.first.at, DateTime(2026, 9, 10, 10));
-    expect(bottles[1].at, DateTime(2026, 9, 10, 13, 15));
+    expect(bottles[1].at, DateTime(2026, 9, 10, 13));
   });
 
-  test('en retard : la suite part de maintenant', () {
+  test('en retard : la suite reste sur la grille', () {
     final now = DateTime(2026, 9, 10, 10);
     final bottles = projectFor(
       planFor(now: now, lastAt: DateTime(2026, 9, 10, 4)),
       now,
     );
-    expect(bottles.first.at, DateTime(2026, 9, 10, 7));
+    // 4 h compte pour 7 h : le suivant est 10 h, déjà dû à 10 h.
+    expect(bottles.first.at, DateTime(2026, 9, 10, 10));
     expect(bottles[1].at, DateTime(2026, 9, 10, 13));
     expect(bottles.last.at, DateTime(2026, 9, 11, 7));
   });
 
-  test('sans biberon : maintenant, puis selon l\'intervalle', () {
+  test('sans biberon : maintenant, puis selon la grille', () {
     final now = DateTime(2026, 9, 10, 10);
     final bottles = projectFor(planFor(now: now), now);
     expect(bottles.first.at, now);

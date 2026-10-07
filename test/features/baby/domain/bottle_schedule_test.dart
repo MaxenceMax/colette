@@ -2,212 +2,147 @@ import 'package:colette/features/baby/domain/entities/bottle_schedule.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 void main() {
-  // Défauts : premier biberon 7 h, biberon du soir 23 h 30, toutes les 3 h.
+  // Défaut : 07h00, 10h00, 13h00, 16h00, 19h00, 22h00, 23h30.
   const schedule = BottleSchedule();
+  DateTime at(int day, int hour, [int minute = 0]) =>
+      DateTime(2026, 9, day, hour, minute);
+
+  test('défaut : 7 horaires, de 7 h à 23 h 30', () {
+    expect(schedule.feedsPerDay, 7);
+    expect(schedule.times.first, const Duration(hours: 7));
+    expect(schedule.times.last, const Duration(hours: 23, minutes: 30));
+  });
+
+  group('slotOf', () {
+    test('horaire exact', () {
+      expect(schedule.slotOf(at(10, 10)), at(10, 10));
+    });
+
+    test(
+      'avant le milieu : horaire précédent ; au milieu et après : suivant',
+      () {
+        expect(schedule.slotOf(at(10, 11, 29)), at(10, 10));
+        expect(schedule.slotOf(at(10, 11, 30)), at(10, 13));
+        expect(schedule.slotOf(at(10, 12, 45)), at(10, 13));
+      },
+    );
+
+    test('nuit : 23 h 30 jusqu\'au milieu (3 h 15), puis 7 h', () {
+      expect(schedule.slotOf(at(11, 3)), at(10, 23, 30));
+      expect(schedule.slotOf(at(11, 3, 15)), at(11, 7));
+      expect(schedule.slotOf(at(10, 23, 50)), at(10, 23, 30));
+    });
+
+    test('tôt le matin : 6 h 30 compte pour 7 h', () {
+      expect(schedule.slotOf(at(10, 6, 30)), at(10, 7));
+    });
+  });
 
   group('nextAfter', () {
-    DateTime next(int day, int hour, [int minute = 0]) =>
-        schedule.nextAfter(DateTime(2026, 9, day, hour, minute));
-
-    test('journée : dernier biberon + intervalle', () {
-      expect(next(10, 10), DateTime(2026, 9, 10, 13));
+    test('donné à l\'heure : horaire suivant', () {
+      expect(schedule.nextAfter(at(10, 10)), at(10, 13));
     });
 
-    test('journée : rabattu sur le biberon du soir à au moins 1 h 30', () {
-      expect(next(10, 21), DateTime(2026, 9, 10, 23, 30));
-      expect(next(10, 22), DateTime(2026, 9, 10, 23, 30));
+    test('donné en retard : la grille ne bouge pas', () {
+      expect(schedule.nextAfter(at(10, 10, 45)), at(10, 13));
     });
 
-    test('trop près du biberon du soir : il en tient lieu', () {
-      expect(next(10, 22, 1), DateTime(2026, 9, 11, 7));
-      expect(next(10, 22, 45), DateTime(2026, 9, 11, 7));
+    test('donné plus près de l\'horaire suivant : compte pour lui', () {
+      expect(schedule.nextAfter(at(10, 12, 45)), at(10, 16));
     });
 
-    test('biberon du soir : le suivant est le premier du matin', () {
-      expect(next(10, 23), DateTime(2026, 9, 11, 7));
-      expect(next(10, 23, 10), DateTime(2026, 9, 11, 7));
-      expect(next(10, 23, 30), DateTime(2026, 9, 11, 7));
+    test('biberon du soir ou de nuit : premier du lendemain', () {
+      expect(schedule.nextAfter(at(10, 23, 30)), at(11, 7));
+      expect(schedule.nextAfter(at(11, 2)), at(11, 7));
     });
 
-    test('22 h 59 tient lieu de biberon du soir', () {
-      expect(next(10, 22, 59), DateTime(2026, 9, 11, 7));
-    });
-
-    test('biberon du soir en fin de mois : premier biberon le 1er', () {
+    test('fin de mois', () {
       expect(
-        schedule.nextAfter(DateTime(2026, 9, 30, 23, 10)),
+        schedule.nextAfter(DateTime(2026, 9, 30, 23, 30)),
         DateTime(2026, 10, 1, 7),
-      );
-    });
-
-    test('nuit après minuit : premier du matin le jour même', () {
-      expect(next(11, 0, 30), DateTime(2026, 9, 11, 7));
-    });
-
-    test('nuit : garde dernier + intervalle s\'il dépasse le matin', () {
-      expect(next(11, 5), DateTime(2026, 9, 11, 8));
-      expect(next(11, 6), DateTime(2026, 9, 11, 9));
-    });
-
-    test('dès 30 min avant le premier biberon, c\'est la journée', () {
-      expect(next(11, 6, 30), DateTime(2026, 9, 11, 9, 30));
-      expect(next(11, 6, 40), DateTime(2026, 9, 11, 9, 40));
-    });
-
-    test('réglages personnalisés', () {
-      const custom = BottleSchedule(
-        firstBottle: Duration(hours: 6, minutes: 30),
-        lastBottle: Duration(hours: 22),
-        interval: Duration(hours: 2, minutes: 45),
-      );
-      expect(
-        custom.nextAfter(DateTime(2026, 9, 10, 18)),
-        DateTime(2026, 9, 10, 20, 45),
-      );
-      // Écart de 2 h ≥ 1 h 22 : rabattu sur 22 h.
-      expect(
-        custom.nextAfter(DateTime(2026, 9, 10, 20)),
-        DateTime(2026, 9, 10, 22),
-      );
-      // Écart de 1 h 15 < 1 h 22 : tient lieu de biberon du soir.
-      expect(
-        custom.nextAfter(DateTime(2026, 9, 10, 20, 45)),
-        DateTime(2026, 9, 11, 6, 30),
-      );
-      expect(
-        custom.nextAfter(DateTime(2026, 9, 10, 22)),
-        DateTime(2026, 9, 11, 6, 30),
-      );
-    });
-
-    test('toujours strictement après le dernier biberon', () {
-      for (var minutes = 0; minutes < 24 * 60; minutes += 5) {
-        final last = DateTime(2026, 9, 10, 0, minutes);
-        expect(schedule.nextAfter(last).isAfter(last), isTrue, reason: '$last');
-      }
-    });
-  });
-
-  group('feedsPerDay', () {
-    test('7 h → 23 h 30 toutes les 3 h : 7', () {
-      expect(schedule.feedsPerDay, 7);
-    });
-
-    test('intervalle qui divise exactement la plage', () {
-      const exact = BottleSchedule(
-        firstBottle: Duration(hours: 6, minutes: 30),
-        lastBottle: Duration(hours: 23, minutes: 30),
-        interval: Duration(hours: 2, minutes: 50),
-      );
-      expect(exact.feedsPerDay, 7);
-    });
-
-    test('7 h → 22 h toutes les 5 h : 4', () {
-      const sparse = BottleSchedule(
-        lastBottle: Duration(hours: 22),
-        interval: Duration(hours: 5),
-      );
-      expect(sparse.feedsPerDay, 4);
-    });
-
-    test('dernier créneau trop près du soir : il en tient lieu', () {
-      // 7 h, 10 h, 13 h, 16 h, 19 h, 22 h ; 23 h n'est qu'à 1 h de 22 h.
-      const close = BottleSchedule(lastBottle: Duration(hours: 23));
-      expect(close.feedsPerDay, 6);
-    });
-
-    test('plage plus courte que le demi-intervalle : 1', () {
-      const short = BottleSchedule(
-        firstBottle: Duration(hours: 10),
-        lastBottle: Duration(hours: 11),
-      );
-      expect(short.feedsPerDay, 1);
-    });
-
-    test('plage vide : au moins 1', () {
-      const empty = BottleSchedule(
-        firstBottle: Duration(hours: 10),
-        lastBottle: Duration(hours: 8),
-      );
-      expect(empty.feedsPerDay, 1);
-    });
-  });
-
-  group('morningAfter', () {
-    test('premier biberon strictement après', () {
-      expect(
-        schedule.morningAfter(DateTime(2026, 9, 10, 23, 30)),
-        DateTime(2026, 9, 11, 7),
-      );
-      expect(
-        schedule.morningAfter(DateTime(2026, 9, 11, 6, 59)),
-        DateTime(2026, 9, 11, 7),
-      );
-      expect(
-        schedule.morningAfter(DateTime(2026, 9, 11, 7)),
-        DateTime(2026, 9, 12, 7),
-      );
-    });
-  });
-
-  group('upcomingMorning', () {
-    test('celui du jour jusqu\'à 30 min avant le biberon du soir', () {
-      expect(
-        schedule.upcomingMorning(DateTime(2026, 9, 11, 0, 5)),
-        DateTime(2026, 9, 11, 7),
-      );
-      expect(
-        schedule.upcomingMorning(DateTime(2026, 9, 11, 12)),
-        DateTime(2026, 9, 11, 7),
-      );
-      expect(
-        schedule.upcomingMorning(DateTime(2026, 9, 11, 22, 59)),
-        DateTime(2026, 9, 11, 7),
-      );
-    });
-
-    test('celui du lendemain dès 23 h', () {
-      expect(
-        schedule.upcomingMorning(DateTime(2026, 9, 11, 23)),
-        DateTime(2026, 9, 12, 7),
       );
     });
   });
 
   group('nextDue', () {
-    DateTime due(DateTime last, DateTime now) => schedule.nextDue(last, now);
-    final evening22 = DateTime(2026, 9, 10, 22);
-
-    test('moins de 30 min de retard : nextAfter', () {
-      expect(
-        due(evening22, DateTime(2026, 9, 10, 23, 50)),
-        DateTime(2026, 9, 10, 23, 30),
-      );
-      expect(
-        due(evening22, DateTime(2026, 9, 11, 0)),
-        DateTime(2026, 9, 10, 23, 30),
-      );
+    test('horaire sauté : reste dû jusqu\'au milieu, puis le suivant', () {
+      // Dernier biberon 7 h → 10 h dû ; milieu 10 h–13 h = 11 h 30.
+      expect(schedule.nextDue(at(10, 7), at(10, 11, 29)), at(10, 10));
+      expect(schedule.nextDue(at(10, 7), at(10, 11, 30)), at(10, 13));
+      expect(schedule.nextDue(at(10, 7), at(10, 15)), at(10, 16));
     });
 
-    test('biberon du soir manqué : premier du matin', () {
-      expect(
-        due(evening22, DateTime(2026, 9, 11, 0, 5)),
-        DateTime(2026, 9, 11, 7),
-      );
-      expect(
-        due(evening22, DateTime(2026, 9, 11, 8)),
-        DateTime(2026, 9, 11, 7),
-      );
+    test('nuit : aucun retard après le biberon du soir', () {
+      expect(schedule.nextDue(at(10, 23, 30), at(11, 3)), at(11, 7));
     });
 
-    test('biberon de journée manqué : en retard jusqu\'au soir', () {
-      final ten = DateTime(2026, 9, 10, 10);
-      expect(due(ten, DateTime(2026, 9, 10, 15)), DateTime(2026, 9, 10, 13));
-      expect(
-        due(ten, DateTime(2026, 9, 10, 22, 59)),
-        DateTime(2026, 9, 10, 13),
-      );
-      expect(due(ten, DateTime(2026, 9, 10, 23, 10)), DateTime(2026, 9, 11, 7));
+    test(
+      'dernier biberon très ancien : horaire le plus proche de maintenant',
+      () {
+        expect(schedule.nextDue(at(8, 10), at(10, 14)), at(10, 13));
+      },
+    );
+  });
+
+  group('morningAfter', () {
+    test('premier horaire strictement après', () {
+      expect(schedule.morningAfter(at(10, 6)), at(10, 7));
+      expect(schedule.morningAfter(at(10, 7)), at(11, 7));
+      expect(schedule.morningAfter(at(10, 23, 30)), at(11, 7));
+    });
+  });
+
+  group('grille personnalisée', () {
+    const five = BottleSchedule(
+      times: [
+        Duration(hours: 7),
+        Duration(hours: 10, minutes: 30),
+        Duration(hours: 14),
+        Duration(hours: 17, minutes: 30),
+        Duration(hours: 21),
+      ],
+    );
+
+    test('exemples de la spec', () {
+      expect(five.feedsPerDay, 5);
+      expect(five.nextAfter(at(10, 11, 15)), at(10, 14));
+      expect(five.nextAfter(at(10, 12, 45)), at(10, 17, 30));
+      expect(five.nextAfter(at(10, 12, 14)), at(10, 14));
+    });
+  });
+
+  group('fromLegacy', () {
+    BottleSchedule legacy(int first, int last, int interval) =>
+        BottleSchedule.fromLegacy(
+          first: Duration(minutes: first),
+          last: Duration(minutes: last),
+          interval: Duration(minutes: interval),
+        );
+
+    test('réglages par défaut : la grille par défaut', () {
+      expect(legacy(420, 1410, 180), const BottleSchedule());
+    });
+
+    test('soir à au moins un demi-intervalle : ajouté', () {
+      // 7 h, 12 h, 17 h, 22 h : écart 22 h – 17 h = 5 h ≥ 2 h 30.
+      expect(legacy(420, 1320, 300).times, const [
+        Duration(hours: 7),
+        Duration(hours: 12),
+        Duration(hours: 17),
+        Duration(hours: 22),
+      ]);
+    });
+
+    test('soir trop près du dernier créneau : il le remplace', () {
+      // 7 h, 10 h 15, 13 h 30, 16 h 45, 20 h, 23 h 15 → 23 h 15 remplacé par 23 h 30.
+      expect(legacy(420, 1410, 195).times, const [
+        Duration(hours: 7),
+        Duration(hours: 10, minutes: 15),
+        Duration(hours: 13, minutes: 30),
+        Duration(hours: 16, minutes: 45),
+        Duration(hours: 20),
+        Duration(hours: 23, minutes: 30),
+      ]);
     });
   });
 }

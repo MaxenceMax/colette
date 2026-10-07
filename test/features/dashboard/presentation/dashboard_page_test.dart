@@ -119,9 +119,9 @@ void main() {
 
       expect(find.text('Colette a 9 jours'), findsOneWidget);
       expect(find.text('Prochain biberon'), findsOneWidget);
-      // (540 − 60) / 6 = 80 ; dernier biberon à 9 h : prochain à 12 h, soit maintenant.
+      // (540 − 60) / 6 = 80 ; dernier biberon à 9 h, rattaché à 10 h : prochain à 13 h.
       expect(find.text('80 ml'), findsOneWidget);
-      expect(find.text('maintenant'), findsOneWidget);
+      expect(find.text('à 13h00'), findsOneWidget);
       expect(find.text('3 h depuis le dernier biberon'), findsOneWidget);
       expect(find.text('fait à 09h00'), findsOneWidget);
       expect(
@@ -255,7 +255,8 @@ void main() {
         ),
       ),
     );
-    expect(find.text('à 14h00'), findsOneWidget);
+    // 11 h est rattaché à l'horaire de 10 h : le suivant est 13 h.
+    expect(find.text('à 13h00'), findsOneWidget);
     expect(find.textContaining('demain'), findsNothing);
   });
 
@@ -296,6 +297,11 @@ void main() {
       const DashboardPage(),
       overrides: overridesFor(
         MockEventsRepository(),
+        baby: BabyProfile(
+          name: 'Colette',
+          birthDate: DateTime(2026, 9, 1),
+          careSettings: const CareSettings(firstBottleMinutes: 430),
+        ),
         latest: makeEvent(
           id: 'r',
           startAt: DateTime(2026, 9, 10, 9, 10),
@@ -303,7 +309,8 @@ void main() {
         ),
       ),
     );
-    expect(find.text('à 12h10'), findsOneWidget);
+    // Grille 7 h 10, 10 h 10, 13 h 10… : 9 h 10 est rattaché à 10 h 10.
+    expect(find.text('à 13h10'), findsOneWidget);
     expect(find.text('2 h 50 depuis le dernier biberon'), findsOneWidget);
   });
 
@@ -315,6 +322,7 @@ void main() {
       const DashboardPage(),
       overrides: overridesFor(
         MockEventsRepository(),
+        at: DateTime(2026, 9, 10, 11, 10),
         latest: makeEvent(
           id: 'r',
           startAt: DateTime(2026, 9, 10, 6, 25),
@@ -322,9 +330,9 @@ void main() {
         ),
       ),
     );
-    // 6 h 25 est un biberon de nuit : prochain à 9 h 25, soit 2 h 35 de retard à midi.
-    expect(find.text('en retard de 2 h 35'), findsOneWidget);
-    expect(find.text('5 h 35 depuis le dernier biberon'), findsOneWidget);
+    // 6 h 25 est rattaché à 7 h : prochain à 10 h, soit 1 h 10 de retard à 11 h 10.
+    expect(find.text('en retard de 1 h 10'), findsOneWidget);
+    expect(find.text('4 h 45 depuis le dernier biberon'), findsOneWidget);
   });
 
   testWidgets('le bouton horloge ouvre la feuille des 24 prochaines heures', (

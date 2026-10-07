@@ -9,10 +9,14 @@ void main() {
   const compute = ComputeFeedingPlan();
   final birth = DateTime(2026, 9, 1, 6);
   const schedule = BottleSchedule();
-  // 7 h → 22 h toutes les 5 h : 4 biberons par jour.
+  // 7 h, 12 h, 17 h, 22 h : 4 biberons par jour.
   const fourFeeds = BottleSchedule(
-    lastBottle: Duration(hours: 22),
-    interval: Duration(hours: 5),
+    times: [
+      Duration(hours: 7),
+      Duration(hours: 12),
+      Duration(hours: 17),
+      Duration(hours: 22),
+    ],
   );
 
   group('règles OMS', () {
@@ -101,7 +105,8 @@ void main() {
       expect(plan.remainingMl, 420);
       // 420 / 5 = 84 → 80.
       expect(plan.suggestedMl, 80);
-      expect(plan.nextBottleAt, DateTime(2026, 9, 10, 12));
+      // 9 h compte pour 10 h : le suivant est 13 h, plus près de 12 h que 10 h.
+      expect(plan.nextBottleAt, DateTime(2026, 9, 10, 13));
       expect(plan.lateBy(now), Duration.zero);
     },
   );
@@ -137,7 +142,7 @@ void main() {
   });
 
   test('le retard est compté depuis l\'heure prévue', () {
-    // 6 h est un biberon de nuit : matin 7 h, mais 6 h + 3 h = 9 h plus tard.
+    // 6 h compte pour l'horaire de 7 h : le suivant est 10 h.
     final last = makeEvent(
       id: 'a',
       startAt: DateTime(2026, 9, 10, 6),
@@ -151,14 +156,14 @@ void main() {
       lastBottle: last,
       now: DateTime(2026, 9, 10, 10),
     );
-    expect(plan.nextBottleAt, DateTime(2026, 9, 10, 9));
-    expect(plan.lateBy(DateTime(2026, 9, 10, 9)), Duration.zero);
+    expect(plan.nextBottleAt, DateTime(2026, 9, 10, 10));
+    expect(plan.lateBy(DateTime(2026, 9, 10, 10)), Duration.zero);
     expect(
-      plan.lateBy(DateTime(2026, 9, 10, 9, 30)),
+      plan.lateBy(DateTime(2026, 9, 10, 10, 30)),
       const Duration(minutes: 30),
     );
     expect(
-      plan.lateBy(DateTime(2026, 9, 10, 10, 5)),
+      plan.lateBy(DateTime(2026, 9, 10, 11, 5)),
       const Duration(hours: 1, minutes: 5),
     );
   });
@@ -328,12 +333,25 @@ void main() {
       );
     }
 
-    test('biberon du soir manqué : la nuit, on attend le matin', () {
-      final now = DateTime(2026, 9, 11, 0, 5);
-      final plan = planAt(DateTime(2026, 9, 10, 22), now);
-      expect(plan.nextBottleAt, DateTime(2026, 9, 11, 7));
-      expect(plan.lateBy(now), Duration.zero);
-    });
+    test(
+      'horaire de 23 h 30 manqué : en retard jusqu\'au milieu de la nuit',
+      () {
+        final now = DateTime(2026, 9, 11, 0, 5);
+        final plan = planAt(DateTime(2026, 9, 10, 22), now);
+        expect(plan.nextBottleAt, DateTime(2026, 9, 10, 23, 30));
+        expect(plan.lateBy(now), const Duration(minutes: 35));
+      },
+    );
+
+    test(
+      'biberon du soir manqué : passé le milieu de la nuit, on attend le matin',
+      () {
+        final now = DateTime(2026, 9, 11, 3, 30);
+        final plan = planAt(DateTime(2026, 9, 10, 22), now);
+        expect(plan.nextBottleAt, DateTime(2026, 9, 11, 7));
+        expect(plan.lateBy(now), Duration.zero);
+      },
+    );
 
     test('toujours rien à 8 h : en retard depuis 7 h', () {
       final now = DateTime(2026, 9, 11, 8);
@@ -342,11 +360,21 @@ void main() {
       expect(plan.lateBy(now), const Duration(hours: 1));
     });
 
-    test('biberon de journée manqué : en retard l\'après-midi', () {
+    test(
+      'horaire de journée manqué : en retard jusqu\'au milieu de l\'écart',
+      () {
+        final now = DateTime(2026, 9, 10, 14);
+        final plan = planAt(DateTime(2026, 9, 10, 10), now);
+        expect(plan.nextBottleAt, DateTime(2026, 9, 10, 13));
+        expect(plan.lateBy(now), const Duration(hours: 1));
+      },
+    );
+
+    test('horaire sauté depuis plus de la moitié de l\'écart : le suivant', () {
       final now = DateTime(2026, 9, 10, 15);
       final plan = planAt(DateTime(2026, 9, 10, 10), now);
-      expect(plan.nextBottleAt, DateTime(2026, 9, 10, 13));
-      expect(plan.lateBy(now), const Duration(hours: 2));
+      expect(plan.nextBottleAt, DateTime(2026, 9, 10, 16));
+      expect(plan.lateBy(now), Duration.zero);
     });
   });
 }

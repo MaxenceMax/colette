@@ -47,10 +47,10 @@ abstract class CareSettings with _$CareSettings {
   static const minBottleIntervalMinutes = 90;
   static const maxBottleIntervalMinutes = 5 * 60;
 
-  /// Rythme des biberons tiré des trois réglages.
-  BottleSchedule get bottleSchedule => BottleSchedule(
-    firstBottle: Duration(minutes: firstBottleMinutes),
-    lastBottle: Duration(minutes: lastBottleMinutes),
+  /// Grille des biberons tirée des réglages.
+  BottleSchedule get bottleSchedule => BottleSchedule.fromLegacy(
+    first: Duration(minutes: firstBottleMinutes),
+    last: Duration(minutes: lastBottleMinutes),
     interval: Duration(minutes: bottleIntervalMinutes),
   );
 
