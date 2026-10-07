@@ -300,7 +300,9 @@ void main() {
         baby: BabyProfile(
           name: 'Colette',
           birthDate: DateTime(2026, 9, 1),
-          careSettings: const CareSettings(firstBottleMinutes: 430),
+          careSettings: const CareSettings(
+            bottleTimesMinutes: [430, 610, 790, 970, 1150, 1330, 1420],
+          ),
         ),
         latest: makeEvent(
           id: 'r',

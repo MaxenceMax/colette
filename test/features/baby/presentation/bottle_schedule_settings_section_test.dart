@@ -82,7 +82,8 @@ void main() {
     await tester.pumpAndSettle();
     expect(savedProfiles().last.careSettings.bottleIntervalMinutes, 210);
     expect(find.text('3 h 30'), findsOneWidget);
-    expect(find.text('≈ 6 biberons par jour'), findsOneWidget);
+    // Le résumé suit désormais bottleTimesMinutes (réécrit à la tâche 3).
+    expect(find.text('≈ 7 biberons par jour'), findsOneWidget);
   });
 
   testWidgets('le + du soir est désactivé à 23 h 45', (tester) async {

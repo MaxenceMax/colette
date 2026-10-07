@@ -249,65 +249,84 @@ void main() {
     });
   });
   group('horaires des biberons', () {
-    test('défauts sur document vide : 7 h, 23 h 30, 3 h', () {
+    test('absents : grille par défaut', () {
       final settings = CareSettingsDto.fromMap(const {});
-      expect(settings.firstBottleMinutes, 420);
-      expect(settings.lastBottleMinutes, 1410);
-      expect(settings.bottleIntervalMinutes, 180);
+      expect(settings.bottleTimesMinutes, [
+        420,
+        600,
+        780,
+        960,
+        1140,
+        1320,
+        1410,
+      ]);
       expect(settings.bottleSchedule, const BottleSchedule());
     });
 
-    test('aller-retour', () {
-      const settings = CareSettings(
-        firstBottleMinutes: 390,
-        lastBottleMinutes: 1380,
-        bottleIntervalMinutes: 165,
+    test('écrit bottleTimesMinutes, plus les anciens champs', () {
+      final map = CareSettingsDto.toMap(
+        const CareSettings(bottleTimesMinutes: [420, 630, 840, 1050, 1260]),
       );
-      final map = CareSettingsDto.toMap(settings);
-      expect(map['firstBottleMinutes'], 390);
-      expect(map['lastBottleMinutes'], 1380);
-      expect(map['bottleIntervalMinutes'], 165);
-      expect(CareSettingsDto.fromMap(map), settings);
+      expect(map['bottleTimesMinutes'], [420, 630, 840, 1050, 1260]);
+      expect(map.containsKey('firstBottleMinutes'), isFalse);
+      expect(map.containsKey('lastBottleMinutes'), isFalse);
+      expect(map.containsKey('bottleIntervalMinutes'), isFalse);
     });
 
-    test('valeurs hors bornes ramenées aux bornes', () {
-      final low = CareSettingsDto.fromMap(const {
+    test('relit une grille valide, triée', () {
+      final settings = CareSettingsDto.fromMap(const {
+        'bottleTimesMinutes': [1260, 420, 840],
+      });
+      expect(settings.bottleTimesMinutes, [420, 840, 1260]);
+    });
+
+    test('anciens champs seuls : convertis par fromLegacy', () {
+      final settings = CareSettingsDto.fromMap(const {
+        'firstBottleMinutes': 420,
+        'lastBottleMinutes': 1320,
+        'bottleIntervalMinutes': 300,
+      });
+      expect(settings.bottleTimesMinutes, [420, 720, 1020, 1320]);
+    });
+
+    test('grille invalide : repli sur les anciens champs', () {
+      final settings = CareSettingsDto.fromMap(const {
+        'bottleTimesMinutes': [420, 430],
+        'firstBottleMinutes': 420,
+        'lastBottleMinutes': 1320,
+        'bottleIntervalMinutes': 300,
+      });
+      expect(settings.bottleTimesMinutes, [420, 720, 1020, 1320]);
+    });
+
+    test('grille non numérique ou vide : défaut', () {
+      for (final raw in [
+        <Object>[],
+        ['7h'],
+        'x',
+        3.5,
+      ]) {
+        expect(
+          CareSettingsDto.fromMap({'bottleTimesMinutes': raw})
+              .bottleTimesMinutes,
+          [420, 600, 780, 960, 1140, 1320, 1410],
+        );
+      }
+    });
+
+    test('anciens champs hors bornes : bornés comme avant', () {
+      final settings = CareSettingsDto.fromMap(const {
         'firstBottleMinutes': 0,
-        'lastBottleMinutes': 0,
+        'lastBottleMinutes': 5000,
         'bottleIntervalMinutes': 10,
       });
-      expect(low.firstBottleMinutes, CareSettings.minFirstBottleMinutes);
-      expect(low.lastBottleMinutes, CareSettings.minLastBottleMinutes);
-      expect(low.bottleIntervalMinutes, CareSettings.minBottleIntervalMinutes);
-      final high = CareSettingsDto.fromMap(const {
-        'firstBottleMinutes': 5000,
-        'lastBottleMinutes': 5000,
-        'bottleIntervalMinutes': 5000,
-      });
-      expect(high.firstBottleMinutes, CareSettings.maxFirstBottleMinutes);
-      expect(high.lastBottleMinutes, CareSettings.maxLastBottleMinutes);
-      expect(high.bottleIntervalMinutes, CareSettings.maxBottleIntervalMinutes);
-    });
-
-    test('bottleSchedule reprend les trois réglages', () {
-      const settings = CareSettings(
-        firstBottleMinutes: 390,
-        lastBottleMinutes: 1380,
-        bottleIntervalMinutes: 165,
-      );
+      // Bornés à 4 h, 23 h 45, 1 h 30 : chaîne 4 h … 23 h 30, puis le soir
+      // (à 15 min < 45 min du dernier créneau) remplace 23 h 30.
+      expect(settings.bottleTimesMinutes.first, 240);
+      expect(settings.bottleTimesMinutes.last, 1425);
       expect(
-        settings.bottleSchedule,
-        const BottleSchedule(
-          times: [
-            Duration(hours: 6, minutes: 30),
-            Duration(hours: 9, minutes: 15),
-            Duration(hours: 12),
-            Duration(hours: 14, minutes: 45),
-            Duration(hours: 17, minutes: 30),
-            Duration(hours: 20, minutes: 15),
-            Duration(hours: 23),
-          ],
-        ),
+        CareSettings.bottleTimesAreValid(settings.bottleTimesMinutes),
+        isTrue,
       );
     });
   });

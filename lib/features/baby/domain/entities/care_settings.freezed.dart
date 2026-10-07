@@ -21,7 +21,8 @@ mixin _$CareSettings {
  int? get dailyTargetMl;/// Heure du premier biberon, en minutes depuis minuit.
  int get firstBottleMinutes;/// Heure du biberon du soir, en minutes depuis minuit.
  int get lastBottleMinutes;/// Intervalle entre deux biberons, en minutes.
- int get bottleIntervalMinutes;
+ int get bottleIntervalMinutes;/// Horaires des biberons, en minutes depuis minuit, triés.
+ List<int> get bottleTimesMinutes;
 /// Create a copy of CareSettings
 /// with the given fields replaced by the non-null parameter values.
 @JsonKey(includeFromJson: false, includeToJson: false)
@@ -33,20 +34,20 @@ $CareSettingsCopyWith<CareSettings> get copyWith => _$CareSettingsCopyWithImpl<C
 @override
 bool operator ==(Object other) {
   final _this = this as CareSettings;
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is CareSettings&&(identical(other.adrigyl, _this.adrigyl) || other.adrigyl == _this.adrigyl)&&(identical(other.eyeCare, _this.eyeCare) || other.eyeCare == _this.eyeCare)&&(identical(other.noseCare, _this.noseCare) || other.noseCare == _this.noseCare)&&(identical(other.umbilicalCare, _this.umbilicalCare) || other.umbilicalCare == _this.umbilicalCare)&&(identical(other.bath, _this.bath) || other.bath == _this.bath)&&(identical(other.nightStartHour, _this.nightStartHour) || other.nightStartHour == _this.nightStartHour)&&(identical(other.nightEndHour, _this.nightEndHour) || other.nightEndHour == _this.nightEndHour)&&(identical(other.dailyTargetMl, _this.dailyTargetMl) || other.dailyTargetMl == _this.dailyTargetMl)&&(identical(other.firstBottleMinutes, _this.firstBottleMinutes) || other.firstBottleMinutes == _this.firstBottleMinutes)&&(identical(other.lastBottleMinutes, _this.lastBottleMinutes) || other.lastBottleMinutes == _this.lastBottleMinutes)&&(identical(other.bottleIntervalMinutes, _this.bottleIntervalMinutes) || other.bottleIntervalMinutes == _this.bottleIntervalMinutes));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is CareSettings&&(identical(other.adrigyl, _this.adrigyl) || other.adrigyl == _this.adrigyl)&&(identical(other.eyeCare, _this.eyeCare) || other.eyeCare == _this.eyeCare)&&(identical(other.noseCare, _this.noseCare) || other.noseCare == _this.noseCare)&&(identical(other.umbilicalCare, _this.umbilicalCare) || other.umbilicalCare == _this.umbilicalCare)&&(identical(other.bath, _this.bath) || other.bath == _this.bath)&&(identical(other.nightStartHour, _this.nightStartHour) || other.nightStartHour == _this.nightStartHour)&&(identical(other.nightEndHour, _this.nightEndHour) || other.nightEndHour == _this.nightEndHour)&&(identical(other.dailyTargetMl, _this.dailyTargetMl) || other.dailyTargetMl == _this.dailyTargetMl)&&(identical(other.firstBottleMinutes, _this.firstBottleMinutes) || other.firstBottleMinutes == _this.firstBottleMinutes)&&(identical(other.lastBottleMinutes, _this.lastBottleMinutes) || other.lastBottleMinutes == _this.lastBottleMinutes)&&(identical(other.bottleIntervalMinutes, _this.bottleIntervalMinutes) || other.bottleIntervalMinutes == _this.bottleIntervalMinutes)&&const DeepCollectionEquality().equals(other.bottleTimesMinutes, _this.bottleTimesMinutes));
 }
 
 
 @override
 int get hashCode {
   final _this = this as CareSettings;
-  return Object.hash(runtimeType,_this.adrigyl,_this.eyeCare,_this.noseCare,_this.umbilicalCare,_this.bath,_this.nightStartHour,_this.nightEndHour,_this.dailyTargetMl,_this.firstBottleMinutes,_this.lastBottleMinutes,_this.bottleIntervalMinutes);
+  return Object.hash(runtimeType,_this.adrigyl,_this.eyeCare,_this.noseCare,_this.umbilicalCare,_this.bath,_this.nightStartHour,_this.nightEndHour,_this.dailyTargetMl,_this.firstBottleMinutes,_this.lastBottleMinutes,_this.bottleIntervalMinutes,const DeepCollectionEquality().hash(_this.bottleTimesMinutes));
 }
 
 @override
 String toString() {
   final _this = this as CareSettings;
-  return 'CareSettings(adrigyl: ${_this.adrigyl}, eyeCare: ${_this.eyeCare}, noseCare: ${_this.noseCare}, umbilicalCare: ${_this.umbilicalCare}, bath: ${_this.bath}, nightStartHour: ${_this.nightStartHour}, nightEndHour: ${_this.nightEndHour}, dailyTargetMl: ${_this.dailyTargetMl}, firstBottleMinutes: ${_this.firstBottleMinutes}, lastBottleMinutes: ${_this.lastBottleMinutes}, bottleIntervalMinutes: ${_this.bottleIntervalMinutes})';
+  return 'CareSettings(adrigyl: ${_this.adrigyl}, eyeCare: ${_this.eyeCare}, noseCare: ${_this.noseCare}, umbilicalCare: ${_this.umbilicalCare}, bath: ${_this.bath}, nightStartHour: ${_this.nightStartHour}, nightEndHour: ${_this.nightEndHour}, dailyTargetMl: ${_this.dailyTargetMl}, firstBottleMinutes: ${_this.firstBottleMinutes}, lastBottleMinutes: ${_this.lastBottleMinutes}, bottleIntervalMinutes: ${_this.bottleIntervalMinutes}, bottleTimesMinutes: ${_this.bottleTimesMinutes})';
 }
 
 
@@ -57,7 +58,7 @@ abstract mixin class $CareSettingsCopyWith<$Res>  {
   factory $CareSettingsCopyWith(CareSettings value, $Res Function(CareSettings) _then) = _$CareSettingsCopyWithImpl;
 @useResult
 $Res call({
- CareFrequency adrigyl, CareFrequency eyeCare, CareFrequency noseCare, CareFrequency umbilicalCare, CareFrequency bath, int nightStartHour, int nightEndHour, int? dailyTargetMl, int firstBottleMinutes, int lastBottleMinutes, int bottleIntervalMinutes
+ CareFrequency adrigyl, CareFrequency eyeCare, CareFrequency noseCare, CareFrequency umbilicalCare, CareFrequency bath, int nightStartHour, int nightEndHour, int? dailyTargetMl, int firstBottleMinutes, int lastBottleMinutes, int bottleIntervalMinutes, List<int> bottleTimesMinutes
 });
 
 
@@ -74,7 +75,7 @@ class _$CareSettingsCopyWithImpl<$Res>
 
 /// Create a copy of CareSettings
 /// with the given fields replaced by the non-null parameter values.
-@pragma('vm:prefer-inline') @override $Res call({Object? adrigyl = null,Object? eyeCare = null,Object? noseCare = null,Object? umbilicalCare = null,Object? bath = null,Object? nightStartHour = null,Object? nightEndHour = null,Object? dailyTargetMl = freezed,Object? firstBottleMinutes = null,Object? lastBottleMinutes = null,Object? bottleIntervalMinutes = null,}) {
+@pragma('vm:prefer-inline') @override $Res call({Object? adrigyl = null,Object? eyeCare = null,Object? noseCare = null,Object? umbilicalCare = null,Object? bath = null,Object? nightStartHour = null,Object? nightEndHour = null,Object? dailyTargetMl = freezed,Object? firstBottleMinutes = null,Object? lastBottleMinutes = null,Object? bottleIntervalMinutes = null,Object? bottleTimesMinutes = null,}) {
   return _then(CareSettings(
 adrigyl: null == adrigyl ? _self.adrigyl : adrigyl // ignore: cast_nullable_to_non_nullable
 as CareFrequency,eyeCare: null == eyeCare ? _self.eyeCare : eyeCare // ignore: cast_nullable_to_non_nullable
@@ -87,7 +88,8 @@ as int,dailyTargetMl: freezed == dailyTargetMl ? _self.dailyTargetMl : dailyTarg
 as int?,firstBottleMinutes: null == firstBottleMinutes ? _self.firstBottleMinutes : firstBottleMinutes // ignore: cast_nullable_to_non_nullable
 as int,lastBottleMinutes: null == lastBottleMinutes ? _self.lastBottleMinutes : lastBottleMinutes // ignore: cast_nullable_to_non_nullable
 as int,bottleIntervalMinutes: null == bottleIntervalMinutes ? _self.bottleIntervalMinutes : bottleIntervalMinutes // ignore: cast_nullable_to_non_nullable
-as int,
+as int,bottleTimesMinutes: null == bottleTimesMinutes ? _self.bottleTimesMinutes : bottleTimesMinutes // ignore: cast_nullable_to_non_nullable
+as List<int>,
   ));
 }
 /// Create a copy of CareSettings
@@ -217,10 +219,10 @@ return $default(_that);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( CareFrequency adrigyl,  CareFrequency eyeCare,  CareFrequency noseCare,  CareFrequency umbilicalCare,  CareFrequency bath,  int nightStartHour,  int nightEndHour,  int? dailyTargetMl,  int firstBottleMinutes,  int lastBottleMinutes,  int bottleIntervalMinutes)?  $default,{required TResult orElse(),}) {final _that = this;
+@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( CareFrequency adrigyl,  CareFrequency eyeCare,  CareFrequency noseCare,  CareFrequency umbilicalCare,  CareFrequency bath,  int nightStartHour,  int nightEndHour,  int? dailyTargetMl,  int firstBottleMinutes,  int lastBottleMinutes,  int bottleIntervalMinutes,  List<int> bottleTimesMinutes)?  $default,{required TResult orElse(),}) {final _that = this;
 switch (_that) {
 case _CareSettings() when $default != null:
-return $default(_that.adrigyl,_that.eyeCare,_that.noseCare,_that.umbilicalCare,_that.bath,_that.nightStartHour,_that.nightEndHour,_that.dailyTargetMl,_that.firstBottleMinutes,_that.lastBottleMinutes,_that.bottleIntervalMinutes);case _:
+return $default(_that.adrigyl,_that.eyeCare,_that.noseCare,_that.umbilicalCare,_that.bath,_that.nightStartHour,_that.nightEndHour,_that.dailyTargetMl,_that.firstBottleMinutes,_that.lastBottleMinutes,_that.bottleIntervalMinutes,_that.bottleTimesMinutes);case _:
   return orElse();
 
 }
@@ -238,10 +240,10 @@ return $default(_that.adrigyl,_that.eyeCare,_that.noseCare,_that.umbilicalCare,_
 /// }
 /// ```
 
-@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( CareFrequency adrigyl,  CareFrequency eyeCare,  CareFrequency noseCare,  CareFrequency umbilicalCare,  CareFrequency bath,  int nightStartHour,  int nightEndHour,  int? dailyTargetMl,  int firstBottleMinutes,  int lastBottleMinutes,  int bottleIntervalMinutes)  $default,) {final _that = this;
+@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( CareFrequency adrigyl,  CareFrequency eyeCare,  CareFrequency noseCare,  CareFrequency umbilicalCare,  CareFrequency bath,  int nightStartHour,  int nightEndHour,  int? dailyTargetMl,  int firstBottleMinutes,  int lastBottleMinutes,  int bottleIntervalMinutes,  List<int> bottleTimesMinutes)  $default,) {final _that = this;
 switch (_that) {
 case _CareSettings():
-return $default(_that.adrigyl,_that.eyeCare,_that.noseCare,_that.umbilicalCare,_that.bath,_that.nightStartHour,_that.nightEndHour,_that.dailyTargetMl,_that.firstBottleMinutes,_that.lastBottleMinutes,_that.bottleIntervalMinutes);case _:
+return $default(_that.adrigyl,_that.eyeCare,_that.noseCare,_that.umbilicalCare,_that.bath,_that.nightStartHour,_that.nightEndHour,_that.dailyTargetMl,_that.firstBottleMinutes,_that.lastBottleMinutes,_that.bottleIntervalMinutes,_that.bottleTimesMinutes);case _:
   throw StateError('Unexpected subclass');
 
 }
@@ -258,10 +260,10 @@ return $default(_that.adrigyl,_that.eyeCare,_that.noseCare,_that.umbilicalCare,_
 /// }
 /// ```
 
-@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( CareFrequency adrigyl,  CareFrequency eyeCare,  CareFrequency noseCare,  CareFrequency umbilicalCare,  CareFrequency bath,  int nightStartHour,  int nightEndHour,  int? dailyTargetMl,  int firstBottleMinutes,  int lastBottleMinutes,  int bottleIntervalMinutes)?  $default,) {final _that = this;
+@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( CareFrequency adrigyl,  CareFrequency eyeCare,  CareFrequency noseCare,  CareFrequency umbilicalCare,  CareFrequency bath,  int nightStartHour,  int nightEndHour,  int? dailyTargetMl,  int firstBottleMinutes,  int lastBottleMinutes,  int bottleIntervalMinutes,  List<int> bottleTimesMinutes)?  $default,) {final _that = this;
 switch (_that) {
 case _CareSettings() when $default != null:
-return $default(_that.adrigyl,_that.eyeCare,_that.noseCare,_that.umbilicalCare,_that.bath,_that.nightStartHour,_that.nightEndHour,_that.dailyTargetMl,_that.firstBottleMinutes,_that.lastBottleMinutes,_that.bottleIntervalMinutes);case _:
+return $default(_that.adrigyl,_that.eyeCare,_that.noseCare,_that.umbilicalCare,_that.bath,_that.nightStartHour,_that.nightEndHour,_that.dailyTargetMl,_that.firstBottleMinutes,_that.lastBottleMinutes,_that.bottleIntervalMinutes,_that.bottleTimesMinutes);case _:
   return null;
 
 }
@@ -273,7 +275,7 @@ return $default(_that.adrigyl,_that.eyeCare,_that.noseCare,_that.umbilicalCare,_
 
 
 class _CareSettings extends CareSettings {
-  const _CareSettings({this.adrigyl = const CareFrequency(), this.eyeCare = const CareFrequency(), this.noseCare = const CareFrequency(), this.umbilicalCare = const CareFrequency(timesPerDay: 3), this.bath = const CareFrequency(everyDays: 2), this.nightStartHour = 20, this.nightEndHour = 7, this.dailyTargetMl, this.firstBottleMinutes = 420, this.lastBottleMinutes = 1410, this.bottleIntervalMinutes = 180}): super._();
+  const _CareSettings({this.adrigyl = const CareFrequency(), this.eyeCare = const CareFrequency(), this.noseCare = const CareFrequency(), this.umbilicalCare = const CareFrequency(timesPerDay: 3), this.bath = const CareFrequency(everyDays: 2), this.nightStartHour = 20, this.nightEndHour = 7, this.dailyTargetMl, this.firstBottleMinutes = 420, this.lastBottleMinutes = 1410, this.bottleIntervalMinutes = 180,  List<int> bottleTimesMinutes = const [420, 600, 780, 960, 1140, 1320, 1410]}): _bottleTimesMinutes = bottleTimesMinutes,super._();
   
 
 @override@JsonKey() final  CareFrequency adrigyl;
@@ -293,6 +295,15 @@ class _CareSettings extends CareSettings {
 @override@JsonKey() final  int lastBottleMinutes;
 /// Intervalle entre deux biberons, en minutes.
 @override@JsonKey() final  int bottleIntervalMinutes;
+/// Horaires des biberons, en minutes depuis minuit, triés.
+ final  List<int> _bottleTimesMinutes;
+/// Horaires des biberons, en minutes depuis minuit, triés.
+@override@JsonKey() List<int> get bottleTimesMinutes {
+  if (_bottleTimesMinutes is EqualUnmodifiableListView) return _bottleTimesMinutes;
+  // ignore: implicit_dynamic_type
+  return EqualUnmodifiableListView(_bottleTimesMinutes);
+}
+
 
 /// Create a copy of CareSettings
 /// with the given fields replaced by the non-null parameter values.
@@ -304,18 +315,18 @@ _$CareSettingsCopyWith<_CareSettings> get copyWith => __$CareSettingsCopyWithImp
 
 @override
 bool operator ==(Object other) {
-    return identical(this, other) || (other.runtimeType == runtimeType&&other is _CareSettings&&(identical(other.adrigyl, adrigyl) || other.adrigyl == adrigyl)&&(identical(other.eyeCare, eyeCare) || other.eyeCare == eyeCare)&&(identical(other.noseCare, noseCare) || other.noseCare == noseCare)&&(identical(other.umbilicalCare, umbilicalCare) || other.umbilicalCare == umbilicalCare)&&(identical(other.bath, bath) || other.bath == bath)&&(identical(other.nightStartHour, nightStartHour) || other.nightStartHour == nightStartHour)&&(identical(other.nightEndHour, nightEndHour) || other.nightEndHour == nightEndHour)&&(identical(other.dailyTargetMl, dailyTargetMl) || other.dailyTargetMl == dailyTargetMl)&&(identical(other.firstBottleMinutes, firstBottleMinutes) || other.firstBottleMinutes == firstBottleMinutes)&&(identical(other.lastBottleMinutes, lastBottleMinutes) || other.lastBottleMinutes == lastBottleMinutes)&&(identical(other.bottleIntervalMinutes, bottleIntervalMinutes) || other.bottleIntervalMinutes == bottleIntervalMinutes));
+    return identical(this, other) || (other.runtimeType == runtimeType&&other is _CareSettings&&(identical(other.adrigyl, adrigyl) || other.adrigyl == adrigyl)&&(identical(other.eyeCare, eyeCare) || other.eyeCare == eyeCare)&&(identical(other.noseCare, noseCare) || other.noseCare == noseCare)&&(identical(other.umbilicalCare, umbilicalCare) || other.umbilicalCare == umbilicalCare)&&(identical(other.bath, bath) || other.bath == bath)&&(identical(other.nightStartHour, nightStartHour) || other.nightStartHour == nightStartHour)&&(identical(other.nightEndHour, nightEndHour) || other.nightEndHour == nightEndHour)&&(identical(other.dailyTargetMl, dailyTargetMl) || other.dailyTargetMl == dailyTargetMl)&&(identical(other.firstBottleMinutes, firstBottleMinutes) || other.firstBottleMinutes == firstBottleMinutes)&&(identical(other.lastBottleMinutes, lastBottleMinutes) || other.lastBottleMinutes == lastBottleMinutes)&&(identical(other.bottleIntervalMinutes, bottleIntervalMinutes) || other.bottleIntervalMinutes == bottleIntervalMinutes)&&const DeepCollectionEquality().equals(other.bottleTimesMinutes, _bottleTimesMinutes));
 }
 
 
 @override
 int get hashCode {
-    return Object.hash(runtimeType,adrigyl,eyeCare,noseCare,umbilicalCare,bath,nightStartHour,nightEndHour,dailyTargetMl,firstBottleMinutes,lastBottleMinutes,bottleIntervalMinutes);
+    return Object.hash(runtimeType,adrigyl,eyeCare,noseCare,umbilicalCare,bath,nightStartHour,nightEndHour,dailyTargetMl,firstBottleMinutes,lastBottleMinutes,bottleIntervalMinutes,const DeepCollectionEquality().hash(_bottleTimesMinutes));
 }
 
 @override
 String toString() {
-    return 'CareSettings(adrigyl: $adrigyl, eyeCare: $eyeCare, noseCare: $noseCare, umbilicalCare: $umbilicalCare, bath: $bath, nightStartHour: $nightStartHour, nightEndHour: $nightEndHour, dailyTargetMl: $dailyTargetMl, firstBottleMinutes: $firstBottleMinutes, lastBottleMinutes: $lastBottleMinutes, bottleIntervalMinutes: $bottleIntervalMinutes)';
+    return 'CareSettings(adrigyl: $adrigyl, eyeCare: $eyeCare, noseCare: $noseCare, umbilicalCare: $umbilicalCare, bath: $bath, nightStartHour: $nightStartHour, nightEndHour: $nightEndHour, dailyTargetMl: $dailyTargetMl, firstBottleMinutes: $firstBottleMinutes, lastBottleMinutes: $lastBottleMinutes, bottleIntervalMinutes: $bottleIntervalMinutes, bottleTimesMinutes: $bottleTimesMinutes)';
 }
 
 
@@ -326,7 +337,7 @@ abstract mixin class _$CareSettingsCopyWith<$Res> implements $CareSettingsCopyWi
   factory _$CareSettingsCopyWith(_CareSettings value, $Res Function(_CareSettings) _then) = __$CareSettingsCopyWithImpl;
 @override @useResult
 $Res call({
- CareFrequency adrigyl, CareFrequency eyeCare, CareFrequency noseCare, CareFrequency umbilicalCare, CareFrequency bath, int nightStartHour, int nightEndHour, int? dailyTargetMl, int firstBottleMinutes, int lastBottleMinutes, int bottleIntervalMinutes
+ CareFrequency adrigyl, CareFrequency eyeCare, CareFrequency noseCare, CareFrequency umbilicalCare, CareFrequency bath, int nightStartHour, int nightEndHour, int? dailyTargetMl, int firstBottleMinutes, int lastBottleMinutes, int bottleIntervalMinutes, List<int> bottleTimesMinutes
 });
 
 
@@ -343,7 +354,7 @@ class __$CareSettingsCopyWithImpl<$Res>
 
 /// Create a copy of CareSettings
 /// with the given fields replaced by the non-null parameter values.
-@override @pragma('vm:prefer-inline') $Res call({Object? adrigyl = null,Object? eyeCare = null,Object? noseCare = null,Object? umbilicalCare = null,Object? bath = null,Object? nightStartHour = null,Object? nightEndHour = null,Object? dailyTargetMl = freezed,Object? firstBottleMinutes = null,Object? lastBottleMinutes = null,Object? bottleIntervalMinutes = null,}) {
+@override @pragma('vm:prefer-inline') $Res call({Object? adrigyl = null,Object? eyeCare = null,Object? noseCare = null,Object? umbilicalCare = null,Object? bath = null,Object? nightStartHour = null,Object? nightEndHour = null,Object? dailyTargetMl = freezed,Object? firstBottleMinutes = null,Object? lastBottleMinutes = null,Object? bottleIntervalMinutes = null,Object? bottleTimesMinutes = null,}) {
   return _then(_CareSettings(
 adrigyl: null == adrigyl ? _self.adrigyl : adrigyl // ignore: cast_nullable_to_non_nullable
 as CareFrequency,eyeCare: null == eyeCare ? _self.eyeCare : eyeCare // ignore: cast_nullable_to_non_nullable
@@ -356,7 +367,8 @@ as int,dailyTargetMl: freezed == dailyTargetMl ? _self.dailyTargetMl : dailyTarg
 as int?,firstBottleMinutes: null == firstBottleMinutes ? _self.firstBottleMinutes : firstBottleMinutes // ignore: cast_nullable_to_non_nullable
 as int,lastBottleMinutes: null == lastBottleMinutes ? _self.lastBottleMinutes : lastBottleMinutes // ignore: cast_nullable_to_non_nullable
 as int,bottleIntervalMinutes: null == bottleIntervalMinutes ? _self.bottleIntervalMinutes : bottleIntervalMinutes // ignore: cast_nullable_to_non_nullable
-as int,
+as int,bottleTimesMinutes: null == bottleTimesMinutes ? _self._bottleTimesMinutes : bottleTimesMinutes // ignore: cast_nullable_to_non_nullable
+as List<int>,
   ));
 }
 
