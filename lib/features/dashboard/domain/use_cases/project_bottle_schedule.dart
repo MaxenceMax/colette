@@ -8,7 +8,9 @@ import 'package:colette/features/dashboard/domain/use_cases/compute_feeding_plan
 ///
 /// Le premier est le prochain biberon du plan. Les suivants enchaînent la
 /// grille du foyer ([BottleSchedule.nextAfter]), chacun supposé donné à son
-/// heure prévue, en partant de `max(nextBottleAt, now)`. Les prises du
+/// heure prévue, en partant de `max(nextBottleAt, now)`. Si l'horaire le plus
+/// proche de ce point de départ lui est postérieur (sans biberon noté, après le
+/// milieu de l'intervalle), il est conservé au lieu d'être sauté. Les prises du
 /// lendemain suivent la cible de demain répartie sur `feedsPerDay`.
 class ProjectBottleSchedule {
   const ProjectBottleSchedule();
@@ -32,11 +34,14 @@ class ProjectBottleSchedule {
       dailyTargetMlOverride: dailyTargetMlOverride,
     );
     final firstGiven = plan.nextBottleAt.isAfter(now) ? plan.nextBottleAt : now;
+    final nearest = schedule.slotOf(firstGiven);
     final bottles = [
       ProjectedBottle(at: plan.nextBottleAt, suggestedMl: plan.suggestedMl),
     ];
     for (
-      var at = schedule.nextAfter(firstGiven);
+      var at = nearest.isAfter(firstGiven)
+          ? nearest
+          : schedule.nextAfter(firstGiven);
       at.isBefore(end);
       at = schedule.nextAfter(at)
     ) {

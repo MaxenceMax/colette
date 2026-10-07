@@ -111,6 +111,14 @@ void main() {
     expect(bottles[1].at, DateTime(2026, 9, 10, 13));
   });
 
+  test('sans biberon après le milieu de l\'intervalle : garde l\'horaire le plus proche', () {
+    final now = DateTime(2026, 9, 10, 11, 40);
+    final bottles = projectFor(planFor(now: now), now);
+    expect(bottles[0].at, now);
+    expect(bottles[1].at, DateTime(2026, 9, 10, 13));
+    expect(bottles[2].at, DateTime(2026, 9, 10, 16));
+  });
+
   test('cible ajustée pour demain, bornée à 240 ml', () {
     final now = DateTime(2026, 9, 10, 20);
     final bottles = project(
