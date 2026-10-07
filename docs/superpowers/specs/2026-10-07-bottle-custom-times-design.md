@@ -80,6 +80,7 @@ Clés l10n : ajout de `settingsBottlesPerDay` (« Biberons par jour »), `settin
 - Sans `upcomingBottles` (ancienne version de l'app) : `deadlinesOf` actuel (prochain biberon + secours du matin), inchangé.
 - Un biberon enregistré réécrit la liste : un horaire déjà donné en avance n'est plus rappelé. Si personne n'ouvre l'app pendant 24 h, la liste s'épuise ; acceptable.
 - Ordre de déploiement libre : l'ancienne fonction ignore `upcomingBottles` et lit `nextBottleAt` ; la nouvelle lit `upcomingBottles` s'il est là.
+- Versions mêlées dans un foyer : l'app écrit aussi `upcomingComputedAt` (= `computedAt`). Une ancienne app qui réécrit le plan (écriture `merge`) change `computedAt` sans toucher la liste ; la fonction n'utilise la grille que si les deux sont égaux, sinon elle repasse sur `nextBottleAt` + matin.
 
 ## Hors périmètre
 
