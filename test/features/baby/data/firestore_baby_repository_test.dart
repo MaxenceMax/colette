@@ -61,6 +61,35 @@ void main() {
     expect(data['baby'], isNotNull);
   });
 
+  test('saveFeedingPlan écrit les biberons à venir', () async {
+    final db = FakeFirebaseFirestore();
+    final repo = FirestoreBabyRepository(db);
+    await repo.saveFeedingPlan(
+      code,
+      FeedingPlanSnapshot(
+        nextBottleAt: DateTime(2026, 9, 10, 13),
+        suggestedMl: 90,
+        computedAt: DateTime(2026, 9, 10, 11),
+        upcomingBottles: [
+          UpcomingBottle(at: DateTime(2026, 9, 10, 13), suggestedMl: 90),
+          UpcomingBottle(at: DateTime(2026, 9, 10, 16), suggestedMl: 90),
+        ],
+      ),
+    );
+    final plan =
+        (await db.collection('households').doc(code).get())
+                .data()!['feedingPlan']
+            as Map<String, dynamic>;
+    final upcoming = (plan['upcomingBottles'] as List)
+        .cast<Map<String, dynamic>>();
+    expect(upcoming, hasLength(2));
+    expect(
+      (upcoming[1]['at'] as Timestamp).toDate(),
+      DateTime(2026, 9, 10, 16),
+    );
+    expect(upcoming[1]['suggestedMl'], 90);
+  });
+
   test(
     'saveFeedingPlan efface les fourchettes d\'une ancienne version',
     () async {

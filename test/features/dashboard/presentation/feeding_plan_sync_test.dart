@@ -66,6 +66,14 @@ void main() {
       expect(plan.containsKey(key), isTrue, reason: key);
       expect(plan[key], isNull, reason: key);
     }
+    final upcoming = (plan['upcomingBottles'] as List)
+        .cast<Map<String, dynamic>>()
+        .map((b) => (b['at'] as Timestamp).toDate())
+        .toList();
+    // Dernier biberon 9 h → rattaché à 10 h ; grille par défaut sur 24 h.
+    expect(upcoming.first, DateTime(2026, 9, 10, 13));
+    expect(upcoming, contains(DateTime(2026, 9, 11, 7)));
+    expect(upcoming.last.isBefore(DateTime(2026, 9, 11, 12)), isTrue);
   });
 
   test('sync utilise la cible ajustée du profil pour la suggestion', () async {
