@@ -23,7 +23,7 @@ Les horaires se déroulent en créneaux datés sur plusieurs jours (`… 23h30 l
 
 - `slotOf(at)` : créneau le plus proche de `at`. Au milieu exact de deux créneaux, le plus tardif.
 - `nextAfter(last)` : créneau qui suit `slotOf(last)`.
-- `nextDue(last, now)` : le plus tardif de `nextAfter(last)` et `slotOf(now)`. Un horaire sauté reste dû (« en retard ») jusqu'au milieu de l'écart avec le suivant, puis le suivant devient dû. La nuit n'a plus de règle propre : à 3h, entre 23h30 et 7h, `slotOf` vaut 23h30 (déjà donné) et le prochain dû est 7h ; aucun retard n'est compté.
+- `nextDue(last, now)` : le plus tardif de `nextAfter(last)` et `slotOf(now)`. Un horaire sauté reste dû (« en retard ») jusqu'au milieu de l'écart avec le suivant, puis le suivant devient dû. La nuit n'a plus de règle propre : à 3h, entre 23h30 et 7h, `slotOf` vaut 23h30 ; si ce biberon est donné, le prochain dû est 7h et aucun retard n'est compté ; s'il a été manqué, il reste dû (« en retard ») jusqu'au milieu de la nuit (3h15).
 - `morningAfter(at)` : premier horaire de la liste (`times.first`) strictement après `at`. Garde pour `morningBottleAt` (rétrocompatibilité des Functions).
 - `feedsPerDay` : `times.length`.
 - `BottleSchedule.fromLegacy(first, last, interval)` : grille tirée des trois anciens réglages, par la règle d'avant. Chaîne `first, first + interval, …` tant qu'elle reste avant `last` ; le soir s'ajoute si le dernier créneau en est à au moins un demi-intervalle, sinon il le remplace. 7h / 23h30 / 3h donne 07h00, 10h00, 13h00, 16h00, 19h00, 22h00, 23h30 (7 biberons, comme aujourd'hui).
@@ -38,11 +38,11 @@ Supprimés : `margin`, `upcomingMorning`, la règle « rabattre sur le soir », 
 
 `CareSettings` remplace `firstBottleMinutes`, `lastBottleMinutes`, `bottleIntervalMinutes` par `bottleTimesMinutes` (`List<int>`, minutes depuis minuit), par défaut `[420, 600, 780, 960, 1140, 1320, 1410]`. `bottleSchedule` construit la grille depuis cette liste.
 
-Constantes : `minBottlesPerDay = 3`, `maxBottlesPerDay = 12`, `bottleTimeStepMinutes = 5`, `minBottleGapMinutes = 30`. Les anciennes bornes (`min/maxFirstBottleMinutes`, etc.) disparaissent.
+Constantes : `minBottlesPerDay = 3`, `maxBottlesPerDay = 12`, `bottleTimePickerStepMinutes = 5`, `minBottleGapMinutes = 30`. Les anciennes bornes (`min/maxFirstBottleMinutes`, etc.) disparaissent.
 
 Modifications pures, testées en domaine :
 
-- `withBottleCount(int count)` : vers le haut, insère à chaque pas le milieu (arrondi au pas de 5 min inférieur) du plus grand écart entre deux horaires consécutifs de la journée, sans compter l'écart de nuit (dernier → premier). Vers le bas, retire les derniers. Bornée à 3–12.
+- `withBottleCount(int count)` : vers le haut, insère à chaque pas (tant que `canAddBottle`) le milieu du plus grand écart entre deux horaires consécutifs de la journée, sans compter l'écart de nuit (dernier → premier) ; le demi-écart est arrondi au pas de 5 min inférieur. Vers le bas, retire les derniers. Les bornes 3–12 sont tenues par le compteur de l'écran.
 - `canAddBottle` : faux à 12 biberons, ou si aucun écart de journée n'atteint 60 min (le milieu serait à moins de 30 min d'un voisin).
 - `withBottleTime(int index, int minutes)` : remplace un horaire et retrie. Renvoie `null` si le nouvel horaire est à moins de 30 min d'un autre (écart circulaire sur 24 h).
 
@@ -62,7 +62,7 @@ Clés l10n : ajout de `settingsBottlesPerDay` (« Biberons par jour »), `settin
 
 - Écrit `bottleTimesMinutes`. N'écrit plus les trois anciens champs, mais ne les supprime pas : une ancienne version de l'app sur l'autre iPhone continue de lire les derniers écrits.
 - Lecture, dans l'ordre :
-  1. `bottleTimesMinutes` valide : chaque valeur entière dans 0–1439, 3 à 12 valeurs, écarts circulaires ≥ 30 min après tri. Valeurs triées.
+  1. `bottleTimesMinutes` valide : entiers dans 0–1439, 1 à 24 valeurs, écarts circulaires ≥ 30 min après tri. Valeurs triées. (Plus large que 3–12 : la conversion des anciens réglages peut donner jusqu'à 15 biberons ; le compteur affiche alors ce nombre, + grisé, − retire le dernier.)
   2. Sinon, les trois anciens champs (bornés comme aujourd'hui), convertis par `fromLegacy`.
   3. Sinon, la grille par défaut.
 
@@ -90,7 +90,7 @@ Horaires différents selon les jours, ml par horaire choisis à la main, `feedsP
 - Domaine : `bottle_schedule_test` réécrit (`slotOf` dont égalité au milieu, `nextAfter` dont passage de minuit, `nextDue` dont horaire sauté puis bascule au milieu, nuit sans retard, `fromLegacy` dont cas « remplace le soir ») ; `care_settings_test` (`withBottleCount` haut/bas/bornes, `canAddBottle`, `withBottleTime` tri et refus circulaire) ; `compute_feeding_plan_test` et `project_bottle_schedule_test` adaptés à la grille.
 - Données : DTO du profil (lecture nouvelle liste, liste invalide → anciens champs, anciens champs → `fromLegacy`, rien → défaut, écriture sans anciens champs) ; `firestore_baby_repository_test` et `feeding_plan_sync_test` (`upcomingBottles` écrit).
 - Présentation : `bottle_schedule_settings_section_test` (compteur, ligne ouverte → sélecteur, horaire refusé → SnackBar sans écriture, + désactivé) ; `dashboard_page_test` inchangé hors données.
-- Functions : `bottle-reminder.test.ts` (un rappel par créneau, pas de doublon ni de retour en arrière, ml du créneau, repli sans `upcomingBottles`), `types.test.ts`.
+- Functions : `bottle-reminder.test.ts` (un rappel par créneau, pas de doublon ni de retour en arrière, ml du créneau, repli sans `upcomingBottles`).
 
 ## Livraison
 
