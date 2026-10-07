@@ -26,15 +26,6 @@ abstract class CareSettings with _$CareSettings {
     /// Cible journalière forcée en ml ; `null` = calcul OMS.
     int? dailyTargetMl,
 
-    /// Heure du premier biberon, en minutes depuis minuit.
-    @Default(420) int firstBottleMinutes,
-
-    /// Heure du biberon du soir, en minutes depuis minuit.
-    @Default(1410) int lastBottleMinutes,
-
-    /// Intervalle entre deux biberons, en minutes.
-    @Default(180) int bottleIntervalMinutes,
-
     /// Horaires des biberons, en minutes depuis minuit, triés.
     @Default([420, 600, 780, 960, 1140, 1320, 1410])
     List<int> bottleTimesMinutes,
@@ -43,13 +34,6 @@ abstract class CareSettings with _$CareSettings {
   static const minDailyTargetMl = 100;
   static const maxDailyTargetMl = 1500;
   static const dailyTargetStepMl = 10;
-  static const bottleTimeStepMinutes = 15;
-  static const minFirstBottleMinutes = 4 * 60;
-  static const maxFirstBottleMinutes = 10 * 60;
-  static const minLastBottleMinutes = 20 * 60;
-  static const maxLastBottleMinutes = 23 * 60 + 45;
-  static const minBottleIntervalMinutes = 90;
-  static const maxBottleIntervalMinutes = 5 * 60;
   static const minBottlesPerDay = 3;
   static const maxBottlesPerDay = 12;
   static const bottleTimePickerStepMinutes = 5;
@@ -72,9 +56,10 @@ abstract class CareSettings with _$CareSettings {
     return times.first + _minutesPerDay - times.last >= minBottleGapMinutes;
   }
 
-  /// Milieu (au pas de 5 min inférieur) du plus grand écart entre deux
-  /// horaires consécutifs de la journée, nuit exclue ; `null` si aucun écart
-  /// n'atteint deux fois l'écart minimum.
+  /// Milieu du plus grand écart entre deux horaires consécutifs de la
+  /// journée, nuit exclue ; la moitié de l'écart est arrondie au pas de 5 min
+  /// inférieur (pas l'horaire absolu). `null` si aucun écart n'atteint deux
+  /// fois l'écart minimum.
   int? get _bottleInsertion {
     int? best;
     var bestGap = 2 * minBottleGapMinutes - 1;

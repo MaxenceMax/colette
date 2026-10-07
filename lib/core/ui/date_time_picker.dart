@@ -10,10 +10,17 @@ Future<DateTime?> showColetteDateTimePicker(
   required CupertinoDatePickerMode mode,
   DateTime? maximum,
   DateTime? minimum,
+
+  /// Pas des minutes ; l'heure initiale est arrondie à ce pas, exigé par
+  /// `CupertinoDatePicker`.
+  int minuteInterval = 1,
 }) {
   var safeInitial = initial;
   if (maximum != null && safeInitial.isAfter(maximum)) safeInitial = maximum;
   if (minimum != null && safeInitial.isBefore(minimum)) safeInitial = minimum;
+  safeInitial = safeInitial.subtract(
+    Duration(minutes: safeInitial.minute % minuteInterval),
+  );
   var selected = safeInitial;
   return showModalBottomSheet<DateTime>(
     context: context,
@@ -30,6 +37,7 @@ Future<DateTime?> showColetteDateTimePicker(
                 initialDateTime: safeInitial,
                 maximumDate: maximum,
                 minimumDate: minimum,
+                minuteInterval: minuteInterval,
                 use24hFormat: true,
                 onDateTimeChanged: (value) => selected = value,
               ),
