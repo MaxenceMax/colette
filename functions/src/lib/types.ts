@@ -63,6 +63,9 @@ export type FeedingPlanDoc = {
   morningBottleAt?: Timestamp | null;
   morningWindowStartAt?: Timestamp | null;
   morningWindowEndAt?: Timestamp | null;
+  /** Biberons des 24 prochaines heures (app à horaires choisis) : rappelés un par un, 10 min
+   *  avant. Absent avec une ancienne version de l'app : échéances `nextBottleAt` + matin. */
+  upcomingBottles?: Array<{ at: Timestamp; suggestedMl: number }> | null;
 };
 
 export type DeviceDoc = {
