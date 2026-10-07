@@ -1,6 +1,7 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:colette/features/baby/domain/entities/baby_profile.dart';
 import 'package:colette/features/baby/domain/entities/baby_sex.dart';
+import 'package:colette/features/baby/domain/entities/bottle_schedule.dart';
 import 'package:colette/features/baby/domain/entities/care_frequency.dart';
 import 'package:colette/features/baby/domain/entities/care_settings.dart';
 
@@ -71,10 +72,64 @@ abstract final class CareSettingsDto {
       CareSettings.minDailyTargetMl,
       CareSettings.maxDailyTargetMl,
     ),
-    'firstBottleMinutes': settings.firstBottleMinutes,
-    'lastBottleMinutes': settings.lastBottleMinutes,
-    'bottleIntervalMinutes': settings.bottleIntervalMinutes,
+    'bottleTimesMinutes': settings.bottleTimesMinutes,
   };
+
+  // Bornes des anciens réglages (premier, soir, intervalle), pour la migration.
+  static const _legacyFirstMin = 4 * 60;
+  static const _legacyFirstMax = 10 * 60;
+  static const _legacyLastMin = 20 * 60;
+  static const _legacyLastMax = 23 * 60 + 45;
+  static const _legacyIntervalMin = 90;
+  static const _legacyIntervalMax = 5 * 60;
+  static const _maxStoredBottles = 24;
+
+  /// Grille stockée si valide ; sinon anciens réglages convertis ; sinon défaut.
+  static List<int> _readBottleTimes(Map<String, dynamic> map) {
+    final raw = map['bottleTimesMinutes'];
+    if (raw is List &&
+        raw.isNotEmpty &&
+        raw.length <= _maxStoredBottles &&
+        raw.every((v) => v is int)) {
+      final times = raw.cast<int>().toList()..sort();
+      if (CareSettings.bottleTimesAreValid(times)) return times;
+    }
+    final hasLegacy =
+        map.containsKey('firstBottleMinutes') ||
+        map.containsKey('lastBottleMinutes') ||
+        map.containsKey('bottleIntervalMinutes');
+    if (!hasLegacy) return const CareSettings().bottleTimesMinutes;
+    final schedule = BottleSchedule.fromLegacy(
+      first: Duration(
+        minutes: _readBoundedInt(
+          map,
+          'firstBottleMinutes',
+          420,
+          min: _legacyFirstMin,
+          max: _legacyFirstMax,
+        ),
+      ),
+      last: Duration(
+        minutes: _readBoundedInt(
+          map,
+          'lastBottleMinutes',
+          1410,
+          min: _legacyLastMin,
+          max: _legacyLastMax,
+        ),
+      ),
+      interval: Duration(
+        minutes: _readBoundedInt(
+          map,
+          'bottleIntervalMinutes',
+          180,
+          min: _legacyIntervalMin,
+          max: _legacyIntervalMax,
+        ),
+      ),
+    );
+    return [for (final t in schedule.times) t.inMinutes];
+  }
 
   /// Entier optionnel borné ; absent ou non numérique → `null`.
   /// Arrondi au multiple de `step` le plus proche avant de borner.
@@ -170,27 +225,7 @@ abstract final class CareSettingsDto {
         max: CareSettings.maxDailyTargetMl,
         step: CareSettings.dailyTargetStepMl,
       ),
-      firstBottleMinutes: _readBoundedInt(
-        map,
-        'firstBottleMinutes',
-        defaults.firstBottleMinutes,
-        min: CareSettings.minFirstBottleMinutes,
-        max: CareSettings.maxFirstBottleMinutes,
-      ),
-      lastBottleMinutes: _readBoundedInt(
-        map,
-        'lastBottleMinutes',
-        defaults.lastBottleMinutes,
-        min: CareSettings.minLastBottleMinutes,
-        max: CareSettings.maxLastBottleMinutes,
-      ),
-      bottleIntervalMinutes: _readBoundedInt(
-        map,
-        'bottleIntervalMinutes',
-        defaults.bottleIntervalMinutes,
-        min: CareSettings.minBottleIntervalMinutes,
-        max: CareSettings.maxBottleIntervalMinutes,
-      ),
+      bottleTimesMinutes: _readBottleTimes(map),
     );
   }
 }

@@ -15,10 +15,9 @@ T _$identity<T>(T value) => value;
 /// @nodoc
 mixin _$BottleSchedule {
 
-/// Heure du premier biberon, depuis minuit.
- Duration get firstBottle;/// Heure du biberon du soir, depuis minuit ; rien n'est prévu après.
- Duration get lastBottle;/// Temps entre deux biberons de journée.
- Duration get interval;
+/// Horaires depuis minuit, triés, espacés d'au moins 30 min (y compris du
+/// dernier au premier du lendemain). Jamais vide (non vérifiable en `const`).
+ List<Duration> get times;
 /// Create a copy of BottleSchedule
 /// with the given fields replaced by the non-null parameter values.
 @JsonKey(includeFromJson: false, includeToJson: false)
@@ -30,20 +29,20 @@ $BottleScheduleCopyWith<BottleSchedule> get copyWith => _$BottleScheduleCopyWith
 @override
 bool operator ==(Object other) {
   final _this = this as BottleSchedule;
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is BottleSchedule&&(identical(other.firstBottle, _this.firstBottle) || other.firstBottle == _this.firstBottle)&&(identical(other.lastBottle, _this.lastBottle) || other.lastBottle == _this.lastBottle)&&(identical(other.interval, _this.interval) || other.interval == _this.interval));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is BottleSchedule&&const DeepCollectionEquality().equals(other.times, _this.times));
 }
 
 
 @override
 int get hashCode {
   final _this = this as BottleSchedule;
-  return Object.hash(runtimeType,_this.firstBottle,_this.lastBottle,_this.interval);
+  return Object.hash(runtimeType,const DeepCollectionEquality().hash(_this.times));
 }
 
 @override
 String toString() {
   final _this = this as BottleSchedule;
-  return 'BottleSchedule(firstBottle: ${_this.firstBottle}, lastBottle: ${_this.lastBottle}, interval: ${_this.interval})';
+  return 'BottleSchedule(times: ${_this.times})';
 }
 
 
@@ -54,7 +53,7 @@ abstract mixin class $BottleScheduleCopyWith<$Res>  {
   factory $BottleScheduleCopyWith(BottleSchedule value, $Res Function(BottleSchedule) _then) = _$BottleScheduleCopyWithImpl;
 @useResult
 $Res call({
- Duration firstBottle, Duration lastBottle, Duration interval
+ List<Duration> times
 });
 
 
@@ -71,12 +70,10 @@ class _$BottleScheduleCopyWithImpl<$Res>
 
 /// Create a copy of BottleSchedule
 /// with the given fields replaced by the non-null parameter values.
-@pragma('vm:prefer-inline') @override $Res call({Object? firstBottle = null,Object? lastBottle = null,Object? interval = null,}) {
+@pragma('vm:prefer-inline') @override $Res call({Object? times = null,}) {
   return _then(BottleSchedule(
-firstBottle: null == firstBottle ? _self.firstBottle : firstBottle // ignore: cast_nullable_to_non_nullable
-as Duration,lastBottle: null == lastBottle ? _self.lastBottle : lastBottle // ignore: cast_nullable_to_non_nullable
-as Duration,interval: null == interval ? _self.interval : interval // ignore: cast_nullable_to_non_nullable
-as Duration,
+times: null == times ? _self.times : times // ignore: cast_nullable_to_non_nullable
+as List<Duration>,
   ));
 }
 
@@ -161,10 +158,10 @@ return $default(_that);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( Duration firstBottle,  Duration lastBottle,  Duration interval)?  $default,{required TResult orElse(),}) {final _that = this;
+@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( List<Duration> times)?  $default,{required TResult orElse(),}) {final _that = this;
 switch (_that) {
 case _BottleSchedule() when $default != null:
-return $default(_that.firstBottle,_that.lastBottle,_that.interval);case _:
+return $default(_that.times);case _:
   return orElse();
 
 }
@@ -182,10 +179,10 @@ return $default(_that.firstBottle,_that.lastBottle,_that.interval);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( Duration firstBottle,  Duration lastBottle,  Duration interval)  $default,) {final _that = this;
+@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( List<Duration> times)  $default,) {final _that = this;
 switch (_that) {
 case _BottleSchedule():
-return $default(_that.firstBottle,_that.lastBottle,_that.interval);case _:
+return $default(_that.times);case _:
   throw StateError('Unexpected subclass');
 
 }
@@ -202,10 +199,10 @@ return $default(_that.firstBottle,_that.lastBottle,_that.interval);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( Duration firstBottle,  Duration lastBottle,  Duration interval)?  $default,) {final _that = this;
+@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( List<Duration> times)?  $default,) {final _that = this;
 switch (_that) {
 case _BottleSchedule() when $default != null:
-return $default(_that.firstBottle,_that.lastBottle,_that.interval);case _:
+return $default(_that.times);case _:
   return null;
 
 }
@@ -217,15 +214,20 @@ return $default(_that.firstBottle,_that.lastBottle,_that.interval);case _:
 
 
 class _BottleSchedule extends BottleSchedule {
-  const _BottleSchedule({this.firstBottle = const Duration(hours: 7), this.lastBottle = const Duration(hours: 23, minutes: 30), this.interval = const Duration(hours: 3)}): super._();
+  const _BottleSchedule({ List<Duration> times = defaultBottleTimes}): _times = times,super._();
   
 
-/// Heure du premier biberon, depuis minuit.
-@override@JsonKey() final  Duration firstBottle;
-/// Heure du biberon du soir, depuis minuit ; rien n'est prévu après.
-@override@JsonKey() final  Duration lastBottle;
-/// Temps entre deux biberons de journée.
-@override@JsonKey() final  Duration interval;
+/// Horaires depuis minuit, triés, espacés d'au moins 30 min (y compris du
+/// dernier au premier du lendemain). Jamais vide (non vérifiable en `const`).
+ final  List<Duration> _times;
+/// Horaires depuis minuit, triés, espacés d'au moins 30 min (y compris du
+/// dernier au premier du lendemain). Jamais vide (non vérifiable en `const`).
+@override@JsonKey() List<Duration> get times {
+  if (_times is EqualUnmodifiableListView) return _times;
+  // ignore: implicit_dynamic_type
+  return EqualUnmodifiableListView(_times);
+}
+
 
 /// Create a copy of BottleSchedule
 /// with the given fields replaced by the non-null parameter values.
@@ -237,18 +239,18 @@ _$BottleScheduleCopyWith<_BottleSchedule> get copyWith => __$BottleScheduleCopyW
 
 @override
 bool operator ==(Object other) {
-    return identical(this, other) || (other.runtimeType == runtimeType&&other is _BottleSchedule&&(identical(other.firstBottle, firstBottle) || other.firstBottle == firstBottle)&&(identical(other.lastBottle, lastBottle) || other.lastBottle == lastBottle)&&(identical(other.interval, interval) || other.interval == interval));
+    return identical(this, other) || (other.runtimeType == runtimeType&&other is _BottleSchedule&&const DeepCollectionEquality().equals(other.times, _times));
 }
 
 
 @override
 int get hashCode {
-    return Object.hash(runtimeType,firstBottle,lastBottle,interval);
+    return Object.hash(runtimeType,const DeepCollectionEquality().hash(_times));
 }
 
 @override
 String toString() {
-    return 'BottleSchedule(firstBottle: $firstBottle, lastBottle: $lastBottle, interval: $interval)';
+    return 'BottleSchedule(times: $times)';
 }
 
 
@@ -259,7 +261,7 @@ abstract mixin class _$BottleScheduleCopyWith<$Res> implements $BottleScheduleCo
   factory _$BottleScheduleCopyWith(_BottleSchedule value, $Res Function(_BottleSchedule) _then) = __$BottleScheduleCopyWithImpl;
 @override @useResult
 $Res call({
- Duration firstBottle, Duration lastBottle, Duration interval
+ List<Duration> times
 });
 
 
@@ -276,12 +278,10 @@ class __$BottleScheduleCopyWithImpl<$Res>
 
 /// Create a copy of BottleSchedule
 /// with the given fields replaced by the non-null parameter values.
-@override @pragma('vm:prefer-inline') $Res call({Object? firstBottle = null,Object? lastBottle = null,Object? interval = null,}) {
+@override @pragma('vm:prefer-inline') $Res call({Object? times = null,}) {
   return _then(_BottleSchedule(
-firstBottle: null == firstBottle ? _self.firstBottle : firstBottle // ignore: cast_nullable_to_non_nullable
-as Duration,lastBottle: null == lastBottle ? _self.lastBottle : lastBottle // ignore: cast_nullable_to_non_nullable
-as Duration,interval: null == interval ? _self.interval : interval // ignore: cast_nullable_to_non_nullable
-as Duration,
+times: null == times ? _self._times : times // ignore: cast_nullable_to_non_nullable
+as List<Duration>,
   ));
 }
 

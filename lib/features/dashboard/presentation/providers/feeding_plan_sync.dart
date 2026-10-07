@@ -6,6 +6,7 @@ import 'package:colette/features/baby/domain/entities/feeding_plan_snapshot.dart
 import 'package:colette/features/baby/domain/entities/growth_metric.dart';
 import 'package:colette/features/baby/presentation/providers/baby_providers.dart';
 import 'package:colette/features/dashboard/domain/use_cases/compute_feeding_plan.dart';
+import 'package:colette/features/dashboard/domain/use_cases/project_bottle_schedule.dart';
 import 'package:colette/features/events/presentation/providers/events_providers.dart';
 import 'package:colette/features/household/presentation/providers/household_providers.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
@@ -52,9 +53,12 @@ final class FirestoreFeedingPlanSync implements FeedingPlanSync {
       final lastBottle = (await events.getLatestBottle(code))
           .getOrElse((_) => null);
       final schedule = profile.careSettings.bottleSchedule;
+      final latestWeightGrams = GrowthMetric.weight
+          .latestOf(measurements)
+          ?.grams;
       final plan = const ComputeFeedingPlan()(
         birthDate: profile.birthDate,
-        latestWeightGrams: GrowthMetric.weight.latestOf(measurements)?.grams,
+        latestWeightGrams: latestWeightGrams,
         schedule: schedule,
         todayBottles: today.where((e) => e.hasBottle).toList(),
         lastBottle: lastBottle,
@@ -64,6 +68,14 @@ final class FirestoreFeedingPlanSync implements FeedingPlanSync {
       final morning = lastBottle == null
           ? null
           : schedule.morningAfter(plan.nextBottleAt);
+      final upcoming = const ProjectBottleSchedule()(
+        plan: plan,
+        schedule: schedule,
+        birthDate: profile.birthDate,
+        latestWeightGrams: latestWeightGrams,
+        now: now,
+        dailyTargetMlOverride: profile.careSettings.dailyTargetMl,
+      );
       await babyRepository.saveFeedingPlan(
         code,
         FeedingPlanSnapshot(
@@ -71,6 +83,10 @@ final class FirestoreFeedingPlanSync implements FeedingPlanSync {
           suggestedMl: plan.suggestedMl,
           computedAt: now,
           morningBottleAt: morning,
+          upcomingBottles: [
+            for (final bottle in upcoming)
+              UpcomingBottle(at: bottle.at, suggestedMl: bottle.suggestedMl),
+          ],
         ),
       );
     } catch (e, stackTrace) {

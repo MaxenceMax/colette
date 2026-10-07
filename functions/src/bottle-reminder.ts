@@ -24,16 +24,39 @@ type Deadline = {
   nextBottleAt: Date;
   windowStartAt: Date | null;
   windowEndAt: Date | null;
+  suggestedMl: number;
 };
 
-/** Échéances à rappeler : le prochain biberon, puis le premier du matin en secours. */
+/** La grille est exploitable si la liste n'est pas vide et date du même calcul que le plan : sinon une ancienne app a réécrit le plan en laissant une liste périmée. */
+export function usesGrid(plan: FeedingPlanDoc): boolean {
+  return (
+    Boolean(plan.upcomingBottles?.length) &&
+    plan.upcomingComputedAt != null &&
+    plan.computedAt != null &&
+    plan.upcomingComputedAt.toMillis() === plan.computedAt.toMillis()
+  );
+}
+
+/** Échéances à rappeler : chaque créneau de la grille si elle est à jour, sinon (ancienne app ou liste périmée) le prochain biberon puis le premier du matin en secours. */
 export function deadlinesOf(plan: FeedingPlanDoc): Deadline[] {
+  if (usesGrid(plan) && plan.upcomingBottles) {
+    return [...plan.upcomingBottles]
+      .sort((a, b) => a.at.toMillis() - b.at.toMillis())
+      .map((b) => ({
+        key: b.at,
+        nextBottleAt: b.at.toDate(),
+        windowStartAt: null,
+        windowEndAt: null,
+        suggestedMl: b.suggestedMl,
+      }));
+  }
   const deadlines: Deadline[] = [
     {
       key: plan.nextBottleAt,
       nextBottleAt: plan.nextBottleAt.toDate(),
       windowStartAt: plan.windowStartAt?.toDate() ?? null,
       windowEndAt: plan.windowEndAt?.toDate() ?? null,
+      suggestedMl: plan.suggestedMl,
     },
   ];
   // L'app calcule toujours le matin strictement après nextBottleAt : s'il le précède, ce sont des
@@ -44,6 +67,7 @@ export function deadlinesOf(plan: FeedingPlanDoc): Deadline[] {
       nextBottleAt: plan.morningBottleAt.toDate(),
       windowStartAt: plan.morningWindowStartAt?.toDate() ?? null,
       windowEndAt: plan.morningWindowEndAt?.toDate() ?? null,
+      suggestedMl: plan.suggestedMl,
     });
   }
   return deadlines;
@@ -59,21 +83,25 @@ export const bottleReminder = onSchedule({ schedule: 'every 5 minutes', timeZone
       if (!plan?.nextBottleAt) continue;
       const lastNotifiedFor = (doc.get('lastBottleNotifiedFor') as Timestamp | undefined)?.toDate() ?? null;
       const computedAt = plan.computedAt?.toDate() ?? null;
-      const deadline = deadlinesOf(plan).find((d) =>
-        isReminderDue({
-          nextBottleAt: d.nextBottleAt,
-          windowStartAt: d.windowStartAt,
-          windowEndAt: d.windowEndAt,
-          computedAt,
-          lastNotifiedFor,
-          now,
-        }),
-      );
+      // Avec la grille, on n'écarte que les créneaux antérieurs ou égaux au dernier rappelé.
+      const fromGrid = usesGrid(plan);
+      const deadline = deadlinesOf(plan)
+        .filter((d) => !fromGrid || !lastNotifiedFor || d.nextBottleAt.getTime() > lastNotifiedFor.getTime())
+        .find((d) =>
+          isReminderDue({
+            nextBottleAt: d.nextBottleAt,
+            windowStartAt: d.windowStartAt,
+            windowEndAt: d.windowEndAt,
+            computedAt,
+            lastNotifiedFor,
+            now,
+          }),
+        );
       if (!deadline) continue;
 
       const recipients = selectBottleRecipients(await loadDevices(doc.ref));
       const sent = await sendToDevices(doc.id, recipients, {
-        ...bottleMessage(plan.suggestedMl, deadline.nextBottleAt, deadline.windowStartAt ? deadline.windowEndAt : null),
+        ...bottleMessage(deadline.suggestedMl, deadline.nextBottleAt, deadline.windowStartAt ? deadline.windowEndAt : null),
         data: { route: '/today?bottle=1' },
       });
 

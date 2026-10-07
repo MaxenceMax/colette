@@ -9,8 +9,10 @@ import 'package:colette/features/events/domain/entities/care_event.dart';
 /// Plan biberons selon l'OMS : 150 ml/kg/jour (montée progressive la 1re semaine),
 /// réparti sur les biberons du jour du [BottleSchedule] ; repères par âge sans pesée.
 /// Une cible ajustée (`dailyTargetMlOverride`) remplace la cible OMS.
-/// Le prochain biberon suit le rythme du foyer, à heure fixe.
-/// Un biberon manqué bascule sur le premier du matin une fois la soirée entamée.
+/// Le prochain biberon suit la grille d'horaires du foyer.
+/// Un horaire sauté reste dû jusqu'au milieu de l'écart avec le suivant ; une
+/// fois le biberon du soir donné, la nuit ne compte aucun retard, mais un
+/// biberon du soir manqué reste dû jusqu'au milieu de la nuit.
 class ComputeFeedingPlan {
   const ComputeFeedingPlan();
 

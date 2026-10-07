@@ -60,7 +60,7 @@ vi.mock('./lib/firestore', async (importOriginal) => ({
   }),
 }));
 
-const { selectBottleRecipients, deadlinesOf, bottleReminder } = await import('./bottle-reminder');
+const { selectBottleRecipients, deadlinesOf, usesGrid, bottleReminder } = await import('./bottle-reminder');
 
 const handler = bottleReminder as unknown as () => Promise<void>;
 
@@ -172,6 +172,59 @@ describe('deadlinesOf', () => {
 
     expect(morning.windowStartAt).toEqual(new Date('2026-10-01T04:30:00Z'));
     expect(morning.windowEndAt).toEqual(new Date('2026-10-01T05:30:00Z'));
+  });
+  it('avec upcomingBottles : une échéance par créneau, triées, avec leurs ml', () => {
+    const plan: FeedingPlanDoc = {
+      nextBottleAt: at('2026-10-07T08:00:00Z'),
+      suggestedMl: 120,
+      computedAt: at('2026-10-07T06:00:00Z'),
+      upcomingComputedAt: at('2026-10-07T06:00:00Z'),
+      morningBottleAt: at('2026-10-08T05:00:00Z'),
+      upcomingBottles: [
+        { at: at('2026-10-07T11:00:00Z'), suggestedMl: 120 },
+        { at: at('2026-10-07T08:00:00Z'), suggestedMl: 120 },
+        { at: at('2026-10-08T05:00:00Z'), suggestedMl: 130 },
+      ],
+    };
+
+    const deadlines = deadlinesOf(plan);
+
+    expect(deadlines.map((d) => d.nextBottleAt.toISOString())).toEqual([
+      '2026-10-07T08:00:00.000Z',
+      '2026-10-07T11:00:00.000Z',
+      '2026-10-08T05:00:00.000Z',
+    ]);
+    expect(deadlines.map((d) => d.suggestedMl)).toEqual([120, 120, 130]);
+    expect(deadlines.every((d) => d.windowStartAt === null && d.windowEndAt === null)).toBe(true);
+  });
+
+  it('liste laissée par une app plus récente (upcomingComputedAt ≠ computedAt) : échéances historiques', () => {
+    const plan: FeedingPlanDoc = {
+      ...planWithMorning(at('2026-10-01T05:00:00Z')),
+      computedAt: at('2026-09-30T20:00:00Z'),
+      upcomingComputedAt: at('2026-09-30T10:00:00Z'),
+      upcomingBottles: [{ at: at('2026-09-30T12:00:00Z'), suggestedMl: 90 }],
+    };
+
+    expect(usesGrid(plan)).toBe(false);
+    expect(deadlinesOf(plan).map((d) => d.key)).toEqual([plan.nextBottleAt, plan.morningBottleAt]);
+  });
+
+  it('liste sans upcomingComputedAt : échéances historiques', () => {
+    const plan: FeedingPlanDoc = {
+      ...planWithMorning(at('2026-10-01T05:00:00Z')),
+      computedAt: at('2026-09-30T20:00:00Z'),
+      upcomingBottles: [{ at: at('2026-09-30T12:00:00Z'), suggestedMl: 90 }],
+    };
+
+    expect(usesGrid(plan)).toBe(false);
+    expect(deadlinesOf(plan).map((d) => d.key)).toEqual([plan.nextBottleAt, plan.morningBottleAt]);
+  });
+
+  it('upcomingBottles vide ou absent : échéances historiques', () => {
+    const plan = planWithMorning(at('2026-10-01T05:00:00Z'));
+    expect(deadlinesOf({ ...plan, upcomingBottles: [] })).toEqual(deadlinesOf(plan));
+    expect(deadlinesOf(plan)[0].suggestedMl).toBe(120);
   });
 });
 
@@ -421,5 +474,83 @@ describe('bottleReminder', () => {
 
     expect(sendToDevices).not.toHaveBeenCalled();
     expect(updates).toEqual([]);
+  });
+
+  /** Plan avec grille : un créneau passé, un dû dans 5 min (90 ml), un plus tard. */
+  function gridPlan(): FeedingPlanDoc {
+    const now = Date.now();
+    const slot = (minutes: number) => Timestamp.fromDate(new Date(now + minutes * 60 * 1000));
+    return {
+      nextBottleAt: slot(-120),
+      suggestedMl: 120,
+      computedAt: slot(-180),
+      upcomingComputedAt: slot(-180),
+      upcomingBottles: [
+        { at: slot(-120), suggestedMl: 120 },
+        { at: slot(5), suggestedMl: 90 },
+        { at: slot(185), suggestedMl: 100 },
+      ],
+    };
+  }
+
+  it('grille : rappelle le créneau dû même si nextBottleAt est passé', async () => {
+    const plan = gridPlan();
+    households.push({ id: 'ABC123', fields: { feedingPlan: plan }, devices: [{ id: 'd1' }] });
+
+    await handler();
+
+    expect(sendToDevices).toHaveBeenCalledTimes(1);
+    const [, , payload] = sendToDevices.mock.calls[0];
+    expect(payload.title).toBe('Biberon dans 10 min');
+    expect(payload.body).toContain('90 ml');
+    expect(updates).toEqual([
+      { household: 'ABC123', data: { lastBottleNotifiedFor: plan.upcomingBottles![1].at } },
+    ]);
+  });
+
+  it('grille périmée (une ancienne app a réécrit le plan) : rappelle nextBottleAt, pas la liste', async () => {
+    const now = Date.now();
+    const ts = (minutes: number) => Timestamp.fromDate(new Date(now + minutes * 60 * 1000));
+    const plan: FeedingPlanDoc = {
+      nextBottleAt: ts(5),
+      suggestedMl: 70,
+      computedAt: ts(-10),
+      upcomingComputedAt: ts(-300),
+      upcomingBottles: [{ at: ts(-200), suggestedMl: 90 }],
+    };
+    households.push({ id: 'ABC123', fields: { feedingPlan: plan }, devices: [{ id: 'd1' }] });
+
+    await handler();
+
+    expect(sendToDevices).toHaveBeenCalledTimes(1);
+    const [, , payload] = sendToDevices.mock.calls[0];
+    expect(payload.body).toContain('70 ml');
+    expect(updates).toEqual([{ household: 'ABC123', data: { lastBottleNotifiedFor: plan.nextBottleAt } }]);
+  });
+
+  it('grille : pas de doublon pour un créneau déjà rappelé', async () => {
+    const plan = gridPlan();
+    households.push({
+      id: 'ABC123',
+      fields: { feedingPlan: plan, lastBottleNotifiedFor: plan.upcomingBottles![1].at },
+      devices: [{ id: 'd1' }],
+    });
+
+    await handler();
+
+    expect(sendToDevices).not.toHaveBeenCalled();
+  });
+
+  it('grille : ne revient pas sur un créneau antérieur au dernier rappelé', async () => {
+    const plan = gridPlan();
+    households.push({
+      id: 'ABC123',
+      fields: { feedingPlan: plan, lastBottleNotifiedFor: plan.upcomingBottles![2].at },
+      devices: [{ id: 'd1' }],
+    });
+
+    await handler();
+
+    expect(sendToDevices).not.toHaveBeenCalled();
   });
 });
