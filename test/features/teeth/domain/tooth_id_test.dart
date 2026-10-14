@@ -73,7 +73,7 @@ void main() {
   });
 
   test('tryParse refuse les numéros hors table', () {
-    for (final n in [0, 10, 19, 49, 56, 90, 99, 100, -11]) {
+    for (final n in [0, 10, 19, 49, 56, 59, 86, 90, 99, 100, -11]) {
       expect(ToothId.tryParse(n), isNull, reason: '$n');
     }
   });
@@ -98,9 +98,53 @@ void main() {
     expect(numbers(ToothId.primaryAll.skip(5).take(5)), [61, 62, 63, 64, 65]);
     expect(numbers(ToothId.primaryAll.skip(10).take(5)), [85, 84, 83, 82, 81]);
     expect(numbers(ToothId.primaryAll.skip(15)), [71, 72, 73, 74, 75]);
-    expect(ToothId.permanentAll.first.value, 18);
-    expect(ToothId.permanentAll.last.value, 38);
+    expect(numbers(ToothId.permanentAll.take(8)), [
+      18,
+      17,
+      16,
+      15,
+      14,
+      13,
+      12,
+      11,
+    ]);
+    expect(numbers(ToothId.permanentAll.skip(8).take(8)), [
+      21,
+      22,
+      23,
+      24,
+      25,
+      26,
+      27,
+      28,
+    ]);
+    expect(numbers(ToothId.permanentAll.skip(16).take(8)), [
+      48,
+      47,
+      46,
+      45,
+      44,
+      43,
+      42,
+      41,
+    ]);
+    expect(numbers(ToothId.permanentAll.skip(24)), [
+      31,
+      32,
+      33,
+      34,
+      35,
+      36,
+      37,
+      38,
+    ]);
     expect(ToothId.all(Dentition.primary), ToothId.primaryAll);
     expect(ToothId.all(Dentition.permanent), ToothId.permanentAll);
+  });
+
+  test('chaque dent listée se relit à l\'identique', () {
+    for (final id in [...ToothId.primaryAll, ...ToothId.permanentAll]) {
+      expect(ToothId.tryParse(id.value), id);
+    }
   });
 }

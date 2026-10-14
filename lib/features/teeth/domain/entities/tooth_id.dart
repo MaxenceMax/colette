@@ -76,12 +76,12 @@ extension type const ToothId._(int value) {
     final upperLeft = firstQuadrant + 1;
     final lowerLeft = firstQuadrant + 2;
     final lowerRight = firstQuadrant + 3;
-    return [
+    return List.unmodifiable([
       for (var p = perQuadrant; p >= 1; p--) ToothId._(upperRight * 10 + p),
       for (var p = 1; p <= perQuadrant; p++) ToothId._(upperLeft * 10 + p),
       for (var p = perQuadrant; p >= 1; p--) ToothId._(lowerRight * 10 + p),
       for (var p = 1; p <= perQuadrant; p++) ToothId._(lowerLeft * 10 + p),
-    ];
+    ]);
   }
 
   int get _quadrant => value ~/ 10;
