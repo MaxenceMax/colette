@@ -41,8 +41,8 @@ class TeethChartPainter extends CustomPainter {
   @override
   void paint(Canvas canvas, Size size) {
     const status = ComputeToothStatus();
-    final strokeWidth = AppSpacing.xxs.value;
-    final selectionWidth = AppSpacing.xs.value;
+    final strokeWidth = AppStroke.regular.value;
+    final selectionWidth = AppStroke.thick.value;
     for (final id in layout.teeth) {
       final rect = layout.rectOf(id);
       // Les traits restent à l'intérieur de la dent : les molaires

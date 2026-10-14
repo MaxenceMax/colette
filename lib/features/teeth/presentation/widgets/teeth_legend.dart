@@ -25,6 +25,7 @@ class TeethLegend extends StatelessWidget {
           label: s.teethLegendLost,
           fill: AppColors.surfaceContainer,
           border: AppColors.border,
+          marked: true,
         ),
         _LegendItem(
           label: s.teethLegendAbsent,
@@ -41,11 +42,15 @@ class _LegendItem extends StatelessWidget {
     required this.label,
     required this.fill,
     required this.border,
+    this.marked = false,
   });
 
   final String label;
   final AppColors fill;
   final AppColors border;
+
+  /// Affiche la croix des dents tombées dans la pastille.
+  final bool marked;
 
   @override
   Widget build(BuildContext context) => Row(
@@ -58,10 +63,19 @@ class _LegendItem extends StatelessWidget {
           color: context.appColor(fill),
           border: Border.all(
             color: context.appColor(border),
-            width: AppSpacing.xxs.value,
+            width: AppStroke.regular.value,
           ),
         ),
-        child: AppSize.xs.square,
+        child: SizedBox.square(
+          dimension: AppSize.xs.value,
+          child: marked
+              ? Icon(
+                  Icons.close,
+                  size: AppSize.xxs.value,
+                  color: context.appColor(AppColors.textSecondary),
+                )
+              : null,
+        ),
       ),
       Text(label, style: Theme.of(context).coletteTextStyles.small),
     ],

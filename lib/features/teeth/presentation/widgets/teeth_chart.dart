@@ -38,7 +38,7 @@ class TeethChart extends StatelessWidget {
       lostStroke: context.appColor(AppColors.border),
       mark: context.appColor(AppColors.textSecondary),
       absent: context.appColor(AppColors.textSecondary),
-      selected: context.appColor(AppColors.accent),
+      selected: context.appColor(AppColors.onSurface),
     );
     return Column(
       crossAxisAlignment: .stretch,
