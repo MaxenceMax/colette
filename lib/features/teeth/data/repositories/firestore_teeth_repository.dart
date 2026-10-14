@@ -1,4 +1,4 @@
-import 'dart:developer';
+import 'dart:developer' as developer;
 
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:colette/core/firebase/firestore_paths.dart';
@@ -26,7 +26,7 @@ class FirestoreTeethRepository implements TeethRepository {
     for (final doc in snap.docs) {
       final record = ToothRecordDto.fromDoc(doc);
       if (record == null) {
-        log('Dent illisible ignorée : ${doc.id}', name: 'colette');
+        developer.log('Dent illisible ignorée : ${doc.id}', name: 'colette');
         continue;
       }
       records.add(record);

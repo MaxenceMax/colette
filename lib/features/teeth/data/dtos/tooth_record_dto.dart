@@ -23,6 +23,7 @@ abstract final class ToothRecordDto {
     };
     final data = doc.data();
     if (toothId == null || data == null) return null;
+    if (docId(toothId) != doc.id) return null;
     if (data['updatedAt'] is! Timestamp) return null;
     return ToothRecord(
       toothId: toothId,
@@ -39,7 +40,10 @@ abstract final class ToothRecordDto {
         _ => null,
       },
       updatedAt: (data['updatedAt'] as Timestamp).toDate(),
-      updatedByDeviceId: data['updatedByDeviceId'] as String? ?? '',
+      updatedByDeviceId: switch (data['updatedByDeviceId']) {
+        final String d => d,
+        _ => '',
+      },
     );
   }
 }

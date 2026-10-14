@@ -44,6 +44,11 @@ void main() {
       'updatedAt': Timestamp.fromDate(DateTime(2026, 10, 14)),
     });
     await teeth().doc('52').set({'note': 'sans date de mise à jour'});
+    for (final id in ['051', 'abc']) {
+      await teeth().doc(id).set({
+        'updatedAt': Timestamp.fromDate(DateTime(2026, 10, 14)),
+      });
+    }
     await repo.saveTooth(
       code,
       makeTooth(61, eruptedAt: DateTime(2027, 2, 1, 12)),
@@ -57,5 +62,18 @@ void main() {
     expect((await repo.deleteTooth(code, tooth(51))).isRight(), isTrue);
     expect(await repo.watchTeeth(code).first, isEmpty);
     expect((await teeth().doc('51').get()).exists, isFalse);
+  });
+
+  test('un champ mal typé est ignoré sans casser le flux', () async {
+    await teeth().doc('61').set({
+      'eruptedAt': 'x',
+      'updatedAt': Timestamp.fromDate(DateTime(2026, 10, 14)),
+      'updatedByDeviceId': 3,
+    });
+    final records = await repo.watchTeeth(code).first;
+    expect(records, hasLength(1));
+    expect(records.single.toothId, tooth(61));
+    expect(records.single.eruptedAt, isNull);
+    expect(records.single.updatedByDeviceId, '');
   });
 }
