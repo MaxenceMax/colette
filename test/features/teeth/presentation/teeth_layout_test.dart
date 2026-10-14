@@ -63,4 +63,22 @@ void main() {
     final justOutside = incisor.center.translate(0, -(incisor.height / 2 + 4));
     expect(layout.hitTest(justOutside), tooth(11));
   });
+
+  test('entre deux dents voisines, la plus proche l\'emporte', () {
+    final layout = TeethLayout(Dentition.permanent, const Size(343, 377.3));
+    final a = layout.rectOf(tooth(11)).center;
+    final b = layout.rectOf(tooth(12)).center;
+    expect(layout.hitTest(Offset.lerp(a, b, 0.4)!), tooth(11));
+    expect(layout.hitTest(Offset.lerp(a, b, 0.6)!), tooth(12));
+  });
+
+  test('égalité selon la dentition et la taille', () {
+    const size = Size(390, 429);
+    final layout = TeethLayout(Dentition.primary, size);
+    final same = TeethLayout(Dentition.primary, size);
+    final other = TeethLayout(Dentition.permanent, size);
+    expect(layout, same);
+    expect(layout.hashCode, same.hashCode);
+    expect(layout, isNot(other));
+  });
 }

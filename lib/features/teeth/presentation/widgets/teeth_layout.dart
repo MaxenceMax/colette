@@ -32,13 +32,13 @@ class TeethLayout {
   final Size size;
   final Map<ToothId, Rect> _rects;
 
-  /// Rayon minimal de la zone tactile (48 pt de diamètre).
+  /// Rayon de tolérance au toucher (48 pt de diamètre) ; entre deux dents voisines, la plus proche l'emporte.
   static double get touchRadius => AppSize.xl.value / 2;
 
   /// Dents dans l'ordre du schéma.
   Iterable<ToothId> get teeth => _rects.keys;
 
-  /// Rectangle englobant de la dent [id].
+  /// Rectangle englobant de [id], qui doit appartenir à [dentition].
   Rect rectOf(ToothId id) => _rects[id]!;
 
   /// Dent la plus proche de [point], si [point] est dans sa zone tactile.
