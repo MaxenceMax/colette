@@ -68,12 +68,12 @@ Nouvelle feature `teeth`, sur le modèle de `sleep`.
 | `ToothSide` (enum) | `right`, `left` (côté de l'enfant). |
 | `ToothKind` (enum) | `centralIncisor`, `lateralIncisor`, `canine`, `firstPremolar`, `secondPremolar`, `firstMolar`, `secondMolar`, `thirdMolar`. |
 | `ToothId` (extension type sur `int`) | Numéro FDI. Getters `dentition`, `arch`, `side`, `kind` déduits du numéro (pour une dent de lait, positions 4 et 5 = `firstMolar` et `secondMolar`). Constantes `ToothId.primaryAll` (20) et `ToothId.permanentAll` (32), dans l'ordre du schéma. Construction depuis un entier hors table → `null` (`ToothId.tryParse`). |
-| `AgeRange` (classe `const`) | `from`, `to`, `unit` (`months` ou `years`), pour l'affichage tel que dans la source. |
-| `ToothReference` (classe `const`) | `eruption: AgeRange`, `shedding: AgeRange?` (dents de lait seulement). Table `toothSchedule` indexée par `(dentition, arch, kind)`. |
+| `AgeRange` (record) | `(from, to, unit)`, `unit` = `AgeUnit.months` ou `AgeUnit.years`, pour l'affichage tel que dans la source. |
+| `ToothReference` (record) | `(eruption, shedding?)`, `shedding` pour les dents de lait seulement. `toothReferenceOf(ToothId)` lit la table indexée par `(dentition, arch, kind)`. |
 | `ToothRecord` (freezed) | Ce qui a été noté pour une dent : `toothId`, `eruptedAt?`, `lostAt?`, `note?`, `updatedAt`, `updatedByDeviceId`. Getter `isEmpty` : ni date ni note. |
 | `ToothStatus` (enum) | `absent`, `erupted`, `lost`. |
 | `ComputeToothStatus` (pur) | `lost` si `lostAt`, sinon `erupted` si `eruptedAt`, sinon `absent`. Une chute sans date de sortie est acceptée (dent sortie avant que l'app ne soit utilisée). |
-| `ComputeTeethSummary` (pur) | Pour la carte : nombre de dents en bouche (statut `erupted`, les deux dentitions) et jusqu'à deux **groupes attendus** (voir ci-dessous). |
+| `ComputeTeethSummary` (pur) | Renvoie un `TeethSummary` pour la carte : nombre de dents en bouche (statut `erupted`, les deux dentitions) et jusqu'à deux **groupes attendus** (voir ci-dessous). |
 | `ValidateToothRecord` (pur) | Voir §4.2. |
 | `TeethRepository` | `watchTeeth(code)`, `saveTooth(code, record)` (`set` complet), `deleteTooth(code, toothId)`. |
 
@@ -93,7 +93,7 @@ Exemple à la naissance : « incisives centrales du bas (6-10 mois) » puis « i
 Nouvelles raisons dans `ValidationReason` :
 
 - `toothDateBeforeBirth` : sortie ou chute avant la date de naissance ;
-- `toothDateInFuture` : sortie ou chute après `now` (tolérance de 5 min, comme les événements) ;
+- `toothDateInFuture` : sortie ou chute après aujourd'hui (jour civil). Une date choisie au sélecteur est enregistrée à midi : une tolérance en minutes, comme pour les événements, refuserait une dent sortie le matin même ;
 - `toothLostBeforeErupted` : chute avant la sortie, quand les deux dates sont renseignées ;
 - `toothLossOnPermanent` : chute renseignée sur une dent définitive (garde-fou, l'interface ne la propose pas).
 
@@ -177,7 +177,7 @@ Accessibilité : `semanticsBuilder` du painter, un nœud par dent, ex. « Incisi
 
 Tutoiement, pluriels ICU, comme l'existant. Clés principales :
 
-- Carte et page : `teethTitle` (« Dents »), `teethNone` (« Pas encore de dent »), `teethInMouth` (« {count, plural, =1{1 dent en bouche} other{{count} dents en bouche}} »), `teethNext` (« Ensuite : {groups} »), `teethPrimary` (« De lait »), `teethPermanent` (« Définitives »), `teethEruptedCount` (« {count} sorties sur {total} »), `teethLostCount` (« · {count} tombées »), `teethLegendErupted` / `teethLegendLost` / `teethLegendAbsent` (« Sortie », « Tombée », « Pas encore »), `teethRight` / `teethLeft` / `teethUpper` / `teethLower`.
+- Carte et page : `teethTitle` (« Dents »), `teethNone` (« Pas encore de dent »), `teethInMouth` (« {count, plural, =1{1 dent en bouche} other{{count} dents en bouche}} »), `teethNextOne` (« Ensuite : {first} »), `teethNextTwo` (« Ensuite : {first}, puis {second} »), `teethPrimary` (« De lait »), `teethPermanent` (« Définitives »), `teethEruptedCount` (« {count} sorties sur {total} »), `teethLostCount` (« {count} tombées »), `teethCounterWithLost` (« {erupted} · {lost} »), `teethLegendErupted` / `teethLegendLost` / `teethLegendAbsent` (« Sortie », « Tombée », « Pas encore »), `teethRight` / `teethLeft` / `teethUpper` / `teethLower`.
 - Noms : un libellé par `ToothKind` au singulier et au pluriel, plus « du haut » / « du bas », « à droite » / « à gauche ».
 - Âges : `ageRangeMonths` (« {from}-{to} mois »), `ageRangeYears` (« {from}-{to} ans »).
 - Fiche : `toothNumber` (« Dent n° {id} »), `toothReferenceEruption` (« Sort en général vers {range}. »), `toothReferenceFull` (« Sort en général vers {eruption}, tombe vers {shedding}. »), `toothEruptedAt` (« Sortie le »), `toothLostAt` (« Tombée le »), `toothAddEruption`, `toothAddLoss`, `toothNoteHint`, `toothClear`, `toothClearConfirm`.
@@ -190,7 +190,7 @@ Tutoiement, pluriels ICU, comme l'existant. Clés principales :
   - `toothSchedule` : chaque `(dentition, arch, kind)` existant a une entrée ; les dents de lait ont une chute, les définitives non ; quelques valeurs vérifiées contre le tableau du §2.
   - `ComputeToothStatus` : les trois états, chute sans sortie.
   - `ComputeTeethSummary` : à la naissance ; après les incisives centrales du bas (une seule des deux puis les deux) ; égalité de fourchette ; passage aux définitives quand les 20 dents de lait sont notées ; plus de groupe quand tout est noté ; une dent tombée ne compte pas en bouche.
-  - `ValidateToothRecord` : chaque raison, sortie et chute le même jour acceptées, tolérance de 5 min, note rognée.
+  - `ValidateToothRecord` : chaque raison, sortie et chute le même jour acceptées, date du jour acceptée même à midi le matin, note rognée.
 - **Data** (`fake_cloud_firestore`) : aller-retour complet et partiel ; `toMap` n'écrit pas les clés nulles ; identifiant inconnu ignoré ; suppression.
 - **Géométrie** : `TeethLayout` sans recouvrement de deux dents, symétrie droite/gauche, `hitTest` au centre de chaque dent renvoie cette dent, `null` au centre du schéma.
 - **Présentation** (`pumpApp`, `mocktail`) : carte (vide, avec dents, groupes attendus) et navigation vers la page ; bascule « De lait » / « Définitives » ; toucher une dent ouvre sa fiche ; pas de « Tombée le » sur une définitive ; enregistrement appelle le contrôleur ; message d'erreur affiché ; « Tout effacer » demande confirmation ; rendu en thème clair et sombre.
