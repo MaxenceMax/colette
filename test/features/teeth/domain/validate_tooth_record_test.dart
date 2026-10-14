@@ -25,6 +25,20 @@ void main() {
   test('accepte une sortie puis une chute le même jour', () {
     final day = DateTime(2027, 1, 10, 12);
     expect(reasonOf(makeTooth(71, eruptedAt: day, lostAt: day)), isNull);
+    expect(
+      reasonOf(
+        makeTooth(
+          71,
+          eruptedAt: DateTime(2027, 1, 10, 18),
+          lostAt: DateTime(2027, 1, 10, 8),
+        ),
+      ),
+      isNull,
+    );
+  });
+
+  test('accepte une dent sans date', () {
+    expect(reasonOf(makeTooth(71)), isNull);
   });
 
   test('accepte la date du jour enregistrée à midi, le matin', () {
