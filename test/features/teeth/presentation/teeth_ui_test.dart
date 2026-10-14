@@ -16,14 +16,16 @@ void main() {
     expect(toothName(tooth(51), s), 'Incisive centrale du haut, à droite');
     expect(toothName(tooth(36), s), 'Première molaire du bas, à gauche');
     expect(toothName(tooth(18), s), 'Dent de sagesse du haut, à droite');
+    expect(toothName(tooth(53), s), 'Canine du haut, à droite');
+    expect(toothName(tooth(25), s), 'Deuxième prémolaire du haut, à gauche');
   });
 
   test('repères d\'âge', () {
     expect(
       toothReferenceText(tooth(51), s),
-      'Sort en général vers 8-12 mois, tombe vers 6-7 ans.',
+      'Sortie habituelle : 8-12 mois. Chute habituelle : 6-7 ans.',
     );
-    expect(toothReferenceText(tooth(46), s), 'Sort en général vers 6-7 ans.');
+    expect(toothReferenceText(tooth(46), s), 'Sortie habituelle : 6-7 ans.');
   });
 
   test('libellés VoiceOver', () {
@@ -69,6 +71,13 @@ void main() {
       '2 sorties sur 20 · 1 tombée',
     );
     expect(
+      teethCounterLabel(Dentition.primary, {
+        tooth(71): makeTooth(71, eruptedAt: day, lostAt: day),
+        tooth(81): makeTooth(81, eruptedAt: day, lostAt: day),
+      }, s),
+      '2 sorties sur 20 · 2 tombées',
+    );
+    expect(
       teethCounterLabel(Dentition.permanent, const {}, s),
       '0 sortie sur 32',
     );
@@ -81,5 +90,23 @@ void main() {
       'puis incisives centrales du haut (8-12 mois)',
     );
     expect(teethNextLabel(const [], s), isNull);
+    expect(
+      teethNextLabel(
+        const ComputeTeethSummary()(const {}).next.take(1).toList(),
+        s,
+      ),
+      'Ensuite : incisives centrales du bas (6-10 mois)',
+    );
+  });
+
+  test('groupe attendu de la dentition définitive', () {
+    final records = {
+      for (final id in ToothId.primaryAll)
+        id: makeTooth(id.value, eruptedAt: DateTime(2027, 1, 10, 12)),
+    };
+    expect(
+      expectedGroupLabel(const ComputeTeethSummary()(records).next.first, s),
+      'incisives centrales du bas (6-7 ans)',
+    );
   });
 }
