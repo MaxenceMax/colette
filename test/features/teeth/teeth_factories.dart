@@ -1,5 +1,7 @@
 import 'package:colette/features/teeth/domain/entities/tooth_id.dart';
 import 'package:colette/features/teeth/domain/entities/tooth_record.dart';
+import 'package:colette/features/teeth/domain/repositories/teeth_repository.dart';
+import 'package:mocktail/mocktail.dart';
 
 /// Dent de test à partir de son numéro FDI ; échoue si le numéro est inconnu.
 ToothId tooth(int number) => ToothId.tryParse(number)!;
@@ -18,3 +20,6 @@ ToothRecord makeTooth(
   updatedAt: DateTime(2026, 10, 14),
   updatedByDeviceId: 'device-a',
 );
+
+/// Dépôt simulé pour les tests de présentation.
+class MockTeethRepository extends Mock implements TeethRepository {}
