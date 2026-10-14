@@ -619,5 +619,9 @@
   "photoReminderTitle": "C'est l'heure d'une photo 📷",
   "photoReminderBody": "Envoie des nouvelles de {name} à tes proches.",
   "@photoReminderBody": { "placeholders": { "name": { "type": "String" } } },
-  "photoReminderBodyNoName": "Envoie des nouvelles de bébé à tes proches."
+  "photoReminderBodyNoName": "Envoie des nouvelles de bébé à tes proches.",
+  "errorToothDateBeforeBirth": "Une dent ne peut pas sortir ni tomber avant la naissance.",
+  "errorToothDateInFuture": "Une date de sortie ou de chute ne peut pas être dans le futur.",
+  "errorToothLostBeforeErupted": "La chute ne peut pas précéder la sortie.",
+  "errorToothLossOnPermanent": "Une dent définitive ne tombe pas."
 }
