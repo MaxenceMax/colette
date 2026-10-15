@@ -118,7 +118,7 @@ Les dates sont comparées en jours civils locaux (`date_extensions.dart`) : sort
 - `teethRepositoryProvider` (`keepAlive`) → `FirestoreTeethRepository`.
 - `teethProvider` : `Stream<Map<ToothId, ToothRecord>>` du foyer courant (`retry: noRetry`, comme `babyProfile`).
 - `teethSummaryProvider` : `ComputeTeethSummary` sur `teethProvider`.
-- `TeethController` (`@riverpod` classe, `FutureOr<void> build()`) : `save(ToothRecord)` valide avec la date de naissance (`babyProfileProvider`) et `clockProvider`, puis supprime si `isEmpty`, sinon écrit ; `clear(ToothId)` supprime. `updatedAt` via `clockProvider`, `updatedByDeviceId` via `deviceIdProvider`.
+- `TeethController` (`@riverpod` classe, `FutureOr<void> build()`) : `save(ToothRecord, birthDate:)` valide avec la date de naissance (lue par la fiche via `babyProfileProvider`, comme pour `MedicalVisitController`) et `clockProvider`, puis supprime si `isEmpty`, sinon écrit ; `clear(ToothId)` supprime. `updatedAt` via `clockProvider`, `updatedByDeviceId` via `deviceIdProvider`.
 
 ### 6.2 Carte « Dents » dans Santé
 
@@ -129,7 +129,7 @@ Les dates sont comparées en jours civils locaux (`date_extensions.dart`) : sort
 - ligne 2 : « Ensuite : incisives centrales du bas (6-10 mois) », avec le second groupe s'il existe ; absente quand toutes les dents sont notées ;
 - au tap, ouvre `/health/teeth`.
 
-Pendant le chargement, la carte affiche ses libellés sans chiffre ; en erreur, `failureMessage` en texte secondaire.
+Pendant le chargement, la carte n'affiche que son titre ; si les dents ont déjà été lues, elle garde les dernières valeurs pendant un rechargement ou une erreur ; sinon, en erreur, `failureMessage` en texte secondaire.
 
 ### 6.3 Page Dents
 
@@ -145,7 +145,7 @@ Route `AppRoutes.teeth = '/health/teeth'`, imbriquée sous la branche Santé pou
 
 Deux classes séparées pour pouvoir tester la géométrie sans dessin :
 
-- `TeethLayout` (pur, sans Flutter UI) : pour une `Dentition` et une `Size`, place chaque dent sur deux demi-ellipses (arcade du haut ouverte vers le bas, arcade du bas ouverte vers le haut) et renvoie un `Rect` par `ToothId`. La taille d'une dent dépend de son type (incisives plus petites, molaires plus grandes). `hitTest(Offset) → ToothId?` renvoie la dent la plus proche dans un rayon de tolérance (zone tactile d'au moins 44 pt, `AppSize`).
+- `TeethLayout` (pur, sans Flutter UI) : pour une `Dentition` et une `Size`, place chaque dent sur deux demi-ellipses (arcade du haut ouverte vers le bas, arcade du bas ouverte vers le haut) et renvoie un `Rect` par `ToothId`. La taille d'une dent dépend de son type (incisives plus petites, molaires plus grandes). `hitTest(Offset) → ToothId?` renvoie la dent la plus proche dans un rayon de tolérance (rayon de tolérance de 24 pt, `AppSize.xl` / 2 : 48 pt en travers de l'arcade ; le long de l'arcade, environ 25 pt par dent définitive, la plus proche l'emporte).
 - `TeethChart` (widget) : `LayoutBuilder` (largeur disponible, hauteur au ratio fixe du schéma), `GestureDetector` qui appelle `hitTest`, `CustomPaint` avec `TeethChartPainter`.
 
 Rendu, avec les couleurs existantes d'`AppColors` (rien à ajouter) :
@@ -153,9 +153,11 @@ Rendu, avec les couleurs existantes d'`AppColors` (rien à ajouter) :
 | État | Rendu |
 | --- | --- |
 | `absent` | contour pointillé `textSecondary`, sans remplissage |
-| `erupted` | remplissage `primary`, contour `primary` |
+| `erupted` | remplissage `primary` |
 | `lost` | remplissage `surfaceContainer`, contour `border`, petite croix `textSecondary` |
-| dent de la fiche ouverte | contour épaissi `accent` |
+| dent de la fiche ouverte | contour épaissi `onSurface` (`accent` sur `primary` ne contrastait qu'à 1,5:1 en sombre) |
+
+Les contours sont dessinés à l'intérieur de chaque dent (traits `AppStroke.regular`, sélection `AppStroke.thick`) : sur un iPhone de 375 pt, deux molaires définitives voisines ne sont séparées que d'environ 2 pt. La pastille « Tombée » de la légende porte la même croix que le schéma.
 
 Libellés « Droite » et « Gauche » sous le schéma, « Haut » et « Bas » au centre de chaque arcade, en `coletteTextStyles.small`.
 
@@ -166,9 +168,11 @@ Accessibilité : `semanticsBuilder` du painter, un nœud par dent, ex. « Incisi
 `ToothSheet` (feuille modale, comme `CustomAppointmentSheet`), `ConsumerStatefulWidget` qui `ref.watch` `teethControllerProvider` :
 
 - titre : « Incisive centrale du haut, à droite » ; sous-titre : « Dent n° 51 » ;
-- repère : « Sort en général vers 8-12 mois, tombe vers 6-7 ans. » (définitives : sortie seulement) ;
+- repère : « Sortie habituelle : 8-12 mois. Chute habituelle : 6-7 ans. » (définitives : sortie seulement) ;
 - « Sortie le » : bouton « Ajouter la date de sortie », qui devient un `DateField` (aujourd'hui par défaut) avec un bouton pour retirer la date ;
 - « Tombée le » : idem, dents de lait seulement ;
+- sélecteurs bornés : la sortie ne peut pas dépasser la chute, ni la chute précéder la sortie ; la sortie proposée par défaut est la date de chute si elle existe ;
+- boutons de retrait distincts pour VoiceOver : « Retirer la date de sortie », « Retirer la date de chute » ;
 - note : `TextField` multiligne facultatif, contrôleur disposé dans `dispose()` ;
 - « Enregistrer » ; « Tout effacer » si un enregistrement existe, après confirmation ;
 - erreurs de validation sous le formulaire (`failureMessage`), un message par nouvelle raison.
@@ -179,8 +183,8 @@ Tutoiement, pluriels ICU, comme l'existant. Clés principales :
 
 - Carte et page : `teethTitle` (« Dents »), `teethNone` (« Pas encore de dent »), `teethInMouth` (« {count, plural, =1{1 dent en bouche} other{{count} dents en bouche}} »), `teethNextOne` (« Ensuite : {first} »), `teethNextTwo` (« Ensuite : {first}, puis {second} »), `teethPrimary` (« De lait »), `teethPermanent` (« Définitives »), `teethEruptedCount` (« {count} sorties sur {total} »), `teethLostCount` (« {count} tombées »), `teethCounterWithLost` (« {erupted} · {lost} »), `teethLegendErupted` / `teethLegendLost` / `teethLegendAbsent` (« Sortie », « Tombée », « Pas encore »), `teethRight` / `teethLeft` / `teethUpper` / `teethLower`.
 - Noms : un libellé par `ToothKind` au singulier et au pluriel, plus « du haut » / « du bas », « à droite » / « à gauche ».
-- Âges : `ageRangeMonths` (« {from}-{to} mois »), `ageRangeYears` (« {from}-{to} ans »).
-- Fiche : `toothNumber` (« Dent n° {id} »), `toothReferenceEruption` (« Sort en général vers {range}. »), `toothReferenceFull` (« Sort en général vers {eruption}, tombe vers {shedding}. »), `toothEruptedAt` (« Sortie le »), `toothLostAt` (« Tombée le »), `toothAddEruption`, `toothAddLoss`, `toothNoteHint`, `toothClear`, `toothClearConfirm`.
+- Âges : `toothAgeMonths` (« {from}-{to} mois »), `toothAgeYears` (« {from}-{to} ans »).
+- Fiche : `toothNumber` (« Dent n° {id} »), `toothReferenceEruption` (« Sortie habituelle : {range}. »), `toothReferenceFull` (« Sortie habituelle : {eruption}. Chute habituelle : {shedding}. »), `toothEruptedAt` (« Sortie le »), `toothLostAt` (« Tombée le »), `toothAddEruption`, `toothAddLoss`, `toothRemoveEruption` (« Retirer la date de sortie »), `toothRemoveLoss` (« Retirer la date de chute »), `toothNote`, `toothClear`, `toothClearTitle`, `toothClearBody`.
 - Erreurs : `errorToothDateBeforeBirth` (« La date ne peut pas être avant la naissance. »), `errorToothDateInFuture` (« La date ne peut pas être dans le futur. »), `errorToothLostBeforeErupted` (« La chute ne peut pas précéder la sortie. »), `errorToothLossOnPermanent` (« Une dent définitive ne tombe pas. »).
 
 ## 8. Tests

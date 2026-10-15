@@ -3747,3 +3747,20 @@ Lancer l'app sur un simulateur iPhone (skill `run` ou outil simulateur iOS). Ne 
 - [ ] **Step 6 : fin de branche**
 
 Utiliser `superpowers:finishing-a-development-branch`. Rappel des règles du projet : merge `--no-ff` sur `main` avec le message `merge: suivi des dents (feat/teeth-tracking)`, **seulement après validation explicite de Maxence**, sans push implicite. Avant le merge : `git fetch`, comparer `main...origin/main`, simuler les conflits (`git merge-tree --write-tree main feat/teeth-tracking`). Après le merge : `flutter gen-l10n`, `dart analyze`, `flutter test` sur `main`.
+
+---
+
+## Écarts appliqués pendant l’exécution (revues de code)
+
+- Tâche 1 : _chartOrder renvoie List.unmodifiable ; test d'ordre complet des définitives, relecture tryParse, 59 et 86 refusés (9f768fb).
+- Tâche 4 : errorToothDateBeforeBirth « Une dent ne peut ni sortir ni tomber avant la naissance. » ; tests chute avant sortie le même jour et dent sans date (8342c08).
+- Tâche 6 : fromDoc refuse les identifiants non canoniques (051, +51), updatedByDeviceId lu par motif, import dart:developer préfixé, tests associés (cd59242).
+- Tâche 7 : test « sans foyer » écoute teethProvider avant .future (autoDispose) ; spec §6.1 à corriger : save reçoit birthDate en paramètre (lu par la fiche via babyProfileProvider), comme MedicalVisitController.
+- Tâche 8 : docs touchRadius/rectOf précisées ; tests dent la plus proche et égalité (75c1a77). Spec §6.4 à nuancer : 48 pt en travers de l'arcade, ~25 pt le long pour les définitives (la plus proche l'emporte).
+- Tâche 9 : repères formulés « Sortie habituelle : X. Chute habituelle : Y. » (task11 adaptée) ; tests libellés complétés. Spec §7 : noms de clés réels toothAgeMonths, toothNote, toothClearTitle/Body.
+- Tâche 10 : contours dessinés dans la dent (deflate), traits AppStroke.regular/thick, sélection en onSurface (au lieu d'accent), pastille Tombée avec croix, test isSelected et shouldRebuildSemantics (b8bb68d, 59f574c). Spec §6.4 : sélection onSurface.
+- Tâche 11 : mode .date, import cupertino retiré ; libellés toothRemoveEruption/toothRemoveLoss (toothRemoveDate supprimée) ; bornes du sélecteur sortie ≤ chute ; tests échec d'écriture et retrait enregistré (e795160, 807ad9b).
+- Tâche 12 : page affichée dès qu'une valeur existe (hasValue), erreur via EmptyState, showSelectedIcon: false, garde double toucher, test d'erreur (e7042be, 487aaaa).
+- Tâche 13 : carte Row spacing sm, Icons.mood_outlined ; teethSummary garde la valeur pendant un rechargement ; test chargement (c7c89f6, 2678713) ; app_router.g.dart régénéré après la nouvelle route (chore).
+- Tâche 14 : un commit `chore: format` après le test des thèmes.
+- Revue finale : sortie proposée à la date de chute si elle existe ; la carte garde ses données si le flux passe en erreur après lecture.
