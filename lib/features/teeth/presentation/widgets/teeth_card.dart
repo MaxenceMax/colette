@@ -35,9 +35,12 @@ class TeethCard extends ConsumerWidget {
       child: ColetteCardSurface(
         onTap: () => context.push(AppRoutes.teeth),
         child: Row(
-          spacing: AppSpacing.md.value,
+          spacing: AppSpacing.sm.value,
           children: [
-            Icon(Icons.mood, color: context.appColor(AppColors.primary)),
+            Icon(
+              Icons.mood_outlined,
+              color: context.appColor(AppColors.primary),
+            ),
             Expanded(
               child: Column(
                 crossAxisAlignment: .start,

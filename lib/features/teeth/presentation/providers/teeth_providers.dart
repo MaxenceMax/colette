@@ -27,9 +27,9 @@ Stream<Map<ToothId, ToothRecord>> teeth(Ref ref) {
       .map((records) => {for (final r in records) r.toothId: r});
 }
 
-/// Résumé pour la carte Santé ; `null` tant que les dents ne sont pas lues.
+/// Résumé pour la carte Santé ; `null` tant qu'aucune dent n'a été lue.
 @riverpod
-TeethSummary? teethSummary(Ref ref) => switch (ref.watch(teethProvider)) {
-  AsyncData(:final value) => const ComputeTeethSummary()(value),
-  _ => null,
-};
+TeethSummary? teethSummary(Ref ref) {
+  final value = ref.watch(teethProvider).value;
+  return value == null ? null : const ComputeTeethSummary()(value);
+}

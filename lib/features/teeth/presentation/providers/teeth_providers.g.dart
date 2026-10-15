@@ -101,17 +101,17 @@ final class TeethProvider
 
 String _$teethHash() => r'd9251f0c248d7d2324ab522179dfc9e33c37983b';
 
-/// Résumé pour la carte Santé ; `null` tant que les dents ne sont pas lues.
+/// Résumé pour la carte Santé ; `null` tant qu'aucune dent n'a été lue.
 
 @ProviderFor(teethSummary)
 final teethSummaryProvider = TeethSummaryProvider._();
 
-/// Résumé pour la carte Santé ; `null` tant que les dents ne sont pas lues.
+/// Résumé pour la carte Santé ; `null` tant qu'aucune dent n'a été lue.
 
 final class TeethSummaryProvider
     extends $FunctionalProvider<TeethSummary?, TeethSummary?, TeethSummary?>
     with $Provider<TeethSummary?> {
-  /// Résumé pour la carte Santé ; `null` tant que les dents ne sont pas lues.
+  /// Résumé pour la carte Santé ; `null` tant qu'aucune dent n'a été lue.
   TeethSummaryProvider._()
     : super(
         from: null,
@@ -145,4 +145,4 @@ final class TeethSummaryProvider
   }
 }
 
-String _$teethSummaryHash() => r'c9a3e086d8982e42bb55ed37444c6cf786fec16a';
+String _$teethSummaryHash() => r'e280c38e5b757099f890e20835bf7ca258d9887f';

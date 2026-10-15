@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:colette/app/router/app_router.dart';
 import 'package:colette/core/result/failure.dart';
 import 'package:colette/core/theme/theme_service.dart';
@@ -16,8 +18,9 @@ import '../teeth_factories.dart';
 void main() {
   Future<void> pumpCard(
     WidgetTester tester,
-    Stream<Map<ToothId, ToothRecord>> teeth,
-  ) async {
+    Stream<Map<ToothId, ToothRecord>> teeth, {
+    bool settle = true,
+  }) async {
     final router = GoRouter(
       initialLocation: AppRoutes.health,
       routes: [
@@ -46,7 +49,11 @@ void main() {
         ),
       ),
     );
-    await tester.pumpAndSettle();
+    if (settle) {
+      await tester.pumpAndSettle();
+    } else {
+      await tester.pump();
+    }
   }
 
   testWidgets('sans dent : premières dents attendues', (tester) async {
@@ -92,5 +99,14 @@ void main() {
     await tester.tap(find.text('Dents'));
     await tester.pumpAndSettle();
     expect(find.text('page dents'), findsOneWidget);
+  });
+
+  testWidgets('pendant le chargement : titre seul', (tester) async {
+    final controller = StreamController<Map<ToothId, ToothRecord>>();
+    addTearDown(controller.close);
+    await pumpCard(tester, controller.stream, settle: false);
+    expect(find.text('Dents'), findsOneWidget);
+    expect(find.textContaining('Ensuite'), findsNothing);
+    expect(find.text('Pas encore de dent'), findsNothing);
   });
 }
