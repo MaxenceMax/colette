@@ -64,7 +64,7 @@ void main() {
     expect(find.text('Incisive centrale du bas, à gauche'), findsOneWidget);
     expect(find.text('Dent n° 71'), findsOneWidget);
     expect(
-      find.text('Sortie habituelle : 6-10 mois. Chute habituelle : 6-7 ans.'),
+      find.text('Sortie habituelle : 6-10 mois. Chute habituelle : 6-7 ans.'),
       findsOneWidget,
     );
     expect(find.text('Ajouter la date de chute'), findsOneWidget);
@@ -84,7 +84,7 @@ void main() {
 
   testWidgets('dent définitive : pas de date de chute', (tester) async {
     await pumpSheet(tester, tooth(36));
-    expect(find.text('Sortie habituelle : 6-7 ans.'), findsOneWidget);
+    expect(find.text('Sortie habituelle : 6-7 ans.'), findsOneWidget);
     expect(find.text('Ajouter la date de chute'), findsNothing);
     expect(find.text('Tout effacer'), findsNothing);
   });

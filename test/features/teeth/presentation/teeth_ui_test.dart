@@ -23,9 +23,9 @@ void main() {
   test('repères d\'âge', () {
     expect(
       toothReferenceText(tooth(51), s),
-      'Sortie habituelle : 8-12 mois. Chute habituelle : 6-7 ans.',
+      'Sortie habituelle : 8-12 mois. Chute habituelle : 6-7 ans.',
     );
-    expect(toothReferenceText(tooth(46), s), 'Sortie habituelle : 6-7 ans.');
+    expect(toothReferenceText(tooth(46), s), 'Sortie habituelle : 6-7 ans.');
   });
 
   test('libellés VoiceOver', () {
@@ -86,8 +86,8 @@ void main() {
   test('ligne « Ensuite » de la carte', () {
     expect(
       teethNextLabel(const ComputeTeethSummary()(const {}).next, s),
-      'Ensuite : incisives centrales du bas (6-10 mois), '
-      'puis incisives centrales du haut (8-12 mois)',
+      'Ensuite : incisives centrales du bas (6-10 mois), '
+      'puis incisives centrales du haut (8-12 mois)',
     );
     expect(teethNextLabel(const [], s), isNull);
     expect(
@@ -95,7 +95,7 @@ void main() {
         const ComputeTeethSummary()(const {}).next.take(1).toList(),
         s,
       ),
-      'Ensuite : incisives centrales du bas (6-10 mois)',
+      'Ensuite : incisives centrales du bas (6-10 mois)',
     );
   });
 
@@ -106,7 +106,7 @@ void main() {
     };
     expect(
       expectedGroupLabel(const ComputeTeethSummary()(records).next.first, s),
-      'incisives centrales du bas (6-7 ans)',
+      'incisives centrales du bas (6-7 ans)',
     );
   });
 }

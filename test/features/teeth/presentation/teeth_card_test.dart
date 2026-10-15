@@ -62,8 +62,8 @@ void main() {
     expect(find.text('Pas encore de dent'), findsOneWidget);
     expect(
       find.text(
-        'Ensuite : incisives centrales du bas (6-10 mois), '
-        'puis incisives centrales du haut (8-12 mois)',
+        'Ensuite : incisives centrales du bas (6-10 mois), '
+        'puis incisives centrales du haut (8-12 mois)',
       ),
       findsOneWidget,
     );
@@ -81,8 +81,8 @@ void main() {
     expect(find.text('2 dents en bouche'), findsOneWidget);
     expect(
       find.text(
-        'Ensuite : incisives centrales du haut (8-12 mois), '
-        'puis incisives latérales du haut (9-13 mois)',
+        'Ensuite : incisives centrales du haut (8-12 mois), '
+        'puis incisives latérales du haut (9-13 mois)',
       ),
       findsOneWidget,
     );
