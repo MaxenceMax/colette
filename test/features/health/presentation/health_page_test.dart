@@ -10,6 +10,7 @@ import 'package:colette/features/health/presentation/providers/calendar_sync_iss
 import 'package:colette/features/health/presentation/providers/health_providers.dart';
 import 'package:colette/features/health/presentation/providers/health_sync.dart';
 import 'package:colette/features/health/presentation/providers/selected_calendar.dart';
+import 'package:colette/features/teeth/presentation/providers/teeth_providers.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/misc.dart' show Override;
 import 'package:flutter_test/flutter_test.dart';
@@ -39,6 +40,7 @@ void main() {
         clockProvider.overrideWithValue(FixedClock(DateTime(2026, 10, 20, 9))),
         minuteTickerProvider.overrideWith((ref) => const Stream.empty()),
         medicalTimelineProvider.overrideWithValue(timeline),
+        teethProvider.overrideWith((ref) => Stream.value(const {})),
         ...extra,
       ],
     );
@@ -224,4 +226,13 @@ void main() {
       );
     },
   );
+
+  testWidgets('la carte Dents suit le prochain rendez-vous', (tester) async {
+    await pumpPage(tester, timeline: fullTimeline);
+    expect(find.text('Dents'), findsOneWidget);
+    expect(
+      tester.getTopLeft(find.text('Prochain rendez-vous')).dy,
+      lessThan(tester.getTopLeft(find.text('Dents')).dy),
+    );
+  });
 }

@@ -23,6 +23,10 @@ enum ValidationReason {
   medicalTitleRequired,
   medicalVaccineNameRequired,
   invalidDocumentName,
+  toothDateBeforeBirth,
+  toothDateInFuture,
+  toothLostBeforeErupted,
+  toothLossOnPermanent,
 }
 
 /// Erreur remontée par les repositories et les use cases via `Either`.

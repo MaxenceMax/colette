@@ -32,6 +32,10 @@ String failureMessage(Object failure, S s) => switch (failure) {
     ValidationReason.medicalVaccineNameRequired =>
       s.errorMedicalVaccineNameRequired,
     ValidationReason.invalidDocumentName => s.errorInvalidDocumentName,
+    ValidationReason.toothDateBeforeBirth => s.errorToothDateBeforeBirth,
+    ValidationReason.toothDateInFuture => s.errorToothDateInFuture,
+    ValidationReason.toothLostBeforeErupted => s.errorToothLostBeforeErupted,
+    ValidationReason.toothLossOnPermanent => s.errorToothLossOnPermanent,
   },
   SleepOverlapFailure(:final startAt, :final endAt) => switch (endAt) {
     null => s.errorSleepOverlapOngoing(formatHourMinute(startAt)),

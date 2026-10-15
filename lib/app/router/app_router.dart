@@ -13,6 +13,7 @@ import 'package:colette/features/household/presentation/pages/onboarding_page.da
 import 'package:colette/features/household/presentation/providers/household_providers.dart';
 import 'package:colette/features/photo_sharing/presentation/pages/photos_page.dart';
 import 'package:colette/features/sleep/presentation/pages/sleep_page.dart';
+import 'package:colette/features/teeth/presentation/pages/teeth_page.dart';
 import 'package:go_router/go_router.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
@@ -30,6 +31,9 @@ abstract final class AppRoutes {
 
   /// Onglet Santé.
   static const health = '/health';
+
+  /// Page Dents, imbriquée sous Santé pour garder la barre d'onglets.
+  static const teeth = '/health/teeth';
 
   /// Page Sommeil, imbriquée sous Aujourd'hui pour garder la barre d'onglets.
   static const sleep = '/today/sleep';
@@ -147,6 +151,9 @@ GoRouter appRouter(Ref ref) {
               GoRoute(
                 path: AppRoutes.health,
                 builder: (_, _) => const HealthPage(),
+                routes: [
+                  GoRoute(path: 'teeth', builder: (_, _) => const TeethPage()),
+                ],
               ),
             ],
           ),

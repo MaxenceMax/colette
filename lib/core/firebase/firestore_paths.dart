@@ -15,4 +15,7 @@ abstract final class FirestorePaths {
 
   /// RDV libres hors calendrier (identifiant = UUID).
   static const medicalAppointments = 'medicalAppointments';
+
+  /// Dents notées, une par dent (identifiant = numéro FDI, ex. `"51"`).
+  static const teeth = 'teeth';
 }
