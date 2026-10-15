@@ -36,9 +36,7 @@ void main() {
               ),
             }),
           ),
-          clockProvider.overrideWithValue(
-            FixedClock(DateTime(2027, 3, 10, 9)),
-          ),
+          clockProvider.overrideWithValue(FixedClock(DateTime(2027, 3, 10, 9))),
         ],
         child: MaterialApp(
           theme: themeService.light(),
