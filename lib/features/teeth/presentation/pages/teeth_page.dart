@@ -10,6 +10,7 @@ import 'package:colette/features/teeth/presentation/widgets/teeth_chart.dart';
 import 'package:colette/features/teeth/presentation/widgets/teeth_legend.dart';
 import 'package:colette/features/teeth/presentation/widgets/tooth_sheet.dart';
 import 'package:colette/l10n/generated/app_localizations.dart';
+import 'package:colette/shared/ui/widgets/empty_state.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
@@ -28,6 +29,7 @@ class _TeethPageState extends ConsumerState<TeethPage> {
   ToothId? _selected;
 
   Future<void> _open(ToothId id, ToothRecord? record) async {
+    if (_selected != null) return;
     setState(() => _selected = id);
     await showToothSheet(context, toothId: id, initial: record);
     if (mounted) setState(() => _selected = null);
@@ -39,7 +41,7 @@ class _TeethPageState extends ConsumerState<TeethPage> {
     return Scaffold(
       appBar: AppBar(title: Text(s.teethTitle)),
       body: switch (ref.watch(teethProvider)) {
-        AsyncData(:final value) => _TeethBody(
+        AsyncValue(:final value?, hasValue: true) => _TeethBody(
           dentition: _dentition,
           records: value,
           selected: _selected,
@@ -47,13 +49,11 @@ class _TeethPageState extends ConsumerState<TeethPage> {
               setState(() => _dentition = dentition),
           onToothTap: (id) => _open(id, value[id]),
         ),
-        AsyncError(:final error) => Center(
-          child: Padding(
-            padding: AppSpacing.lg.all,
-            child: Text(failureMessage(error, s), textAlign: .center),
-          ),
+        AsyncError(:final error) => EmptyState(
+          icon: Icons.error_outline,
+          message: failureMessage(error, s),
         ),
-        AsyncLoading() => const Center(child: CircularProgressIndicator()),
+        _ => const Center(child: CircularProgressIndicator()),
       },
     );
   }
@@ -91,6 +91,7 @@ class _TeethBody extends StatelessWidget {
               label: Text(s.teethPermanent),
             ),
           ],
+          showSelectedIcon: false,
           selected: {dentition},
           onSelectionChanged: (selection) =>
               onDentitionChanged(selection.single),
