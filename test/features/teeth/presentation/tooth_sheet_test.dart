@@ -1,4 +1,5 @@
 import 'package:colette/core/clock/app_clock.dart';
+import 'package:colette/core/result/failure.dart';
 import 'package:colette/features/baby/domain/entities/baby_profile.dart';
 import 'package:colette/features/baby/presentation/providers/baby_providers.dart';
 import 'package:colette/features/household/presentation/providers/household_providers.dart';
@@ -6,6 +7,7 @@ import 'package:colette/features/teeth/domain/entities/tooth_id.dart';
 import 'package:colette/features/teeth/domain/entities/tooth_record.dart';
 import 'package:colette/features/teeth/presentation/providers/teeth_providers.dart';
 import 'package:colette/features/teeth/presentation/widgets/tooth_sheet.dart';
+import 'package:colette/l10n/generated/app_localizations.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:fpdart/fpdart.dart';
@@ -94,9 +96,28 @@ void main() {
       initial: makeTooth(71, eruptedAt: DateTime(2027, 1, 10, 12)),
     );
     expect(find.text('10 janv. 2027'), findsOneWidget);
-    await tester.tap(find.text('Retirer la date'));
+    await tester.tap(find.text('Retirer la date de sortie'));
     await tester.pumpAndSettle();
     expect(find.text('Ajouter la date de sortie'), findsOneWidget);
+    await tester.enterText(find.byType(TextField), 'x');
+    await tester.tap(find.text('Enregistrer'));
+    await tester.pumpAndSettle();
+    final saved =
+        verify(() => repo.saveTooth('ABCDEFGH', captureAny())).captured.single
+            as ToothRecord;
+    expect(saved.eruptedAt, isNull);
+  });
+
+  testWidgets('échec d\'écriture affiché', (tester) async {
+    when(() => repo.saveTooth(any(), any()))
+        .thenAnswer((_) async => left(const NetworkFailure()));
+    await pumpSheet(tester, tooth(71));
+    await tester.tap(find.text('Ajouter la date de sortie'));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Enregistrer'));
+    await tester.pumpAndSettle();
+    final message = S.of(tester.element(find.byType(ToothSheet))).errorNetwork;
+    expect(find.text(message), findsOneWidget);
   });
 
   testWidgets('erreur de validation affichée, rien n\'est écrit', (

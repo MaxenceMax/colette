@@ -120,10 +120,11 @@ class _ToothSheetState extends ConsumerState<ToothSheet> {
           OptionalDateField(
             label: s.toothEruptedAt,
             addLabel: s.toothAddEruption,
+            removeLabel: s.toothRemoveEruption,
             value: _eruptedAt,
             defaultDate: today,
             minimum: minimum,
-            maximum: now,
+            maximum: _lostAt ?? now,
             onChanged: (value) => setState(() => _eruptedAt = value),
           ),
           if (id.dentition == Dentition.primary) ...[
@@ -131,9 +132,10 @@ class _ToothSheetState extends ConsumerState<ToothSheet> {
             OptionalDateField(
               label: s.toothLostAt,
               addLabel: s.toothAddLoss,
+              removeLabel: s.toothRemoveLoss,
               value: _lostAt,
               defaultDate: today,
-              minimum: minimum,
+              minimum: _eruptedAt ?? minimum,
               maximum: now,
               onChanged: (value) => setState(() => _lostAt = value),
             ),

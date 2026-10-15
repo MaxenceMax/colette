@@ -1,7 +1,6 @@
 import 'package:colette/core/dates/time_format.dart';
 import 'package:colette/core/theme/design_tokens.dart';
 import 'package:colette/core/ui/date_time_picker.dart';
-import 'package:colette/l10n/generated/app_localizations.dart';
 import 'package:colette/shared/ui/widgets/date_field.dart';
 import 'package:flutter/material.dart';
 
@@ -11,6 +10,7 @@ class OptionalDateField extends StatelessWidget {
     super.key,
     required this.label,
     required this.addLabel,
+    required this.removeLabel,
     required this.value,
     required this.defaultDate,
     required this.minimum,
@@ -20,6 +20,7 @@ class OptionalDateField extends StatelessWidget {
 
   final String label;
   final String addLabel;
+  final String removeLabel;
   final DateTime? value;
 
   /// Date proposée à l'ajout (aujourd'hui à midi).
@@ -64,7 +65,7 @@ class OptionalDateField extends StatelessWidget {
         TextButton.icon(
           onPressed: () => onChanged(null),
           icon: const Icon(Icons.undo),
-          label: Text(S.of(context).toothRemoveDate),
+          label: Text(removeLabel),
         ),
       ],
     );
