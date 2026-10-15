@@ -15,13 +15,15 @@ import 'package:colette/features/health/presentation/widgets/next_appointment_ca
 import 'package:colette/features/health/presentation/widgets/scheduled_section.dart';
 import 'package:colette/features/health/presentation/widgets/timeline_item_ui.dart';
 import 'package:colette/features/health/presentation/widgets/to_schedule_section.dart';
+import 'package:colette/features/teeth/presentation/widgets/teeth_card.dart';
 import 'package:colette/l10n/generated/app_localizations.dart';
 import 'package:colette/shared/ui/widgets/colette_card_surface.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-/// Page Santé : prochain RDV en évidence, autres RDV programmés, RDV passés
-/// à confirmer, étapes à programmer, puis à venir et faites repliées.
+/// Page Santé : prochain RDV en évidence, carte Dents, autres RDV programmés,
+/// RDV passés à confirmer, étapes à programmer, puis à venir et faites
+/// repliées.
 class HealthPage extends ConsumerStatefulWidget {
   const HealthPage({super.key});
 
@@ -59,6 +61,7 @@ class _HealthPageState extends ConsumerState<HealthPage> {
         children: [
           if (hasIssue) const _CalendarStatus(),
           const NextAppointmentCard(),
+          const TeethCard(),
           if (timeline != null) ...[
             ScheduledSection(items: timeline.scheduled),
             AwaitingConfirmationSection(items: timeline.awaitingConfirmation),
