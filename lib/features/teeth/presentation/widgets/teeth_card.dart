@@ -23,11 +23,11 @@ class TeethCard extends ConsumerWidget {
     final teeth = ref.watch(teethProvider);
     final summary = ref.watch(teethSummaryProvider);
     final lines = switch ((teeth, summary)) {
-      (AsyncError(:final error), _) => [failureMessage(error, s)],
       (_, final loaded?) => [
         loaded.inMouth == 0 ? s.teethNone : s.teethInMouth(loaded.inMouth),
         ?teethNextLabel(loaded.next, s),
       ],
+      (AsyncError(:final error), _) => [failureMessage(error, s)],
       _ => const <String>[],
     };
     return Padding(

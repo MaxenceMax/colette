@@ -122,7 +122,7 @@ class _ToothSheetState extends ConsumerState<ToothSheet> {
             addLabel: s.toothAddEruption,
             removeLabel: s.toothRemoveEruption,
             value: _eruptedAt,
-            defaultDate: today,
+            defaultDate: _lostAt ?? today,
             minimum: minimum,
             maximum: _lostAt ?? now,
             onChanged: (value) => setState(() => _eruptedAt = value),

@@ -108,6 +108,25 @@ void main() {
     expect(saved.eruptedAt, isNull);
   });
 
+  testWidgets('sortie proposée à la date de chute si elle est déjà notée', (
+    tester,
+  ) async {
+    await pumpSheet(
+      tester,
+      tooth(71),
+      initial: makeTooth(71, lostAt: DateTime(2027, 2, 1, 12)),
+    );
+    await tester.tap(find.text('Ajouter la date de sortie'));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Enregistrer'));
+    await tester.pumpAndSettle();
+    final saved =
+        verify(() => repo.saveTooth('ABCDEFGH', captureAny())).captured.single
+            as ToothRecord;
+    expect(saved.eruptedAt, DateTime(2027, 2, 1, 12));
+    expect(saved.lostAt, DateTime(2027, 2, 1, 12));
+  });
+
   testWidgets('échec d\'écriture affiché', (tester) async {
     when(() => repo.saveTooth(any(), any()))
         .thenAnswer((_) async => left(const NetworkFailure()));
