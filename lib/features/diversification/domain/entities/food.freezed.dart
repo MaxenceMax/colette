@@ -15,7 +15,9 @@ T _$identity<T>(T value) => value;
 /// @nodoc
 mixin _$Food {
 
- String get id; String get name; FoodGroup get group; Set<Allergen> get allergens; List<FoodRule> get rules; bool get isCustom;/// Référencé par une dégustation mais introuvable (catalogue et aliments perso).
+ String get id; String get name; FoodGroup get group; Set<Allergen> get allergens; List<FoodRule> get rules; bool get isCustom;/// Âge (mois révolus) à partir duquel l'aliment peut être proposé, quand il
+/// précède le repère français de 4 mois (ex. yaourt dès 3 mois, pédiatre).
+ int? get fromMonths;/// Référencé par une dégustation mais introuvable (catalogue et aliments perso).
  bool get isUnknown;
 /// Create a copy of Food
 /// with the given fields replaced by the non-null parameter values.
@@ -28,20 +30,20 @@ $FoodCopyWith<Food> get copyWith => _$FoodCopyWithImpl<Food>(this as Food, _$ide
 @override
 bool operator ==(Object other) {
   final _this = this as Food;
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is Food&&(identical(other.id, _this.id) || other.id == _this.id)&&(identical(other.name, _this.name) || other.name == _this.name)&&(identical(other.group, _this.group) || other.group == _this.group)&&const DeepCollectionEquality().equals(other.allergens, _this.allergens)&&const DeepCollectionEquality().equals(other.rules, _this.rules)&&(identical(other.isCustom, _this.isCustom) || other.isCustom == _this.isCustom)&&(identical(other.isUnknown, _this.isUnknown) || other.isUnknown == _this.isUnknown));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is Food&&(identical(other.id, _this.id) || other.id == _this.id)&&(identical(other.name, _this.name) || other.name == _this.name)&&(identical(other.group, _this.group) || other.group == _this.group)&&const DeepCollectionEquality().equals(other.allergens, _this.allergens)&&const DeepCollectionEquality().equals(other.rules, _this.rules)&&(identical(other.isCustom, _this.isCustom) || other.isCustom == _this.isCustom)&&(identical(other.fromMonths, _this.fromMonths) || other.fromMonths == _this.fromMonths)&&(identical(other.isUnknown, _this.isUnknown) || other.isUnknown == _this.isUnknown));
 }
 
 
 @override
 int get hashCode {
   final _this = this as Food;
-  return Object.hash(runtimeType,_this.id,_this.name,_this.group,const DeepCollectionEquality().hash(_this.allergens),const DeepCollectionEquality().hash(_this.rules),_this.isCustom,_this.isUnknown);
+  return Object.hash(runtimeType,_this.id,_this.name,_this.group,const DeepCollectionEquality().hash(_this.allergens),const DeepCollectionEquality().hash(_this.rules),_this.isCustom,_this.fromMonths,_this.isUnknown);
 }
 
 @override
 String toString() {
   final _this = this as Food;
-  return 'Food(id: ${_this.id}, name: ${_this.name}, group: ${_this.group}, allergens: ${_this.allergens}, rules: ${_this.rules}, isCustom: ${_this.isCustom}, isUnknown: ${_this.isUnknown})';
+  return 'Food(id: ${_this.id}, name: ${_this.name}, group: ${_this.group}, allergens: ${_this.allergens}, rules: ${_this.rules}, isCustom: ${_this.isCustom}, fromMonths: ${_this.fromMonths}, isUnknown: ${_this.isUnknown})';
 }
 
 
@@ -52,7 +54,7 @@ abstract mixin class $FoodCopyWith<$Res>  {
   factory $FoodCopyWith(Food value, $Res Function(Food) _then) = _$FoodCopyWithImpl;
 @useResult
 $Res call({
- String id, String name, FoodGroup group, Set<Allergen> allergens, List<FoodRule> rules, bool isCustom, bool isUnknown
+ String id, String name, FoodGroup group, Set<Allergen> allergens, List<FoodRule> rules, bool isCustom, int? fromMonths, bool isUnknown
 });
 
 
@@ -69,7 +71,7 @@ class _$FoodCopyWithImpl<$Res>
 
 /// Create a copy of Food
 /// with the given fields replaced by the non-null parameter values.
-@pragma('vm:prefer-inline') @override $Res call({Object? id = null,Object? name = null,Object? group = null,Object? allergens = null,Object? rules = null,Object? isCustom = null,Object? isUnknown = null,}) {
+@pragma('vm:prefer-inline') @override $Res call({Object? id = null,Object? name = null,Object? group = null,Object? allergens = null,Object? rules = null,Object? isCustom = null,Object? fromMonths = freezed,Object? isUnknown = null,}) {
   return _then(Food(
 id: null == id ? _self.id : id // ignore: cast_nullable_to_non_nullable
 as String,name: null == name ? _self.name : name // ignore: cast_nullable_to_non_nullable
@@ -77,7 +79,8 @@ as String,group: null == group ? _self.group : group // ignore: cast_nullable_to
 as FoodGroup,allergens: null == allergens ? _self.allergens : allergens // ignore: cast_nullable_to_non_nullable
 as Set<Allergen>,rules: null == rules ? _self.rules : rules // ignore: cast_nullable_to_non_nullable
 as List<FoodRule>,isCustom: null == isCustom ? _self.isCustom : isCustom // ignore: cast_nullable_to_non_nullable
-as bool,isUnknown: null == isUnknown ? _self.isUnknown : isUnknown // ignore: cast_nullable_to_non_nullable
+as bool,fromMonths: freezed == fromMonths ? _self.fromMonths : fromMonths // ignore: cast_nullable_to_non_nullable
+as int?,isUnknown: null == isUnknown ? _self.isUnknown : isUnknown // ignore: cast_nullable_to_non_nullable
 as bool,
   ));
 }
@@ -163,10 +166,10 @@ return $default(_that);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( String id,  String name,  FoodGroup group,  Set<Allergen> allergens,  List<FoodRule> rules,  bool isCustom,  bool isUnknown)?  $default,{required TResult orElse(),}) {final _that = this;
+@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( String id,  String name,  FoodGroup group,  Set<Allergen> allergens,  List<FoodRule> rules,  bool isCustom,  int? fromMonths,  bool isUnknown)?  $default,{required TResult orElse(),}) {final _that = this;
 switch (_that) {
 case _Food() when $default != null:
-return $default(_that.id,_that.name,_that.group,_that.allergens,_that.rules,_that.isCustom,_that.isUnknown);case _:
+return $default(_that.id,_that.name,_that.group,_that.allergens,_that.rules,_that.isCustom,_that.fromMonths,_that.isUnknown);case _:
   return orElse();
 
 }
@@ -184,10 +187,10 @@ return $default(_that.id,_that.name,_that.group,_that.allergens,_that.rules,_tha
 /// }
 /// ```
 
-@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( String id,  String name,  FoodGroup group,  Set<Allergen> allergens,  List<FoodRule> rules,  bool isCustom,  bool isUnknown)  $default,) {final _that = this;
+@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( String id,  String name,  FoodGroup group,  Set<Allergen> allergens,  List<FoodRule> rules,  bool isCustom,  int? fromMonths,  bool isUnknown)  $default,) {final _that = this;
 switch (_that) {
 case _Food():
-return $default(_that.id,_that.name,_that.group,_that.allergens,_that.rules,_that.isCustom,_that.isUnknown);case _:
+return $default(_that.id,_that.name,_that.group,_that.allergens,_that.rules,_that.isCustom,_that.fromMonths,_that.isUnknown);case _:
   throw StateError('Unexpected subclass');
 
 }
@@ -204,10 +207,10 @@ return $default(_that.id,_that.name,_that.group,_that.allergens,_that.rules,_tha
 /// }
 /// ```
 
-@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( String id,  String name,  FoodGroup group,  Set<Allergen> allergens,  List<FoodRule> rules,  bool isCustom,  bool isUnknown)?  $default,) {final _that = this;
+@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( String id,  String name,  FoodGroup group,  Set<Allergen> allergens,  List<FoodRule> rules,  bool isCustom,  int? fromMonths,  bool isUnknown)?  $default,) {final _that = this;
 switch (_that) {
 case _Food() when $default != null:
-return $default(_that.id,_that.name,_that.group,_that.allergens,_that.rules,_that.isCustom,_that.isUnknown);case _:
+return $default(_that.id,_that.name,_that.group,_that.allergens,_that.rules,_that.isCustom,_that.fromMonths,_that.isUnknown);case _:
   return null;
 
 }
@@ -219,7 +222,7 @@ return $default(_that.id,_that.name,_that.group,_that.allergens,_that.rules,_tha
 
 
 class _Food extends Food {
-  const _Food({required this.id, required this.name, required this.group,  Set<Allergen> allergens = const <Allergen>{},  List<FoodRule> rules = const <FoodRule>[], this.isCustom = false, this.isUnknown = false}): _allergens = allergens,_rules = rules,super._();
+  const _Food({required this.id, required this.name, required this.group,  Set<Allergen> allergens = const <Allergen>{},  List<FoodRule> rules = const <FoodRule>[], this.isCustom = false, this.fromMonths, this.isUnknown = false}): _allergens = allergens,_rules = rules,super._();
   
 
 @override final  String id;
@@ -240,6 +243,9 @@ class _Food extends Food {
 }
 
 @override@JsonKey() final  bool isCustom;
+/// Âge (mois révolus) à partir duquel l'aliment peut être proposé, quand il
+/// précède le repère français de 4 mois (ex. yaourt dès 3 mois, pédiatre).
+@override final  int? fromMonths;
 /// Référencé par une dégustation mais introuvable (catalogue et aliments perso).
 @override@JsonKey() final  bool isUnknown;
 
@@ -253,18 +259,18 @@ _$FoodCopyWith<_Food> get copyWith => __$FoodCopyWithImpl<_Food>(this, _$identit
 
 @override
 bool operator ==(Object other) {
-    return identical(this, other) || (other.runtimeType == runtimeType&&other is _Food&&(identical(other.id, id) || other.id == id)&&(identical(other.name, name) || other.name == name)&&(identical(other.group, group) || other.group == group)&&const DeepCollectionEquality().equals(other.allergens, _allergens)&&const DeepCollectionEquality().equals(other.rules, _rules)&&(identical(other.isCustom, isCustom) || other.isCustom == isCustom)&&(identical(other.isUnknown, isUnknown) || other.isUnknown == isUnknown));
+    return identical(this, other) || (other.runtimeType == runtimeType&&other is _Food&&(identical(other.id, id) || other.id == id)&&(identical(other.name, name) || other.name == name)&&(identical(other.group, group) || other.group == group)&&const DeepCollectionEquality().equals(other.allergens, _allergens)&&const DeepCollectionEquality().equals(other.rules, _rules)&&(identical(other.isCustom, isCustom) || other.isCustom == isCustom)&&(identical(other.fromMonths, fromMonths) || other.fromMonths == fromMonths)&&(identical(other.isUnknown, isUnknown) || other.isUnknown == isUnknown));
 }
 
 
 @override
 int get hashCode {
-    return Object.hash(runtimeType,id,name,group,const DeepCollectionEquality().hash(_allergens),const DeepCollectionEquality().hash(_rules),isCustom,isUnknown);
+    return Object.hash(runtimeType,id,name,group,const DeepCollectionEquality().hash(_allergens),const DeepCollectionEquality().hash(_rules),isCustom,fromMonths,isUnknown);
 }
 
 @override
 String toString() {
-    return 'Food(id: $id, name: $name, group: $group, allergens: $allergens, rules: $rules, isCustom: $isCustom, isUnknown: $isUnknown)';
+    return 'Food(id: $id, name: $name, group: $group, allergens: $allergens, rules: $rules, isCustom: $isCustom, fromMonths: $fromMonths, isUnknown: $isUnknown)';
 }
 
 
@@ -275,7 +281,7 @@ abstract mixin class _$FoodCopyWith<$Res> implements $FoodCopyWith<$Res> {
   factory _$FoodCopyWith(_Food value, $Res Function(_Food) _then) = __$FoodCopyWithImpl;
 @override @useResult
 $Res call({
- String id, String name, FoodGroup group, Set<Allergen> allergens, List<FoodRule> rules, bool isCustom, bool isUnknown
+ String id, String name, FoodGroup group, Set<Allergen> allergens, List<FoodRule> rules, bool isCustom, int? fromMonths, bool isUnknown
 });
 
 
@@ -292,7 +298,7 @@ class __$FoodCopyWithImpl<$Res>
 
 /// Create a copy of Food
 /// with the given fields replaced by the non-null parameter values.
-@override @pragma('vm:prefer-inline') $Res call({Object? id = null,Object? name = null,Object? group = null,Object? allergens = null,Object? rules = null,Object? isCustom = null,Object? isUnknown = null,}) {
+@override @pragma('vm:prefer-inline') $Res call({Object? id = null,Object? name = null,Object? group = null,Object? allergens = null,Object? rules = null,Object? isCustom = null,Object? fromMonths = freezed,Object? isUnknown = null,}) {
   return _then(_Food(
 id: null == id ? _self.id : id // ignore: cast_nullable_to_non_nullable
 as String,name: null == name ? _self.name : name // ignore: cast_nullable_to_non_nullable
@@ -300,7 +306,8 @@ as String,group: null == group ? _self.group : group // ignore: cast_nullable_to
 as FoodGroup,allergens: null == allergens ? _self._allergens : allergens // ignore: cast_nullable_to_non_nullable
 as Set<Allergen>,rules: null == rules ? _self._rules : rules // ignore: cast_nullable_to_non_nullable
 as List<FoodRule>,isCustom: null == isCustom ? _self.isCustom : isCustom // ignore: cast_nullable_to_non_nullable
-as bool,isUnknown: null == isUnknown ? _self.isUnknown : isUnknown // ignore: cast_nullable_to_non_nullable
+as bool,fromMonths: freezed == fromMonths ? _self.fromMonths : fromMonths // ignore: cast_nullable_to_non_nullable
+as int?,isUnknown: null == isUnknown ? _self.isUnknown : isUnknown // ignore: cast_nullable_to_non_nullable
 as bool,
   ));
 }

@@ -57,10 +57,11 @@ class AgeGuideSheet extends ConsumerWidget {
               crossAxisAlignment: .start,
               children: [
                 Text(source.label, style: styles.body),
-                SelectableText(
-                  source.url,
-                  style: styles.small.copyWith(color: secondary),
-                ),
+                if (source.url case final url?)
+                  SelectableText(
+                    url,
+                    style: styles.small.copyWith(color: secondary),
+                  ),
               ],
             ),
           ),

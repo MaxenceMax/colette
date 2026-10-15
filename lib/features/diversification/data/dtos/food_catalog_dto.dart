@@ -27,7 +27,7 @@ abstract final class FoodCatalogDto {
   );
 
   static SourceRef _sourceRef(Map<String, dynamic> json) =>
-      SourceRef(label: json['label'] as String, url: json['url'] as String);
+      SourceRef(label: json['label'] as String, url: json['url'] as String?);
 
   static AgeGuide _guide(Map<String, dynamic> json) => AgeGuide(
     phases: {
@@ -53,6 +53,7 @@ abstract final class FoodCatalogDto {
       GuideItem(
         text: (item as Map<String, dynamic>)['text'] as String,
         sources: _sources(item['sources']),
+        fromMonths: item['fromMonths'] as int?,
       ),
   ];
 
@@ -61,19 +62,28 @@ abstract final class FoodCatalogDto {
       RuleSource.values.byName(source as String),
   ];
 
-  static Food _food(Map<String, dynamic> json) => Food(
-    id: json['id'] as String,
-    name: json['name'] as String,
-    group: FoodGroup.values.byName(json['group'] as String),
-    allergens: {
-      for (final allergen in json['allergens'] as List<dynamic>? ?? const [])
-        Allergen.values.byName(allergen as String),
-    },
-    rules: [
-      for (final rule in json['rules'] as List<dynamic>? ?? const [])
-        _rule(rule as Map<String, dynamic>),
-    ],
-  );
+  /// `fromMonths` ne peut que devancer le repère français de 4 mois.
+  static Food _food(Map<String, dynamic> json) {
+    final fromMonths = json['fromMonths'] as int?;
+    if (fromMonths != null &&
+        fromMonths > DiversificationAges.franceMinMonths) {
+      throw FormatException('fromMonths au-delà de 4 mois : $fromMonths');
+    }
+    return Food(
+      id: json['id'] as String,
+      name: json['name'] as String,
+      group: FoodGroup.values.byName(json['group'] as String),
+      allergens: {
+        for (final allergen in json['allergens'] as List<dynamic>? ?? const [])
+          Allergen.values.byName(allergen as String),
+      },
+      rules: [
+        for (final rule in json['rules'] as List<dynamic>? ?? const [])
+          _rule(rule as Map<String, dynamic>),
+      ],
+      fromMonths: fromMonths,
+    );
+  }
 
   /// `avoid` et `prepare` exigent `untilMonths`, `info` l'interdit.
   static FoodRule _rule(Map<String, dynamic> json) {
