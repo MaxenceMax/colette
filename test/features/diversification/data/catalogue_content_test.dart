@@ -97,6 +97,69 @@ void main() {
     }
   });
 
+  test('consignes du pédiatre intégrées au guide et aux aliments', () {
+    expect(catalog.sources.keys, contains(RuleSource.pediatre));
+    final preparation = catalog.guide.phases[DiversificationPhase.preparation]!;
+    final steps = preparation.items
+        .where((i) => i.sources.contains(RuleSource.pediatre))
+        .map((i) => i.fromMonths)
+        .toSet();
+    expect(steps, containsAll([3, 4, 5]));
+    expect(
+      catalog.guide.phases[DiversificationPhase.months6To8]!.items.any(
+        (i) => i.sources.contains(RuleSource.pediatre),
+      ),
+      isTrue,
+    );
+
+    List<FoodRule> pediatreRules(String id) => catalog.foods
+        .firstWhere((f) => f.id == id)
+        .rules
+        .where((r) => r.sources.contains(RuleSource.pediatre))
+        .toList();
+    for (final id in [
+      'yaourt',
+      'oeuf-cuit',
+      'amande',
+      'arachide',
+      'huile-colza',
+      'huile-tournesol',
+      'semoule',
+      'pomme-de-terre',
+      'petit-suisse',
+      'cereales-infantiles',
+    ]) {
+      expect(pediatreRules(id), isNotEmpty, reason: id);
+    }
+    expect(
+      {
+        for (final food in catalog.foods)
+          if (food.fromMonths != null) food.id: food.fromMonths,
+      },
+      {'yaourt': 3},
+    );
+    for (final id in ['pomme', 'banane', 'fraise', 'mangue']) {
+      final cooked = pediatreRules(id).single;
+      expect(cooked.kind, RuleKind.prepare, reason: id);
+      expect(cooked.untilMonths, 6, reason: id);
+    }
+  });
+
+  test('repères datés : âge en mois cohérent avec leur phase', () {
+    for (final MapEntry(key: phase, value: guide)
+        in catalog.guide.phases.entries) {
+      for (final item in guide.items) {
+        final from = item.fromMonths;
+        if (from == null) continue;
+        expect(
+          DiversificationPhase.forAgeMonths(from),
+          phase,
+          reason: item.text,
+        );
+      }
+    }
+  });
+
   test('interdits clés présents avec la règle attendue', () {
     FoodRule strictestAvoid(String id) => catalog.foods
         .firstWhere((f) => f.id == id)

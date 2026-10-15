@@ -49,12 +49,35 @@ void main() {
     expect(find.text('6 mois dans 173 jours'), findsOneWidget);
     expect(
       find.text(
-        'OMS : à 6 mois · France : entre 4 et 6 mois, jamais avant 4 mois',
+        'OMS : à 6 mois · France : entre 4 et 6 mois · Pédiatre : dès 3 mois',
       ),
       findsOneWidget,
     );
     expect(find.text('Tient sa tête et son dos droits.'), findsOneWidget);
+    expect(find.text('À son âge'), findsNothing);
+    expect(find.text('Dès 3 mois : yaourts natures.'), findsNothing);
     expect(find.text('Noter une dégustation'), findsOneWidget);
+  });
+
+  testWidgets('préparation : étapes du pédiatre atteintes à son âge', (
+    tester,
+  ) async {
+    await pump(
+      tester,
+      PreparationCard(
+        timeline: DiversificationTimeline(
+          phase: DiversificationPhase.preparation,
+          ageMonths: 3,
+          sixMonthsDate: DateTime(2027, 3, 15),
+          daysUntilSixMonths: 80,
+        ),
+      ),
+    );
+    expect(find.text('À son âge'), findsOneWidget);
+    expect(find.text('Dès 3 mois : yaourts natures.'), findsOneWidget);
+    expect(find.text('Source : Pédiatre'), findsOneWidget);
+    expect(find.text('Dès 4 mois : purées de légumes.'), findsNothing);
+    expect(find.text('Lait maternel ou infantile.'), findsNothing);
   });
 
   testWidgets('aujourd\'hui : groupes couverts et dégustations', (

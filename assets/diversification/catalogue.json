@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "reviewedAt": "2026-09-23",
+  "reviewedAt": "2026-10-15",
   "sources": {
     "oms": {
       "label": "OMS, ligne directrice sur l'alimentation complémentaire (2023)",
@@ -25,12 +25,15 @@
     "efsa": {
       "label": "EFSA, nitrates dans les légumes (2010)",
       "url": "https://efsa.onlinelibrary.wiley.com/doi/10.2903/j.efsa.2010.1935"
+    },
+    "pediatre": {
+      "label": "Dr R. Deliège, diversification et prévention des allergies alimentaires (consignes remises en consultation)"
     }
   },
   "guide": {
     "phases": {
       "preparation": {
-        "mealsSummary": "Lait uniquement",
+        "mealsSummary": "Lait, puis premiers goûts",
         "items": [
           {
             "text": "L'OMS recommande le lait seul jusqu'à 6 mois, puis des aliments en complément du lait.",
@@ -55,6 +58,60 @@
             "text": "Prématuré : demander l'avis du pédiatre pour le bon moment.",
             "sources": [
               "spf"
+            ]
+          },
+          {
+            "text": "Ces étapes valent quel que soit l'allaitement, sauf lait HPLV (allergie aux protéines de lait de vache).",
+            "sources": [
+              "pediatre"
+            ]
+          },
+          {
+            "text": "Dès 3 mois : yaourts natures (vache, brebis, chèvre), en quantité progressivement croissante. Si bébé s'intéresse à ce que vous mangez, l'introduction des aliments se passera bien.",
+            "sources": [
+              "pediatre"
+            ],
+            "fromMonths": 3
+          },
+          {
+            "text": "Dès 4 mois : purée de légumes sans féculent le midi, compote de fruits cuits au goûter (tous les fruits). Commencer par 1 à 2 cuillères à café, puis ajouter 1 à 2 cuillères à café par jour, jusqu'à 130 g. Yaourts aromatisés possibles.",
+            "sources": [
+              "pediatre"
+            ],
+            "fromMonths": 4
+          },
+          {
+            "text": "Dès 4 mois : protéines animales dans la purée, en quantité croissante jusqu'à 20 g : œuf dur 1 fois, poisson 1 fois et viande 5 fois par semaine.",
+            "sources": [
+              "pediatre"
+            ],
+            "fromMonths": 4
+          },
+          {
+            "text": "Dès 4 mois : purée de fruits à coque (type Perl'amande : cajou, noisette, amande, cacahuète), une pointe de couteau une fois par jour, bien mélangée à la compote ou au yaourt. Possible aussi en poudre, un fruit à coque à la fois, en roulement.",
+            "sources": [
+              "pediatre"
+            ],
+            "fromMonths": 4
+          },
+          {
+            "text": "Dès 4 mois : une cuillère à café d'huile par jour dans la compote ou le yaourt, colza et tournesol en alternance.",
+            "sources": [
+              "pediatre"
+            ],
+            "fromMonths": 4
+          },
+          {
+            "text": "Dès 5 mois : purées jusqu'à 180 g, midi et soir, avec 1/3 de féculents : pomme de terre ou semoule (avec gluten).",
+            "sources": [
+              "pediatre"
+            ],
+            "fromMonths": 5
+          },
+          {
+            "text": "Pas de farine, de céréales, de crème dessert ni de petit-suisse.",
+            "sources": [
+              "pediatre"
             ]
           }
         ]
@@ -103,6 +160,19 @@
             "sources": [
               "anses",
               "spf"
+            ]
+          },
+          {
+            "text": "Dès 6 mois : fruits crus, quels qu'ils soient, volontiers en smoothie si le yaourt est bien toléré, ou en jus de fruit.",
+            "sources": [
+              "pediatre"
+            ],
+            "fromMonths": 6
+          },
+          {
+            "text": "Pas de farine, de céréales, de crème dessert ni de petit-suisse.",
+            "sources": [
+              "pediatre"
             ]
           }
         ]
@@ -313,6 +383,15 @@
       "group": "grainsRootsTubers",
       "allergens": [
         "gluten"
+      ],
+      "rules": [
+        {
+          "kind": "info",
+          "sources": [
+            "pediatre"
+          ],
+          "text": "Dès 5 mois : en féculent, 1/3 de la purée du midi et du soir."
+        }
       ]
     },
     {
@@ -340,7 +419,16 @@
     {
       "id": "pomme-de-terre",
       "name": "Pomme de terre",
-      "group": "grainsRootsTubers"
+      "group": "grainsRootsTubers",
+      "rules": [
+        {
+          "kind": "info",
+          "sources": [
+            "pediatre"
+          ],
+          "text": "Dès 5 mois : en féculent, 1/3 de la purée du midi et du soir."
+        }
+      ]
     },
     {
       "id": "quinoa",
@@ -393,6 +481,13 @@
             "spf"
           ],
           "text": "Choisir sans sucre ajouté."
+        },
+        {
+          "kind": "info",
+          "sources": [
+            "pediatre"
+          ],
+          "text": "Le pédiatre déconseille farines et céréales infantiles."
         }
       ]
     },
@@ -457,6 +552,13 @@
             "spf"
           ],
           "text": "Allergène à ne pas retarder : à proposer dès le début de la diversification."
+        },
+        {
+          "kind": "info",
+          "sources": [
+            "pediatre"
+          ],
+          "text": "Dès 4 mois : une pointe de couteau par jour, en purée (type Perl'amande) bien mélangée à la compote ou au yaourt, ou en poudre, en roulement."
         }
       ]
     },
@@ -483,6 +585,13 @@
             "spf"
           ],
           "text": "Allergène à ne pas retarder : à proposer dès le début de la diversification."
+        },
+        {
+          "kind": "info",
+          "sources": [
+            "pediatre"
+          ],
+          "text": "Dès 4 mois : une pointe de couteau par jour, en purée (type Perl'amande) bien mélangée à la compote ou au yaourt, ou en poudre, en roulement."
         }
       ]
     },
@@ -501,6 +610,13 @@
             "spf"
           ],
           "text": "Jamais entier avant 5 ans : en poudre ou en purée lisse, mélangé à une purée."
+        },
+        {
+          "kind": "info",
+          "sources": [
+            "pediatre"
+          ],
+          "text": "Dès 4 mois : une pointe de couteau par jour, en purée (type Perl'amande) bien mélangée à la compote ou au yaourt, ou en poudre, en roulement."
         }
       ]
     },
@@ -519,6 +635,13 @@
             "spf"
           ],
           "text": "Jamais entier avant 5 ans : en poudre ou en purée lisse, mélangé à une purée."
+        },
+        {
+          "kind": "info",
+          "sources": [
+            "pediatre"
+          ],
+          "text": "Dès 4 mois : une pointe de couteau par jour, en purée (type Perl'amande) bien mélangée à la compote ou au yaourt, ou en poudre, en roulement."
         }
       ]
     },
@@ -537,6 +660,13 @@
             "spf"
           ],
           "text": "Jamais entier avant 5 ans : en poudre ou en purée lisse, mélangé à une purée."
+        },
+        {
+          "kind": "info",
+          "sources": [
+            "pediatre"
+          ],
+          "text": "Dès 4 mois : une pointe de couteau par jour, en purée (type Perl'amande) bien mélangée à la compote ou au yaourt, ou en poudre, en roulement."
         }
       ]
     },
@@ -608,6 +738,7 @@
       "id": "yaourt",
       "name": "Yaourt nature au lait entier",
       "group": "dairy",
+      "fromMonths": 3,
       "allergens": [
         "milk"
       ],
@@ -618,6 +749,13 @@
             "spf"
           ],
           "text": "Nature, au lait entier, sans sucre ajouté ; pas de laitage 0 %."
+        },
+        {
+          "kind": "info",
+          "sources": [
+            "pediatre"
+          ],
+          "text": "Dès 3 mois : nature (vache, brebis ou chèvre), en quantité progressivement croissante ; aromatisé dès 4 mois."
         }
       ]
     },
@@ -635,6 +773,15 @@
       "group": "dairy",
       "allergens": [
         "milk"
+      ],
+      "rules": [
+        {
+          "kind": "info",
+          "sources": [
+            "pediatre"
+          ],
+          "text": "Le pédiatre déconseille le petit-suisse."
+        }
       ]
     },
     {
@@ -1030,6 +1177,13 @@
             "spf"
           ],
           "text": "Allergène à ne pas retarder : à proposer dès le début de la diversification."
+        },
+        {
+          "kind": "info",
+          "sources": [
+            "pediatre"
+          ],
+          "text": "Dès 4 mois : œuf dur une fois par semaine, dans la purée."
         }
       ]
     },
@@ -1115,27 +1269,77 @@
     {
       "id": "mangue",
       "name": "Mangue",
-      "group": "vitaminAFruitsVeg"
+      "group": "vitaminAFruitsVeg",
+      "rules": [
+        {
+          "kind": "prepare",
+          "untilMonths": 6,
+          "sources": [
+            "pediatre"
+          ],
+          "text": "Cuit uniquement (compote) avant 6 mois ; cru ensuite, volontiers en smoothie."
+        }
+      ]
     },
     {
       "id": "abricot",
       "name": "Abricot",
-      "group": "vitaminAFruitsVeg"
+      "group": "vitaminAFruitsVeg",
+      "rules": [
+        {
+          "kind": "prepare",
+          "untilMonths": 6,
+          "sources": [
+            "pediatre"
+          ],
+          "text": "Cuit uniquement (compote) avant 6 mois ; cru ensuite, volontiers en smoothie."
+        }
+      ]
     },
     {
       "id": "melon",
       "name": "Melon",
-      "group": "vitaminAFruitsVeg"
+      "group": "vitaminAFruitsVeg",
+      "rules": [
+        {
+          "kind": "prepare",
+          "untilMonths": 6,
+          "sources": [
+            "pediatre"
+          ],
+          "text": "Cuit uniquement (compote) avant 6 mois ; cru ensuite, volontiers en smoothie."
+        }
+      ]
     },
     {
       "id": "papaye",
       "name": "Papaye",
-      "group": "vitaminAFruitsVeg"
+      "group": "vitaminAFruitsVeg",
+      "rules": [
+        {
+          "kind": "prepare",
+          "untilMonths": 6,
+          "sources": [
+            "pediatre"
+          ],
+          "text": "Cuit uniquement (compote) avant 6 mois ; cru ensuite, volontiers en smoothie."
+        }
+      ]
     },
     {
       "id": "kaki",
       "name": "Kaki",
-      "group": "vitaminAFruitsVeg"
+      "group": "vitaminAFruitsVeg",
+      "rules": [
+        {
+          "kind": "prepare",
+          "untilMonths": 6,
+          "sources": [
+            "pediatre"
+          ],
+          "text": "Cuit uniquement (compote) avant 6 mois ; cru ensuite, volontiers en smoothie."
+        }
+      ]
     },
     {
       "id": "courgette",
@@ -1248,37 +1452,107 @@
     {
       "id": "pomme",
       "name": "Pomme",
-      "group": "otherFruitsVeg"
+      "group": "otherFruitsVeg",
+      "rules": [
+        {
+          "kind": "prepare",
+          "untilMonths": 6,
+          "sources": [
+            "pediatre"
+          ],
+          "text": "Cuit uniquement (compote) avant 6 mois ; cru ensuite, volontiers en smoothie."
+        }
+      ]
     },
     {
       "id": "poire",
       "name": "Poire",
-      "group": "otherFruitsVeg"
+      "group": "otherFruitsVeg",
+      "rules": [
+        {
+          "kind": "prepare",
+          "untilMonths": 6,
+          "sources": [
+            "pediatre"
+          ],
+          "text": "Cuit uniquement (compote) avant 6 mois ; cru ensuite, volontiers en smoothie."
+        }
+      ]
     },
     {
       "id": "banane",
       "name": "Banane",
-      "group": "otherFruitsVeg"
+      "group": "otherFruitsVeg",
+      "rules": [
+        {
+          "kind": "prepare",
+          "untilMonths": 6,
+          "sources": [
+            "pediatre"
+          ],
+          "text": "Cuit uniquement (compote) avant 6 mois ; cru ensuite, volontiers en smoothie."
+        }
+      ]
     },
     {
       "id": "peche",
       "name": "Pêche",
-      "group": "otherFruitsVeg"
+      "group": "otherFruitsVeg",
+      "rules": [
+        {
+          "kind": "prepare",
+          "untilMonths": 6,
+          "sources": [
+            "pediatre"
+          ],
+          "text": "Cuit uniquement (compote) avant 6 mois ; cru ensuite, volontiers en smoothie."
+        }
+      ]
     },
     {
       "id": "prune",
       "name": "Prune",
-      "group": "otherFruitsVeg"
+      "group": "otherFruitsVeg",
+      "rules": [
+        {
+          "kind": "prepare",
+          "untilMonths": 6,
+          "sources": [
+            "pediatre"
+          ],
+          "text": "Cuit uniquement (compote) avant 6 mois ; cru ensuite, volontiers en smoothie."
+        }
+      ]
     },
     {
       "id": "fraise",
       "name": "Fraise",
-      "group": "otherFruitsVeg"
+      "group": "otherFruitsVeg",
+      "rules": [
+        {
+          "kind": "prepare",
+          "untilMonths": 6,
+          "sources": [
+            "pediatre"
+          ],
+          "text": "Cuit uniquement (compote) avant 6 mois ; cru ensuite, volontiers en smoothie."
+        }
+      ]
     },
     {
       "id": "framboise",
       "name": "Framboise",
-      "group": "otherFruitsVeg"
+      "group": "otherFruitsVeg",
+      "rules": [
+        {
+          "kind": "prepare",
+          "untilMonths": 6,
+          "sources": [
+            "pediatre"
+          ],
+          "text": "Cuit uniquement (compote) avant 6 mois ; cru ensuite, volontiers en smoothie."
+        }
+      ]
     },
     {
       "id": "myrtille",
@@ -1292,6 +1566,14 @@
             "spf"
           ],
           "text": "Aliment rond : couper en quatre dans la longueur, retirer pépins ou noyau."
+        },
+        {
+          "kind": "prepare",
+          "untilMonths": 6,
+          "sources": [
+            "pediatre"
+          ],
+          "text": "Cuit uniquement (compote) avant 6 mois ; cru ensuite, volontiers en smoothie."
         }
       ]
     },
@@ -1307,18 +1589,46 @@
             "spf"
           ],
           "text": "Aliment rond : couper en quatre dans la longueur, retirer pépins ou noyau."
+        },
+        {
+          "kind": "prepare",
+          "untilMonths": 6,
+          "sources": [
+            "pediatre"
+          ],
+          "text": "Cuit uniquement (compote) avant 6 mois ; cru ensuite, volontiers en smoothie."
         }
       ]
     },
     {
       "id": "clementine",
       "name": "Clémentine",
-      "group": "otherFruitsVeg"
+      "group": "otherFruitsVeg",
+      "rules": [
+        {
+          "kind": "prepare",
+          "untilMonths": 6,
+          "sources": [
+            "pediatre"
+          ],
+          "text": "Cuit uniquement (compote) avant 6 mois ; cru ensuite, volontiers en smoothie."
+        }
+      ]
     },
     {
       "id": "kiwi",
       "name": "Kiwi",
-      "group": "otherFruitsVeg"
+      "group": "otherFruitsVeg",
+      "rules": [
+        {
+          "kind": "prepare",
+          "untilMonths": 6,
+          "sources": [
+            "pediatre"
+          ],
+          "text": "Cuit uniquement (compote) avant 6 mois ; cru ensuite, volontiers en smoothie."
+        }
+      ]
     },
     {
       "id": "cerise",
@@ -1332,23 +1642,61 @@
             "spf"
           ],
           "text": "Aliment rond : couper en quatre dans la longueur, retirer pépins ou noyau."
+        },
+        {
+          "kind": "prepare",
+          "untilMonths": 6,
+          "sources": [
+            "pediatre"
+          ],
+          "text": "Cuit uniquement (compote) avant 6 mois ; cru ensuite, volontiers en smoothie."
         }
       ]
     },
     {
       "id": "ananas",
       "name": "Ananas",
-      "group": "otherFruitsVeg"
+      "group": "otherFruitsVeg",
+      "rules": [
+        {
+          "kind": "prepare",
+          "untilMonths": 6,
+          "sources": [
+            "pediatre"
+          ],
+          "text": "Cuit uniquement (compote) avant 6 mois ; cru ensuite, volontiers en smoothie."
+        }
+      ]
     },
     {
       "id": "pasteque",
       "name": "Pastèque",
-      "group": "otherFruitsVeg"
+      "group": "otherFruitsVeg",
+      "rules": [
+        {
+          "kind": "prepare",
+          "untilMonths": 6,
+          "sources": [
+            "pediatre"
+          ],
+          "text": "Cuit uniquement (compote) avant 6 mois ; cru ensuite, volontiers en smoothie."
+        }
+      ]
     },
     {
       "id": "figue",
       "name": "Figue",
-      "group": "otherFruitsVeg"
+      "group": "otherFruitsVeg",
+      "rules": [
+        {
+          "kind": "prepare",
+          "untilMonths": 6,
+          "sources": [
+            "pediatre"
+          ],
+          "text": "Cuit uniquement (compote) avant 6 mois ; cru ensuite, volontiers en smoothie."
+        }
+      ]
     },
     {
       "id": "huile-colza",
@@ -1362,6 +1710,35 @@
             "spf"
           ],
           "text": "Matière grasse à ajouter aux repas : une cuillère à café d'huile ou une noisette de beurre."
+        },
+        {
+          "kind": "info",
+          "sources": [
+            "pediatre"
+          ],
+          "text": "Dès 4 mois : une cuillère à café par jour dans la compote ou le yaourt, en alternance avec l'huile de tournesol."
+        }
+      ]
+    },
+    {
+      "id": "huile-tournesol",
+      "name": "Huile de tournesol",
+      "group": "outsideGroups",
+      "rules": [
+        {
+          "kind": "info",
+          "sources": [
+            "anses",
+            "spf"
+          ],
+          "text": "Matière grasse à ajouter aux repas : une cuillère à café d'huile ou une noisette de beurre."
+        },
+        {
+          "kind": "info",
+          "sources": [
+            "pediatre"
+          ],
+          "text": "Dès 4 mois : une cuillère à café par jour dans la compote ou le yaourt, en alternance avec l'huile de colza."
         }
       ]
     },
@@ -1498,6 +1875,13 @@
             "spf"
           ],
           "text": "Pas recommandé, même 100 % pur jus : préférer le fruit entier et l'eau."
+        },
+        {
+          "kind": "info",
+          "sources": [
+            "pediatre"
+          ],
+          "text": "Possible dès 6 mois selon le pédiatre."
         }
       ]
     },

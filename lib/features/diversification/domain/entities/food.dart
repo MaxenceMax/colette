@@ -18,6 +18,10 @@ abstract class Food with _$Food {
     @Default(<FoodRule>[]) List<FoodRule> rules,
     @Default(false) bool isCustom,
 
+    /// Âge (mois révolus) à partir duquel l'aliment peut être proposé, quand il
+    /// précède le repère français de 4 mois (ex. yaourt dès 3 mois, pédiatre).
+    int? fromMonths,
+
     /// Référencé par une dégustation mais introuvable (catalogue et aliments perso).
     @Default(false) bool isUnknown,
   }) = _Food;

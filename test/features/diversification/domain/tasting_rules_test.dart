@@ -83,6 +83,27 @@ void main() {
       );
     });
 
+    test('aliment proposable plus tôt : trop tôt seulement avant son âge', () {
+      const yogurt = Food(
+        id: 'yaourt',
+        name: 'Yaourt',
+        group: FoodGroup.dairy,
+        fromMonths: 3,
+      );
+      expect(
+        check(food: yogurt, at: DateTime(2026, 12, 14), birthDate: birth),
+        [const TastingWarning.tooEarly()],
+      );
+      expect(
+        check(food: yogurt, at: DateTime(2026, 12, 15), birthDate: birth),
+        isEmpty,
+      );
+      expect(
+        check(food: carrot, at: DateTime(2026, 12, 15), birthDate: birth),
+        [const TastingWarning.tooEarly()],
+      );
+    });
+
     test('sans date de naissance : aucun avertissement', () {
       expect(
         check(food: honey, at: DateTime(2027, 1, 1), birthDate: null),

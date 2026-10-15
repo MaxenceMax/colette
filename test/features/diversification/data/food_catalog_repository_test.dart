@@ -55,6 +55,7 @@ void main() {
     expect(catalog.foods.first.allergens, isEmpty);
     expect(catalog.foods.first.rules, isEmpty);
     expect(catalog.foods.first.isCustom, isFalse);
+    expect(catalog.foods.first.fromMonths, isNull);
     expect(catalog.guide.phases.keys, DiversificationPhase.values);
     expect(
       catalog.guide.phases[DiversificationPhase.months6To8]?.mealsSummary,
@@ -83,6 +84,29 @@ void main() {
     final result = await _repo(broken).load();
     expect(result.getLeft().toNullable(), isA<UnknownFailure>());
   });
+
+  test('âge minimal propre à l\'aliment', () async {
+    final json = catalogFixtureJson.replaceFirst(
+      '"id": "carotte",',
+      '"id": "carotte", "fromMonths": 3,',
+    );
+    final catalog = (await _repo(
+      json,
+    ).load()).getOrElse((f) => throw StateError('$f'));
+    expect(catalog.foods.first.fromMonths, 3);
+  });
+
+  test(
+    'âge minimal au-delà du repère français : échec sans exception',
+    () async {
+      final broken = catalogFixtureJson.replaceFirst(
+        '"id": "carotte",',
+        '"id": "carotte", "fromMonths": 5,',
+      );
+      final result = await _repo(broken).load();
+      expect(result.getLeft().toNullable(), isA<UnknownFailure>());
+    },
+  );
 
   test('asset absent : échec sans exception', () async {
     final result = await _repo(null).load();

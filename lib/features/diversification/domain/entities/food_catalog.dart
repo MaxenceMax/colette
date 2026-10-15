@@ -5,11 +5,11 @@ import 'package:freezed_annotation/freezed_annotation.dart';
 
 part 'food_catalog.freezed.dart';
 
-/// Référence bibliographique d'une [RuleSource].
+/// Référence bibliographique d'une [RuleSource] ; sans lien pour un document
+/// remis en consultation.
 @freezed
 abstract class SourceRef with _$SourceRef {
-  const factory SourceRef({required String label, required String url}) =
-      _SourceRef;
+  const factory SourceRef({required String label, String? url}) = _SourceRef;
 }
 
 /// Repère sourcé de la feuille « Repères à son âge ».
@@ -18,6 +18,10 @@ abstract class GuideItem with _$GuideItem {
   const factory GuideItem({
     required String text,
     required List<RuleSource> sources,
+
+    /// Âge (mois révolus) à partir duquel l'étape s'applique ; absent pour
+    /// un repère valable toute la phase.
+    int? fromMonths,
   }) = _GuideItem;
 }
 
