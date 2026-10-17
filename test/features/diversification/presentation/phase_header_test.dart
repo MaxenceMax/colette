@@ -64,4 +64,12 @@ void main() {
       );
     },
   );
+
+  testWidgets('l\'icône du pédiatre ouvre ses consignes', (tester) async {
+    await pump(tester);
+    await tester.tap(find.byTooltip('Consignes du pédiatre'));
+    await tester.pumpAndSettle();
+    expect(find.text('Diversification et allergies'), findsOneWidget);
+    expect(find.text('Pas de petit-suisse.'), findsOneWidget);
+  });
 }

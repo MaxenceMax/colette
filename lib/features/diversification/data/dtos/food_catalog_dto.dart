@@ -4,6 +4,7 @@ import 'package:colette/features/diversification/domain/entities/food.dart';
 import 'package:colette/features/diversification/domain/entities/food_catalog.dart';
 import 'package:colette/features/diversification/domain/entities/food_group.dart';
 import 'package:colette/features/diversification/domain/entities/food_rule.dart';
+import 'package:colette/features/diversification/domain/entities/pediatrician_advice.dart';
 import 'package:colette/features/diversification/domain/entities/rule_source.dart';
 
 /// Lecture stricte du JSON du catalogue : toute valeur inconnue ou manquante
@@ -20,6 +21,9 @@ abstract final class FoodCatalogDto {
         ),
     },
     guide: _guide(json['guide'] as Map<String, dynamic>),
+    pediatricianAdvice: _advice(
+      json['pediatricianAdvice'] as Map<String, dynamic>,
+    ),
     foods: [
       for (final food in json['foods'] as List<dynamic>)
         _food(food as Map<String, dynamic>),
@@ -27,7 +31,7 @@ abstract final class FoodCatalogDto {
   );
 
   static SourceRef _sourceRef(Map<String, dynamic> json) =>
-      SourceRef(label: json['label'] as String, url: json['url'] as String?);
+      SourceRef(label: json['label'] as String, url: json['url'] as String);
 
   static AgeGuide _guide(Map<String, dynamic> json) => AgeGuide(
     phases: {
@@ -53,9 +57,40 @@ abstract final class FoodCatalogDto {
       GuideItem(
         text: (item as Map<String, dynamic>)['text'] as String,
         sources: _sources(item['sources']),
-        fromMonths: item['fromMonths'] as int?,
       ),
   ];
+
+  /// Étapes triées par âge strictement croissant.
+  static PediatricianAdvice _advice(Map<String, dynamic> json) {
+    final steps = [
+      for (final step in json['steps'] as List<dynamic>)
+        AdviceStep(
+          fromMonths: (step as Map<String, dynamic>)['fromMonths'] as int,
+          items: [
+            for (final item in step['items'] as List<dynamic>)
+              AdviceItem(
+                text: (item as Map<String, dynamic>)['text'] as String,
+                details: [
+                  for (final detail in item['details'] as List<dynamic>? ?? [])
+                    detail as String,
+                ],
+              ),
+          ],
+        ),
+    ];
+    for (var i = 1; i < steps.length; i++) {
+      if (steps[i].fromMonths <= steps[i - 1].fromMonths) {
+        throw const FormatException('Étapes du pédiatre non triées');
+      }
+    }
+    return PediatricianAdvice(
+      title: json['title'] as String,
+      author: json['author'] as String,
+      scope: json['scope'] as String,
+      steps: steps,
+      avoid: json['avoid'] as String,
+    );
+  }
 
   static List<RuleSource> _sources(Object? json) => [
     for (final source in json as List<dynamic>)

@@ -4,7 +4,7 @@ import 'package:colette/features/diversification/data/dtos/food_catalog_dto.dart
 import 'package:colette/features/diversification/domain/entities/food_catalog.dart';
 
 /// Petit catalogue représentatif : une règle avoid, des sources divergentes,
-/// une précaution de préparation, des allergènes.
+/// une précaution de préparation, des allergènes, deux étapes du pédiatre.
 const catalogFixtureJson = '''
 {
   "version": 1,
@@ -12,16 +12,11 @@ const catalogFixtureJson = '''
   "sources": {
     "oms": { "label": "OMS 2023", "url": "https://www.who.int/publications/i/item/9789240081864" },
     "anses": { "label": "Anses 2019", "url": "https://www.anses.fr/fr/system/files/NUT2017SA0145.pdf" },
-    "spf": { "label": "SPF 2021", "url": "https://www.mangerbouger.fr" },
-    "pediatre": { "label": "Consignes du pédiatre" }
+    "spf": { "label": "SPF 2021", "url": "https://www.mangerbouger.fr" }
   },
   "guide": {
     "phases": {
-      "preparation": { "mealsSummary": "Lait uniquement", "items": [
-        { "text": "Lait maternel ou infantile.", "sources": ["oms"] },
-        { "text": "Dès 3 mois : yaourts natures.", "sources": ["pediatre"], "fromMonths": 3 },
-        { "text": "Dès 4 mois : purées de légumes.", "sources": ["pediatre"], "fromMonths": 4 }
-      ] },
+      "preparation": { "mealsSummary": "Lait uniquement", "items": [ { "text": "Lait maternel ou infantile.", "sources": ["oms"] } ] },
       "months6To8": { "mealsSummary": "2 à 3 repas", "items": [ { "text": "Purées lisses puis écrasées.", "sources": ["oms", "spf"] } ] },
       "months9To11": { "mealsSummary": "3 à 4 repas", "items": [ { "text": "Haché fin, morceaux fondants.", "sources": ["oms"] } ] },
       "months12To23": { "mealsSummary": "3 à 4 repas", "items": [ { "text": "Plats familiaux.", "sources": ["oms"] } ] }
@@ -30,6 +25,16 @@ const catalogFixtureJson = '''
     "hungerSigns": [ { "text": "Ouvre la bouche.", "sources": ["spf"] } ],
     "satietySigns": [ { "text": "Tourne la tête.", "sources": ["spf"] } ],
     "safety": [ { "text": "Toujours assis et surveillé.", "sources": ["spf"] } ]
+  },
+  "pediatricianAdvice": {
+    "title": "Diversification et allergies",
+    "author": "Dr Test",
+    "scope": "Sauf lait HPLV.",
+    "steps": [
+      { "fromMonths": 3, "items": [ { "text": "Yaourts natures." } ] },
+      { "fromMonths": 4, "items": [ { "text": "Protéines :", "details": ["Œuf dur 1 fois par semaine."] } ] }
+    ],
+    "avoid": "Pas de petit-suisse."
   },
   "foods": [
     { "id": "carotte", "name": "Carotte", "group": "vitaminAFruitsVeg" },

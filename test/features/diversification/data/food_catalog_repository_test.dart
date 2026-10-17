@@ -8,6 +8,7 @@ import 'package:colette/features/diversification/domain/entities/diversification
 import 'package:colette/features/diversification/domain/entities/food_catalog.dart';
 import 'package:colette/features/diversification/domain/entities/food_group.dart';
 import 'package:colette/features/diversification/domain/entities/food_rule.dart';
+import 'package:colette/features/diversification/domain/entities/pediatrician_advice.dart';
 import 'package:colette/features/diversification/domain/entities/rule_source.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/services.dart';
@@ -56,6 +57,17 @@ void main() {
     expect(catalog.foods.first.rules, isEmpty);
     expect(catalog.foods.first.isCustom, isFalse);
     expect(catalog.foods.first.fromMonths, isNull);
+    final advice = catalog.pediatricianAdvice;
+    expect(advice.author, 'Dr Test');
+    expect(advice.steps.map((step) => step.fromMonths), [3, 4]);
+    expect(
+      advice.steps.last.items.single,
+      const AdviceItem(
+        text: 'Protéines :',
+        details: ['Œuf dur 1 fois par semaine.'],
+      ),
+    );
+    expect(advice.avoid, 'Pas de petit-suisse.');
     expect(catalog.guide.phases.keys, DiversificationPhase.values);
     expect(
       catalog.guide.phases[DiversificationPhase.months6To8]?.mealsSummary,
@@ -107,6 +119,15 @@ void main() {
       expect(result.getLeft().toNullable(), isA<UnknownFailure>());
     },
   );
+
+  test('étapes du pédiatre non triées : échec sans exception', () async {
+    final broken = catalogFixtureJson.replaceFirst(
+      '"fromMonths": 4, "items"',
+      '"fromMonths": 3, "items"',
+    );
+    final result = await _repo(broken).load();
+    expect(result.getLeft().toNullable(), isA<UnknownFailure>());
+  });
 
   test('asset absent : échec sans exception', () async {
     final result = await _repo(null).load();
