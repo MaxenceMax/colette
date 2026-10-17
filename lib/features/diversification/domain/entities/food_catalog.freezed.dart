@@ -15,7 +15,7 @@ T _$identity<T>(T value) => value;
 /// @nodoc
 mixin _$SourceRef {
 
- String get label; String? get url;
+ String get label; String get url;
 /// Create a copy of SourceRef
 /// with the given fields replaced by the non-null parameter values.
 @JsonKey(includeFromJson: false, includeToJson: false)
@@ -51,7 +51,7 @@ abstract mixin class $SourceRefCopyWith<$Res>  {
   factory $SourceRefCopyWith(SourceRef value, $Res Function(SourceRef) _then) = _$SourceRefCopyWithImpl;
 @useResult
 $Res call({
- String label, String? url
+ String label, String url
 });
 
 
@@ -68,11 +68,11 @@ class _$SourceRefCopyWithImpl<$Res>
 
 /// Create a copy of SourceRef
 /// with the given fields replaced by the non-null parameter values.
-@pragma('vm:prefer-inline') @override $Res call({Object? label = null,Object? url = freezed,}) {
+@pragma('vm:prefer-inline') @override $Res call({Object? label = null,Object? url = null,}) {
   return _then(SourceRef(
 label: null == label ? _self.label : label // ignore: cast_nullable_to_non_nullable
-as String,url: freezed == url ? _self.url : url // ignore: cast_nullable_to_non_nullable
-as String?,
+as String,url: null == url ? _self.url : url // ignore: cast_nullable_to_non_nullable
+as String,
   ));
 }
 
@@ -157,7 +157,7 @@ return $default(_that);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( String label,  String? url)?  $default,{required TResult orElse(),}) {final _that = this;
+@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( String label,  String url)?  $default,{required TResult orElse(),}) {final _that = this;
 switch (_that) {
 case _SourceRef() when $default != null:
 return $default(_that.label,_that.url);case _:
@@ -178,7 +178,7 @@ return $default(_that.label,_that.url);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( String label,  String? url)  $default,) {final _that = this;
+@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( String label,  String url)  $default,) {final _that = this;
 switch (_that) {
 case _SourceRef():
 return $default(_that.label,_that.url);case _:
@@ -198,7 +198,7 @@ return $default(_that.label,_that.url);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( String label,  String? url)?  $default,) {final _that = this;
+@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( String label,  String url)?  $default,) {final _that = this;
 switch (_that) {
 case _SourceRef() when $default != null:
 return $default(_that.label,_that.url);case _:
@@ -213,11 +213,11 @@ return $default(_that.label,_that.url);case _:
 
 
 class _SourceRef implements SourceRef {
-  const _SourceRef({required this.label, this.url});
+  const _SourceRef({required this.label, required this.url});
   
 
 @override final  String label;
-@override final  String? url;
+@override final  String url;
 
 /// Create a copy of SourceRef
 /// with the given fields replaced by the non-null parameter values.
@@ -251,7 +251,7 @@ abstract mixin class _$SourceRefCopyWith<$Res> implements $SourceRefCopyWith<$Re
   factory _$SourceRefCopyWith(_SourceRef value, $Res Function(_SourceRef) _then) = __$SourceRefCopyWithImpl;
 @override @useResult
 $Res call({
- String label, String? url
+ String label, String url
 });
 
 
@@ -268,11 +268,11 @@ class __$SourceRefCopyWithImpl<$Res>
 
 /// Create a copy of SourceRef
 /// with the given fields replaced by the non-null parameter values.
-@override @pragma('vm:prefer-inline') $Res call({Object? label = null,Object? url = freezed,}) {
+@override @pragma('vm:prefer-inline') $Res call({Object? label = null,Object? url = null,}) {
   return _then(_SourceRef(
 label: null == label ? _self.label : label // ignore: cast_nullable_to_non_nullable
-as String,url: freezed == url ? _self.url : url // ignore: cast_nullable_to_non_nullable
-as String?,
+as String,url: null == url ? _self.url : url // ignore: cast_nullable_to_non_nullable
+as String,
   ));
 }
 
@@ -282,9 +282,7 @@ as String?,
 /// @nodoc
 mixin _$GuideItem {
 
- String get text; List<RuleSource> get sources;/// Âge (mois révolus) à partir duquel l'étape s'applique ; absent pour
-/// un repère valable toute la phase.
- int? get fromMonths;
+ String get text; List<RuleSource> get sources;
 /// Create a copy of GuideItem
 /// with the given fields replaced by the non-null parameter values.
 @JsonKey(includeFromJson: false, includeToJson: false)
@@ -296,20 +294,20 @@ $GuideItemCopyWith<GuideItem> get copyWith => _$GuideItemCopyWithImpl<GuideItem>
 @override
 bool operator ==(Object other) {
   final _this = this as GuideItem;
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is GuideItem&&(identical(other.text, _this.text) || other.text == _this.text)&&const DeepCollectionEquality().equals(other.sources, _this.sources)&&(identical(other.fromMonths, _this.fromMonths) || other.fromMonths == _this.fromMonths));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is GuideItem&&(identical(other.text, _this.text) || other.text == _this.text)&&const DeepCollectionEquality().equals(other.sources, _this.sources));
 }
 
 
 @override
 int get hashCode {
   final _this = this as GuideItem;
-  return Object.hash(runtimeType,_this.text,const DeepCollectionEquality().hash(_this.sources),_this.fromMonths);
+  return Object.hash(runtimeType,_this.text,const DeepCollectionEquality().hash(_this.sources));
 }
 
 @override
 String toString() {
   final _this = this as GuideItem;
-  return 'GuideItem(text: ${_this.text}, sources: ${_this.sources}, fromMonths: ${_this.fromMonths})';
+  return 'GuideItem(text: ${_this.text}, sources: ${_this.sources})';
 }
 
 
@@ -320,7 +318,7 @@ abstract mixin class $GuideItemCopyWith<$Res>  {
   factory $GuideItemCopyWith(GuideItem value, $Res Function(GuideItem) _then) = _$GuideItemCopyWithImpl;
 @useResult
 $Res call({
- String text, List<RuleSource> sources, int? fromMonths
+ String text, List<RuleSource> sources
 });
 
 
@@ -337,12 +335,11 @@ class _$GuideItemCopyWithImpl<$Res>
 
 /// Create a copy of GuideItem
 /// with the given fields replaced by the non-null parameter values.
-@pragma('vm:prefer-inline') @override $Res call({Object? text = null,Object? sources = null,Object? fromMonths = freezed,}) {
+@pragma('vm:prefer-inline') @override $Res call({Object? text = null,Object? sources = null,}) {
   return _then(GuideItem(
 text: null == text ? _self.text : text // ignore: cast_nullable_to_non_nullable
 as String,sources: null == sources ? _self.sources : sources // ignore: cast_nullable_to_non_nullable
-as List<RuleSource>,fromMonths: freezed == fromMonths ? _self.fromMonths : fromMonths // ignore: cast_nullable_to_non_nullable
-as int?,
+as List<RuleSource>,
   ));
 }
 
@@ -427,10 +424,10 @@ return $default(_that);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( String text,  List<RuleSource> sources,  int? fromMonths)?  $default,{required TResult orElse(),}) {final _that = this;
+@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( String text,  List<RuleSource> sources)?  $default,{required TResult orElse(),}) {final _that = this;
 switch (_that) {
 case _GuideItem() when $default != null:
-return $default(_that.text,_that.sources,_that.fromMonths);case _:
+return $default(_that.text,_that.sources);case _:
   return orElse();
 
 }
@@ -448,10 +445,10 @@ return $default(_that.text,_that.sources,_that.fromMonths);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( String text,  List<RuleSource> sources,  int? fromMonths)  $default,) {final _that = this;
+@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( String text,  List<RuleSource> sources)  $default,) {final _that = this;
 switch (_that) {
 case _GuideItem():
-return $default(_that.text,_that.sources,_that.fromMonths);case _:
+return $default(_that.text,_that.sources);case _:
   throw StateError('Unexpected subclass');
 
 }
@@ -468,10 +465,10 @@ return $default(_that.text,_that.sources,_that.fromMonths);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( String text,  List<RuleSource> sources,  int? fromMonths)?  $default,) {final _that = this;
+@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( String text,  List<RuleSource> sources)?  $default,) {final _that = this;
 switch (_that) {
 case _GuideItem() when $default != null:
-return $default(_that.text,_that.sources,_that.fromMonths);case _:
+return $default(_that.text,_that.sources);case _:
   return null;
 
 }
@@ -483,7 +480,7 @@ return $default(_that.text,_that.sources,_that.fromMonths);case _:
 
 
 class _GuideItem implements GuideItem {
-  const _GuideItem({required this.text, required  List<RuleSource> sources, this.fromMonths}): _sources = sources;
+  const _GuideItem({required this.text, required  List<RuleSource> sources}): _sources = sources;
   
 
 @override final  String text;
@@ -494,9 +491,6 @@ class _GuideItem implements GuideItem {
   return EqualUnmodifiableListView(_sources);
 }
 
-/// Âge (mois révolus) à partir duquel l'étape s'applique ; absent pour
-/// un repère valable toute la phase.
-@override final  int? fromMonths;
 
 /// Create a copy of GuideItem
 /// with the given fields replaced by the non-null parameter values.
@@ -508,18 +502,18 @@ _$GuideItemCopyWith<_GuideItem> get copyWith => __$GuideItemCopyWithImpl<_GuideI
 
 @override
 bool operator ==(Object other) {
-    return identical(this, other) || (other.runtimeType == runtimeType&&other is _GuideItem&&(identical(other.text, text) || other.text == text)&&const DeepCollectionEquality().equals(other.sources, _sources)&&(identical(other.fromMonths, fromMonths) || other.fromMonths == fromMonths));
+    return identical(this, other) || (other.runtimeType == runtimeType&&other is _GuideItem&&(identical(other.text, text) || other.text == text)&&const DeepCollectionEquality().equals(other.sources, _sources));
 }
 
 
 @override
 int get hashCode {
-    return Object.hash(runtimeType,text,const DeepCollectionEquality().hash(_sources),fromMonths);
+    return Object.hash(runtimeType,text,const DeepCollectionEquality().hash(_sources));
 }
 
 @override
 String toString() {
-    return 'GuideItem(text: $text, sources: $sources, fromMonths: $fromMonths)';
+    return 'GuideItem(text: $text, sources: $sources)';
 }
 
 
@@ -530,7 +524,7 @@ abstract mixin class _$GuideItemCopyWith<$Res> implements $GuideItemCopyWith<$Re
   factory _$GuideItemCopyWith(_GuideItem value, $Res Function(_GuideItem) _then) = __$GuideItemCopyWithImpl;
 @override @useResult
 $Res call({
- String text, List<RuleSource> sources, int? fromMonths
+ String text, List<RuleSource> sources
 });
 
 
@@ -547,12 +541,11 @@ class __$GuideItemCopyWithImpl<$Res>
 
 /// Create a copy of GuideItem
 /// with the given fields replaced by the non-null parameter values.
-@override @pragma('vm:prefer-inline') $Res call({Object? text = null,Object? sources = null,Object? fromMonths = freezed,}) {
+@override @pragma('vm:prefer-inline') $Res call({Object? text = null,Object? sources = null,}) {
   return _then(_GuideItem(
 text: null == text ? _self.text : text // ignore: cast_nullable_to_non_nullable
 as String,sources: null == sources ? _self._sources : sources // ignore: cast_nullable_to_non_nullable
-as List<RuleSource>,fromMonths: freezed == fromMonths ? _self.fromMonths : fromMonths // ignore: cast_nullable_to_non_nullable
-as int?,
+as List<RuleSource>,
   ));
 }
 
@@ -1141,7 +1134,8 @@ as List<GuideItem>,
 /// @nodoc
 mixin _$FoodCatalog {
 
- int get version; DateTime get reviewedAt; Map<RuleSource, SourceRef> get sources; AgeGuide get guide; List<Food> get foods;
+ int get version; DateTime get reviewedAt; Map<RuleSource, SourceRef> get sources; AgeGuide get guide;/// Consignes du pédiatre, présentées à part des repères.
+ PediatricianAdvice get pediatricianAdvice; List<Food> get foods;
 /// Create a copy of FoodCatalog
 /// with the given fields replaced by the non-null parameter values.
 @JsonKey(includeFromJson: false, includeToJson: false)
@@ -1153,20 +1147,20 @@ $FoodCatalogCopyWith<FoodCatalog> get copyWith => _$FoodCatalogCopyWithImpl<Food
 @override
 bool operator ==(Object other) {
   final _this = this as FoodCatalog;
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is FoodCatalog&&(identical(other.version, _this.version) || other.version == _this.version)&&(identical(other.reviewedAt, _this.reviewedAt) || other.reviewedAt == _this.reviewedAt)&&const DeepCollectionEquality().equals(other.sources, _this.sources)&&(identical(other.guide, _this.guide) || other.guide == _this.guide)&&const DeepCollectionEquality().equals(other.foods, _this.foods));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is FoodCatalog&&(identical(other.version, _this.version) || other.version == _this.version)&&(identical(other.reviewedAt, _this.reviewedAt) || other.reviewedAt == _this.reviewedAt)&&const DeepCollectionEquality().equals(other.sources, _this.sources)&&(identical(other.guide, _this.guide) || other.guide == _this.guide)&&(identical(other.pediatricianAdvice, _this.pediatricianAdvice) || other.pediatricianAdvice == _this.pediatricianAdvice)&&const DeepCollectionEquality().equals(other.foods, _this.foods));
 }
 
 
 @override
 int get hashCode {
   final _this = this as FoodCatalog;
-  return Object.hash(runtimeType,_this.version,_this.reviewedAt,const DeepCollectionEquality().hash(_this.sources),_this.guide,const DeepCollectionEquality().hash(_this.foods));
+  return Object.hash(runtimeType,_this.version,_this.reviewedAt,const DeepCollectionEquality().hash(_this.sources),_this.guide,_this.pediatricianAdvice,const DeepCollectionEquality().hash(_this.foods));
 }
 
 @override
 String toString() {
   final _this = this as FoodCatalog;
-  return 'FoodCatalog(version: ${_this.version}, reviewedAt: ${_this.reviewedAt}, sources: ${_this.sources}, guide: ${_this.guide}, foods: ${_this.foods})';
+  return 'FoodCatalog(version: ${_this.version}, reviewedAt: ${_this.reviewedAt}, sources: ${_this.sources}, guide: ${_this.guide}, pediatricianAdvice: ${_this.pediatricianAdvice}, foods: ${_this.foods})';
 }
 
 
@@ -1177,11 +1171,11 @@ abstract mixin class $FoodCatalogCopyWith<$Res>  {
   factory $FoodCatalogCopyWith(FoodCatalog value, $Res Function(FoodCatalog) _then) = _$FoodCatalogCopyWithImpl;
 @useResult
 $Res call({
- int version, DateTime reviewedAt, Map<RuleSource, SourceRef> sources, AgeGuide guide, List<Food> foods
+ int version, DateTime reviewedAt, Map<RuleSource, SourceRef> sources, AgeGuide guide, PediatricianAdvice pediatricianAdvice, List<Food> foods
 });
 
 
-$AgeGuideCopyWith<$Res> get guide;
+$AgeGuideCopyWith<$Res> get guide;$PediatricianAdviceCopyWith<$Res> get pediatricianAdvice;
 
 }
 /// @nodoc
@@ -1194,13 +1188,14 @@ class _$FoodCatalogCopyWithImpl<$Res>
 
 /// Create a copy of FoodCatalog
 /// with the given fields replaced by the non-null parameter values.
-@pragma('vm:prefer-inline') @override $Res call({Object? version = null,Object? reviewedAt = null,Object? sources = null,Object? guide = null,Object? foods = null,}) {
+@pragma('vm:prefer-inline') @override $Res call({Object? version = null,Object? reviewedAt = null,Object? sources = null,Object? guide = null,Object? pediatricianAdvice = null,Object? foods = null,}) {
   return _then(FoodCatalog(
 version: null == version ? _self.version : version // ignore: cast_nullable_to_non_nullable
 as int,reviewedAt: null == reviewedAt ? _self.reviewedAt : reviewedAt // ignore: cast_nullable_to_non_nullable
 as DateTime,sources: null == sources ? _self.sources : sources // ignore: cast_nullable_to_non_nullable
 as Map<RuleSource, SourceRef>,guide: null == guide ? _self.guide : guide // ignore: cast_nullable_to_non_nullable
-as AgeGuide,foods: null == foods ? _self.foods : foods // ignore: cast_nullable_to_non_nullable
+as AgeGuide,pediatricianAdvice: null == pediatricianAdvice ? _self.pediatricianAdvice : pediatricianAdvice // ignore: cast_nullable_to_non_nullable
+as PediatricianAdvice,foods: null == foods ? _self.foods : foods // ignore: cast_nullable_to_non_nullable
 as List<Food>,
   ));
 }
@@ -1212,6 +1207,15 @@ $AgeGuideCopyWith<$Res> get guide {
   
   return $AgeGuideCopyWith<$Res>(_self.guide, (value) {
     return _then(_self.copyWith(guide: value));
+  });
+}/// Create a copy of FoodCatalog
+/// with the given fields replaced by the non-null parameter values.
+@override
+@pragma('vm:prefer-inline')
+$PediatricianAdviceCopyWith<$Res> get pediatricianAdvice {
+  
+  return $PediatricianAdviceCopyWith<$Res>(_self.pediatricianAdvice, (value) {
+    return _then(_self.copyWith(pediatricianAdvice: value));
   });
 }
 }
@@ -1295,10 +1299,10 @@ return $default(_that);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( int version,  DateTime reviewedAt,  Map<RuleSource, SourceRef> sources,  AgeGuide guide,  List<Food> foods)?  $default,{required TResult orElse(),}) {final _that = this;
+@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( int version,  DateTime reviewedAt,  Map<RuleSource, SourceRef> sources,  AgeGuide guide,  PediatricianAdvice pediatricianAdvice,  List<Food> foods)?  $default,{required TResult orElse(),}) {final _that = this;
 switch (_that) {
 case _FoodCatalog() when $default != null:
-return $default(_that.version,_that.reviewedAt,_that.sources,_that.guide,_that.foods);case _:
+return $default(_that.version,_that.reviewedAt,_that.sources,_that.guide,_that.pediatricianAdvice,_that.foods);case _:
   return orElse();
 
 }
@@ -1316,10 +1320,10 @@ return $default(_that.version,_that.reviewedAt,_that.sources,_that.guide,_that.f
 /// }
 /// ```
 
-@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( int version,  DateTime reviewedAt,  Map<RuleSource, SourceRef> sources,  AgeGuide guide,  List<Food> foods)  $default,) {final _that = this;
+@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( int version,  DateTime reviewedAt,  Map<RuleSource, SourceRef> sources,  AgeGuide guide,  PediatricianAdvice pediatricianAdvice,  List<Food> foods)  $default,) {final _that = this;
 switch (_that) {
 case _FoodCatalog():
-return $default(_that.version,_that.reviewedAt,_that.sources,_that.guide,_that.foods);case _:
+return $default(_that.version,_that.reviewedAt,_that.sources,_that.guide,_that.pediatricianAdvice,_that.foods);case _:
   throw StateError('Unexpected subclass');
 
 }
@@ -1336,10 +1340,10 @@ return $default(_that.version,_that.reviewedAt,_that.sources,_that.guide,_that.f
 /// }
 /// ```
 
-@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( int version,  DateTime reviewedAt,  Map<RuleSource, SourceRef> sources,  AgeGuide guide,  List<Food> foods)?  $default,) {final _that = this;
+@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( int version,  DateTime reviewedAt,  Map<RuleSource, SourceRef> sources,  AgeGuide guide,  PediatricianAdvice pediatricianAdvice,  List<Food> foods)?  $default,) {final _that = this;
 switch (_that) {
 case _FoodCatalog() when $default != null:
-return $default(_that.version,_that.reviewedAt,_that.sources,_that.guide,_that.foods);case _:
+return $default(_that.version,_that.reviewedAt,_that.sources,_that.guide,_that.pediatricianAdvice,_that.foods);case _:
   return null;
 
 }
@@ -1351,7 +1355,7 @@ return $default(_that.version,_that.reviewedAt,_that.sources,_that.guide,_that.f
 
 
 class _FoodCatalog implements FoodCatalog {
-  const _FoodCatalog({required this.version, required this.reviewedAt, required  Map<RuleSource, SourceRef> sources, required this.guide, required  List<Food> foods}): _sources = sources,_foods = foods;
+  const _FoodCatalog({required this.version, required this.reviewedAt, required  Map<RuleSource, SourceRef> sources, required this.guide, required this.pediatricianAdvice, required  List<Food> foods}): _sources = sources,_foods = foods;
   
 
 @override final  int version;
@@ -1364,6 +1368,8 @@ class _FoodCatalog implements FoodCatalog {
 }
 
 @override final  AgeGuide guide;
+/// Consignes du pédiatre, présentées à part des repères.
+@override final  PediatricianAdvice pediatricianAdvice;
  final  List<Food> _foods;
 @override List<Food> get foods {
   if (_foods is EqualUnmodifiableListView) return _foods;
@@ -1382,18 +1388,18 @@ _$FoodCatalogCopyWith<_FoodCatalog> get copyWith => __$FoodCatalogCopyWithImpl<_
 
 @override
 bool operator ==(Object other) {
-    return identical(this, other) || (other.runtimeType == runtimeType&&other is _FoodCatalog&&(identical(other.version, version) || other.version == version)&&(identical(other.reviewedAt, reviewedAt) || other.reviewedAt == reviewedAt)&&const DeepCollectionEquality().equals(other.sources, _sources)&&(identical(other.guide, guide) || other.guide == guide)&&const DeepCollectionEquality().equals(other.foods, _foods));
+    return identical(this, other) || (other.runtimeType == runtimeType&&other is _FoodCatalog&&(identical(other.version, version) || other.version == version)&&(identical(other.reviewedAt, reviewedAt) || other.reviewedAt == reviewedAt)&&const DeepCollectionEquality().equals(other.sources, _sources)&&(identical(other.guide, guide) || other.guide == guide)&&(identical(other.pediatricianAdvice, pediatricianAdvice) || other.pediatricianAdvice == pediatricianAdvice)&&const DeepCollectionEquality().equals(other.foods, _foods));
 }
 
 
 @override
 int get hashCode {
-    return Object.hash(runtimeType,version,reviewedAt,const DeepCollectionEquality().hash(_sources),guide,const DeepCollectionEquality().hash(_foods));
+    return Object.hash(runtimeType,version,reviewedAt,const DeepCollectionEquality().hash(_sources),guide,pediatricianAdvice,const DeepCollectionEquality().hash(_foods));
 }
 
 @override
 String toString() {
-    return 'FoodCatalog(version: $version, reviewedAt: $reviewedAt, sources: $sources, guide: $guide, foods: $foods)';
+    return 'FoodCatalog(version: $version, reviewedAt: $reviewedAt, sources: $sources, guide: $guide, pediatricianAdvice: $pediatricianAdvice, foods: $foods)';
 }
 
 
@@ -1404,11 +1410,11 @@ abstract mixin class _$FoodCatalogCopyWith<$Res> implements $FoodCatalogCopyWith
   factory _$FoodCatalogCopyWith(_FoodCatalog value, $Res Function(_FoodCatalog) _then) = __$FoodCatalogCopyWithImpl;
 @override @useResult
 $Res call({
- int version, DateTime reviewedAt, Map<RuleSource, SourceRef> sources, AgeGuide guide, List<Food> foods
+ int version, DateTime reviewedAt, Map<RuleSource, SourceRef> sources, AgeGuide guide, PediatricianAdvice pediatricianAdvice, List<Food> foods
 });
 
 
-@override $AgeGuideCopyWith<$Res> get guide;
+@override $AgeGuideCopyWith<$Res> get guide;@override $PediatricianAdviceCopyWith<$Res> get pediatricianAdvice;
 
 }
 /// @nodoc
@@ -1421,13 +1427,14 @@ class __$FoodCatalogCopyWithImpl<$Res>
 
 /// Create a copy of FoodCatalog
 /// with the given fields replaced by the non-null parameter values.
-@override @pragma('vm:prefer-inline') $Res call({Object? version = null,Object? reviewedAt = null,Object? sources = null,Object? guide = null,Object? foods = null,}) {
+@override @pragma('vm:prefer-inline') $Res call({Object? version = null,Object? reviewedAt = null,Object? sources = null,Object? guide = null,Object? pediatricianAdvice = null,Object? foods = null,}) {
   return _then(_FoodCatalog(
 version: null == version ? _self.version : version // ignore: cast_nullable_to_non_nullable
 as int,reviewedAt: null == reviewedAt ? _self.reviewedAt : reviewedAt // ignore: cast_nullable_to_non_nullable
 as DateTime,sources: null == sources ? _self._sources : sources // ignore: cast_nullable_to_non_nullable
 as Map<RuleSource, SourceRef>,guide: null == guide ? _self.guide : guide // ignore: cast_nullable_to_non_nullable
-as AgeGuide,foods: null == foods ? _self._foods : foods // ignore: cast_nullable_to_non_nullable
+as AgeGuide,pediatricianAdvice: null == pediatricianAdvice ? _self.pediatricianAdvice : pediatricianAdvice // ignore: cast_nullable_to_non_nullable
+as PediatricianAdvice,foods: null == foods ? _self._foods : foods // ignore: cast_nullable_to_non_nullable
 as List<Food>,
   ));
 }
@@ -1440,6 +1447,15 @@ $AgeGuideCopyWith<$Res> get guide {
   
   return $AgeGuideCopyWith<$Res>(_self.guide, (value) {
     return _then(_self.copyWith(guide: value));
+  });
+}/// Create a copy of FoodCatalog
+/// with the given fields replaced by the non-null parameter values.
+@override
+@pragma('vm:prefer-inline')
+$PediatricianAdviceCopyWith<$Res> get pediatricianAdvice {
+  
+  return $PediatricianAdviceCopyWith<$Res>(_self.pediatricianAdvice, (value) {
+    return _then(_self.copyWith(pediatricianAdvice: value));
   });
 }
 }

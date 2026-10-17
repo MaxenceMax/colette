@@ -10,8 +10,7 @@ import 'package:colette/shared/ui/widgets/colette_card_surface.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-/// Avant 6 mois : compte à rebours, repères OMS / France / pédiatre, étapes
-/// datées atteintes à son âge, signes que bébé est prêt.
+/// Avant 6 mois : compte à rebours, repères OMS / France, signes que bébé est prêt.
 class PreparationCard extends ConsumerWidget {
   const PreparationCard({super.key, required this.timeline});
 
@@ -21,13 +20,8 @@ class PreparationCard extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final s = S.of(context);
     final styles = Theme.of(context).coletteTextStyles;
-    final guide = ref.watch(foodCatalogProvider).value?.guide;
-    final signs = guide?.readinessSigns ?? const [];
-    final steps = [
-      for (final item in guide?.phases[timeline.phase]?.items ?? const [])
-        if (item.fromMonths case final from? when from <= timeline.ageMonths)
-          item,
-    ];
+    final signs =
+        ref.watch(foodCatalogProvider).value?.guide.readinessSigns ?? const [];
     return ColetteCardSurface(
       backgroundColor: AppColors.primaryContainer,
       child: Column(
@@ -45,10 +39,6 @@ class PreparationCard extends ConsumerWidget {
               color: context.appColor(AppColors.textSecondary),
             ),
           ),
-          if (steps.isNotEmpty) ...[
-            Text(s.preparationAtAge, style: styles.label),
-            for (final step in steps) GuideItemTile(item: step),
-          ],
           if (signs.isNotEmpty) ...[
             Text(s.guideReadiness, style: styles.label),
             for (final sign in signs) GuideItemTile(item: sign),

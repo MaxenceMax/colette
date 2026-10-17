@@ -97,69 +97,6 @@ void main() {
     }
   });
 
-  test('consignes du pédiatre intégrées au guide et aux aliments', () {
-    expect(catalog.sources.keys, contains(RuleSource.pediatre));
-    final preparation = catalog.guide.phases[DiversificationPhase.preparation]!;
-    final steps = preparation.items
-        .where((i) => i.sources.contains(RuleSource.pediatre))
-        .map((i) => i.fromMonths)
-        .toSet();
-    expect(steps, containsAll([3, 4, 5]));
-    expect(
-      catalog.guide.phases[DiversificationPhase.months6To8]!.items.any(
-        (i) => i.sources.contains(RuleSource.pediatre),
-      ),
-      isTrue,
-    );
-
-    List<FoodRule> pediatreRules(String id) => catalog.foods
-        .firstWhere((f) => f.id == id)
-        .rules
-        .where((r) => r.sources.contains(RuleSource.pediatre))
-        .toList();
-    for (final id in [
-      'yaourt',
-      'oeuf-cuit',
-      'amande',
-      'arachide',
-      'huile-colza',
-      'huile-tournesol',
-      'semoule',
-      'pomme-de-terre',
-      'petit-suisse',
-      'cereales-infantiles',
-    ]) {
-      expect(pediatreRules(id), isNotEmpty, reason: id);
-    }
-    expect(
-      {
-        for (final food in catalog.foods)
-          if (food.fromMonths != null) food.id: food.fromMonths,
-      },
-      {'yaourt': 3},
-    );
-    for (final id in ['pomme', 'banane', 'fraise', 'mangue']) {
-      final cooked = pediatreRules(id).single;
-      expect(cooked.kind, RuleKind.prepare, reason: id);
-      expect(cooked.untilMonths, 6, reason: id);
-    }
-  });
-
-  test('repères datés : âge en mois cohérent avec leur phase', () {
-    for (final MapEntry(key: phase, value: guide)
-        in catalog.guide.phases.entries) {
-      for (final item in guide.items) {
-        final from = item.fromMonths;
-        if (from == null) continue;
-        expect(
-          DiversificationPhase.forAgeMonths(from),
-          phase,
-          reason: item.text,
-        );
-      }
-    }
-  });
-
   test('interdits clés présents avec la règle attendue', () {
     FoodRule strictestAvoid(String id) => catalog.foods
         .firstWhere((f) => f.id == id)
@@ -176,5 +113,37 @@ void main() {
     expect(strictestAvoid('fromage-lait-cru').untilMonths, 60);
     expect(strictestAvoid('fruits-a-coque-entiers').untilMonths, 60);
     expect(strictestAvoid('sel').untilMonths, 36);
+  });
+
+  test('consignes du pédiatre regroupées hors repères et aliments', () {
+    final advice = catalog.pediatricianAdvice;
+    expect(advice.author, 'Dr R. Deliège');
+    expect(advice.scope, contains('HPLV'));
+    expect(advice.steps.map((step) => step.fromMonths), [3, 4, 5, 6]);
+    for (final step in advice.steps) {
+      expect(step.items, isNotEmpty, reason: '${step.fromMonths} mois');
+    }
+    final atFour = advice.steps[1].items.expand(
+      (item) => [item.text, ...item.details],
+    );
+    for (final keyword in ['130 g', 'Œuf dur', 'Perl', 'colza']) {
+      expect(atFour.any((t) => t.contains(keyword)), isTrue, reason: keyword);
+    }
+    expect(advice.avoid, contains('petit-suisse'));
+    expect(
+      File(CatalogAssetDataSource.path).readAsStringSync(),
+      isNot(contains('"pediatre"')),
+    );
+  });
+
+  test('yaourt seul proposable avant 4 mois, dès 3 mois', () {
+    expect(
+      {
+        for (final food in catalog.foods)
+          if (food.fromMonths != null) food.id: food.fromMonths,
+      },
+      {'yaourt': 3},
+    );
+    expect(catalog.foods.map((food) => food.id), contains('huile-tournesol'));
   });
 }

@@ -77,7 +77,6 @@ extension RuleSourceLabels on RuleSource {
     RuleSource.espghan => s.sourceEspghan,
     RuleSource.agriculture => s.sourceAgriculture,
     RuleSource.efsa => s.sourceEfsa,
-    RuleSource.pediatre => s.sourcePediatre,
   };
 }
 

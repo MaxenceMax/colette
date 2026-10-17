@@ -5,11 +5,13 @@ import 'package:colette/features/diversification/domain/entities/diversification
 import 'package:colette/features/diversification/presentation/food_labels.dart';
 import 'package:colette/features/diversification/presentation/providers/diversification_providers.dart';
 import 'package:colette/features/diversification/presentation/widgets/age_guide_sheet.dart';
+import 'package:colette/features/diversification/presentation/widgets/pediatrician_advice_sheet.dart';
 import 'package:colette/l10n/generated/app_localizations.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-/// Titre de l'onglet, phase OMS et repas conseillés, accès aux repères.
+/// Titre de l'onglet, phase OMS et repas conseillés, accès aux consignes du
+/// pédiatre et aux repères.
 class PhaseHeader extends ConsumerWidget {
   const PhaseHeader({super.key});
 
@@ -42,6 +44,13 @@ class PhaseHeader extends ConsumerWidget {
               ),
             ],
           ),
+        ),
+        IconButton(
+          tooltip: s.platePediatricianTooltip,
+          icon: const Icon(Icons.medical_services_outlined),
+          onPressed: guide == null
+              ? null
+              : () => showPediatricianAdviceSheet(context),
         ),
         IconButton(
           tooltip: s.plateGuideTooltip,
