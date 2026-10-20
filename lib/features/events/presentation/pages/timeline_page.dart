@@ -3,10 +3,12 @@ import 'package:colette/core/dates/day_label.dart';
 import 'package:colette/core/theme/app_colors.dart';
 import 'package:colette/core/theme/design_tokens.dart';
 import 'package:colette/core/theme/text_styles.dart';
+import 'package:colette/features/events/domain/entities/care_day_summary.dart';
 import 'package:colette/features/events/domain/entities/care_event.dart';
 import 'package:colette/features/events/domain/entities/timeline_filter.dart';
 import 'package:colette/features/events/presentation/providers/event_form_controller.dart';
 import 'package:colette/features/events/presentation/providers/events_providers.dart';
+import 'package:colette/features/events/presentation/providers/timeline_day_summaries_provider.dart';
 import 'package:colette/features/events/presentation/providers/timeline_filter_controller.dart';
 import 'package:colette/features/events/presentation/providers/timeline_sleeps_provider.dart';
 import 'package:colette/features/events/presentation/timeline_entry.dart';
@@ -25,8 +27,8 @@ import 'package:colette/shared/ui/widgets/empty_state.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-/// Onglet Journal : soins et sommeils groupés par jour, filtrables par tag,
-/// pagination par défilement.
+/// Onglet Journal : soins et sommeils groupés par jour avec leur bilan,
+/// filtrables par tag, pagination par défilement.
 class TimelinePage extends ConsumerWidget {
   const TimelinePage({super.key});
 
@@ -153,6 +155,9 @@ class _TimelineList extends ConsumerWidget {
     ref.watch(eventFormControllerProvider);
     ref.watch(sleepFormControllerProvider);
     final groups = groupEntriesByDay(mergeTimelineEntries(events, sleeps));
+    final summaries =
+        ref.watch(timelineDaySummariesProvider).value ??
+        const <DateTime, CareDaySummary>{};
     final lastPageFull = _isLastPageFull(
       ref.watch(timelineFilterControllerProvider),
       ref.watch(timelineLimitProvider),
@@ -160,6 +165,8 @@ class _TimelineList extends ConsumerWidget {
     final headerBackground = context.appColor(AppColors.pageBackground);
     final headerStyle = Theme.of(context).coletteTextStyles.label
         .copyWith(color: context.appColor(AppColors.textSecondary));
+    final feedingColor = context.appColor(AppColors.categoryFeeding);
+    final diaperColor = context.appColor(AppColors.categoryDiaper);
     return NotificationListener<ScrollNotification>(
       onNotification: (notification) => _onScroll(ref, notification),
       child: CustomScrollView(
@@ -171,8 +178,11 @@ class _TimelineList extends ConsumerWidget {
                   pinned: true,
                   delegate: DayHeaderDelegate(
                     dayLabel(group.day, now: now, s: s),
+                    summary: summaries[group.day],
                     background: headerBackground,
                     textStyle: headerStyle,
+                    feedingColor: feedingColor,
+                    diaperColor: diaperColor,
                   ),
                 ),
                 SliverList.builder(
