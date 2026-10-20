@@ -6,6 +6,7 @@ import 'package:colette/features/events/domain/entities/care_event.dart';
 import 'package:colette/features/events/domain/repositories/events_repository.dart';
 import 'package:colette/features/events/presentation/pages/timeline_page.dart';
 import 'package:colette/features/events/presentation/providers/events_providers.dart';
+import 'package:colette/features/events/presentation/widgets/day_header_content.dart';
 import 'package:colette/features/events/presentation/widgets/event_tile.dart';
 import 'package:colette/features/events/domain/entities/event_tag.dart';
 import 'package:colette/shared/domain/care_type.dart';
@@ -98,6 +99,57 @@ void main() {
         of: find.byType(EventTile),
         matching: find.byIcon(Icons.local_drink_outlined),
       ),
+      findsOneWidget,
+    );
+  });
+
+  testWidgets('l\'en-tête du jour affiche le bilan de la journée', (
+    tester,
+  ) async {
+    final repo = MockEventsRepository();
+    final today = [
+      makeEvent(
+        id: 'b2',
+        startAt: DateTime(2026, 9, 21, 12),
+        bottleMl: 150,
+        pee: true,
+      ),
+      makeEvent(
+        id: 'b1',
+        startAt: DateTime(2026, 9, 21, 9),
+        bottleMl: 120,
+        diaperChange: true,
+      ),
+    ];
+    when(() => repo.watchLatest(any(), limit: any(named: 'limit')))
+        .thenAnswer((_) => Stream.value(today));
+    when(
+      () => repo.watchBetween(
+        any(),
+        from: any(named: 'from'),
+        to: any(named: 'to'),
+      ),
+    ).thenAnswer((_) => Stream.value(today));
+    await pumpApp(
+      tester,
+      const TimelinePage(),
+      overrides: [
+        eventsRepositoryProvider.overrideWithValue(repo),
+        sleepRepositoryProvider.overrideWithValue(FakeSleepRepository()),
+        clockProvider.overrideWithValue(FixedClock(now)),
+        householdLocalStoreProvider.overrideWithValue(
+          InMemoryHouseholdLocalStore(householdCode: 'ABCDEFGH'),
+        ),
+      ],
+    );
+    await tester.pumpAndSettle();
+    final header = find.byType(DayHeaderContent);
+    expect(
+      find.descendant(of: header, matching: find.text('270 ml · 2')),
+      findsOneWidget,
+    );
+    expect(
+      find.bySemanticsLabel('270 ml en 2 biberons, 1 couche, 1 pipi'),
       findsOneWidget,
     );
   });

@@ -21,8 +21,8 @@ MARDI 20 OCTOBRE          🍼 620 ml · 6   🚼 5   💧 4
 - Un chiffre à zéro est masqué : sans biberon, pas de bloc lait ; sans
   change, pas de bloc couches ; sans pipi, pas de bloc pipis. Un jour sans
   aucun des trois n'a pas de bilan.
-- Le nom du jour est coupé avec « … » (`Flexible`, une ligne) quand la place
-  manque ; le bilan garde sa taille.
+- Le nom du jour est coupé avec « … » (une ligne) quand la place manque ; le
+  bilan prend au plus 70 % de la largeur et rétrécit (`FittedBox`) au-delà.
 - Le bilan porte une étiquette d'accessibilité unique, par exemple
   « 620 ml en 6 biberons, 5 couches, 4 pipis », qui ne cite que les
   éléments affichés.
@@ -70,17 +70,17 @@ plus ancien.
 
 ## Strings (`app_fr.arb`)
 
-- `daySummaryBottles` : « {ml} ml · {count} »
-- `daySummarySemantics` composé des morceaux `daySummaryMilkSemantics`
+- `daySummaryMilk` : « {ml} ml · {count} »
+- Étiquette d'accessibilité composée de `daySummaryMilkSemantics`
   (« {ml} ml en {count} biberons », pluriel ICU), `daySummaryDiapersSemantics`
-  (« {count} couches », pluriel), `daySummaryPeeSemantics` (« {count} pipis »,
+  (« {count} couches », pluriel) et `daySummaryPeeSemantics` (« {count} pipis »,
   pluriel), joints par « , ».
 
 ## Tests
 
 - Domaine : somme des ml et compte des biberons, change et pipi dans le même
   soin, séparation à minuit, soin vide ignoré.
-- Provider (`fake_cloud_firestore`, `FixedClock`) : filtre « Pipi » actif →
+- Provider (dépôt mocké avec `mocktail`, comme les autres tests du Journal, `FixedClock`) : filtre « Pipi » actif →
   le bilan compte quand même les biberons ; `from` suit le plus ancien soin
   ou sommeil chargé.
 - Widget (`pumpApp`) : chiffres affichés, blocs à zéro masqués, pas de bilan
